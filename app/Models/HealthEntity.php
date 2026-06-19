@@ -13,7 +13,7 @@ class HealthEntity extends Model implements Auditable
 {
     use Auditing, SoftDeletes;
 
-    public const ITEM_ID = 8;
+    public const ITEM_ID = 9;
 
     protected $table = 'subitems';
 

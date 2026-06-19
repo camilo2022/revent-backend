@@ -5,18 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
 
-class FileSubtype extends Model implements Auditable
+class Integration extends Model implements Auditable
 {
     use Auditing, SoftDeletes;
 
-    public const ITEM_ID = 3;
+    public const ITEM_ID = 1;
 
     protected $table = 'subitems';
+
+    protected $guard_name = 'api';
 
     protected $fillable = [
         'item_id',
@@ -56,11 +57,6 @@ class FileSubtype extends Model implements Auditable
         return $this->belongsTo(Item::class);
     }
 
-    public function file_types(): MorphToMany
-    {
-        return $this->morphToMany(FileType::class, 'model', 'model_has_subitems', 'model_id', 'subitem_id');
-    }
-
     public function scopeSearch(Builder $query, ?string $search = null): Builder
     {
         $search = trim((string) $search);
@@ -71,10 +67,9 @@ class FileSubtype extends Model implements Auditable
         return $query->where(function (Builder $q) use ($terms) {
             foreach ($terms as $term) {
                 $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
-
                 $q->where(function (Builder $sq) use ($like) {
-                    $sq->orWhere('name', 'ILIKE', $like)
-                       ->orWhere('description', 'ILIKE', $like);
+                    $sq->orWhere('name', 'LIKE', $like)
+                        ->orWhere('description', 'LIKE', $like);
                 });
             }
         });

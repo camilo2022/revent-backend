@@ -4,49 +4,33 @@ use App\Http\Controllers\AreaController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\RiskManagerController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BackTypeController;
 use App\Http\Controllers\BloodTypeController;
-use App\Http\Controllers\BootTypeController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\CollectionController;
-use App\Http\Controllers\ColorController;
 use App\Http\Controllers\CompensationFundController;
 use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\FabricTypeController;
-use App\Http\Controllers\GarmentTypeController;
 use App\Http\Controllers\GenderController;
-use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HealthEntityController;
-use App\Http\Controllers\ManagementCollectionController;
-use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\Integration\InventorySiigoController;
+use App\Http\Controllers\Integration\SiigoController;
 use App\Http\Controllers\ModuleController;
-use App\Http\Controllers\OperationController;
 use App\Http\Controllers\PensionFundController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PersonController;
-use App\Http\Controllers\PieceController;
 use App\Http\Controllers\PositionController;
-use App\Http\Controllers\ProcessController;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\SilhouetteController;
-use App\Http\Controllers\SizeController;
-use App\Http\Controllers\SubcategoryController;
-use App\Http\Controllers\SubgroupController;
 use App\Http\Controllers\SubmoduleController;
-use App\Http\Controllers\SubprocessController;
-use App\Http\Controllers\SupplyTypeController;
-use App\Http\Controllers\TechnicalSheetController;
-use App\Http\Controllers\TechnicalSheetDetailController;
-use App\Http\Controllers\ThreadTypeController;
-use App\Http\Controllers\TrademarkController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\VariantController;
-use App\Http\Controllers\WaistbandTypeController;
-use App\Http\Controllers\WashToneController;
-use App\Http\Controllers\YokeTypeController;
 use Illuminate\Support\Facades\Route;
 
+Route::prefix('/integrations')->group(function () {
+    Route::prefix('/siigo')->group(function () {
+        Route::controller(SiigoController::class)->group(function () {
+            Route::get('/sync', 'sync');
+        });
+        Route::controller(InventorySiigoController::class)->group(function () {
+            Route::get('/inventory/export', 'export_inventory');
+        });
+    });
+});
 
 Route::prefix('/audits')->group(function () {
     Route::controller(AuditController::class)->group(function () {
@@ -107,7 +91,7 @@ Route::prefix('/compensation_funds')->group(function () {
 
 Route::prefix('/employees')->group(function () {
     Route::controller(EmployeeController::class)->group(function () {
-        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:employees.all|users.store|workflow.processes.settings|workflow.processes.subprocesses.settings|workflow.processes.subprocesses.operations.settings']);
+        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:employees.all|users.store']);
         Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:employees.find']);
         Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:employees.store']);
         Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:employees.update']);

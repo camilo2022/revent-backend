@@ -84,7 +84,7 @@ class ModulesAndSubmodulesSeeder extends Seeder
                         'permission_id' => 61
                     ],
                     [
-                        'name' => 'Admin de Riesgos',
+                        'name' => 'Adm. de Riesgos',
                         'url' => '/risk_managers',
                         'icon' => 'FaBuilding',
                         'permission_id' => 85
@@ -110,7 +110,7 @@ class ModulesAndSubmodulesSeeder extends Seeder
                 ]
             ],
 
-            [
+            /*[
                 'module' => [
                     'name' => 'Caracterizacion',
                     'icon' => 'FaTag',
@@ -235,7 +235,7 @@ class ModulesAndSubmodulesSeeder extends Seeder
                         'permission_id' => 19
                     ],
                 ]
-            ],
+            ],*/
         ];
 
         foreach ($modules_and_submodules as $item) {
