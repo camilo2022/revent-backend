@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -25,19 +26,20 @@ class SiigoController extends Controller
     {
         try {
             $token_siigo = $this->auth_siigo();
-            $invoices = $this->invoices_siigo($token_siigo, [
+            $token_unico = $this->auth_unico();
+
+            $invoices = $this->invoices_siigo($token_siigo, $token_unico, [
                 'created_start' => $request->input('created_start'),
                 'created_end' => $request->input('created_end'),
                 'page' => $request->input('page', 1),
                 'page_size' => $request->input('page_size', 100)
             ]);
 
-            $processedInvoices = $this->process_invoices($invoices);
+            /*$processedInvoices = $this->process_invoices($invoices);
 
-            $token_unico = $this->auth_unico();
-            $purchases = $this->purchases_unico($token_unico, $processedInvoices);
+            $purchases = $this->purchases_unico($token_unico, $processedInvoices);*/
             return $this->successResponse(
-                $purchases,
+                $invoices,
                 $this->getMessage('Success'),
                 200
             );
@@ -71,7 +73,7 @@ class SiigoController extends Controller
         return $response->json('access_token');
     }
 
-    private function invoices_siigo(string $token, array $filters = [])
+    private function invoices_siigo(string $token_siigo, string $token_unico, array $filters = [])
     {
         $allowedFilters = [
             'created_start',
@@ -95,45 +97,66 @@ class SiigoController extends Controller
 
         $url = "{$this->siigo_base_url}/v1/invoices?" . http_build_query($queryParams);
 
-        $allInvoices = [];
+        $allPurchases = [];
 
         do {
 
-            $response = Http::withHeaders([
+            $response = Http::retry(5, 10000)->withHeaders([
                 'Content-Type'  => 'application/json',
-                'Authorization' => $token,
+                'Authorization' => $token_siigo,
                 'Partner-Id'    => 'consultadeFacturas',
             ])->get($url);
 
+            if ($response->status() === 429) {
+                sleep(1);
+                continue;
+            }
+
             if (! $response->successful()) {
-                throw new \Exception(
-                    'Error consultando facturas: ' . $response->body()
-                );
+                throw new Exception('Error consultando facturas: ' . $response->body());
             }
 
             $data = $response->json();
 
-            // Acumular facturas
             if (!empty($data['results'])) {
-                $allInvoices = array_merge($allInvoices, $data['results']);
+                $processedInvoices = $this->process_invoices($data['results']);
+                $this->purchases_unico($token_unico, $processedInvoices);
+                $allPurchases = array_merge($allPurchases, $processedInvoices);
             }
 
-            // Obtener siguiente página
             $url = $data['_links']['next']['href'] ?? null;
 
-            // Ya no necesitamos query params porque next.href los trae
-            $queryParams = [];
+            if ($url) usleep(500000);
 
+            unset($data, $response);
         } while ($url);
 
-        return $allInvoices;
+        return $allPurchases;
     }
 
     private function process_invoices(array $invoices): array
     {
         return array_values(array_filter(array_map(function ($invoice) {
-            foreach($invoice['items'] as $item) {
-                [$nombre, $color, $category, $size] = array_pad(explode('*', $item['description']), 4, '#N/A');
+            foreach($invoice['items'] ?? [] as $item) {
+                $parts = preg_split('/[*-]/', $item['description'] ?? '');
+
+                $count = count($parts);
+
+                $name = $parts[0] ?? '#N/A';
+                $color = $parts[1] ?? '#N/A';
+                $category = '#N/A';
+                $size = '#N/A';
+
+                if ($count === 3) {
+                    $size = $parts[2] ?? '#N/A';
+                } elseif ($count === 4) {
+                    $category = $parts[2] ?? '#N/A';
+                    $size = $parts[3] ?? '#N/A';
+                } elseif ($count >= 5) {
+                    $category = $parts[$count - 2] ?? '#N/A';
+                    $size = $parts[$count - 1] ?? '#N/A';
+                }
+
                 if(isset($item['taxes'])) {
                     return [
                         'document_number' => $invoice['customer']['identification'],
@@ -147,12 +170,12 @@ class SiigoController extends Controller
                         'purchase_subtotal' => $item['price'],
                         'purchase_total' => $item['total'],
                         'purchase_channel_id' => 1,
-                        'name' => $nombre,
+                        'name' => $name,
                         'category' => $category,
                         'quantity' => $item['quantity'],
                         'price' => $item['price'],
                         'discount' => null,
-                        'code' => $item['code'],
+                        'sku' => $item['code'],
                         'size' => $size,
                         'color' => $color,
                         'description' => $item['description'],
