@@ -26,11 +26,6 @@ use Illuminate\Http\Request;
  *     description="Endpoints para gestionar personas"
  * )
  *
- * @OA\PathItem(
- *     path="/people",
- *     description="Rutas de gestión de personas"
- * )
- *
  * @OA\Schema(
  *     schema="Person",
  *     type="object",
@@ -150,7 +145,7 @@ class PersonController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),

@@ -14,17 +14,12 @@ use App\Traits\ApiResponser;
 
 /**
  * @OA\Tag(
- *     name="Permission",
- *     description="Endpoints de Gestión de Permisos"
- * )
- *
- * @OA\PathItem(
- *     path="/permission",
- *     description="Rutas de Gestión de Permisos"
+ *     name="Authorization - Permissions",
+ *     description="Endpoints para gestionar de Permisos"
  * )
  *
  * @OA\Schema(
- *     schema="PermissionWithRole",
+ *     schema="Permission",
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="name", type="string", example="users"),
@@ -59,7 +54,7 @@ class PermissionController extends Controller
     /**
      * @OA\Get(
      *     path="/authorization/permissions/all",
-     *     tags={"Authorization"},
+     *     tags= {"Authorization - Permissions"},
      *     summary="Listar los permisos",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -86,7 +81,7 @@ class PermissionController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -107,7 +102,7 @@ class PermissionController extends Controller
      *                 @OA\Property(
      *                     property="permissions",
      *                     type="array",
-     *                     @OA\Items(ref="#/components/schemas/PermissionWithRole")
+     *                     @OA\Items(ref="#/components/schemas/Permission")
      *                 ),
      *                 @OA\Property(
      *                     property="meta",
@@ -176,7 +171,7 @@ class PermissionController extends Controller
     /**
      * @OA\Get(
      *     path="/authorization/permissions/find/{id}",
-     *     tags={"Authorization"},
+     *     tags= {"Authorization - Permissions"},
      *     summary="Obtener un permiso específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -195,7 +190,7 @@ class PermissionController extends Controller
      *                 type="object",
      *                 @OA\Property(
      *                   property="permission",
-     *                   ref="#/components/schemas/PermissionWithRole"
+     *                   ref="#/components/schemas/Permission"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -264,7 +259,7 @@ class PermissionController extends Controller
     /**
      * @OA\Post(
      *     path="/authorization/permissions/store",
-     *     tags={"Authorization"},
+     *     tags={"Authorization - Permissions"},
      *     summary="Crear un permiso",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
@@ -404,7 +399,7 @@ class PermissionController extends Controller
     /**
      * @OA\Put(
      *     path="/authorization/permissions/update/{id}",
-     *     tags={"Authorization"},
+     *     tags={"Authorization - Permissions"},
      *     summary="Editar un permiso específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(

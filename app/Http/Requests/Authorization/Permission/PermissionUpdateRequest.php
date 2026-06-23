@@ -40,7 +40,6 @@ class PermissionUpdateRequest extends FormRequest
             'role_id.exist' => 'No hay ningún registro.',
             'required' => 'Es obligatorio.',
             'exists' => 'No hay ningún registro.',
-            'required' => 'Es obligatorio.',
             'regex' => 'Formato inválido. Solo permite letras minúsculas y punto.',
             'string' => 'Debe ser una cadena de texto.',
             'unique' => 'Ya está registrado.',

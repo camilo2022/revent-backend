@@ -4,24 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Module;
-use App\Models\Submodule;
 use App\Traits\ApiResponser;
 use App\Traits\ApiMessage;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use OpenApi\Annotations as OA;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @OA\Tag(
  *     name="Auth",
  *     description="Endpoints de autenticación"
- * )
- *
- * @OA\PathItem(
- *     path="/auth",
- *     description="Rutas de autenticación"
  * )
  */
 class AuthController extends Controller

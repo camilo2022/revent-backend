@@ -20,11 +20,6 @@ use App\Traits\ApiResponser;
  *     description="Endpoints para gestionar cajas de compensación"
  * )
  *
- * @OA\PathItem(
- *     path="/compensation_funds",
- *     description="Rutas de gestión de cajas de compensación"
- * )
- *
  * @OA\Schema(
  *     schema="CompensationFund",
  *     type="object",
@@ -75,7 +70,7 @@ class CompensationFundController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -143,8 +138,8 @@ class CompensationFundController extends Controller
     {
         try {
             $compensation_funds = CompensationFund::when($request->filled('search'), function ($query) use ($request) {
-                return $query->search($request->input('search'));
-            })
+                    return $query->search($request->input('search'));
+                })
                 ->when($request->boolean('with_trashed'), function ($query) {
                     return $query->withTrashed();
                 })

@@ -20,11 +20,6 @@ use App\Traits\ApiResponser;
  *     description="Endpoints para gestionar entidades de salud"
  * )
  *
- * @OA\PathItem(
- *     path="/health_entities",
- *     description="Rutas de gestión de entidades de salud"
- * )
- *
  * @OA\Schema(
  *     schema="HealthEntity",
  *     type="object",
@@ -75,7 +70,7 @@ class HealthEntityController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -143,8 +138,8 @@ class HealthEntityController extends Controller
     {
         try {
             $health_entitys = HealthEntity::when($request->filled('search'), function ($query) use ($request) {
-                return $query->search($request->input('search'));
-            })
+                    return $query->search($request->input('search'));
+                })
                 ->when($request->boolean('with_trashed'), function ($query) {
                     return $query->withTrashed();
                 })

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Area;
 use App\Models\RiskManager;
 use App\Models\BloodType;
+use App\Models\Color;
 use App\Models\CompensationFund;
 use App\Models\HealthEntity;
 use App\Models\FileSubtype;
@@ -14,6 +15,7 @@ use App\Models\Integration;
 use App\Models\Item;
 use App\Models\PensionFund;
 use App\Models\Position;
+use App\Models\Trademark;
 use Illuminate\Database\Seeder;
 
 class ItemsAndSubitemsSeeder extends Seeder
@@ -294,5 +296,27 @@ class ItemsAndSubitemsSeeder extends Seeder
         $compensation_fund->name = 'No aplica';
         $compensation_fund->description = 'No aplica';
         $compensation_fund->save();
+
+        $item = new Item();
+        $item->name = 'Marcas';
+        $item->description = 'Listado de marcas disponibles.';
+        $item->save();
+
+        $trademark = new Trademark();
+        $trademark->name = 'REVENT';
+        $trademark->description = 'Marca de la empresa REVENT S.A.S.';
+        $trademark->settings->code = 'RV';
+        $trademark->save();
+
+        $item = new Item();
+        $item->name = 'Colores';
+        $item->description = 'Listado de colores disponibles.';
+        $item->save();
+
+        $color = new Color();
+        $color->name = 'No aplica';
+        $color->description = 'No aplica';
+        $color->settings->code = '00';
+        $color->save();
     }
 }

@@ -54,7 +54,7 @@ class AuditAllRequest extends FormRequest
             'page' => 'N° de pagina.',
             'search' => 'Filtro de Busqueda.',
             'column' => 'Columna a ordenar.',
-            'dir' => 'Sentido del orden.',
+            'dir' => 'Orden de datos.',
             'event' => 'Tipo de evento.',
             'start_date' => 'Fecha inicio de rango',
             'end_date' => 'Fecha fin de rango'

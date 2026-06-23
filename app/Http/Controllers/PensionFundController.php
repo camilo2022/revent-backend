@@ -20,11 +20,6 @@ use App\Traits\ApiResponser;
  *     description="Endpoints para gestionar fondos de pensión"
  * )
  *
- * @OA\PathItem(
- *     path="/pension_funds",
- *     description="Rutas de gestión de fondos de pensión"
- * )
- *
  * @OA\Schema(
  *     schema="PensionFund",
  *     type="object",
@@ -75,7 +70,7 @@ class PensionFundController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),

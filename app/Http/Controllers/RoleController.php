@@ -11,21 +11,15 @@ use App\Http\Resources\Authorization\Role\RoleResource;
 use App\Models\Role;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
-use OpenApi\Annotations as OA;
 
 /**
  * @OA\Tag(
- *     name="Role",
- *     description="Endpoints de Gestión de Roles"
- * )
- *
- * @OA\PathItem(
- *     path="/rol",
- *     description="Rutas de Gestion de Roles"
+ *     name="Authorization - Roles",
+ *     description="Endpoints para gestionar de Roles"
  * )
  *
  * @OA\Schema(
- *     schema="RoleWithPermissions",
+ *     schema="Role",
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="name", type="string", example="users"),
@@ -63,7 +57,7 @@ class RoleController extends Controller
     /**
      * @OA\Get(
      *     path="/authorization/roles/all",
-     *     tags={"Authorization"},
+     *     tags={"Authorization - Roles"},
      *     summary="Listar los roles",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -78,12 +72,12 @@ class RoleController extends Controller
      *         in="query",
      *         description="Columna a ordenar.",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"id","name","title", "description","created_at", "updated_at"}, example="name")
+     *         @OA\Schema(type="string", enum={"id","name","title", "description","created_at", "updated_at"}, example="id")
      *     ),
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -106,7 +100,7 @@ class RoleController extends Controller
      *                     type="array",
      *                     @OA\Items(
      *                         type="object",
-     *                         @OA\Items(ref="#/components/schemas/RoleWithPermissions")
+     *                         @OA\Items(ref="#/components/schemas/Role")
      *                     )
      *                 ),
      *                 @OA\Property(
@@ -175,7 +169,7 @@ class RoleController extends Controller
     /**
      * @OA\Get(
      *     path="/authorization/roles/find/{id}",
-     *     tags={"Authorization"},
+     *     tags= {"Authorization - Roles"},
      *     summary="Obtener un rol específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -194,7 +188,7 @@ class RoleController extends Controller
      *                 type="object",
      *                 @OA\Property(
      *                     property="role",
-     *                     ref="#/components/schemas/RoleWithPermissions"
+     *                     ref="#/components/schemas/Role"
      *                 ),
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -263,7 +257,7 @@ class RoleController extends Controller
     /**
      * @OA\Post(
      *     path="/authorization/roles/store",
-     *     tags={"Authorization"},
+     *     tags= {"Authorization - Roles"},
      *     summary="Crear un rol",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
@@ -389,7 +383,7 @@ class RoleController extends Controller
     /**
      * @OA\Put(
      *     path="/authorization/roles/update/{id}",
-     *     tags={"Authorization"},
+     *     tags= {"Authorization - Roles"},
      *     summary="Editar un rol específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(

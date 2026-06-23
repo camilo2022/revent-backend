@@ -20,17 +20,11 @@ use App\Traits\ApiResponser;
  *     description="Endpoints para gestionar empleados"
  * )
  *
- * @OA\PathItem(
- *     path="/employees",
- *     description="Rutas de gestión de empleados"
- * )
- *
  * @OA\Schema(
  *     schema="Employee",
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="person_id", type="integer", example=1),
- *     @OA\Property(property="operation_center", type="string", example="001"),
  *     @OA\Property(property="position_id", type="integer", example=1),
  *     @OA\Property(property="risk_manager_id", type="integer", example=1),
  *     @OA\Property(property="health_entity_id", type="integer", example=1),
@@ -44,54 +38,7 @@ use App\Traits\ApiResponser;
  *     @OA\Property(
  *         property="person",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=1),
- *         @OA\Property(property="document", type="string", example="0000000000"),
- *         @OA\Property(property="names", type="string", example="Super"),
- *         @OA\Property(property="last_names", type="string", example="Admin"),
- *         @OA\Property(property="gender_id", type="integer", example=15),
- *         @OA\Property(property="birth_date", type="string", format="date", example="1990-01-01"),
- *         @OA\Property(property="blood_type_id", type="integer", example=16),
- *         @OA\Property(property="address", type="string", example="Dirección principal"),
- *         @OA\Property(property="phone", type="string", example="0000000000"),
- *         @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:31.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-31T15:37:40.000000Z"),
- *         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
- *         @OA\Property(
- *             property="photo",
- *             type="object",
- *             @OA\Property(property="id", type="integer", example=2),
- *             @OA\Property(property="model_type", type="string", example="App\\Models\\Person"),
- *             @OA\Property(property="model_id", type="integer", example=2),
- *             @OA\Property(property="name", type="string", example="2"),
- *             @OA\Property(property="file_type_id", type="integer", example=1),
- *             @OA\Property(property="file_subtype_id", type="integer", example=8),
- *             @OA\Property(property="path", type="string", format="uri", example="person/file.jpg"),
- *             @OA\Property(property="mime", type="string", example="image/jpeg"),
- *             @OA\Property(property="extension", type="string", example="jpg"),
- *             @OA\Property(property="size", type="integer", example=12870),
- *             @OA\Property(
- *                 property="metadata",
- *                 type="object",
- *                 @OA\Property(property="mime", type="string", example="image/jpeg"),
- *                 @OA\Property(property="size", type="integer", example=12870),
- *                 @OA\Property(
- *                     property="image",
- *                     type="object",
- *                     @OA\Property(property="width", type="integer", example=128),
- *                     @OA\Property(property="height", type="integer", example=128)
- *                 ),
- *                 @OA\Property(property="hash_md5", type="string", example="eea1251373716a2da44ec80919fc4a33"),
- *                 @OA\Property(property="extension", type="string", example="jpg"),
- *                 @OA\Property(property="client_mime", type="string", example="image/jpeg"),
- *                 @OA\Property(property="hash_sha256", type="string", example="913be661c7387b1c60f9c5eed3c0a37c1ab9dff5625ea6c7a39fe7909b0a86b8"),
- *                 @OA\Property(property="uploaded_at", type="string", format="date-time", example="2026-03-31 18:58:06"),
- *                 @OA\Property(property="original_name", type="string", example="2.jpg"),
- *                 @OA\Property(property="original_extension", type="string", example="jpg")
- *             ),
- *             @OA\Property(property="settings", type="object", example={}),
- *             @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T19:19:35.000000Z"),
- *             @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-31T18:58:06.000000Z")
- *         )
+ *         ref="#/components/schemas/Person"
  *     ),
  *     @OA\Property(
  *         property="position",
@@ -100,96 +47,27 @@ use App\Traits\ApiResponser;
  *     @OA\Property(
  *         property="user",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=1),
- *         @OA\Property(property="employee_id", type="integer", example=1),
- *         @OA\Property(property="email", type="string", example="email_user_example"),
- *         @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:31.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-31T15:37:40.000000Z"),
- *         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
- *         @OA\Property(
- *             property="roles",
- *             type="array",
- *             @OA\Items(
- *                 allOf={
- *                     @OA\Schema(ref="#/components/schemas/Role"),
- *                     @OA\Schema(
- *                         @OA\Property(
- *                             property="pivot",
- *                             type="object",
- *                             @OA\Property(property="model_type", type="string", example="App\\Models\\User"),
- *                             @OA\Property(property="model_id", type="integer", example=1),
- *                             @OA\Property(property="role_id", type="integer", example=1)
- *                         )
- *                     )
- *                 }
- *             )
- *         ),
- *         @OA\Property(
- *             property="permissions",
- *             type="array",
- *             @OA\Items(
- *                 allOf={
- *                     @OA\Schema(ref="#/components/schemas/Permission"),
- *                     @OA\Schema(
- *                         @OA\Property(
- *                             property="pivot",
- *                             type="object",
- *                             @OA\Property(property="model_type", type="string", example="App\\Models\\User"),
- *                             @OA\Property(property="model_id", type="integer", example=1),
- *                             @OA\Property(property="role_id", type="integer", example=1)
- *                         )
- *                     )
- *                 }
- *             )
- *         )
+ *         ref="#/components/schemas/User"
  *     ),
  *     @OA\Property(
  *         property="risk_manager",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=25),
- *         @OA\Property(property="item_id", type="integer", example=7),
- *         @OA\Property(property="name", type="string", example="NAME_EXAMPLE"),
- *         @OA\Property(property="description", type="string", example="DESCRIPTION_EXAMPLE"),
- *         @OA\Property(property="settings", type="object", example={}),
- *         @OA\Property(property="created_at",type="string",format="date-time",example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="deleted_at",type="string",format="date-time",nullable=true,example=null)
+ *         ref="#/components/schemas/RiskManager"
  *     ),
  *     @OA\Property(
  *         property="health_entity",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=25),
- *         @OA\Property(property="item_id", type="integer", example=7),
- *         @OA\Property(property="name", type="string", example="NAME_EXAMPLE"),
- *         @OA\Property(property="description", type="string", example="DESCRIPTION_EXAMPLE"),
- *         @OA\Property(property="settings", type="object", example={}),
- *         @OA\Property(property="created_at",type="string",format="date-time",example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="deleted_at",type="string",format="date-time",nullable=true,example=null)
+ *         ref="#/components/schemas/HealthEntity"
  *     ),
  *     @OA\Property(
  *         property="pension_fund",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=25),
- *         @OA\Property(property="item_id", type="integer", example=7),
- *         @OA\Property(property="name", type="string", example="NAME_EXAMPLE"),
- *         @OA\Property(property="description", type="string", example="DESCRIPTION_EXAMPLE"),
- *         @OA\Property(property="settings", type="object", example={}),
- *         @OA\Property(property="created_at",type="string",format="date-time",example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="deleted_at",type="string",format="date-time",nullable=true,example=null)
+ *         ref="#/components/schemas/PensionFund"
  *     ),
  *     @OA\Property(
  *         property="compensation_fund",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=25),
- *         @OA\Property(property="item_id", type="integer", example=7),
- *         @OA\Property(property="name", type="string", example="NAME_EXAMPLE"),
- *         @OA\Property(property="description", type="string", example="DESCRIPTION_EXAMPLE"),
- *         @OA\Property(property="settings", type="object", example={}),
- *         @OA\Property(property="created_at",type="string",format="date-time",example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="deleted_at",type="string",format="date-time",nullable=true,example=null)
+ *         ref="#/components/schemas/CompensationFund"
  *     )
  * )
  */
@@ -215,12 +93,12 @@ class EmployeeController extends Controller
      *         in="query",
      *         description="Columna a ordenar.",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"id","person_id","operation_center","position_id","risk_manager_id","health_entity_id","pension_fund_id","compensation_fund_id","start_date","end_date","created_at","updated_at","deleted_at"}, example="operation_center")
+     *         @OA\Schema(type="string", enum={"id","person_id","position_id","risk_manager_id","health_entity_id","pension_fund_id","compensation_fund_id","start_date","end_date","created_at","updated_at","deleted_at"}, example="id")
      *     ),
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -295,9 +173,8 @@ class EmployeeController extends Controller
     {
         try {
             $employees = Employee::with(['person' => ['photo'], 'position' => ['area'], 'risk_manager', 'health_entity', 'pension_fund', 'compensation_fund', 'user' => function ($q) {
-                $q->withTrashed()
-                    ->with(['roles', 'permissions']);
-            }])
+                    $q->withTrashed()->with(['roles', 'permissions']);
+                }])
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -414,12 +291,6 @@ class EmployeeController extends Controller
      *                 description="Identificador de la persona"
      *             ),
      *             @OA\Property(
-     *                 property="operation_center",
-     *                 type="string",
-     *                 nullable=true,
-     *                 example="001"
-     *             ),
-     *             @OA\Property(
      *                 property="position_id",
      *                 type="integer",
      *                 example=10,
@@ -477,7 +348,6 @@ class EmployeeController extends Controller
      *                     property="employee",
      *                     type="object",
      *                     @OA\Property(property="person_id", type="integer", example=1),
-     *                     @OA\Property(property="operation_center", type="string", example="001"),
      *                     @OA\Property(property="position_id", type="integer", example=1),
      *                     @OA\Property(property="risk_manager_id", type="integer", example=1),
      *                     @OA\Property(property="health_entity_id", type="integer", example=1),
@@ -503,7 +373,6 @@ class EmployeeController extends Controller
      *                 property="attributes",
      *                 type="object",
      *                  @OA\Property(property="person_id", type="string", example="Persona"),
-     *                  @OA\Property(property="operation_center", type="string", example="Centro de operaciones"),
      *                  @OA\Property(property="position_id", type="string", example="Cargo"),
      *                  @OA\Property(property="risk_manager_id", type="string", example="Administradora de Riesgos"),
      *                  @OA\Property(property="health_entity_id", type="string", example="Entidad de Salud"),
@@ -544,7 +413,6 @@ class EmployeeController extends Controller
         try {
             $employee = new Employee();
             $employee->person_id = $request->integer('person_id');
-            $employee->operation_center = $request->input('operation_center', null);
             $employee->position_id = $request->integer('position_id');
             $employee->risk_manager_id = $request->integer('risk_manager_id');
             $employee->health_entity_id = $request->integer('health_entity_id');
@@ -587,12 +455,6 @@ class EmployeeController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"person_id","position_id","risk_manager_id","health_entity_id","pension_fund_id","compensation_fund_id","start_date"},
-     *             @OA\Property(
-     *                 property="operation_center",
-     *                 type="string",
-     *                 nullable=true,
-     *                 example="001"
-     *             ),
      *             @OA\Property(
      *                 property="position_id",
      *                 type="integer",
@@ -652,7 +514,6 @@ class EmployeeController extends Controller
      *                     type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="person_id", type="integer", example=1),
-     *                     @OA\Property(property="operation_center", type="string", example="001"),
      *                     @OA\Property(property="position_id", type="integer", example=1),
      *                     @OA\Property(property="risk_manager_id", type="integer", example=1),
      *                     @OA\Property(property="health_entity_id", type="integer", example=1),
@@ -678,7 +539,6 @@ class EmployeeController extends Controller
      *                 property="attributes",
      *                 type="object",
      *                  @OA\Property(property="person_id", type="string", example="Persona"),
-     *                  @OA\Property(property="operation_center", type="string", example="Centro de operaciones"),
      *                  @OA\Property(property="position_id", type="string", example="Cargo"),
      *                  @OA\Property(property="risk_manager_id", type="string", example="Administradora de Riesgos"),
      *                  @OA\Property(property="health_entity_id", type="string", example="Entidad de Salud"),
@@ -719,7 +579,6 @@ class EmployeeController extends Controller
         try {
             $employee = Employee::findOrFail($id);
             $employee->person_id = $request->integer('person_id');
-            $employee->operation_center = $request->input('operation_center', null);
             $employee->position_id = $request->integer('position_id');
             $employee->risk_manager_id = $request->integer('risk_manager_id');
             $employee->health_entity_id = $request->integer('health_entity_id');
@@ -770,7 +629,6 @@ class EmployeeController extends Controller
      *                     type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="person_id", type="integer", example=1),
-     *                     @OA\Property(property="operation_center", type="string", example="001"),
      *                     @OA\Property(property="position_id", type="integer", example=1),
      *                     @OA\Property(property="risk_manager_id", type="integer", example=1),
      *                     @OA\Property(property="health_entity_id", type="integer", example=1),
@@ -871,7 +729,6 @@ class EmployeeController extends Controller
      *                     type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="person_id", type="integer", example=1),
-     *                     @OA\Property(property="operation_center", type="string", example="001"),
      *                     @OA\Property(property="position_id", type="integer", example=1),
      *                     @OA\Property(property="risk_manager_id", type="integer", example=1),
      *                     @OA\Property(property="health_entity_id", type="integer", example=1),

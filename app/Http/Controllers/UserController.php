@@ -24,11 +24,6 @@ use Illuminate\Support\Facades\Hash;
  *     description="Endpoints para gestionar usuarios"
  * )
  *
- * @OA\PathItem(
- *     path="/users",
- *     description="Rutas de gestión de usuarios"
- * )
- *
  * @OA\Schema(
  *     schema="User",
  *     type="object",
@@ -39,21 +34,7 @@ use Illuminate\Support\Facades\Hash;
  *     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true),
  *     @OA\Property(
  *         property="employee",
- *         type="object",
- *         @OA\Property(property="id", type="integer", example=1),
- *         @OA\Property(property="employee_id", type="integer", example=1),
- *         @OA\Property(property="person_id", type="integer", example=1),
- *         @OA\Property(property="operation_center", type="string", example="Principal"),
- *         @OA\Property(property="position_id", type="integer", example=2),
- *         @OA\Property(property="risk_manager_id", type="integer", example=5),
- *         @OA\Property(property="health_entity_id", type="integer", example=6),
- *         @OA\Property(property="pension_fund_id", type="integer", example=7),
- *         @OA\Property(property="compensation_fund_id", type="integer", example=8),
- *         @OA\Property(property="start_date", type="string", format="date-time", example="2026-03-30 00:00:00"),
- *         @OA\Property(property="end_date", type="string", format="date-time", nullable=true, example=null),
- *         @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:31.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-30T13:17:31.000000Z"),
- *         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
+ *         ref="#/components/schemas/Employee",
  *         @OA\Property(
  *             property="position",
  *             ref="#/components/schemas/Position"
@@ -61,18 +42,7 @@ use Illuminate\Support\Facades\Hash;
  *         @OA\Property(
  *             property="person",
  *             type="object",
- *             @OA\Property(property="id", type="integer", example=1),
- *             @OA\Property(property="document", type="string", example="0000000000"),
- *             @OA\Property(property="names", type="string", example="Super"),
- *             @OA\Property(property="last_names", type="string", example="Admin"),
- *             @OA\Property(property="gender_id", type="integer", example=15),
- *             @OA\Property(property="birth_date", type="string", format="date", example="1990-01-01"),
- *             @OA\Property(property="blood_type_id", type="integer", example=16),
- *             @OA\Property(property="address", type="string", example="Dirección principal"),
- *             @OA\Property(property="phone", type="string", example="0000000000"),
- *             @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:31.000000Z"),
- *             @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-31T15:37:40.000000Z"),
- *             @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+ *             ref="#/components/schemas/Person"
  *         )
  *     ),
  *     @OA\Property(
@@ -142,7 +112,7 @@ class UserController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -399,7 +369,7 @@ class UserController extends Controller
      *                         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
      *                         @OA\Property(
      *                             property="position",
-     *                             ref="#/components/schemas/PositionWithRelations"
+     *                             ref="#/components/schemas/Position"
      *                         ),
      *                     )
      *                 )
@@ -691,12 +661,11 @@ class UserController extends Controller
     public function delete(UserDeleteRequest $request, $id)
     {
         try {
-            $user = User::with(['roles', 'permissions'])
-                ->findOrFail($id);
+            $user = User::with(['roles', 'permissions'])->findOrFail($id);
+
             $user->syncRoles([]);
-            $user->permissions->each(function ($permission) use ($user) {
-                $user->revokePermissionTo($permission);
-            });
+            $user->syncPermissions([]);
+
             $user->delete();
 
             return $this->successResponse(
@@ -761,7 +730,7 @@ class UserController extends Controller
      *                         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
      *                         @OA\Property(
      *                             property="position",
-     *                             ref="#/components/schemas/PositionWithRelations"
+     *                             ref="#/components/schemas/Position"
      *                         ),
      *                     )
      *                 )
@@ -812,7 +781,6 @@ class UserController extends Controller
         try {
             $user = User::withTrashed()->findOrFail($id);
             $user->restore();
-
 
             $user->load(['employee' => ['position' => ['area', 'roles', 'permissions']]]);
             $user->syncRoles($user->employee->position->roles);

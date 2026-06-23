@@ -20,11 +20,6 @@ use App\Traits\ApiResponser;
  *     description="Endpoints para gestionar administradoras de riesgos"
  * )
  *
- * @OA\PathItem(
- *     path="/risk_manager",
- *     description="Rutas de gestión de administradoras de riesgos"
- * )
- *
  * @OA\Schema(
  *     schema="RiskManager",
  *     type="object",
@@ -75,7 +70,7 @@ class RiskManagerController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),

@@ -52,7 +52,7 @@ class UserAllRequest extends FormRequest
             'page' => 'N° de pagina.',
             'search' => 'Filtro de Busqueda.',
             'column' => 'Columna a ordenar.',
-            'dir' => 'Dirección de ordenamiento.',
+            'dir' => 'Orden de datos.',
             'with_trashed' => 'Registros inactivos.'
         ];
     }

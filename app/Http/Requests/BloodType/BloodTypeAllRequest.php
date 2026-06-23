@@ -52,7 +52,7 @@ class BloodTypeAllRequest extends FormRequest
             'page' => 'N° de pagina.',
             'search' => 'Filtro de Busqueda.',
             'column' => 'Columna a ordenar.',
-            'dir' => 'Sentido del orden.',
+            'dir' => 'Orden de datos.',
             'with_trashed' => 'Registros inactivos'
         ];
     }

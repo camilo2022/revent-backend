@@ -42,7 +42,7 @@ class AreaRestoreRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador de la área'
+            'id' => 'Identificador del área'
         ];
     }
 

@@ -32,7 +32,6 @@ class EmployeeUpdateRequest extends FormRequest
         return [
             'id' => ['required', 'exists:employees,id'],
             'person_id' => ['required', 'numeric', 'exists:people,id,deleted_at,NULL', 'unique:employees,person_id,' . $this->route('id') . ',id'],
-            'operation_center' => ['nullable', 'string'],
             'position_id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . Position::ITEM_ID . ',deleted_at,NULL'],
             'risk_manager_id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . RiskManager::ITEM_ID . ',deleted_at,NULL'],
             'health_entity_id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . HealthEntity::ITEM_ID . ',deleted_at,NULL'],
@@ -64,7 +63,6 @@ class EmployeeUpdateRequest extends FormRequest
         return [
             'id' => 'Identificador del empleado',
             'person_id' => 'Persona',
-            'operation_center' => 'Centro de operaciones',
             'position_id' => 'Cargo',
             'risk_manager_id' => 'Administradora de Riesgos',
             'health_entity_id' => 'Entidad de Salud',

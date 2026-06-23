@@ -20,11 +20,6 @@ use App\Traits\ApiResponser;
  *     description="Endpoints para gestionar tipos de sangre"
  * )
  *
- * @OA\PathItem(
- *     path="/blood_types",
- *     description="Rutas de gestión de tipos de sangre"
- * )
- *
  * @OA\Schema(
  *     schema="BloodType",
  *     type="object",
@@ -75,7 +70,7 @@ class BloodTypeController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -143,8 +138,8 @@ class BloodTypeController extends Controller
     {
         try {
             $blood_types = BloodType::when($request->filled('search'), function ($query) use ($request) {
-                return $query->search($request->input('search'));
-            })
+                    return $query->search($request->input('search'));
+                })
                 ->when($request->boolean('with_trashed'), function ($query) {
                     return $query->withTrashed();
                 })

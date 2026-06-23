@@ -20,11 +20,6 @@ use App\Traits\ApiResponser;
  *     description="Endpoints para gestionar géneros"
  * )
  *
- * @OA\PathItem(
- *     path="/genders",
- *     description="Rutas de gestión de géneros"
- * )
- *
  * @OA\Schema(
  *     schema="Gender",
  *     type="object",
@@ -75,7 +70,7 @@ class GenderController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -143,8 +138,8 @@ class GenderController extends Controller
     {
         try {
             $genders = Gender::when($request->filled('search'), function ($query) use ($request) {
-                return $query->search($request->input('search'));
-            })
+                    return $query->search($request->input('search'));
+                })
                 ->when($request->boolean('with_trashed'), function ($query) {
                     return $query->withTrashed();
                 })

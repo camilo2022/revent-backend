@@ -13,17 +13,11 @@ use App\Http\Resources\Navegation\Submodule\SubmoduleResource;
 use App\Models\Submodule;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
-use Illuminate\Http\Request;
 
 /**
  * @OA\Tag(
- *     name="Submodule",
- *     description="Endpoints de Gestión de Submódulos"
- * )
- *
- * @OA\PathItem(
- *     path="/modules/submodules",
- *     description="Rutas de Gestion de Submódulos"
+ *     name="Navegation - Submodules",
+ *     description="Endpoints para gestionar de Submódulos"
  * )
  *
  * @OA\Schema(
@@ -39,24 +33,13 @@ use Illuminate\Http\Request;
  *     @OA\Property(
  *         property="module",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=1),
- *         @OA\Property(property="name", type="string", example="users"),
- *         @OA\Property(property="icon", type="string", example="FaUser"),
- *         @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
- *         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+ *         ref="#/components/schemas/Module"
  *     ),
  *     @OA\Property(
  *         property="permission",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=1),
- *         @OA\Property(property="name", type="string", example="users"),
- *         @OA\Property(property="title", type="string", example="Usuarios."),
- *         @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
- *         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+ *         ref="#/components/schemas/Permission"
  *     )
- *
  * )
  */
 class SubmoduleController extends Controller
@@ -66,7 +49,7 @@ class SubmoduleController extends Controller
     /**
      * @OA\Get(
      *     path="/navegation/modules/submodules/all/{module_id}",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Submodules"},
      *     summary="Listar los Submódulos",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -93,7 +76,7 @@ class SubmoduleController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -185,11 +168,12 @@ class SubmoduleController extends Controller
     public function all(SubmoduleAllRequest $request, $module_id)
     {
         try {
-            $submodules = Submodule::where('module_id', $module_id)
+            $submodules = Submodule::with(['module', 'permission'])
+                ->whereHas('module', fn($r) => $r->where('id', $module_id))
                 ->when($request->input('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
-                ->when($request->boolean('with_trashed'), function ($query) use ($request) {
+                ->when($request->boolean('with_trashed'), function ($query) {
                     return $query->withTrashed();
                 })
                 ->when($request->input('column') && $request->input('dir'), function ($query) use ($request) {
@@ -217,7 +201,7 @@ class SubmoduleController extends Controller
     /**
      * @OA\Get(
      *     path="/navegation/modules/submodules/find/{id}",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Submodules"},
      *     summary="Listar los Submódulos",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -283,8 +267,7 @@ class SubmoduleController extends Controller
     public function find(SubmoduleFindRequest $request)
     {
         try {
-            $submodule = Submodule::with(['permission', 'module'])
-                ->findOrFail($request->id);
+            $submodule = Submodule::with(['module', 'permission'])->findOrFail($request->id);
 
             return $this->successResponse(
                 new SubmoduleResource($submodule),
@@ -305,7 +288,7 @@ class SubmoduleController extends Controller
     /**
      * @OA\Post(
      *     path="/navegation/modules/submodules/store",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Submodules"},
      *     summary="Crear un submódulo",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -482,7 +465,7 @@ class SubmoduleController extends Controller
     /**
      * @OA\Put(
      *     path="/navegation/modules/submodules/update/{id}",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Submodules"},
      *     summary="Crear un submódulo",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -636,7 +619,7 @@ class SubmoduleController extends Controller
     /**
      * @OA\Delete(
      *     path="/navegation/modules/submodules/delete/{id}",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Submodules"},
      *     summary="Desactivar un submódulo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -728,7 +711,7 @@ class SubmoduleController extends Controller
     /**
      * @OA\Patch(
      *     path="/navegation/modules/submodules/restore/{id}",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Submodules"},
      *     summary="Activar un submódulo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(

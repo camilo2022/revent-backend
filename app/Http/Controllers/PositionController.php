@@ -17,6 +17,35 @@ use App\Models\Position;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 
+/**
+ * @OA\Tag(
+ *     name="Organizational Structure - Positions",
+ *     description="Endpoints para gestionar de Cargos"
+ * )
+ *
+ * @OA\Schema(
+ *     schema="Position",
+ *     type="object",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="item_id", type="integer", example=4),
+ *     @OA\Property(property="name", type="string", example="Super"),
+ *     @OA\Property(property="description", type="string", example="Admin"),
+ *     @OA\Property(property="settings", type="object", nullable=true),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time"),
+ *     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true),
+ *     @OA\Property(
+ *         property="roles",
+ *         type="array",
+ *         @OA\Items(ref="#/components/schemas/Role")
+ *     ),
+ *     @OA\Property(
+ *         property="permissions",
+ *         type="array",
+ *         @OA\Items(ref="#/components/schemas/Permission")
+ *     )
+ * )
+ */
 class PositionController extends Controller
 {
     use ApiMessage, ApiResponser;
@@ -24,7 +53,7 @@ class PositionController extends Controller
     /**
      * @OA\Get(
      *     path="/organizational_structure/areas/positions/all/{area_id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Positions"},
      *     summary="Listar Cargos",
      *     security={{"sanctum":{}}},
      *      @OA\Parameter(
@@ -51,7 +80,7 @@ class PositionController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -79,7 +108,7 @@ class PositionController extends Controller
      *                 @OA\Property(
      *                     property="positions",
      *                     type="array",
-     *                     @OA\Items(ref="#/components/schemas/PositionWithRelations")
+     *                     @OA\Items(ref="#/components/schemas/Position")
      *                 ),
      *                 @OA\Property(
      *                     property="meta",
@@ -151,7 +180,7 @@ class PositionController extends Controller
     /**
      * @OA\Get(
      *     path="/organizational_structure/areas/positions/find/{id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Positions"},
      *     summary="Obtener un cargo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -170,7 +199,7 @@ class PositionController extends Controller
      *                 type="object",
      *                 @OA\Property(
      *                     property="position",
-     *                     ref="#/components/schemas/PositionWithRelations"
+     *                     ref="#/components/schemas/Position"
      *                 ),
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -239,7 +268,7 @@ class PositionController extends Controller
     /**
      * @OA\Post(
      *     path="/organizational_structure/areas/positions/store",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Positions"},
      *     summary="Crear un cargo",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
@@ -349,7 +378,7 @@ class PositionController extends Controller
     /**
      * @OA\Put(
      *     path="/organizational_structure/areas/positions/update/{id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Positions"},
      *     summary="Editar un cargo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -468,7 +497,7 @@ class PositionController extends Controller
     /**
      * @OA\Delete(
      *     path="/organizational_structure/areas/positions/delete/{id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Positions"},
      *     summary="Desactivar un cargo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -564,7 +593,7 @@ class PositionController extends Controller
     /**
      * @OA\Patch(
      *     path="/organizational_structure/areas/positions/restore/{id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Positions"},
      *     summary="Activar un cargo",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -660,7 +689,7 @@ class PositionController extends Controller
     /**
      * @OA\Post(
      *     path="/organizational_structure/areas/positions/authorization/assign/{id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Positions"},
      *     summary="Asignar un permiso a un cargo específio",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -691,7 +720,7 @@ class PositionController extends Controller
      *                 type="object",
      *                 @OA\Property(
      *                     property="position",
-     *                     ref="#/components/schemas/PositionWithRelations"
+     *                     ref="#/components/schemas/Position"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -774,7 +803,7 @@ class PositionController extends Controller
     /**
      * @OA\Post(
      *     path="/organizational_structure/areas/positions/authorization/remove/{id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Positions"},
      *     summary="Remover un permiso a un cargo específio",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -805,7 +834,7 @@ class PositionController extends Controller
      *                 type="object",
      *                 @OA\Property(
      *                     property="position",
-     *                     ref="#/components/schemas/PositionWithRelations"
+     *                     ref="#/components/schemas/Position"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),

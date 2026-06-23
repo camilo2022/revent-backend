@@ -16,11 +16,6 @@ use Carbon\Carbon;
  *     description="Endpoints para gestionar auditorias"
  * )
  *
- * @OA\PathItem(
- *     path="/Audits",
- *     description="Rutas de gestión de auditorias"
- * )
- *
  * @OA\Schema(
  *     schema="Audit",
  *     type="object",
@@ -108,7 +103,7 @@ class AuditController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),

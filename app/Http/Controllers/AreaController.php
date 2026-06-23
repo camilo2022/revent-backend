@@ -15,6 +15,11 @@ use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 
 /**
+ * @OA\Tag(
+ *     name="Organizational Structure - Areas",
+ *     description="Endpoints para gestionar de Áreas"
+ * )
+ *
  * @OA\Schema(
  *     schema="Area",
  *     type="object",
@@ -67,7 +72,7 @@ class AreaController extends Controller
     /**
      * @OA\Get(
      *     path="/organizational_structure/areas/all",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Areas"},
      *     summary="Listar áreas",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -87,7 +92,7 @@ class AreaController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -186,7 +191,7 @@ class AreaController extends Controller
     /**
      * @OA\Get(
      *     path="/organizational_structure/areas/find/{id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Areas"},
      *     summary="Obtener un área especifica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -274,7 +279,7 @@ class AreaController extends Controller
     /**
      * @OA\Post(
      *     path="/organizational_structure/areas/store",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Areas"},
      *     summary="Crear un área",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
@@ -382,7 +387,7 @@ class AreaController extends Controller
     /**
      * @OA\Put(
      *     path="/organizational_structure/areas/update/{id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Areas"},
      *     summary="Editar un área específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -499,7 +504,7 @@ class AreaController extends Controller
     /**
      * @OA\Delete(
      *     path="/organizational_structure/areas/delete/{id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Areas"},
      *     summary="Desactivar un área específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -595,7 +600,7 @@ class AreaController extends Controller
     /**
      * @OA\Patch(
      *     path="/organizational_structure/areas/restore/{id}",
-     *     tags={"Organizational Structure"},
+     *     tags={"Organizational Structure - Areas"},
      *     summary="Activar un área específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(

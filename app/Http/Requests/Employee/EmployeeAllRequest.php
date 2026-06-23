@@ -53,8 +53,8 @@ class EmployeeAllRequest extends FormRequest
             'page' => 'N° de pagina.',
             'search' => 'Filtro de Busqueda.',
             'column' => 'Columna a ordenar.',
-            'dir' => 'Sentido del orden.',
-            'with_trashed' => 'Registros inactivos',
+            'dir' => 'Orden de datos.',
+            'with_trashed' => 'Registros inactivos.',
             'with_user' => 'Usuario asociado'
 
         ];

@@ -13,17 +13,11 @@ use App\Http\Resources\Navegation\Module\ModuleResource;
 use App\Models\Module;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
-use Illuminate\Http\Request;
 
 /**
  * @OA\Tag(
- *     name="Module",
- *     description="Endpoints de Gestión de Módulos"
- * )
- *
- * @OA\PathItem(
- *     path="/modules",
- *     description="Rutas de Gestion de Módulos"
+ *     name="Navegation - Modules",
+ *     description="Endpoints para gestionar de Módulos"
  * )
  *
  * @OA\Schema(
@@ -58,7 +52,7 @@ class ModuleController extends Controller
     /**
      * @OA\Get(
      *     path="/navegation/modules/all",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Modules"},
      *     summary="Listar los módulos",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -78,7 +72,7 @@ class ModuleController extends Controller
      *     @OA\Parameter(
      *         name="dir",
      *         in="query",
-     *         description="Dirección de ordenamiento.",
+     *         description="Orden de datos.",
      *         required=false,
      *         @OA\Schema(type="string", enum={"asc","desc"}, example="asc")
      *     ),
@@ -177,7 +171,7 @@ class ModuleController extends Controller
     /**
      * @OA\Get(
      *     path="/navegation/modules/find/{id}",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Modules"},
      *     summary="Obtener un módulo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -266,7 +260,7 @@ class ModuleController extends Controller
     /**
      * @OA\Post(
      *     path="/navegation/modules/store",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Modules"},
      *     summary="Crear un módulo",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
@@ -378,7 +372,7 @@ class ModuleController extends Controller
     /**
      * @OA\Put(
      *     path="/navegation/modules/update/{id}",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Modules"},
      *     summary="Editar un módulo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -498,7 +492,7 @@ class ModuleController extends Controller
     /**
      * @OA\Delete(
      *     path="/navegation/modules/delete/{id}",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Modules"},
      *     summary="Desactivar un módulo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -595,7 +589,7 @@ class ModuleController extends Controller
     /**
      * @OA\Patch(
      *     path="/navegation/modules/restore/{id}",
-     *     tags={"Navegation"},
+     *     tags={"Navegation - Modules"},
      *     summary="Activar un módulo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
