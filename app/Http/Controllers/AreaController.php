@@ -44,24 +44,7 @@ use App\Traits\ApiResponser;
  *     @OA\Property(
  *         property="positions",
  *         type="array",
- *         @OA\Items(
- *             type="object",
- *             @OA\Property(property="id", type="integer", example=1),
- *             @OA\Property(property="item_id", type="integer", example=1),
- *             @OA\Property(property="name", type="string", example="No aplica"),
- *             @OA\Property(property="description", type="string", example="No aplica"),
- *             @OA\Property(property="settings", type="string", example="{}"),
- *             @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
- *             @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
- *             @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
- *             @OA\Property(
- *                 property="pivot",
- *                 type="object",
- *                 @OA\Property(property="model_type", type="string", example="App\\Models\\Position"),
- *                 @OA\Property(property="subitem_id", type="integer", example=1),
- *                 @OA\Property(property="model_id", type="integer", example=1),
- *             )
- *         )
+ *         @OA\Items(ref="#/components/schemas/Position")
  *     )
  * )
  */

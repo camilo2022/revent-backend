@@ -20636,62 +20636,7 @@
                     "positions": {
                         "type": "array",
                         "items": {
-                            "properties": {
-                                "id": {
-                                    "type": "integer",
-                                    "example": 1
-                                },
-                                "item_id": {
-                                    "type": "integer",
-                                    "example": 1
-                                },
-                                "name": {
-                                    "type": "string",
-                                    "example": "No aplica"
-                                },
-                                "description": {
-                                    "type": "string",
-                                    "example": "No aplica"
-                                },
-                                "settings": {
-                                    "type": "string",
-                                    "example": "{}"
-                                },
-                                "created_at": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2026-03-30T13:17:29.000000Z"
-                                },
-                                "updated_at": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2026-04-06T15:21:16.000000Z"
-                                },
-                                "deleted_at": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": null,
-                                    "nullable": true
-                                },
-                                "pivot": {
-                                    "properties": {
-                                        "model_type": {
-                                            "type": "string",
-                                            "example": "App\\\\Models\\\\Position"
-                                        },
-                                        "subitem_id": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "model_id": {
-                                            "type": "integer",
-                                            "example": 1
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            },
-                            "type": "object"
+                            "$ref": "#/components/schemas/Position"
                         }
                     }
                 },
@@ -21409,41 +21354,7 @@
                     "submodules": {
                         "type": "array",
                         "items": {
-                            "properties": {
-                                "id": {
-                                    "type": "integer",
-                                    "example": 1
-                                },
-                                "name": {
-                                    "type": "string",
-                                    "example": "users"
-                                },
-                                "url": {
-                                    "type": "string",
-                                    "example": "/users"
-                                },
-                                "icon": {
-                                    "type": "string",
-                                    "example": "FaUser"
-                                },
-                                "created_at": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2026-03-30T13:17:29.000000Z"
-                                },
-                                "updated_at": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2026-04-06T15:21:16.000000Z"
-                                },
-                                "deleted_at": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": null,
-                                    "nullable": true
-                                }
-                            },
-                            "type": "object"
+                            "$ref": "#/components/schemas/Submodule"
                         }
                     }
                 },
@@ -21552,56 +21463,7 @@
                         "example": "2026-04-06T15:21:16.000000Z"
                     },
                     "role": {
-                        "properties": {
-                            "id": {
-                                "type": "integer",
-                                "example": 1
-                            },
-                            "name": {
-                                "type": "string",
-                                "example": "users"
-                            },
-                            "guard_name": {
-                                "type": "string",
-                                "example": "api"
-                            },
-                            "title": {
-                                "type": "string",
-                                "example": "Usuarios."
-                            },
-                            "description": {
-                                "type": "string",
-                                "example": "Gestión de usuarios."
-                            },
-                            "created_at": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2026-03-30T13:17:29.000000Z"
-                            },
-                            "updated_at": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2026-04-06T15:21:16.000000Z"
-                            },
-                            "pivot": {
-                                "properties": {
-                                    "model_type": {
-                                        "type": "string",
-                                        "example": "App\\\\Models\\\\User"
-                                    },
-                                    "model_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "role_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        },
-                        "type": "object"
+                        "$ref": "#/components/schemas/Role"
                     }
                 },
                 "type": "object"
@@ -21951,6 +21813,9 @@
                         "format": "date-time",
                         "nullable": true
                     },
+                    "area": {
+                        "$ref": "#/components/schemas/Area"
+                    },
                     "roles": {
                         "type": "array",
                         "items": {
@@ -22075,52 +21940,7 @@
                     "permissions": {
                         "type": "array",
                         "items": {
-                            "properties": {
-                                "id": {
-                                    "type": "integer",
-                                    "example": 1
-                                },
-                                "name": {
-                                    "type": "string",
-                                    "example": "users"
-                                },
-                                "guard_name": {
-                                    "type": "string",
-                                    "example": "api"
-                                },
-                                "title": {
-                                    "type": "string",
-                                    "example": "Usuarios."
-                                },
-                                "description": {
-                                    "type": "string",
-                                    "example": "Gestión de usuarios."
-                                },
-                                "created_at": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2026-03-30T13:17:29.000000Z"
-                                },
-                                "updated_at": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2026-04-06T15:21:16.000000Z"
-                                },
-                                "pivot": {
-                                    "properties": {
-                                        "role_id": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "permission_id": {
-                                            "type": "integer",
-                                            "example": 1
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            },
-                            "type": "object"
+                            "$ref": "#/components/schemas/Permission"
                         }
                     }
                 },

@@ -35,6 +35,11 @@ use App\Traits\ApiResponser;
  *     @OA\Property(property="updated_at", type="string", format="date-time"),
  *     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true),
  *     @OA\Property(
+ *         property="area",
+ *         type="object",
+ *         ref="#/components/schemas/Area"
+ *     ),
+ *     @OA\Property(
  *         property="roles",
  *         type="array",
  *         @OA\Items(ref="#/components/schemas/Role")

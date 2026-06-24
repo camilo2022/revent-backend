@@ -31,22 +31,7 @@ use App\Traits\ApiResponser;
  *     @OA\Property(
  *         property="permissions",
  *         type="array",
- *         @OA\Items(
- *             type="object",
- *             @OA\Property(property="id", type="integer", example=1),
- *             @OA\Property(property="name", type="string", example="users"),
- *             @OA\Property(property="guard_name", type="string", example="api"),
- *             @OA\Property(property="title", type="string", example="Usuarios."),
- *             @OA\Property(property="description", type="string", example="Gestión de usuarios."),
- *             @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
- *             @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
- *             @OA\Property(
- *                 property="pivot",
- *                 type="object",
- *                 @OA\Property(property="role_id", type="integer", example=1),
- *                 @OA\Property(property="permission_id", type="integer", example=1)
- *             )
- *         )
+ *         @OA\Items(ref="#/components/schemas/Permission")
  *     )
  * )
  */

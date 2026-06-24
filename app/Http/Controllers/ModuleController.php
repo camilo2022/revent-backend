@@ -32,16 +32,7 @@ use App\Traits\ApiResponser;
  *     @OA\Property(
  *         property="submodules",
  *         type="array",
- *         @OA\Items(
- *             type="object",
- *             @OA\Property(property="id", type="integer", example=1),
- *             @OA\Property(property="name", type="string", example="users"),
- *             @OA\Property(property="url", type="string", example="/users"),
- *             @OA\Property(property="icon", type="string", example="FaUser"),
- *             @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
- *             @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
- *             @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
- *         )
+ *         @OA\Items(ref="#/components/schemas/Submodule")
  *     )
  * )
  */

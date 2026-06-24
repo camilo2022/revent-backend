@@ -286,6 +286,15 @@ Route::prefix('/classification')->group(function () {
     });
 });
 
+/*Route::prefix('/products')->group(function () {
+    Route::controller(ProductController::class)->group(function () {
+        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:products.all']);
+        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:products.find']);
+        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:products.store']);
+        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:products.update']);
+    });
+});*/
+
 /*Route::prefix('/stores')->group(function () {
     Route::controller(StoreController::class)->group(function () {
         Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:stores.all']);
@@ -294,17 +303,6 @@ Route::prefix('/classification')->group(function () {
         Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:stores.update']);
         Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:stores.delete']);
         Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:stores.restore']);
-    });
-});
-
-Route::prefix('/sizes')->group(function () {
-    Route::controller(SizeController::class)->group(function () {
-        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:sizes.all']);
-        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:sizes.find']);
-        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:sizes.store']);
-        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:sizes.update']);
-        Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:sizes.delete']);
-        Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:sizes.restore']);
     });
 });
 
