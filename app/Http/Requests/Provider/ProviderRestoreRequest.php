@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Requests\Gender;
+namespace App\Http\Requests\Provider;
 
-use App\Models\Gender;
+use App\Models\Provider;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
-class GenderRestoreRequest extends FormRequest
+class ProviderRestoreRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -27,7 +27,7 @@ class GenderRestoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', Rule::exists('subitems', 'id')->where('item_id', Gender::ITEM_ID)->whereNotNull('deleted_at')]
+            'id' => ['required', Rule::exists('subitems', 'id')->where('item_id', Provider::ITEM_ID)->whereNotNull('deleted_at')]
         ];
     }
 
@@ -42,7 +42,7 @@ class GenderRestoreRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del género'
+            'id' => 'Identificador del proveedor'
         ];
     }
 

@@ -18,6 +18,8 @@ use App\Http\Controllers\PensionFundController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\SubcategoryController;
@@ -283,14 +285,25 @@ Route::prefix('/classification')->group(function () {
     });
 });
 
-/*Route::prefix('/products')->group(function () {
+Route::prefix('/providers')->group(function () {
+    Route::controller(ProviderController::class)->group(function () {
+        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:providers.all']);
+        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:providers.find']);
+        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:providers.store']);
+        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:providers.update']);
+        Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:providers.delete']);
+        Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:providers.restore']);
+    });
+});
+
+Route::prefix('/products')->group(function () {
     Route::controller(ProductController::class)->group(function () {
         Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:products.all']);
         Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:products.find']);
         Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:products.store']);
         Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:products.update']);
     });
-});*/
+});
 
 /*Route::prefix('/stores')->group(function () {
     Route::controller(StoreController::class)->group(function () {
@@ -303,13 +316,4 @@ Route::prefix('/classification')->group(function () {
     });
 });
 
-Route::prefix('/providers')->group(function () {
-    Route::controller(ProviderController::class)->group(function () {
-        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:providers.all']);
-        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:providers.find']);
-        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:providers.store']);
-        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:providers.update']);
-        Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:providers.delete']);
-        Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:providers.restore']);
-    });
-});*/
+*/

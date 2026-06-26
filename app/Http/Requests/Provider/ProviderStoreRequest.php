@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Gender;
+namespace App\Http\Requests\Provider;
 
-use App\Models\Gender;
+use App\Models\Provider;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Validation\Rule;
 
-class GenderRestoreRequest extends FormRequest
+class ProviderStoreRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -27,7 +26,8 @@ class GenderRestoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', Rule::exists('subitems', 'id')->where('item_id', Gender::ITEM_ID)->whereNotNull('deleted_at')]
+            'name' => ['required', 'string', 'min:1', 'max:50', 'unique:subitems,name,NULL,id,item_id,' . Provider::ITEM_ID],
+            'description' => ['required', 'string', 'max:255']
         ];
     }
 
@@ -35,19 +35,18 @@ class GenderRestoreRequest extends FormRequest
     {
         return [
             'required' => 'Es obligatorio.',
-            'exists' => 'No hay ningún registro.'
+            'string' => 'Debe ser una cadena de texto.',
+            'max' => 'Se permite máximo :max caracteres.',
+            'min' => 'Se permite mínimo :min caracteres.',
+            'unique' => 'Ya está registrado.'
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del género'
+            'name' => 'Nombre',
+            'description' => 'Descripción'
         ];
-    }
-
-    protected function prepareForValidation()
-    {
-        $this->merge(['id' => $this->route('id')]);
     }
 }
