@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\PeopleExport;
 use App\Http\Requests\Person\PersonAllRequest;
 use App\Http\Requests\Person\PersonDeleteRequest;
 use App\Http\Requests\Person\PersonFindRequest;
@@ -11,14 +10,10 @@ use App\Http\Requests\Person\PersonStoreRequest;
 use App\Http\Requests\Person\PersonUpdateRequest;
 use App\Http\Resources\Person\PersonCollection;
 use App\Http\Resources\Person\PersonResource;
-use App\Imports\PeopleImport;
 use App\Models\Person;
 use App\Services\FileService;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Http\Request;
 
 /**
  * @OA\Tag(
@@ -869,36 +864,5 @@ class PersonController extends Controller
                 $this->getCode(class_basename($e))
             );
         }
-    }
-
-    public function pdf()
-    {
-        try {
-            $people = Person::all();
-            $pdf = Pdf::loadView('person', compact('people'))->setPaper('letter');
-            return $pdf->download('people.pdf');
-        } catch (\Throwable $e) {
-            return $this->errorResponse(
-                [
-                    'message' => $this->getMessage(class_basename($e)),
-                    'error' => $e->getMessage()
-                ],
-                $this->getCode(class_basename($e))
-            );
-        }
-    }
-
-    public function excel()
-    {
-        return Excel::download(new PeopleExport, 'people.xlsx');
-    }
-
-    public function import(Request $request)
-    {
-        Excel::import(new PeopleImport, $request->file('file'));
-
-        return response()->json([
-            'message' => 'Importación exitosa'
-        ]);
     }
 }

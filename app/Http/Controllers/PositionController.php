@@ -152,7 +152,7 @@ class PositionController extends Controller
     public function all(PositionAllRequest $request, $area_id)
     {
         try {
-            $positions = Position::with(['area', 'roles', 'permissions'])
+            $positions = Position::with(['item', 'area', 'roles', 'permissions'])
                 ->whereHas('area', fn($r) => $r->where('id', $area_id))
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
@@ -251,8 +251,7 @@ class PositionController extends Controller
     public function find(PositionFindRequest $request, $id)
     {
         try {
-            $position = Position::with(['area', 'roles', 'permissions'])
-                ->findOrFail($id);
+            $position = Position::with(['item', 'area', 'roles', 'permissions'])->findOrFail($id);
 
             return $this->successResponse(
                 new PositionResource($position),

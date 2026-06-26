@@ -137,7 +137,8 @@ class HealthEntityController extends Controller
     public function all(HealthEntityAllRequest $request)
     {
         try {
-            $health_entitys = HealthEntity::when($request->filled('search'), function ($query) use ($request) {
+            $health_entitys = HealthEntity::with(['item'])
+                ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
                 ->when($request->boolean('with_trashed'), function ($query) {
@@ -234,7 +235,7 @@ class HealthEntityController extends Controller
     public function find(HealthEntityFindRequest $request, $id)
     {
         try {
-            $health_entity = HealthEntity::findOrFail($id);
+            $health_entity = HealthEntity::with(['item'])->findOrFail($id);
 
             return $this->successResponse(
                 new HealthEntityResource($health_entity),

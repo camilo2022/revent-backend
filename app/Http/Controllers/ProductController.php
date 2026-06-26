@@ -2,61 +2,88 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Classification\Category\CategoryAllRequest;
-use App\Http\Requests\Classification\Category\CategoryDeleteRequest;
-use App\Http\Requests\Classification\Category\CategoryFindRequest;
-use App\Http\Requests\Classification\Category\CategoryRestoreRequest;
-use App\Http\Requests\Classification\Category\CategoryStoreRequest;
-use App\Http\Requests\Classification\Category\CategoryUpdateRequest;
-use App\Http\Resources\Classification\Category\CategoryCollection;
-use App\Http\Resources\Classification\Category\CategoryResource;
-use App\Models\Category;
+use App\Http\Requests\Product\ProductAllRequest;
+use App\Http\Requests\Product\ProductFindRequest;
+use App\Http\Requests\Product\ProductStoreRequest;
+use App\Http\Requests\Product\ProductUpdateRequest;
+use App\Http\Resources\Product\ProductCollection;
+use App\Http\Resources\Product\ProductResource;
+use App\Models\Product;
+use App\Models\ProductDetail;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 
 /**
  * @OA\Tag(
- *     name="Classification - Categories",
- *     description="Endpoints para gestionar categorias"
+ *     name="Products",
+ *     description="Endpoints para gestionar products"
  * )
  *
  * @OA\Schema(
- *     schema="Category",
+ *     schema="Product",
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="item_id", type="integer", example=15),
- *     @OA\Property(property="name", type="string", example="users"),
- *     @OA\Property(property="description", type="string", example="categoria que gestiona los usuarios"),
+ *     @OA\Property(property="trademark_id", type="integer", example=1),
+ *     @OA\Property(property="code", type="string", example="RV0001"),
+ *     @OA\Property(property="product_id", type="integer", example=1),
+ *     @OA\Property(property="subproduct_id", type="integer", example=1),
+ *     @OA\Property(property="observation", type="string", example="observacion del producto"),
  *     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
- *     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
  *     @OA\Property(
- *         property="item",
+ *         property="trademark",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=1),
- *         @OA\Property(property="name", type="string", example="Categorias"),
- *         @OA\Property(property="description", type="string", example="Listado de categorias disponibles en la organización."),
- *         @OA\Property(property="settings", type="string", example="{}"),
- *         @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
- *         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+ *         ref="#/components/schemas/Trademark"
  *     ),
  *     @OA\Property(
- *         property="subcategories",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Subcategory")
+ *         property="product",
+ *         type="object",
+ *         ref="#/components/schemas/Category"
  *     ),
+ *     @OA\Property(
+ *         property="subproduct",
+ *         type="object",
+ *         ref="#/components/schemas/Subproduct"
+ *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="ProductDetail",
+ *     type="object",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="uuid", type="string", format="uuid", example="000x0000-x00x-00x0-x000-00000000000"),
+ *     @OA\Property(property="product_id", type="integer", example=1),
+ *     @OA\Property(property="color_id", type="integer", example=1),
+ *     @OA\Property(property="size_id", type="integer", example=1),
+ *     @OA\Property(property="description", type="string", example="descripcion del producto"),
+ *     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
+ *     @OA\Property(
+ *         property="product",
+ *         type="object",
+ *         ref="#/components/schemas/Product"
+ *     ),
+ *     @OA\Property(
+ *         property="color",
+ *         type="object",
+ *         ref="#/components/schemas/Color"
+ *     ),
+ *     @OA\Property(
+ *         property="size",
+ *         type="object",
+ *         ref="#/components/schemas/Size"
+ *     )
  * )
  */
-class CategoryController extends Controller
+class ProductController extends Controller
 {
     use ApiMessage, ApiResponser;
 
     /**
      * @OA\Get(
-     *     path="/classification/categories/all",
-     *     tags={"Classification - Categories"},
-     *     summary="Listar categorias",
+     *     path="/products/all",
+     *     tags={"Products"},
+     *     summary="Listar products",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="search",
@@ -86,24 +113,17 @@ class CategoryController extends Controller
      *         required=false,
      *         @OA\Schema(type="integer", example=10)
      *     ),
-     *     @OA\Parameter(
-     *         name="with_trashed",
-     *         in="query",
-     *         description="Registros inactivos.",
-     *         required=false,
-     *         @OA\Schema(type="boolean", example=true)
-     *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Lista de categorias cargada correctamente",
+     *         description="Lista de products cargada correctamente",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="categories",
+     *                     property="products",
      *                     type="array",
-     *                     @OA\Items(ref="#/components/schemas/Category")
+     *                     @OA\Items(ref="#/components/schemas/Product")
      *                 ),
      *                 @OA\Property(
      *                     property="meta",
@@ -139,10 +159,10 @@ class CategoryController extends Controller
      *     )
      * )
      */
-    public function all(CategoryAllRequest $request)
+    public function all(ProductAllRequest $request)
     {
         try {
-            $categories = Category::with(['item', 'subcategories'])
+            $products = Product::with(['item', 'product_details'])
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -153,10 +173,10 @@ class CategoryController extends Controller
                     return $query->orderBy($request->input('column'), $request->input('dir'));
                 });
 
-            $categories = $categories->paginate($request->integer('per_page', $categories->count()));
+            $products = $products->paginate($request->integer('per_page', $products->count()));
 
             return $this->successResponse(
-                new CategoryCollection($categories),
+                new ProductCollection($products),
                 $this->getMessage('Success'),
                 200
             );
@@ -173,14 +193,14 @@ class CategoryController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/classification/categories/find/{id}",
-     *     tags={"Classification - Categories"},
-     *     summary="Obtener un categoria especifica",
+     *     path="/products/find/{id}",
+     *     tags={"Products"},
+     *     summary="Obtener un producto especifica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="Identificador del categoria",
+     *         description="Identificador del producto",
      *         required=true,
      *         @OA\Schema(type="integer", example=1)
      *     ),
@@ -192,8 +212,8 @@ class CategoryController extends Controller
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="category",
-     *                     ref="#/components/schemas/Category"
+     *                     property="product",
+     *                     ref="#/components/schemas/Product"
      *                 ),
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -237,13 +257,13 @@ class CategoryController extends Controller
      *     )
      * )
      */
-    public function find(CategoryFindRequest $request, $id)
+    public function find(ProductFindRequest $request, $id)
     {
         try {
-            $category = Category::with(['item', 'subcategories'])->findOrFail($id);
+            $product = Product::with(['item', 'product_details'])->findOrFail($id);
 
             return $this->successResponse(
-                new CategoryResource($category),
+                new ProductResource($product),
                 $this->getMessage('Success'),
                 200
             );
@@ -260,8 +280,8 @@ class CategoryController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/classification/categories/store",
-     *     tags={"Classification - Categories"},
+     *     path="/products/store",
+     *     tags={"Products"},
      *     summary="Crear un área",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
@@ -290,7 +310,7 @@ class CategoryController extends Controller
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="category",
+     *                     property="product",
      *                     type="object",
      *                     @OA\Property(property="name", type="string", example="name_module_example"),
      *                     @OA\Property(property="description", type="string", example="description_module_example"),
@@ -342,16 +362,30 @@ class CategoryController extends Controller
      *     )
      * )
      */
-    public function store(CategoryStoreRequest $request)
+    public function store(ProductStoreRequest $request)
     {
         try {
-            $category = new Category();
-            $category->name = $request->input('name');
-            $category->description = $request->input('description');
-            $category->save();
+            $product = new Product();
+            $product->trademark_id = $request->integer('trademark_id');
+            $product->code = $request->input('code');
+            $product->category_id = $request->integer('category_id');
+            $product->subcategory_id = $request->integer('subcategory_id');
+            $product->observation = $request->input('observation');
+            $product->save();
+
+            foreach($request->input('details', []) as $detail) {
+                $product_detail = new ProductDetail();
+                $product_detail->product_id = $product->id;
+                $product_detail->color_id = $detail['color_id'];
+                $product_detail->size_id = $detail['size_id'];
+                $product_detail->observation = $detail['observation'];
+                $product_detail->save();
+            }
+
+            $product->load(['trademark', 'category', 'subcategory', 'product_details' => ['color', 'size']]);
 
             return $this->successResponse(
-                new CategoryResource($category),
+                new ProductResource($product),
                 $this->getMessage('Success'),
                 201
             );
@@ -368,8 +402,8 @@ class CategoryController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/classification/categories/update/{id}",
-     *     tags={"Classification - Categories"},
+     *     path="/products/update/{id}",
+     *     tags={"Products"},
      *     summary="Editar un área específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -405,7 +439,7 @@ class CategoryController extends Controller
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="category",
+     *                     property="product",
      *                     type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="item_id", type="integer", example=1),
@@ -459,208 +493,16 @@ class CategoryController extends Controller
      *     )
      * )
      */
-    public function update(CategoryUpdateRequest $request, $id)
+    public function update(ProductUpdateRequest $request, $id)
     {
         try {
-            $category = Category::findOrFail($id);
-            $category->name = $request->input('name');
-            $category->description = $request->input('description');
-            $category->save();
+            $product = Product::findOrFail($id);
+            $product->name = $request->input('name');
+            $product->description = $request->input('description');
+            $product->save();
 
             return $this->successResponse(
-                new CategoryResource($category),
-                $this->getMessage('Success'),
-                200
-            );
-        } catch (\Throwable $e) {
-            return $this->errorResponse(
-                [
-                    'message' => $this->getMessage(class_basename($e)),
-                    'error' => $e->getMessage()
-                ],
-                $this->getCode(class_basename($e))
-            );
-        }
-    }
-
-    /**
-     * @OA\Delete(
-     *     path="/classification/categories/delete/{id}",
-     *     tags={"Classification - Categories"},
-     *     summary="Desactivar un área específica",
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         description="Identificador del área",
-     *         required=true,
-     *         @OA\Schema(type="integer", example=1)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Categoria desactivada correctamente",
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="category",
-     *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="name_module_example"),
-     *                     @OA\Property(property="description", type="string", example="description_module_example"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", example="2026-03-12 20:01:03")
-     *                 )
-     *             ),
-     *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
-     *             @OA\Property(property="error", type="boolean", example=false)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Contenido inválido.",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Error de validación."),
-     *             @OA\Property(
-     *                 property="attributes",
-     *                 type="object",
-     *                 @OA\Property(property="id", type="string", example="Identificador del área")
-     *             ),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="No hay ningún registro.")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="No autenticado",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/UnauthorizedResponse"
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Error del servidor",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/ServerErrorResponse"
-     *         )
-     *     )
-     * )
-     */
-    public function delete(CategoryDeleteRequest $request, $id)
-    {
-        try {
-            $category = Category::findOrFail($id);
-            $category->delete();
-
-            return $this->successResponse(
-                new CategoryResource($category),
-                $this->getMessage('Success'),
-                200
-            );
-        } catch (\Throwable $e) {
-            return $this->errorResponse(
-                [
-                    'message' => $this->getMessage(class_basename($e)),
-                    'error' => $e->getMessage()
-                ],
-                $this->getCode(class_basename($e))
-            );
-        }
-    }
-
-    /**
-     * @OA\Patch(
-     *     path="/classification/categories/restore/{id}",
-     *     tags={"Classification - Categories"},
-     *     summary="Activar un área específica",
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         description="Identificador del área",
-     *         required=true,
-     *         @OA\Schema(type="integer", example=1)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Categoria activada correctamente",
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="category",
-     *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="name_module_example"),
-     *                     @OA\Property(property="description", type="string", example="description_module_example"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
-     *                 )
-     *             ),
-     *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
-     *             @OA\Property(property="error", type="boolean", example=false)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Contenido inválido.",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Error de validación."),
-     *             @OA\Property(
-     *                 property="attributes",
-     *                 type="object",
-     *                 @OA\Property(property="id", type="string", example="Identificador del área")
-     *             ),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="No hay ningún registro.")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="No autenticado",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/UnauthorizedResponse"
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Error del servidor",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/ServerErrorResponse"
-     *         )
-     *     )
-     * )
-     */
-    public function restore(CategoryRestoreRequest $request, $id)
-    {
-        try {
-            $category = Category::withTrashed()->findOrFail($id);
-            $category->restore();
-
-            return $this->successResponse(
-                new CategoryResource($category),
+                new ProductResource($product),
                 $this->getMessage('Success'),
                 200
             );

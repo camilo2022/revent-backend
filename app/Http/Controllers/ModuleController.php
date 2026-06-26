@@ -228,9 +228,7 @@ class ModuleController extends Controller
     public function find(ModuleFindRequest $request, $id)
     {
         try {
-            $module = Module::findOrFail($id);
-
-            $module->load(['submodules']);
+            $module = Module::with(['submodules'])->findOrFail($id);
 
             return $this->successResponse(
                 new ModuleResource($module),

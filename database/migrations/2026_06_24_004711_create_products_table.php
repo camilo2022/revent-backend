@@ -16,11 +16,11 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique();
             $table->foreignIdFor(Trademark::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Marca');
             $table->string('code')->unique();
             $table->foreignIdFor(Category::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Categoría');
             $table->foreignIdFor(Subcategory::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Subcategoría');
+            $table->text('observation')->nullable();
             $table->timestamps();
         });
     }

@@ -22,17 +22,26 @@ class SiigoController extends Controller
     private string $unico_name = 'test_revent';
     private string $unico_password = '7nsw9R8KCsrX';
 
+    public function execute(array $params = [])
+    {
+        $token_siigo = $this->auth_siigo();
+        $token_unico = $this->auth_unico();
+        $params;
+        return $this->invoices_siigo(
+            $token_siigo,
+            $token_unico,
+            $params
+        );
+    }
+
     public function sync(Request $request)
     {
         try {
-            $token_siigo = $this->auth_siigo();
-            $token_unico = $this->auth_unico();
-
-            $invoices = $this->invoices_siigo($token_siigo, $token_unico, [
+            $invoices = $this->execute([
                 'created_start' => $request->input('created_start'),
                 'created_end' => $request->input('created_end'),
                 'page' => $request->input('page', 1),
-                'page_size' => $request->input('page_size', 100)
+                'page_size' => $request->input('page_size', 100),
             ]);
 
             /*$processedInvoices = $this->process_invoices($invoices);
@@ -136,7 +145,24 @@ class SiigoController extends Controller
 
     private function process_invoices(array $invoices): array
     {
-        return array_values(array_filter(array_map(function ($invoice) {
+        $malls = [
+            596 => (object) [
+                "fantasy_name" => "REVENT CALZADO",
+                "place_local_code" => "162",
+                "place_number" => "247",
+                "mall_id" => 1,
+                "mall_name" => "UNICO CALI"
+            ],
+            704 => (object) [
+                "fantasy_name" => "REVENT CALZADO",
+                "place_local_code" => "476",
+                "place_number" => "057",
+                "mall_id" => 2,
+                "mall_name" => "UNICO BARRANQUILLA"
+            ]
+        ];
+
+        return array_values(array_filter(array_map(function ($invoice) use ($malls) {
             foreach($invoice['items'] ?? [] as $item) {
                 $parts = preg_split('/[*-]/', $item['description'] ?? '');
 
@@ -157,11 +183,11 @@ class SiigoController extends Controller
                     $size = $parts[$count - 1] ?? '#N/A';
                 }
 
-                if(isset($item['taxes'])) {
+                if(isset($item['taxes']) && isset($malls[$invoice['cost_center']])) {
                     return [
                         'document_number' => $invoice['customer']['identification'],
-                        'place_local_code' => (string) $invoice['cost_center'],
-                        'mall_id' => 1,
+                        'place_local_code' => $malls[$invoice['cost_center']]->place_local_code,
+                        'mall_id' => $malls[$invoice['cost_center']]->mall_id,
                         'purchase_mode_id' => 1,
                         'purchase_date' => Carbon::parse($invoice['date'])->format('d/m/Y'),
                         'purchase_number' => $invoice['name'],

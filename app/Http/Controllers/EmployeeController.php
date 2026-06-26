@@ -172,9 +172,7 @@ class EmployeeController extends Controller
     public function all(EmployeeAllRequest $request)
     {
         try {
-            $employees = Employee::with(['person' => ['photo'], 'position' => ['area'], 'risk_manager', 'health_entity', 'pension_fund', 'compensation_fund', 'user' => function ($q) {
-                    $q->withTrashed()->with(['roles', 'permissions']);
-                }])
+            $employees = Employee::with(['person' => ['photo'], 'position' => ['area'], 'risk_manager', 'health_entity', 'pension_fund', 'compensation_fund', 'user' => ['roles', 'permissions']])
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })

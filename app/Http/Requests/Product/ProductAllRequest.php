@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\Authorization\Permission;
+namespace App\Http\Requests\Product;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class PermissionAllRequest extends FormRequest
+class ProductAllRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -25,10 +25,10 @@ class PermissionAllRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role_id' => ['nullable', 'numeric', 'exists:roles,id'],
             'per_page' => ['nullable', 'numeric'],
+            'page' => ['nullable', 'numeric'],
             'search' => ['nullable', 'string'],
-            'column' => ['nullable', 'string', 'in:id,name,title,description,created_at,updated_at'],
+            'column' => ['nullable', 'string', 'in:id,trademark_id,code,category_id,subcategory_id,observation,created_at,updated_at,deleted_at'],
             'dir' => ['nullable', 'string', 'in:asc,desc']
         ];
     }
@@ -36,25 +36,21 @@ class PermissionAllRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'exists' => 'No hay ningún registro.',
-            'per_page.numeric' => 'Debe ser un valor numérico.',
-            'search.string' => 'Debe ser un registro válido de busqueda. ',
-            'column.string' => 'Debe ser una columna válida. ',
-            'column.in' => 'El valor de la columna no es válido. ',
-            'dir.string' => 'Debe ser un valor de orden válido. ',
-            'dir.in' => 'El valor del orden no es válido. ',
+            'required' => 'Es obligatorio.',
+            'string' => 'Debe ser una cadena de texto.',
+            'numeric' => 'Debe ser un valor numérico.',
+            'in' => 'Valor inválido. Permitidos: :values.'
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'role_id' => 'Rol',
             'per_page' => 'Registros por pagina.',
+            'page' => 'N° de pagina.',
             'search' => 'Filtro de Busqueda.',
             'column' => 'Columna a ordenar.',
-            'dir' => 'Orden de datos.',
-
+            'dir' => 'Orden de datos.'
         ];
     }
 }

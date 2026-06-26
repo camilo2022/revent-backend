@@ -137,7 +137,8 @@ class PensionFundController extends Controller
     public function all(PensionFundAllRequest $request)
     {
         try {
-            $pension_funds = PensionFund::when($request->filled('search'), function ($query) use ($request) {
+            $pension_funds = PensionFund::with(['item'])
+                ->when($request->filled('search'), function ($query) use ($request) {
                 return $query->search($request->input('search'));
             })
                 ->when($request->boolean('with_trashed'), function ($query) {
@@ -234,7 +235,7 @@ class PensionFundController extends Controller
     public function find(PensionFundFindRequest $request, $id)
     {
         try {
-            $pension_fund = PensionFund::findOrFail($id);
+            $pension_fund = PensionFund::with(['item'])->findOrFail($id);
 
             return $this->successResponse(
                 new PensionFundResource($pension_fund),

@@ -137,9 +137,10 @@ class RiskManagerController extends Controller
     public function all(RiskManagerAllRequest $request)
     {
         try {
-            $risk_managers = RiskManager::when($request->filled('search'), function ($query) use ($request) {
-                return $query->search($request->input('search'));
-            })
+            $risk_managers = RiskManager::with(['item'])
+                ->when($request->filled('search'), function ($query) use ($request) {
+                    return $query->search($request->input('search'));
+                })
                 ->when($request->boolean('with_trashed'), function ($query) {
                     return $query->withTrashed();
                 })
@@ -234,7 +235,7 @@ class RiskManagerController extends Controller
     public function find(RiskManagerFindRequest $request, $id)
     {
         try {
-            $risk_manager = RiskManager::findOrFail($id);
+            $risk_manager = RiskManager::with(['item'])->findOrFail($id);
 
             return $this->successResponse(
                 new RiskManagerResource($risk_manager),

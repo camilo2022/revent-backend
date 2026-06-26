@@ -11,7 +11,6 @@ use App\Http\Requests\Color\ColorUpdateRequest;
 use App\Http\Resources\Color\ColorCollection;
 use App\Http\Resources\Color\ColorResource;
 use App\Models\Color;
-use App\Services\FileService;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 
@@ -143,7 +142,8 @@ class ColorController extends Controller
     public function all(ColorAllRequest $request)
     {
         try {
-            $colors = Color::when($request->filled('search'), function ($query) use ($request) {
+            $colors = Color::with(['item'])
+                ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
                 ->when($request->boolean('with_trashed'), function ($query) {
@@ -240,7 +240,7 @@ class ColorController extends Controller
     public function find(ColorFindRequest $request, $id)
     {
         try {
-            $color = Color::findOrFail($id);
+            $color = Color::with(['item'])->findOrFail($id);
 
             return $this->successResponse(
                 new ColorResource($color),

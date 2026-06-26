@@ -48,7 +48,7 @@ class PermissionStoreRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'role_id' => 'Identificador del rol.',
+            'role_id' => 'Identificador del rol',
             'name' => 'Nombre del permiso',
             'title' => 'Título del permiso',
             'description' => 'Descripción del permiso',

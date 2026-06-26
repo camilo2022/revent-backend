@@ -11,7 +11,6 @@ use App\Http\Requests\Size\SizeUpdateRequest;
 use App\Http\Resources\Size\SizeCollection;
 use App\Http\Resources\Size\SizeResource;
 use App\Models\Size;
-use App\Services\FileService;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 
@@ -143,7 +142,8 @@ class SizeController extends Controller
     public function all(SizeAllRequest $request)
     {
         try {
-            $trademakers = Size::when($request->filled('search'), function ($query) use ($request) {
+            $trademakers = Size::with(['item'])
+                ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
                 ->when($request->boolean('with_trashed'), function ($query) {
@@ -240,7 +240,7 @@ class SizeController extends Controller
     public function find(SizeFindRequest $request, $id)
     {
         try {
-            $size = Size::findOrFail($id);
+            $size = Size::with(['item'])->findOrFail($id);
 
             return $this->successResponse(
                 new SizeResource($size),

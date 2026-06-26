@@ -143,7 +143,7 @@ class SubcategoryController extends Controller
     public function all(SubcategoryAllRequest $request)
     {
         try {
-            $subcategories = Subcategory::with(['categories'])
+            $subcategories = Subcategory::with(['item', 'categories'])
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -241,7 +241,7 @@ class SubcategoryController extends Controller
     public function find(SubcategoryFindRequest $request, $id)
     {
         try {
-            $subcategory = Subcategory::with(['categories'])
+            $subcategory = Subcategory::with(['item', 'categories'])
                 ->findOrFail($id);
 
             return $this->successResponse(

@@ -143,7 +143,7 @@ class TrademarkController extends Controller
     public function all(TrademarkAllRequest $request)
     {
         try {
-            $trademakers = Trademark::with(['icon'])
+            $trademakers = Trademark::with(['item', 'icon'])
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -241,7 +241,7 @@ class TrademarkController extends Controller
     public function find(TrademarkFindRequest $request, $id)
     {
         try {
-            $trademark = Trademark::with(['icon'])->findOrFail($id);
+            $trademark = Trademark::with(['item', 'icon'])->findOrFail($id);
 
             return $this->successResponse(
                 new TrademarkResource($trademark),

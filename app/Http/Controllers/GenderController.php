@@ -137,7 +137,8 @@ class GenderController extends Controller
     public function all(GenderAllRequest $request)
     {
         try {
-            $genders = Gender::when($request->filled('search'), function ($query) use ($request) {
+            $genders = Gender::with(['item'])
+                ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
                 ->when($request->boolean('with_trashed'), function ($query) {
@@ -234,7 +235,7 @@ class GenderController extends Controller
     public function find(GenderFindRequest $request, $id)
     {
         try {
-            $gender = Gender::findOrFail($id);
+            $gender = Gender::with(['item'])->findOrFail($id);
 
             return $this->successResponse(
                 new GenderResource($gender),

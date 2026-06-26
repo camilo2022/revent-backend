@@ -137,7 +137,8 @@ class CompensationFundController extends Controller
     public function all(CompensationFundAllRequest $request)
     {
         try {
-            $compensation_funds = CompensationFund::when($request->filled('search'), function ($query) use ($request) {
+            $compensation_funds = CompensationFund::with(['item'])
+                ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
                 ->when($request->boolean('with_trashed'), function ($query) {
@@ -234,8 +235,7 @@ class CompensationFundController extends Controller
     public function find(CompensationFundFindRequest $request, $id)
     {
         try {
-            $compensation_fund = CompensationFund::with(['item'])
-                ->findOrFail($id);
+            $compensation_fund = CompensationFund::with(['item'])->findOrFail($id);
 
             return $this->successResponse(
                 new CompensationFundResource($compensation_fund),
