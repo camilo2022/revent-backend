@@ -25,7 +25,7 @@ use App\Traits\ApiResponser;
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="item_id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="users"),
+ *     @OA\Property(property="name", type="string", example="sistemas"),
  *     @OA\Property(property="description", type="string", example="area que gestiona los usuarios"),
  *     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
@@ -63,7 +63,7 @@ class AreaController extends Controller
      *         in="query",
      *         description="Filtro de Busqueda.",
      *         required=false,
-     *         @OA\Schema(type="string", example="juan")
+     *         @OA\Schema(type="string", example="sistemas")
      *     ),
      *     @OA\Parameter(
      *         name="column",

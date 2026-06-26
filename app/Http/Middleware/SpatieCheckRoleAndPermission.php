@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Models\Permission;
-use App\Models\Role;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 use Closure;
@@ -29,7 +28,8 @@ class SpatieCheckRoleAndPermission
             $message = "No está autorizado para realizar esta acción. No cuentas con ninguno de los permisos: {$permissionsTitles}. Contacte al administrador para obtener asistencia o solicitar autorización.";
             return $this->errorResponse(
                 [
-                    'message' => $message
+                    'message' => $message,
+                    'error' => 'Unauthorized'
                 ],
                 403
             );

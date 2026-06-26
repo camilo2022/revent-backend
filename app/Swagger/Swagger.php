@@ -9,11 +9,22 @@ use OpenApi\Annotations as OA;
  *     @OA\Info(
  *         title="API Laravel Sanctum",
  *         version="1.0.0",
- *         description="Documentación de endpoints de autenticación"
+ *         description="Documentación de la API"
  *     ),
+ *
  *     @OA\Server(
- *         url=L5_SWAGGER_CONST_HOST,
- *         description="Developer API"
+ *         url=L5_SWAGGER_HOST_DEVELOPMENT,
+ *         description="Servidor de Desarrollo"
+ *     ),
+ *
+ *     @OA\Server(
+ *         url=L5_SWAGGER_HOST_TESTING,
+ *         description="Servidor de Pruebas (QA)"
+ *     ),
+ *
+ *     @OA\Server(
+ *         url=L5_SWAGGER_HOST_PRODUCTION,
+ *         description="Servidor de Producción"
  *     )
  * )
  *

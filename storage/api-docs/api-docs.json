@@ -2,13 +2,21 @@
     "openapi": "3.0.0",
     "info": {
         "title": "API Laravel Sanctum",
-        "description": "Documentación de endpoints de autenticación",
+        "description": "Documentación de la API",
         "version": "1.0.0"
     },
     "servers": [
         {
-            "url": "http://kanri-backend.test/api/",
-            "description": "Developer API"
+            "url": "http://revent-backend.test/api/",
+            "description": "Servidor de Desarrollo"
+        },
+        {
+            "url": "http://testing-revent-backend.test/api/",
+            "description": "Servidor de Pruebas (QA)"
+        },
+        {
+            "url": "http://production-revent-backend.test/api/",
+            "description": "Servidor de Producción"
         }
     ],
     "paths": {
@@ -27,7 +35,7 @@
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "example": "juan"
+                            "example": "sistemas"
                         }
                     },
                     {
@@ -1204,30 +1212,32 @@
                 ],
                 "summary": "Iniciar sesión de un usuario",
                 "operationId": "8cb7742ae98d0990acb2907c4e00bf24",
-                "parameters": [
-                    {
-                        "name": "email",
-                        "in": "query",
-                        "description": "Email del usuario",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "email",
-                            "example": "superadmin@kanri.com"
-                        }
-                    },
-                    {
-                        "name": "password",
-                        "in": "query",
-                        "description": "Contraseña del usuario",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "password",
-                            "example": "P4ssw0rd."
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "superadmin@kanri.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "P4ssw0rd."
+                                    }
+                                },
+                                "type": "object"
+                            }
                         }
                     }
-                ],
+                },
                 "responses": {
                     "200": {
                         "description": "Autenticación exitosa",
@@ -1238,275 +1248,15 @@
                                         "data": {
                                             "properties": {
                                                 "user": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "example": 1
-                                                            },
-                                                            "employee_id": {
-                                                                "type": "integer",
-                                                                "example": 1
-                                                            },
-                                                            "email": {
-                                                                "type": "string",
-                                                                "example": "email_user_example"
-                                                            },
-                                                            "created_at": {
-                                                                "type": "string",
-                                                                "format": "date-time",
-                                                                "example": "2026-03-12 20:01:03"
-                                                            },
-                                                            "updated_at": {
-                                                                "type": "string",
-                                                                "format": "date-time",
-                                                                "example": "2026-03-12 20:01:03"
-                                                            },
-                                                            "deleted_at": {
-                                                                "type": "string",
-                                                                "format": "date-time",
-                                                                "example": null
-                                                            },
-                                                            "employee": {
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer",
-                                                                        "example": 1
-                                                                    },
-                                                                    "person_id": {
-                                                                        "type": "integer",
-                                                                        "example": 1
-                                                                    },
-                                                                    "operation_center": {
-                                                                        "type": "string",
-                                                                        "example": "Principal"
-                                                                    },
-                                                                    "position_id": {
-                                                                        "type": "integer",
-                                                                        "example": 2
-                                                                    },
-                                                                    "risk_manager_id": {
-                                                                        "type": "integer",
-                                                                        "example": 5
-                                                                    },
-                                                                    "health_entity_id": {
-                                                                        "type": "integer",
-                                                                        "example": 6
-                                                                    },
-                                                                    "pension_fund_id": {
-                                                                        "type": "integer",
-                                                                        "example": 7
-                                                                    },
-                                                                    "compensation_fund_id": {
-                                                                        "type": "integer",
-                                                                        "example": 8
-                                                                    },
-                                                                    "start_date": {
-                                                                        "type": "string",
-                                                                        "format": "date-time",
-                                                                        "example": "2026-03-30 00:00:00"
-                                                                    },
-                                                                    "end_date": {
-                                                                        "type": "string",
-                                                                        "format": "date-time",
-                                                                        "example": null,
-                                                                        "nullable": true
-                                                                    },
-                                                                    "created_at": {
-                                                                        "type": "string",
-                                                                        "format": "date-time",
-                                                                        "example": "2026-03-30T13:17:31.000000Z"
-                                                                    },
-                                                                    "updated_at": {
-                                                                        "type": "string",
-                                                                        "format": "date-time",
-                                                                        "example": "2026-03-30T13:17:31.000000Z"
-                                                                    },
-                                                                    "deleted_at": {
-                                                                        "type": "string",
-                                                                        "format": "date-time",
-                                                                        "example": null,
-                                                                        "nullable": true
-                                                                    },
-                                                                    "person": {
-                                                                        "properties": {
-                                                                            "id": {
-                                                                                "type": "integer",
-                                                                                "example": 1
-                                                                            },
-                                                                            "document": {
-                                                                                "type": "string",
-                                                                                "example": "0000000000"
-                                                                            },
-                                                                            "names": {
-                                                                                "type": "string",
-                                                                                "example": "Super"
-                                                                            },
-                                                                            "last_names": {
-                                                                                "type": "string",
-                                                                                "example": "Admin"
-                                                                            },
-                                                                            "gender_id": {
-                                                                                "type": "integer",
-                                                                                "example": 15
-                                                                            },
-                                                                            "birth_date": {
-                                                                                "type": "string",
-                                                                                "format": "date",
-                                                                                "example": "1990-01-01"
-                                                                            },
-                                                                            "blood_type_id": {
-                                                                                "type": "integer",
-                                                                                "example": 16
-                                                                            },
-                                                                            "address": {
-                                                                                "type": "string",
-                                                                                "example": "Dirección principal"
-                                                                            },
-                                                                            "phone": {
-                                                                                "type": "string",
-                                                                                "example": "0000000000"
-                                                                            },
-                                                                            "created_at": {
-                                                                                "type": "string",
-                                                                                "format": "date-time",
-                                                                                "example": "2026-03-30T13:17:31.000000Z"
-                                                                            },
-                                                                            "updated_at": {
-                                                                                "type": "string",
-                                                                                "format": "date-time",
-                                                                                "example": "2026-03-31T15:37:40.000000Z"
-                                                                            },
-                                                                            "deleted_at": {
-                                                                                "type": "string",
-                                                                                "format": "date-time",
-                                                                                "example": null,
-                                                                                "nullable": true
-                                                                            }
-                                                                        },
-                                                                        "type": "object"
-                                                                    }
-                                                                },
-                                                                "type": "object"
-                                                            },
-                                                            "roles": {
-                                                                "type": "array",
-                                                                "items": {
-                                                                    "properties": {
-                                                                        "id": {
-                                                                            "type": "integer",
-                                                                            "example": 1
-                                                                        },
-                                                                        "name": {
-                                                                            "type": "string",
-                                                                            "example": "users"
-                                                                        },
-                                                                        "guard_name": {
-                                                                            "type": "string",
-                                                                            "example": "api"
-                                                                        },
-                                                                        "title": {
-                                                                            "type": "string",
-                                                                            "example": "Usuarios."
-                                                                        },
-                                                                        "description": {
-                                                                            "type": "string",
-                                                                            "example": "Gestión de usuarios."
-                                                                        },
-                                                                        "created_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": "2026-03-30T13:17:29.000000Z"
-                                                                        },
-                                                                        "updated_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": "2026-04-06T15:21:16.000000Z"
-                                                                        },
-                                                                        "pivot": {
-                                                                            "properties": {
-                                                                                "model_type": {
-                                                                                    "type": "string",
-                                                                                    "example": "App\\\\Models\\\\User"
-                                                                                },
-                                                                                "model_id": {
-                                                                                    "type": "integer",
-                                                                                    "example": 1
-                                                                                },
-                                                                                "subitem_id": {
-                                                                                    "type": "integer",
-                                                                                    "example": 1
-                                                                                }
-                                                                            },
-                                                                            "type": "object"
-                                                                        }
-                                                                    },
-                                                                    "type": "object"
-                                                                }
-                                                            },
-                                                            "permissions": {
-                                                                "type": "array",
-                                                                "items": {
-                                                                    "properties": {
-                                                                        "id": {
-                                                                            "type": "integer",
-                                                                            "example": 1
-                                                                        },
-                                                                        "name": {
-                                                                            "type": "string",
-                                                                            "example": "users.all"
-                                                                        },
-                                                                        "guard_name": {
-                                                                            "type": "string",
-                                                                            "example": "api"
-                                                                        },
-                                                                        "title": {
-                                                                            "type": "string",
-                                                                            "example": "Usuarios."
-                                                                        },
-                                                                        "description": {
-                                                                            "type": "string",
-                                                                            "example": "Gestión de usuarios."
-                                                                        },
-                                                                        "created_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": "2026-03-30T13:17:29.000000Z"
-                                                                        },
-                                                                        "updated_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": "2026-04-06T15:21:16.000000Z"
-                                                                        },
-                                                                        "pivot": {
-                                                                            "properties": {
-                                                                                "model_type": {
-                                                                                    "type": "string",
-                                                                                    "example": "App\\\\Models\\\\User"
-                                                                                },
-                                                                                "model_id": {
-                                                                                    "type": "integer",
-                                                                                    "example": 1
-                                                                                },
-                                                                                "role_id": {
-                                                                                    "type": "integer",
-                                                                                    "example": 1
-                                                                                }
-                                                                            },
-                                                                            "type": "object"
-                                                                        }
-                                                                    },
-                                                                    "type": "object"
-                                                                }
-                                                            }
-                                                        },
-                                                        "type": "object"
-                                                    }
+                                                    "$ref": "#/components/schemas/User"
                                                 },
                                                 "token": {
                                                     "type": "string",
                                                     "example": "1|tokenexampletokenexampletokenexample"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer",
+                                                    "example": 7200
                                                 }
                                             },
                                             "type": "object"
@@ -1514,10 +1264,6 @@
                                         "message": {
                                             "type": "string",
                                             "example": "Autenticación exitosa"
-                                        },
-                                        "error": {
-                                            "type": "boolean",
-                                            "example": "false"
                                         }
                                     },
                                     "type": "object"
@@ -1615,529 +1361,12 @@
                                         "data": {
                                             "properties": {
                                                 "user": {
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer",
-                                                            "example": 1
-                                                        },
-                                                        "employee_id": {
-                                                            "type": "integer",
-                                                            "example": 1
-                                                        },
-                                                        "email": {
-                                                            "type": "string",
-                                                            "example": "email_user_example"
-                                                        },
-                                                        "created_at": {
-                                                            "type": "string",
-                                                            "format": "date-time"
-                                                        },
-                                                        "updated_at": {
-                                                            "type": "string",
-                                                            "format": "date-time"
-                                                        },
-                                                        "deleted_at": {
-                                                            "type": "string",
-                                                            "format": "date-time",
-                                                            "nullable": true
-                                                        },
-                                                        "employee": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "type": "integer",
-                                                                    "example": 1
-                                                                },
-                                                                "employee_id": {
-                                                                    "type": "integer",
-                                                                    "example": 1
-                                                                },
-                                                                "person_id": {
-                                                                    "type": "integer",
-                                                                    "example": 1
-                                                                },
-                                                                "operation_center": {
-                                                                    "type": "string",
-                                                                    "example": "Principal"
-                                                                },
-                                                                "position_id": {
-                                                                    "type": "integer",
-                                                                    "example": 2
-                                                                },
-                                                                "risk_manager_id": {
-                                                                    "type": "integer",
-                                                                    "example": 5
-                                                                },
-                                                                "health_entity_id": {
-                                                                    "type": "integer",
-                                                                    "example": 6
-                                                                },
-                                                                "pension_fund_id": {
-                                                                    "type": "integer",
-                                                                    "example": 7
-                                                                },
-                                                                "compensation_fund_id": {
-                                                                    "type": "integer",
-                                                                    "example": 8
-                                                                },
-                                                                "start_date": {
-                                                                    "type": "string",
-                                                                    "format": "date-time",
-                                                                    "example": "2026-03-30 00:00:00"
-                                                                },
-                                                                "end_date": {
-                                                                    "type": "string",
-                                                                    "format": "date-time",
-                                                                    "example": null,
-                                                                    "nullable": true
-                                                                },
-                                                                "created_at": {
-                                                                    "type": "string",
-                                                                    "format": "date-time",
-                                                                    "example": "2026-03-30T13:17:31.000000Z"
-                                                                },
-                                                                "updated_at": {
-                                                                    "type": "string",
-                                                                    "format": "date-time",
-                                                                    "example": "2026-03-30T13:17:31.000000Z"
-                                                                },
-                                                                "deleted_at": {
-                                                                    "type": "string",
-                                                                    "format": "date-time",
-                                                                    "example": null,
-                                                                    "nullable": true
-                                                                },
-                                                                "person": {
-                                                                    "properties": {
-                                                                        "id": {
-                                                                            "type": "integer",
-                                                                            "example": 1
-                                                                        },
-                                                                        "document": {
-                                                                            "type": "string",
-                                                                            "example": "0000000000"
-                                                                        },
-                                                                        "names": {
-                                                                            "type": "string",
-                                                                            "example": "Super"
-                                                                        },
-                                                                        "last_names": {
-                                                                            "type": "string",
-                                                                            "example": "Admin"
-                                                                        },
-                                                                        "gender_id": {
-                                                                            "type": "integer",
-                                                                            "example": 15
-                                                                        },
-                                                                        "birth_date": {
-                                                                            "type": "string",
-                                                                            "format": "date",
-                                                                            "example": "1990-01-01"
-                                                                        },
-                                                                        "blood_type_id": {
-                                                                            "type": "integer",
-                                                                            "example": 16
-                                                                        },
-                                                                        "address": {
-                                                                            "type": "string",
-                                                                            "example": "Dirección principal"
-                                                                        },
-                                                                        "phone": {
-                                                                            "type": "string",
-                                                                            "example": "0000000000"
-                                                                        },
-                                                                        "created_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": "2026-03-30T13:17:31.000000Z"
-                                                                        },
-                                                                        "updated_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": "2026-03-31T15:37:40.000000Z"
-                                                                        },
-                                                                        "deleted_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": null,
-                                                                            "nullable": true
-                                                                        },
-                                                                        "gender": {
-                                                                            "properties": {
-                                                                                "id": {
-                                                                                    "type": "integer",
-                                                                                    "example": 1
-                                                                                },
-                                                                                "item_id": {
-                                                                                    "type": "integer",
-                                                                                    "example": 4
-                                                                                },
-                                                                                "name": {
-                                                                                    "type": "string",
-                                                                                    "example": "Super"
-                                                                                },
-                                                                                "description": {
-                                                                                    "type": "string",
-                                                                                    "example": "Admin"
-                                                                                },
-                                                                                "settings": {
-                                                                                    "type": "object",
-                                                                                    "nullable": true
-                                                                                },
-                                                                                "created_at": {
-                                                                                    "type": "string",
-                                                                                    "format": "date-time",
-                                                                                    "example": "2026-03-30T13:17:31.000000Z"
-                                                                                },
-                                                                                "updated_at": {
-                                                                                    "type": "string",
-                                                                                    "format": "date-time",
-                                                                                    "example": "2026-03-31T15:37:40.000000Z"
-                                                                                },
-                                                                                "deleted_at": {
-                                                                                    "type": "string",
-                                                                                    "format": "date-time",
-                                                                                    "example": null,
-                                                                                    "nullable": true
-                                                                                }
-                                                                            },
-                                                                            "type": "object"
-                                                                        },
-                                                                        "blood_type": {
-                                                                            "properties": {
-                                                                                "id": {
-                                                                                    "type": "integer",
-                                                                                    "example": 1
-                                                                                },
-                                                                                "item_id": {
-                                                                                    "type": "integer",
-                                                                                    "example": 4
-                                                                                },
-                                                                                "name": {
-                                                                                    "type": "string",
-                                                                                    "example": "Super"
-                                                                                },
-                                                                                "description": {
-                                                                                    "type": "string",
-                                                                                    "example": "Admin"
-                                                                                },
-                                                                                "settings": {
-                                                                                    "type": "object",
-                                                                                    "nullable": true
-                                                                                },
-                                                                                "created_at": {
-                                                                                    "type": "string",
-                                                                                    "format": "date-time",
-                                                                                    "example": "2026-03-30T13:17:31.000000Z"
-                                                                                },
-                                                                                "updated_at": {
-                                                                                    "type": "string",
-                                                                                    "format": "date-time",
-                                                                                    "example": "2026-03-31T15:37:40.000000Z"
-                                                                                },
-                                                                                "deleted_at": {
-                                                                                    "type": "string",
-                                                                                    "format": "date-time",
-                                                                                    "example": null,
-                                                                                    "nullable": true
-                                                                                }
-                                                                            },
-                                                                            "type": "object"
-                                                                        }
-                                                                    },
-                                                                    "type": "object"
-                                                                },
-                                                                "position": {
-                                                                    "properties": {
-                                                                        "id": {
-                                                                            "type": "integer",
-                                                                            "example": 1
-                                                                        },
-                                                                        "item_id": {
-                                                                            "type": "integer",
-                                                                            "example": 4
-                                                                        },
-                                                                        "name": {
-                                                                            "type": "string",
-                                                                            "example": "Super"
-                                                                        },
-                                                                        "description": {
-                                                                            "type": "string",
-                                                                            "example": "Admin"
-                                                                        },
-                                                                        "settings": {
-                                                                            "type": "object",
-                                                                            "nullable": true
-                                                                        },
-                                                                        "created_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": "2026-03-30T13:17:31.000000Z"
-                                                                        },
-                                                                        "updated_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": "2026-03-31T15:37:40.000000Z"
-                                                                        },
-                                                                        "deleted_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": null,
-                                                                            "nullable": true
-                                                                        },
-                                                                        "area": {
-                                                                            "type": "array",
-                                                                            "items": {
-                                                                                "properties": {
-                                                                                    "id": {
-                                                                                        "type": "integer",
-                                                                                        "example": 1
-                                                                                    },
-                                                                                    "item_id": {
-                                                                                        "type": "integer",
-                                                                                        "example": 4
-                                                                                    },
-                                                                                    "name": {
-                                                                                        "type": "string",
-                                                                                        "example": "Super"
-                                                                                    },
-                                                                                    "description": {
-                                                                                        "type": "string",
-                                                                                        "example": "Admin"
-                                                                                    },
-                                                                                    "settings": {
-                                                                                        "type": "object",
-                                                                                        "nullable": true
-                                                                                    },
-                                                                                    "created_at": {
-                                                                                        "type": "string",
-                                                                                        "format": "date-time",
-                                                                                        "example": "2026-03-30T13:17:29.000000Z"
-                                                                                    },
-                                                                                    "updated_at": {
-                                                                                        "type": "string",
-                                                                                        "format": "date-time",
-                                                                                        "example": "2026-04-06T15:21:16.000000Z"
-                                                                                    },
-                                                                                    "deleted_at": {
-                                                                                        "type": "string",
-                                                                                        "format": "date-time",
-                                                                                        "example": null,
-                                                                                        "nullable": true
-                                                                                    },
-                                                                                    "pivot": {
-                                                                                        "properties": {
-                                                                                            "model_type": {
-                                                                                                "type": "string",
-                                                                                                "example": "App\\\\Models\\\\Position"
-                                                                                            },
-                                                                                            "model_id": {
-                                                                                                "type": "integer",
-                                                                                                "example": 1
-                                                                                            },
-                                                                                            "subitem_id": {
-                                                                                                "type": "integer",
-                                                                                                "example": 1
-                                                                                            }
-                                                                                        },
-                                                                                        "type": "object"
-                                                                                    }
-                                                                                },
-                                                                                "type": "object"
-                                                                            }
-                                                                        }
-                                                                    },
-                                                                    "type": "object"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        },
-                                                        "roles": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer",
-                                                                        "example": 1
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string",
-                                                                        "example": "users"
-                                                                    },
-                                                                    "guard_name": {
-                                                                        "type": "string",
-                                                                        "example": "api"
-                                                                    },
-                                                                    "title": {
-                                                                        "type": "string",
-                                                                        "example": "Usuarios."
-                                                                    },
-                                                                    "description": {
-                                                                        "type": "string",
-                                                                        "example": "Gestión de usuarios."
-                                                                    },
-                                                                    "created_at": {
-                                                                        "type": "string",
-                                                                        "format": "date-time",
-                                                                        "example": "2026-03-30T13:17:29.000000Z"
-                                                                    },
-                                                                    "updated_at": {
-                                                                        "type": "string",
-                                                                        "format": "date-time",
-                                                                        "example": "2026-04-06T15:21:16.000000Z"
-                                                                    },
-                                                                    "pivot": {
-                                                                        "properties": {
-                                                                            "model_type": {
-                                                                                "type": "string",
-                                                                                "example": "App\\\\Models\\\\User"
-                                                                            },
-                                                                            "model_id": {
-                                                                                "type": "integer",
-                                                                                "example": 1
-                                                                            },
-                                                                            "role_id": {
-                                                                                "type": "integer",
-                                                                                "example": 1
-                                                                            }
-                                                                        },
-                                                                        "type": "object"
-                                                                    }
-                                                                },
-                                                                "type": "object"
-                                                            }
-                                                        },
-                                                        "permissions": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer",
-                                                                        "example": 1
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string",
-                                                                        "example": "users"
-                                                                    },
-                                                                    "guard_name": {
-                                                                        "type": "string",
-                                                                        "example": "api"
-                                                                    },
-                                                                    "title": {
-                                                                        "type": "string",
-                                                                        "example": "Usuarios."
-                                                                    },
-                                                                    "description": {
-                                                                        "type": "string",
-                                                                        "example": "Gestión de usuarios."
-                                                                    },
-                                                                    "created_at": {
-                                                                        "type": "string",
-                                                                        "format": "date-time",
-                                                                        "example": "2026-03-30T13:17:29.000000Z"
-                                                                    },
-                                                                    "updated_at": {
-                                                                        "type": "string",
-                                                                        "format": "date-time",
-                                                                        "example": "2026-04-06T15:21:16.000000Z"
-                                                                    },
-                                                                    "pivot": {
-                                                                        "properties": {
-                                                                            "model_type": {
-                                                                                "type": "string",
-                                                                                "example": "App\\\\Models\\\\User"
-                                                                            },
-                                                                            "model_id": {
-                                                                                "type": "integer",
-                                                                                "example": 1
-                                                                            },
-                                                                            "permission_id": {
-                                                                                "type": "integer",
-                                                                                "example": 1
-                                                                            }
-                                                                        },
-                                                                        "type": "object"
-                                                                    }
-                                                                },
-                                                                "type": "object"
-                                                            }
-                                                        }
-                                                    },
-                                                    "type": "object"
+                                                    "$ref": "#/components/schemas/User"
                                                 },
                                                 "navegation": {
                                                     "type": "array",
                                                     "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "example": 1
-                                                            },
-                                                            "name": {
-                                                                "type": "string",
-                                                                "example": "users"
-                                                            },
-                                                            "guard_name": {
-                                                                "type": "string",
-                                                                "example": "api"
-                                                            },
-                                                            "title": {
-                                                                "type": "string",
-                                                                "example": "Usuarios."
-                                                            },
-                                                            "description": {
-                                                                "type": "string",
-                                                                "example": "Gestión de usuarios."
-                                                            },
-                                                            "created_at": {
-                                                                "type": "string",
-                                                                "format": "date-time",
-                                                                "example": "2026-03-30T13:17:29.000000Z"
-                                                            },
-                                                            "updated_at": {
-                                                                "type": "string",
-                                                                "format": "date-time",
-                                                                "example": "2026-04-06T15:21:16.000000Z"
-                                                            },
-                                                            "submodules": {
-                                                                "type": "array",
-                                                                "items": {
-                                                                    "properties": {
-                                                                        "id": {
-                                                                            "type": "integer",
-                                                                            "example": 1
-                                                                        },
-                                                                        "name": {
-                                                                            "type": "string",
-                                                                            "example": "users"
-                                                                        },
-                                                                        "guard_name": {
-                                                                            "type": "string",
-                                                                            "example": "api"
-                                                                        },
-                                                                        "title": {
-                                                                            "type": "string",
-                                                                            "example": "Usuarios."
-                                                                        },
-                                                                        "description": {
-                                                                            "type": "string",
-                                                                            "example": "Gestión de usuarios."
-                                                                        },
-                                                                        "created_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": "2026-03-30T13:17:29.000000Z"
-                                                                        },
-                                                                        "updated_at": {
-                                                                            "type": "string",
-                                                                            "format": "date-time",
-                                                                            "example": "2026-04-06T15:21:16.000000Z"
-                                                                        }
-                                                                    },
-                                                                    "type": "object"
-                                                                }
-                                                            }
-                                                        },
-                                                        "type": "object"
+                                                        "$ref": "#/components/schemas/Module"
                                                     }
                                                 }
                                             },
@@ -2273,42 +1502,7 @@
                                         "data": {
                                             "properties": {
                                                 "user": {
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer",
-                                                            "example": "id_example"
-                                                        },
-                                                        "name": {
-                                                            "type": "string",
-                                                            "example": "name_example"
-                                                        },
-                                                        "email": {
-                                                            "type": "string",
-                                                            "format": "email",
-                                                            "example": "email_example"
-                                                        },
-                                                        "email_verified_at": {
-                                                            "type": "string",
-                                                            "format": "date-time",
-                                                            "nullable": true
-                                                        },
-                                                        "created_at": {
-                                                            "type": "string",
-                                                            "format": "date-time",
-                                                            "example": "2026-03-12T20:01:04.000000Z"
-                                                        },
-                                                        "updated_at": {
-                                                            "type": "string",
-                                                            "format": "date-time",
-                                                            "example": "2026-03-12T20:01:04.000000Z"
-                                                        },
-                                                        "deleted_at": {
-                                                            "type": "string",
-                                                            "format": "date-time",
-                                                            "nullable": true
-                                                        }
-                                                    },
-                                                    "type": "object"
+                                                    "$ref": "#/components/schemas/User"
                                                 }
                                             },
                                             "type": "object"
@@ -13695,6 +12889,690 @@
                 ]
             }
         },
+        "/products/all": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Listar products",
+                "operationId": "9d0c6051933dfb2b4db236a37fd04ccb",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Filtro de Busqueda.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "juan"
+                        }
+                    },
+                    {
+                        "name": "column",
+                        "in": "query",
+                        "description": "Columna a ordenar.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "id",
+                                "trademark_id",
+                                "code",
+                                "category_id",
+                                "subcategory_id",
+                                "observation",
+                                "created_at",
+                                "updated_at"
+                            ],
+                            "example": "code"
+                        }
+                    },
+                    {
+                        "name": "dir",
+                        "in": "query",
+                        "description": "Orden de datos.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de products cargada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "products": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Product"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "pagination": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "count": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "per_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "current_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "total_pages": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/products/find/{id}": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Obtener un producto especifica",
+                "operationId": "d7b30324d996bd5a1e9ca087ea8cdcba",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del producto",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Categoria cargada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "product": {
+                                                    "$ref": "#/components/schemas/Product"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Identificador del producto no registrado.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": 1
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "No hay ningún registro."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/products/store": {
+            "post": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Crear un producto",
+                "operationId": "b331f25302ee0779e4ff1e46b2d10224",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "trademark_id",
+                                    "code",
+                                    "category_id",
+                                    "subcategory_id"
+                                ],
+                                "properties": {
+                                    "trademark_id": {
+                                        "description": "ID de la marca",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "code": {
+                                        "description": "Código o referencia del producto",
+                                        "type": "string",
+                                        "example": "REF-001"
+                                    },
+                                    "category_id": {
+                                        "description": "ID de la categoría",
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "subcategory_id": {
+                                        "description": "ID de la subcategoría",
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "observation": {
+                                        "description": "Observación adicional del producto",
+                                        "type": "string",
+                                        "example": "Producto de temporada",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Producto creado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "product": {
+                                                    "$ref": "#/components/schemas/Product"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "trademark_id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la marca"
+                                                },
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "Codigo - Referencia"
+                                                },
+                                                "category_id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la categoria"
+                                                },
+                                                "subcategory_id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la subcategoria"
+                                                },
+                                                "observation": {
+                                                    "type": "string",
+                                                    "example": "Observacion"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "trademark_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                },
+                                                "code": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Debe tener 8 caracteres."
+                                                    }
+                                                },
+                                                "category_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                },
+                                                "subcategory_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                },
+                                                "details.0.color_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                },
+                                                "details.0.size_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                },
+                                                "details.1": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "La combinación de color y talla ya fue agregada."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/products/update/{id}": {
+            "put": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Editar un producto específico",
+                "operationId": "615bba49c084f6fc97e568daccec4639",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del producto",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "trademark_id",
+                                    "code",
+                                    "category_id",
+                                    "subcategory_id"
+                                ],
+                                "properties": {
+                                    "trademark_id": {
+                                        "description": "ID de la marca",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "code": {
+                                        "description": "Código o referencia del producto",
+                                        "type": "string",
+                                        "example": "REF-001"
+                                    },
+                                    "category_id": {
+                                        "description": "ID de la categoría",
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "subcategory_id": {
+                                        "description": "ID de la subcategoría",
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "observation": {
+                                        "description": "Observación adicional del producto",
+                                        "type": "string",
+                                        "example": "Producto de temporada",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Producto editado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "product": {
+                                                    "$ref": "#/components/schemas/Product"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "trademark_id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la marca"
+                                                },
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "Codigo - Referencia"
+                                                },
+                                                "category_id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la categoria"
+                                                },
+                                                "subcategory_id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la subcategoria"
+                                                },
+                                                "observation": {
+                                                    "type": "string",
+                                                    "example": "Observacion"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "trademark_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                },
+                                                "code": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Debe tener 8 caracteres."
+                                                    }
+                                                },
+                                                "category_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                },
+                                                "subcategory_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                },
+                                                "details.0.color_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                },
+                                                "details.0.size_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                },
+                                                "details.1": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "La combinación de color y talla ya fue agregada."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/risk_manager/all": {
             "get": {
                 "tags": [
@@ -20574,7 +20452,7 @@
                     },
                     "name": {
                         "type": "string",
-                        "example": "users"
+                        "example": "sistemas"
                     },
                     "description": {
                         "type": "string",
@@ -21831,6 +21709,109 @@
                 },
                 "type": "object"
             },
+            "Product": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "trademark_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "RV0001"
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "subcategory_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "observation": {
+                        "type": "string",
+                        "example": "observacion del producto"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-03-30T13:17:29.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-04-06T15:21:16.000000Z"
+                    },
+                    "trademark": {
+                        "$ref": "#/components/schemas/Trademark"
+                    },
+                    "category": {
+                        "$ref": "#/components/schemas/Category"
+                    },
+                    "subcategory": {
+                        "$ref": "#/components/schemas/Subcategory"
+                    },
+                    "product_details": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProductDetail"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ProductDetail": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "000x0000-x00x-00x0-x000-00000000000"
+                    },
+                    "product_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "color_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "size_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "descripcion del producto"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-03-30T13:17:29.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-04-06T15:21:16.000000Z"
+                    },
+                    "product": {
+                        "$ref": "#/components/schemas/Product"
+                    },
+                    "color": {
+                        "$ref": "#/components/schemas/Color"
+                    },
+                    "size": {
+                        "$ref": "#/components/schemas/Size"
+                    }
+                },
+                "type": "object"
+            },
             "RiskManager": {
                 "properties": {
                     "id": {
@@ -22428,6 +22409,10 @@
         {
             "name": "Organizational Structure - Positions",
             "description": "Endpoints para gestionar de Cargos"
+        },
+        {
+            "name": "Products",
+            "description": "Endpoints para gestionar products"
         },
         {
             "name": "Risk Managers",

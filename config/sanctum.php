@@ -47,7 +47,7 @@ return [
     |
     */
     //La cantidad es en minutos para saber cuando expira
-    'expiration' => null,
+    'expiration' => 120,
 
     /*
     |--------------------------------------------------------------------------
