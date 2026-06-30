@@ -36,6 +36,7 @@ return [
     ],
 
     'siigo' => [
+        'base_url' => env('SIIGO_BASE_URL'),
         'username' => env('SIIGO_USERNAME'),
         'access_key' => env('SIIGO_ACCESS_KEY'),
     ],
