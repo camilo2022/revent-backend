@@ -22,7 +22,6 @@ class ExportInventorySiigoJob implements ShouldQueue
 
     public function __construct(
         private array $filters,
-        private bool $positive,
         private string|array $notifyEmail
     ) {}
 
@@ -30,7 +29,7 @@ class ExportInventorySiigoJob implements ShouldQueue
     {
         $siigo = new SiigoInventoryService();
 
-        $name = $this->positive ? "inventarios_con_ingreso" : "inventarios_por_ingreso";
+        $name = $this->filters['positive'] ? "inventarios_con_ingreso" : "inventarios_por_ingreso";
         $filename = "{$name}_" . now()->format('Ymd_His') . ".xlsx";
 
         $token = $siigo->auth();

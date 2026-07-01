@@ -13,19 +13,26 @@ class ExportInventorySiigoScheduled extends Command
 
     public function handle(): int
     {
-        $filters = [
+        $emails = [
+            'operaciones@revent.com.co',
+            'ingenieria@revent.com.co',
+            'leanmanagement@revent.com.co',
+            'camiloacacio16@gmail.com',
+        ];
+
+        $baseFilters = [
             'created_start' => null,
             'created_end' => null,
             'page_size' => 100,
             'type' => 'Product',
-            'positive' => true,
         ];
 
-        ExportInventorySiigoJob::dispatch(
-            $filters,
-            true,
-            ['operaciones@revent.com.co', 'ingenieria@revent.com.co', 'leanmanagement@revent.com.co', 'camiloacacio16@gmail.com']
-        );
+        foreach ([true, false] as $positive) {
+            ExportInventorySiigoJob::dispatch(
+                [...$baseFilters, 'positive' => $positive],
+                $emails
+            );
+        }
 
         return self::SUCCESS;
     }
