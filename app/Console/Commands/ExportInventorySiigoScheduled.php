@@ -24,7 +24,7 @@ class ExportInventorySiigoScheduled extends Command
         ExportInventorySiigoJob::dispatch(
             $filters,
             true,
-            ['operaciones@revent.com.co', 'camiloacacio16@gmail.com']
+            ['operaciones@revent.com.co', 'ingenieria@revent.com.co', 'leanmanagement@revent.com.co', 'camiloacacio16@gmail.com']
         );
 
         return self::SUCCESS;
