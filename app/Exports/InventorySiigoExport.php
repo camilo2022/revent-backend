@@ -162,7 +162,7 @@ class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, 
                 }
             }
 
-            $url = /*$data['_links']['next']['href'] ??*/ null;
+            $url = $data['_links']['next']['href'] ?? null;
 
             // pequeña pausa entre páginas para evitar rate limit
             if ($url) {
