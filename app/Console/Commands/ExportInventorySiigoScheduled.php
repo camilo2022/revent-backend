@@ -27,8 +27,6 @@ class ExportInventorySiigoScheduled extends Command
             ['operaciones@revent.com.co', 'camiloacacio16@gmail.com']
         );
 
-        $this->info('✅ Job de exportación Siigo despachado correctamente.');
-
         return self::SUCCESS;
     }
 }
