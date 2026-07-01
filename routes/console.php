@@ -1,17 +1,19 @@
 <?php
 
-use App\Http\Controllers\Integration\SiigoController;
-use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::call(function () {
+Schedule::command('siigo:export-inventory-scheduled')->dailyAt('07:00');
+Schedule::command('siigo:export-inventory-scheduled')->dailyAt('13:00');
+
+//Schedule::command('siigo:export-inventory-scheduled')->dailyAt('14:00');
+
+/*Schedule::call(function () {
 
     $createdStart = Carbon::now()->subMinutes(20)->format('Y-m-d H:i:s');
 
@@ -36,4 +38,4 @@ Schedule::call(function () {
         ]);
         throw $e;
     }
-})->everyFifteenMinutes();
+})->everyFifteenMinutes();*/

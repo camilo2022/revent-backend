@@ -17,13 +17,13 @@ class ExportInventorySiigoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $timeout = 0;      // Sin límite de tiempo
-    public int $tries = 1;        // No reintentar si falla
+    public int $timeout = 0;
+    public int $tries = 1;
 
     public function __construct(
         private array $filters,
         private bool $positive,
-        private string $notifyEmail  // A quién notificar cuando termine
+        private string|array $notifyEmail
     ) {}
 
     public function handle(): void
@@ -33,13 +33,10 @@ class ExportInventorySiigoJob implements ShouldQueue
         $name = $this->positive ? "inventarios_con_ingreso" : "inventarios_por_ingreso";
         $filename = "{$name}_" . now()->format('Ymd_His') . ".xlsx";
 
-        // Autenticar
         $token = $siigo->auth();
 
-        // Obtener compras
         $purchases = $siigo->getPurchases($token, $this->filters);
 
-        // Generar Excel y guardarlo en storage/app/exports/
         Excel::store(
             new InventorySiigoExport(
                 $name,
@@ -50,17 +47,16 @@ class ExportInventorySiigoJob implements ShouldQueue
                 config('services.siigo.base_url')
             ),
             "exports/{$filename}",
-            'local'
+            'public'
         );
 
-        // Notificar por email con link de descarga
         $downloadUrl = route('exports.download', ['file' => $filename]);
 
         Mail::raw(
             "✅ Tu exportación de inventario Siigo está lista.\n\nDescarga: {$downloadUrl}",
             fn ($msg) => $msg
                 ->to($this->notifyEmail)
-                ->subject("Exportación lista: {$filename}")
+                ->subject("Exportación lista: {$name}")
         );
     }
 
