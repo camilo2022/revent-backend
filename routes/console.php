@@ -10,7 +10,7 @@ Artisan::command('inspire', function () {
 
 Schedule::command('siigo:export-inventory-scheduled')->dailyAt('07:00');
 Schedule::command('siigo:export-inventory-scheduled')->dailyAt('13:00');
-Schedule::command('siigo:export-inventory-scheduled')->dailyAt('20:50');
+Schedule::command('siigo:export-inventory-scheduled')->dailyAt('21:09');
 
 //Schedule::command('siigo:export-inventory-scheduled')->dailyAt('14:00');
 
