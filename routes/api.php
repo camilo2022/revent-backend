@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('/integrations')->group(function () {
     Route::prefix('/siigo')->group(function () {
         Route::controller(SiigoController::class)->group(function () {
-            Route::get('/sync', 'sync');
+            Route::post('/sync', 'sync');
         });
         Route::controller(InventorySiigoController::class)->group(function () {
             Route::get('/inventory/export', 'export_inventory');

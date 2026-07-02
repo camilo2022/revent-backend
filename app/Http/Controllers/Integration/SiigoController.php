@@ -22,6 +22,8 @@ class SiigoController extends Controller
     private string $unico_name = 'test_revent';
     private string $unico_password = '7nsw9R8KCsrX';
 
+    private string $fidelizacion_url = 'https://fidelizacionapi.uniapps.com.co/api/fidelizacion/contact/find-contact-list';
+
     public function execute(array $params = [])
     {
         $token_siigo = $this->auth_siigo();
@@ -43,10 +45,6 @@ class SiigoController extends Controller
                 'page' => $request->input('page', 1),
                 'page_size' => $request->input('page_size', 100),
             ]);
-
-            /*$processedInvoices = $this->process_invoices($invoices);
-
-            $purchases = $this->purchases_unico($token_unico, $processedInvoices);*/
             return $this->successResponse(
                 $invoices,
                 $this->getMessage('Success'),
@@ -145,6 +143,8 @@ class SiigoController extends Controller
 
     private function process_invoices(array $invoices): array
     {
+        $valid_documents = $this->valid_documents($invoices);
+
         $malls = [
             596 => (object) [
                 "fantasy_name" => "REVENT CALZADO",
@@ -162,7 +162,7 @@ class SiigoController extends Controller
             ]
         ];
 
-        return array_values(array_filter(array_map(function ($invoice) use ($malls) {
+        return array_values(array_filter(array_map(function ($invoice) use ($malls, $valid_documents) {
             foreach($invoice['items'] ?? [] as $item) {
                 $parts = preg_split('/[*-]/', $item['description'] ?? '');
 
@@ -185,7 +185,7 @@ class SiigoController extends Controller
 
                 if(isset($item['taxes']) && isset($malls[$invoice['cost_center']])) {
                     return [
-                        'document_number' => $invoice['customer']['identification'],
+                        'document_number' => in_array($invoice['customer']['identification'], $valid_documents) ? $invoice['customer']['identification'] : '22222222222',
                         'place_local_code' => $malls[$invoice['cost_center']]->place_local_code,
                         'mall_id' => $malls[$invoice['cost_center']]->mall_id,
                         'purchase_mode_id' => 1,
@@ -244,5 +244,29 @@ class SiigoController extends Controller
         }
 
         return $response->json();
+    }
+
+    private function valid_documents(array $invoices): array
+    {
+        $documents = collect($invoices)
+            ->pluck('customer.identification')
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        if (empty($documents)) {
+            return [];
+        }
+
+        $response = Http::acceptJson()->post($this->fidelizacion_url, [
+            'cedulas' => $documents,
+        ]);
+
+        if (!$response->successful()) {
+            return [];
+        }
+
+        return $response->json('data', []);
     }
 }

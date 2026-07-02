@@ -37,7 +37,7 @@ class SiigoInventoryService
     public function getPurchases(string $token, array $filters = []): array
     {
         $purchases = [];
-        $allowedFilters = ['page', 'page_size', 'created_start'];
+        $allowedFilters = ['page', 'page_size'];
 
         $queryParams = array_filter(
             array_intersect_key($filters, array_flip($allowedFilters)),
@@ -110,6 +110,80 @@ class SiigoInventoryService
                     $entry['second_date'] = $date;
                 }
             }
+        }
+    }
+
+    public function getProducts(string $token, array $filters = []): array
+    {
+        $products = [];
+        $allowedFilters = ['page', 'page_size'];
+
+        $queryParams = array_filter(
+            array_intersect_key($filters, array_flip($allowedFilters)),
+            fn($v) => $v !== null && $v !== ''
+        );
+
+        $url = "{$this->baseUrl}/v1/products?" . http_build_query($queryParams);
+
+        do {
+            $response = Http::retry(5, 10000)->withHeaders([
+                'Content-Type'  => 'application/json',
+                'Authorization' => $token,
+                'Partner-Id'    => 'consultadeFacturas',
+            ])->get($url);
+
+            if ($response->status() === 429) {
+                sleep(1);
+                continue;
+            }
+
+            if (!$response->successful()) {
+                throw new \Exception($response->body());
+            }
+
+            $data = $response->json();
+
+            if (!empty($data['results'])) {
+                $this->processProducts($data['results'], $products);
+            }
+
+            $url = $data['_links']['next']['href'] ?? null;
+
+            if ($url) usleep(500000);
+
+            unset($data, $response);
+
+        } while ($url);
+
+        return $products;
+    }
+
+    private function processProducts(array $results, array &$products): void
+    {
+        foreach ($results as $product) {
+            $code = $product['code'] ?? null;
+
+            if ($code === null) {
+                continue;
+            }
+
+            $products[$code] = [
+                'id' => $product['id'] ?? null,
+                'code' => $product['code'] ?? null,
+                'name' => $product['name'] ?? null,
+                'account_group' => $product['account_group']['name'] ?? null,
+                'account_group_id' => $product['account_group']['id'] ?? null,
+                'reference' => $product['reference'] ?? null,
+                'barcode' => $product['additional_fields']['barcode'] ?? null,
+                'brand' => $product['additional_fields']['brand'] ?? null,
+                'model' => $product['additional_fields']['model'] ?? null,
+                'tariff' => $product['additional_fields']['tariff'] ?? null,
+                'unit_label' => $product['unit_label'] ?? null,
+                'active' => $product['active'] ?? null,
+                'stock_control' => $product['stock_control'] ?? null,
+                'available_quantity'=> $product['available_quantity'] ?? 0,
+                'warehouses' => $product['warehouses'] ?? [],
+            ];
         }
     }
 
