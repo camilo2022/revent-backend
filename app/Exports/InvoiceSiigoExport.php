@@ -51,6 +51,7 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
             'DESCRIPCION',
             'NOMBRE',
             'COLOR',
+            'PROVEEDOR',
             'CATEGORIA',
             'TALLA',
             'PRECIO',
@@ -88,6 +89,7 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
 
                     $name = $parts[0] ?? '#N/A';
                     $color = $parts[1] ?? '#N/A';
+                    $provider = '#N/A';
                     $category = '#N/A';
                     $size = '#N/A';
 
@@ -97,6 +99,7 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
                         $category = $parts[2] ?? '#N/A';
                         $size = $parts[3] ?? '#N/A';
                     } elseif ($count >= 5) {
+                        $provider = $parts[$count - 3] ?? '#N/A';
                         $category = $parts[$count - 2] ?? '#N/A';
                         $size = $parts[$count - 1] ?? '#N/A';
                     }
@@ -114,6 +117,7 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
                         'DESCRIPCION' => $item['description'],
                         'NOMBRE' => $name,
                         'COLOR' => $color,
+                        'PROVEEDOR' => $provider,
                         'CATEGORIA' => $category,
                         'TALLA' => $size,
                         'PRECIO' => $item['price'],
@@ -146,6 +150,7 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
 
                     $name = $parts[0] ?? '#N/A';
                     $color = $parts[1] ?? '#N/A';
+                    $provider = '#N/A';
                     $category = '#N/A';
                     $size = '#N/A';
 
@@ -155,6 +160,7 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
                         $category = $parts[2] ?? '#N/A';
                         $size = $parts[3] ?? '#N/A';
                     } elseif ($count >= 5) {
+                        $provider = $parts[$count - 3] ?? '#N/A';
                         $category = $parts[$count - 2] ?? '#N/A';
                         $size = $parts[$count - 1] ?? '#N/A';
                     }
@@ -172,6 +178,7 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
                         'DESCRIPCION' => $item['description'],
                         'NOMBRE' => $name,
                         'COLOR' => $color,
+                        'PROVEEDOR' => $provider,
                         'CATEGORIA' => $category,
                         'TALLA' => $size,
                         'PRECIO' => -abs($item['price']),
