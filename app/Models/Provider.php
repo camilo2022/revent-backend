@@ -18,27 +18,42 @@ class Provider extends Model implements Auditable
     protected $guard_name = 'api';
 
     protected $fillable = [
-        'item_id',
         'name',
+        'legal_name',
+        'document_type_id',
+        'document',
+        'location_id',
+        'location_type',
+        'email',
+        'country_id',
+        'phone',
+        'address',
+        'neighborhood',
         'description',
-        'settings'
     ];
 
     protected $auditInclude = [
-        'item_id',
         'name',
+        'business_name',
+        'document_type_id',
+        'document',
+        'location_id',
+        'location_type',
+        'email',
+        'country_id',
+        'phone',
+        'address',
+        'neighborhood',
         'description',
-        'settings'
-    ];
-
-    protected $casts = [
-        'settings' => 'object'
     ];
 
     public function scopeSearch(Builder $query, ?string $search = null): Builder
     {
         $search = trim((string) $search);
-        if ($search === '') return $query;
+
+        if ($search === '') {
+            return $query;
+        }
 
         $terms = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
 
@@ -47,7 +62,13 @@ class Provider extends Model implements Auditable
                 $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
 
                 $q->where(function (Builder $sq) use ($like) {
-                    $sq->orWhere('name', 'LIKE', $like)
+                    $sq->where('name', 'LIKE', $like)
+                        ->orWhere('business_name', 'LIKE', $like)
+                        ->orWhere('document', 'LIKE', $like)
+                        ->orWhere('email', 'LIKE', $like)
+                        ->orWhere('phone', 'LIKE', $like)
+                        ->orWhere('address', 'LIKE', $like)
+                        ->orWhere('neighborhood', 'LIKE', $like)
                         ->orWhere('description', 'LIKE', $like);
                 });
             }

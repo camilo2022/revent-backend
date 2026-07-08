@@ -66,6 +66,11 @@ use App\Traits\ApiResponser;
  *         property="region",
  *         type="object",
  *         ref="#/components/schemas/Region"
+ *     ),
+ *     @OA\Property(
+ *         property="departments",
+ *         type="array",
+ *         @OA\Items(ref="#/components/schemas/Department")
  *     )
  * )
  */
