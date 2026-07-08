@@ -13,7 +13,7 @@ class CompensationFund extends Model implements Auditable
 {
     use Auditing, SoftDeletes;
 
-    public const ITEM_ID = 11;
+    public const ITEM_ID = 14;
 
     protected $table = 'subitems';
 

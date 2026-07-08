@@ -312,7 +312,7 @@ return [
         'constants' => [
             'L5_SWAGGER_HOST_DEVELOPMENT' => env('L5_SWAGGER_HOST_DEVELOPMENT', 'http://revent-backend.test/api/'),
             'L5_SWAGGER_HOST_TESTING' => env('L5_SWAGGER_HOST_TESTING', 'http://testing-revent-backend.test/api/'),
-            'L5_SWAGGER_HOST_PRODUCTION' => env('L5_SWAGGER_HOST_PRODUCTION', 'http://production-revent-backend.test/api/'),
+            'L5_SWAGGER_HOST_PRODUCTION' => env('L5_SWAGGER_HOST_PRODUCTION', 'https://tech.revent.com.co/api/'),
         ],
     ],
 ];

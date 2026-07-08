@@ -72,120 +72,93 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
 
     public function generator(): Generator
     {
-        foreach($this->invoices as $invoice) {
-            $cost_center = $this->cost_centers[$invoice['cost_center']] ?? [];
-            $seller = $this->sellers[$invoice['seller']] ?? [];
-            foreach($invoice['items'] ?? [] as $item) {
-                if(isset($item['taxes'])) {
-                    $firstDate = $this->purchases[$item['code']][$item['warehouse']['id']]['first_date'] ?? null;
-                    $secondDate = $this->purchases[$item['code']][$item['warehouse']['id']]['second_date'] ?? null;
-                    $diffDays = ($firstDate && $secondDate) ? (new \DateTime($secondDate))->diff(new \DateTime($firstDate))->days : null;
+        $documents = [
+            [
+                'data' => $this->invoices,
+                'is_credit_note' => false,
+            ],
+            [
+                'data' => $this->credit_notes,
+                'is_credit_note' => true,
+            ],
+        ];
 
-                    $warehouse = $this->stores[$item['warehouse']['id']] ?? [];
+        foreach ($documents as $documentGroup) {
+
+            foreach ($documentGroup['data'] as $document) {
+
+                $cost_center = $this->cost_centers[$document['cost_center'] ?? ''] ?? [];
+                $seller = $this->sellers[$document['seller'] ?? ''] ?? [];
+
+                foreach ($document['items'] ?? [] as $item) {
+
+                    if (!isset($item['taxes'])) {
+                        continue;
+                    }
+
+                    $warehouseData = $item['warehouse'] ?? [];
+                    $warehouseId = $warehouseData['id'] ?? null;
+
+                    $firstDate = $warehouseId
+                        ? ($this->purchases[$item['code'] ?? ''][$warehouseId]['first_date'] ?? null)
+                        : null;
+
+                    $secondDate = $warehouseId
+                        ? ($this->purchases[$item['code'] ?? ''][$warehouseId]['second_date'] ?? null)
+                        : null;
+
+                    $diffDays = ($firstDate && $secondDate)
+                        ? (new \DateTime($secondDate))->diff(new \DateTime($firstDate))->days
+                        : null;
+
+                    $warehouse = $warehouseId
+                        ? ($this->stores[$warehouseId] ?? [])
+                        : [];
 
                     $parts = preg_split('/[*-]/', $item['description'] ?? '');
 
                     $count = count($parts);
 
-                    $name = $parts[0] ?? '#N/A';
-                    $color = $parts[1] ?? '#N/A';
+                    $name = trim($parts[0] ?? '#N/A');
+                    $color = trim($parts[1] ?? '#N/A');
                     $provider = '#N/A';
                     $category = '#N/A';
                     $size = '#N/A';
 
                     if ($count === 3) {
-                        $size = $parts[2] ?? '#N/A';
+                        $size = trim($parts[2] ?? '#N/A');
                     } elseif ($count === 4) {
-                        $category = $parts[2] ?? '#N/A';
-                        $size = $parts[3] ?? '#N/A';
+                        $category = trim($parts[2] ?? '#N/A');
+                        $size = trim($parts[3] ?? '#N/A');
                     } elseif ($count >= 5) {
-                        $provider = $parts[$count - 3] ?? '#N/A';
-                        $category = $parts[$count - 2] ?? '#N/A';
-                        $size = $parts[$count - 1] ?? '#N/A';
+                        $provider = trim($parts[$count - 3] ?? '#N/A');
+                        $category = trim($parts[$count - 2] ?? '#N/A');
+                        $size = trim($parts[$count - 1] ?? '#N/A');
                     }
 
+                    $multiplier = $documentGroup['is_credit_note'] ? -1 : 1;
+
                     yield [
-                        'PREFIJO' => $invoice['prefix'],
-                        'NUMERO' => $invoice['number'],
-                        'DOCUMENTO' => $invoice['name'],
-                        'DOCUMENTO RELACIONADO' => '#N/A',
-                        'FECHA DOCUMENTO' => $invoice['date'],
+                        'PREFIJO' => $documentGroup['is_credit_note'] ? '#N/A' : ($document['prefix'] ?? '#N/A'),
+                        'NUMERO' => $document['number'] ?? '#N/A',
+                        'DOCUMENTO' => $document['name'] ?? '#N/A',
+                        'DOCUMENTO RELACIONADO' => $documentGroup['is_credit_note'] ? ($document['invoice']['name'] ?? '#N/A') : '#N/A',
+                        'FECHA DOCUMENTO' => $document['date'] ?? '#N/A',
                         'CENTRO DE COSTO' => $cost_center['name'] ?? '#N/A',
                         'VENDEDOR' => $seller['first_name'] ?? '#N/A',
-                        'MODELO' => $this->products[$item['code']]['model'] ?? '#N/A',
-                        'CODIGO' => $item['code'],
-                        'DESCRIPCION' => $item['description'],
+                        'MODELO' => $this->products[$item['code'] ?? '']['model'] ?? '#N/A',
+                        'CODIGO' => $item['code'] ?? '#N/A',
+                        'DESCRIPCION' => $item['description'] ?? '#N/A',
                         'NOMBRE' => $name,
                         'COLOR' => $color,
                         'PROVEEDOR' => $provider,
                         'CATEGORIA' => $category,
                         'TALLA' => $size,
-                        'PRECIO' => $item['price'],
-                        'IMPUESTO' => collect($item['taxes'])->sum('value'),
-                        'TOTAL' => $item['total'] ?? 0,
-                        'CANTIDAD' => $item['quantity'],
-                        'BODEGA' => ($warehouse['code'] ?? '#N/A') . ' - ' . ($warehouse['name'] ?? ($item['warehouse']['name'] ?? '#N/A')),
-                        'FECHA' => $firstDate,
-                        'SEGUNDA_FECHA' => $secondDate,
-                        'DIFERENCIA' => $diffDays,
-                    ];
-                }
-            }
-        }
-
-        foreach($this->credit_notes as $credit_note) {
-            $cost_center = $this->cost_centers[$credit_note['cost_center']] ?? [];
-            $seller = $this->sellers[$credit_note['seller']] ?? [];
-            foreach($credit_note['items'] ?? [] as $item) {
-                if(isset($item['taxes'])) {
-                    $firstDate = $this->purchases[$item['code']][$item['warehouse']['id']]['first_date'] ?? null;
-                    $secondDate = $this->purchases[$item['code']][$item['warehouse']['id']]['second_date'] ?? null;
-                    $diffDays = ($firstDate && $secondDate) ? (new \DateTime($secondDate))->diff(new \DateTime($firstDate))->days : null;
-
-                    $warehouse = $this->stores[$item['warehouse']['id']] ?? [];
-
-                    $parts = preg_split('/[*-]/', $item['description'] ?? '');
-
-                    $count = count($parts);
-
-                    $name = $parts[0] ?? '#N/A';
-                    $color = $parts[1] ?? '#N/A';
-                    $provider = '#N/A';
-                    $category = '#N/A';
-                    $size = '#N/A';
-
-                    if ($count === 3) {
-                        $size = $parts[2] ?? '#N/A';
-                    } elseif ($count === 4) {
-                        $category = $parts[2] ?? '#N/A';
-                        $size = $parts[3] ?? '#N/A';
-                    } elseif ($count >= 5) {
-                        $provider = $parts[$count - 3] ?? '#N/A';
-                        $category = $parts[$count - 2] ?? '#N/A';
-                        $size = $parts[$count - 1] ?? '#N/A';
-                    }
-
-                    yield [
-                        'PREFIJO' => '#N/A',
-                        'NUMERO' => $credit_note['number'],
-                        'DOCUMENTO' => $credit_note['name'],
-                        'DOCUMENTO RELACIONADO' => $credit_note['invoice']['name'] ?? '#N/A',
-                        'FECHA DOCUMENTO' => $credit_note['date'],
-                        'CENTRO DE COSTO' => $cost_center['name'] ?? '#N/A',
-                        'VENDEDOR' => $seller['first_name'] ?? '#N/A',
-                        'MODELO' => $this->products[$item['code']]['model'] ?? '#N/A',
-                        'CODIGO' => $item['code'],
-                        'DESCRIPCION' => $item['description'],
-                        'NOMBRE' => $name,
-                        'COLOR' => $color,
-                        'PROVEEDOR' => $provider,
-                        'CATEGORIA' => $category,
-                        'TALLA' => $size,
-                        'PRECIO' => -abs($item['price']),
-                        'IMPUESTO' => -abs(collect($item['taxes'])->sum('value')),
-                        'TOTAL' => -abs($item['total'] ?? 0),
-                        'CANTIDAD' => -abs($item['quantity']),
-                        'BODEGA' => ($warehouse['code'] ?? '#N/A') . ' - ' . ($warehouse['name'] ?? ($item['warehouse']['name'] ?? '#N/A')),
+                        'PRECIO' => ($item['price'] ?? 0) * $multiplier,
+                        'IMPUESTO' => collect($item['taxes'])->sum('value') * $multiplier,
+                        'TOTAL' => ($item['total'] ?? 0) * $multiplier,
+                        'CANTIDAD' => ($item['quantity'] ?? 0) * $multiplier,
+                        'BODEGA' => ($warehouse['code'] ?? '#N/A') . ' - ' . ($warehouse['name'] ?? ($warehouseData['name'] ?? '#N/A')),
                         'FECHA' => $firstDate,
                         'SEGUNDA_FECHA' => $secondDate,
                         'DIFERENCIA' => $diffDays,

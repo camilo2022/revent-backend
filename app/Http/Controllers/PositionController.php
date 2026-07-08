@@ -57,7 +57,7 @@ class PositionController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/organizational_structure/areas/positions/all/{area_id}",
+     *     path="/organizational_structure/positions/all/{area_id}",
      *     tags={"Organizational Structure - Positions"},
      *     summary="Listar Cargos",
      *     security={{"sanctum":{}}},
@@ -184,7 +184,7 @@ class PositionController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/organizational_structure/areas/positions/find/{id}",
+     *     path="/organizational_structure/positions/find/{id}",
      *     tags={"Organizational Structure - Positions"},
      *     summary="Obtener un cargo específico",
      *     security={{"sanctum":{}}},
@@ -271,7 +271,7 @@ class PositionController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/organizational_structure/areas/positions/store",
+     *     path="/organizational_structure/positions/store",
      *     tags={"Organizational Structure - Positions"},
      *     summary="Crear un cargo",
      *     security={{"sanctum":{}}},
@@ -381,7 +381,7 @@ class PositionController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/organizational_structure/areas/positions/update/{id}",
+     *     path="/organizational_structure/positions/update/{id}",
      *     tags={"Organizational Structure - Positions"},
      *     summary="Editar un cargo específico",
      *     security={{"sanctum":{}}},
@@ -500,7 +500,7 @@ class PositionController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/organizational_structure/areas/positions/delete/{id}",
+     *     path="/organizational_structure/positions/delete/{id}",
      *     tags={"Organizational Structure - Positions"},
      *     summary="Desactivar un cargo específico",
      *     security={{"sanctum":{}}},
@@ -596,7 +596,7 @@ class PositionController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/organizational_structure/areas/positions/restore/{id}",
+     *     path="/organizational_structure/positions/restore/{id}",
      *     tags={"Organizational Structure - Positions"},
      *     summary="Activar un cargo",
      *     security={{"sanctum":{}}},
@@ -692,9 +692,9 @@ class PositionController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/organizational_structure/areas/positions/authorization/assign/{id}",
+     *     path="/organizational_structure/positions/authorization/assign/{id}",
      *     tags={"Organizational Structure - Positions"},
-     *     summary="Asignar un permiso a un cargo específio",
+     *     summary="Asignar un permiso a un cargo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
@@ -806,9 +806,9 @@ class PositionController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/organizational_structure/areas/positions/authorization/remove/{id}",
+     *     path="/organizational_structure/positions/authorization/remove/{id}",
      *     tags={"Organizational Structure - Positions"},
-     *     summary="Remover un permiso a un cargo específio",
+     *     summary="Remover un permiso a un cargo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",

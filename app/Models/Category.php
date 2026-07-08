@@ -14,7 +14,7 @@ class Category extends Model implements Auditable
 {
     use Auditing, SoftDeletes;
 
-    public const ITEM_ID = 15;
+    public const ITEM_ID = 18;
 
     protected $table = 'subitems';
 
@@ -60,7 +60,7 @@ class Category extends Model implements Auditable
 
     public function subcategories(): MorphToMany
     {
-        return $this->morphedByMany(Subcategory::class, 'model', 'model_has_subitems', 'subitem_id', 'model_id');
+        return $this->morphToMany(Subcategory::class, 'model', 'model_has_subitems', 'model_id', 'subitem_id');
     }
 
     public function scopeSearch(Builder $query, ?string $search = null): Builder

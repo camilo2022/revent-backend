@@ -28,7 +28,9 @@ class ProviderUpdateRequest extends FormRequest
         return [
             'id' => ['required', 'exists:subitems,id,item_id,' . Provider::ITEM_ID],
             'name' => ['required', 'string', 'min:1', 'max:50', 'unique:subitems,name,' . $this->route('id') . ',id,item_id,' . Provider::ITEM_ID],
-            'description' => ['nullable', 'string', 'max:255']
+            'description' => ['nullable', 'string', 'max:255'],
+            'settings' => ['required', 'array'],
+            'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . Provider::ITEM_ID],
         ];
     }
 
@@ -40,7 +42,9 @@ class ProviderUpdateRequest extends FormRequest
             'max' => 'Se permite máximo :max caracteres.',
             'min' => 'Se permite mínimo :min caracteres.',
             'unique' => 'Ya está registrado.',
-            'exists' => 'No está registrado.'
+            'exists' => 'No está registrado.',
+            'uppercase' => 'El campo debe estar en mayúsculas.',
+            'array' => 'Debe ser un arreglo.',
         ];
     }
 
@@ -49,7 +53,9 @@ class ProviderUpdateRequest extends FormRequest
         return [
             'id' => 'Identificador del proveedor',
             'name' => 'Nombre',
-            'description' => 'Descripción'
+            'description' => 'Descripción',
+            'settings' => 'Configuración',
+            'settings.code' => 'Código'
         ];
     }
 

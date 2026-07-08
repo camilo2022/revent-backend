@@ -639,9 +639,23 @@ class ProductController extends Controller
     {
         try {
             $product = Product::findOrFail($id);
-            $product->name = $request->input('name');
-            $product->description = $request->input('description');
+            $product->trademark_id = $request->integer('trademark_id');
+            $product->code = $request->input('code');
+            $product->category_id = $request->integer('category_id');
+            $product->subcategory_id = $request->integer('subcategory_id');
+            $product->observation = $request->input('observation');
             $product->save();
+
+            foreach($request->input('details', []) as $detail) {
+                $product_detail = new ProductDetail();
+                $product_detail->product_id = $product->id;
+                $product_detail->color_id = $detail['color_id'];
+                $product_detail->size_id = $detail['size_id'];
+                $product_detail->observation = $detail['observation'];
+                $product_detail->save();
+            }
+
+            $product->load(['trademark', 'category', 'subcategory', 'product_details' => ['color', 'size']]);
 
             return $this->successResponse(
                 new ProductResource($product),

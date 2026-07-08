@@ -241,8 +241,7 @@ class SubcategoryController extends Controller
     public function find(SubcategoryFindRequest $request, $id)
     {
         try {
-            $subcategory = Subcategory::with(['item', 'categories'])
-                ->findOrFail($id);
+            $subcategory = Subcategory::with(['item', 'categories'])->findOrFail($id);
 
             return $this->successResponse(
                 new SubcategoryResource($subcategory),
@@ -350,9 +349,8 @@ class SubcategoryController extends Controller
             $subcategory = new Subcategory();
             $subcategory->name = $request->input('name');
             $subcategory->description = $request->input('description');
+            $subcategory->settings->code = $request->input('settings.code');
             $subcategory->save();
-
-            $subcategory->area()->sync([$request->integer('area_id')]);
 
             return $this->successResponse(
                 new SubcategoryResource($subcategory),
@@ -469,9 +467,8 @@ class SubcategoryController extends Controller
             $subcategory = Subcategory::findOrFail($id);
             $subcategory->name = $request->input('name');
             $subcategory->description = $request->input('description');
+            $subcategory->settings->code = $request->input('settings.code');
             $subcategory->save();
-
-            $subcategory->area()->sync([$request->integer('area_id')]);
 
             return $this->successResponse(
                 new SubcategoryResource($subcategory),

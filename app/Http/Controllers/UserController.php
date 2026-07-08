@@ -806,7 +806,7 @@ class UserController extends Controller
      * @OA\Post(
      *     path="/users/authorization/assign/{id}",
      *     tags={"Users"},
-     *     summary="Asignar un permiso a un usuario específio",
+     *     summary="Asignar un permiso a un usuario específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",

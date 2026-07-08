@@ -13,7 +13,7 @@ class RiskManager extends Model implements Auditable
 {
     use Auditing, SoftDeletes;
 
-    public const ITEM_ID = 8;
+    public const ITEM_ID = 11;
 
     protected $table = 'subitems';
 

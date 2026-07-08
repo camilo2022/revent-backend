@@ -30,8 +30,6 @@ class ColorStoreRequest extends FormRequest
             'description' => ['required', 'string', 'max:255'],
             'settings' => ['required', 'array'],
             'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . Color::ITEM_ID],
-            'icon' => ['required', 'array'],
-            'icon.file' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ];
     }
 
@@ -46,8 +44,6 @@ class ColorStoreRequest extends FormRequest
             'unique' => 'Ya está registrado.',
             'uppercase' => 'El campo debe estar en mayúsculas.',
             'array' => 'Debe ser un arreglo.',
-            'image' => 'Debe ser una imagen.',
-            'mimes' => 'Extensión inválida. Permitidas :values.',
         ];
     }
 
@@ -58,8 +54,6 @@ class ColorStoreRequest extends FormRequest
             'description' => 'Descripción',
             'settings' => 'Configuración',
             'settings.code' => 'Código',
-            'icon' => 'Icono',
-            'icon.file' => 'Archivo del icono',
         ];
     }
 }

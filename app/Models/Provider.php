@@ -4,8 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
@@ -15,9 +13,7 @@ class Provider extends Model implements Auditable
 {
     use Auditing, HasRoles, SoftDeletes;
 
-    public const ITEM_ID = 17;
-
-    protected $table = 'subitems';
+    protected $table = 'providers';
 
     protected $guard_name = 'api';
 
@@ -38,26 +34,6 @@ class Provider extends Model implements Auditable
     protected $casts = [
         'settings' => 'object'
     ];
-
-    protected static function booted()
-    {
-        static::addGlobalScope('item_id', function (Builder $builder) {
-            $builder->where('item_id', self::ITEM_ID);
-        });
-
-        static::creating(function ($model) {
-            $model->item_id = self::ITEM_ID;
-        });
-
-        static::updating(function ($model) {
-            $model->item_id = self::ITEM_ID;
-        });
-    }
-
-    public function item(): BelongsTo
-    {
-        return $this->belongsTo(Item::class);
-    }
 
     public function scopeSearch(Builder $query, ?string $search = null): Builder
     {

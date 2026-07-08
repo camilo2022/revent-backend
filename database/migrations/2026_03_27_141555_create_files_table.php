@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\FileSubtype;
 use App\Models\FileType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Query\Expression;
@@ -16,7 +15,6 @@ return new class extends Migration
             $table->morphs('model');
             $table->string('name');
             $table->foreignIdFor(FileType::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Tipo de archivo');
-            $table->foreignIdFor(FileSubtype::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Subtipo de archivo');
             $table->string('path');
             $table->string('mime')->nullable();
             $table->string('extension')->nullable();

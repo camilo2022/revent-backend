@@ -343,6 +343,7 @@ class ProviderController extends Controller
             $provider = new Provider();
             $provider->name = $request->input('name');
             $provider->description = $request->input('description');
+            $provider->settings->code = $request->input('settings.code');
             $provider->save();
 
             return $this->successResponse(
@@ -460,6 +461,7 @@ class ProviderController extends Controller
             $provider = Provider::findOrFail($id);
             $provider->name = $request->input('name');
             $provider->description = $request->input('description');
+            $provider->settings->code = $request->input('settings.code');
             $provider->save();
 
             return $this->successResponse(

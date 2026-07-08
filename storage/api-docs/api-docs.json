@@ -15,7 +15,7 @@
             "description": "Servidor de Pruebas (QA)"
         },
         {
-            "url": "http://production-revent-backend.test/api/",
+            "url": "https://tech.revent.com.co/api/",
             "description": "Servidor de Producción"
         }
     ],
@@ -3380,6 +3380,294 @@
                 ]
             }
         },
+        "/classification/categories/subcategories/assign/{id}": {
+            "post": {
+                "tags": [
+                    "Classification - Categories"
+                ],
+                "summary": "Asignar un subcategoria a un categoria específico",
+                "operationId": "33e2ca1ceffc53a91aa6567ec47486d2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "Identificador de la categoria",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "subcategory_id"
+                                ],
+                                "properties": {
+                                    "subcategory_id": {
+                                        "description": "Identificador de la Subcategoria",
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subcategoria asignada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "category": {
+                                                    "$ref": "#/components/schemas/Category"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Contenido inválido.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la categoria"
+                                                },
+                                                "subcategory_id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la subcategoria"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "No hay ningún registro."
+                                                    }
+                                                },
+                                                "subcategory_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "No hay ningún registro."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/classification/categories/subcategories/remove/{id}": {
+            "post": {
+                "tags": [
+                    "Classification - Categories"
+                ],
+                "summary": "Remover una subcategoria de una categoria específica",
+                "operationId": "62b8440478dd969ba8006d5bc962a9e8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "Identificador de la categoria",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "subcategory_id"
+                                ],
+                                "properties": {
+                                    "subcategory_id": {
+                                        "description": "Identificador de la Subcategoria",
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subcategoria removida correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "category": {
+                                                    "$ref": "#/components/schemas/Category"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Contenido inválido.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la categoria"
+                                                },
+                                                "subcategory_id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la subcategoria"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "No hay ningún registro."
+                                                    }
+                                                },
+                                                "subcategory_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "No hay ningún registro."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/colors/all": {
             "get": {
                 "tags": [
@@ -5166,6 +5454,536 @@
                                                 "id": {
                                                     "type": "string",
                                                     "example": "Identificador de la caja de compensación"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "No hay ningún registro."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/location/continents/all": {
+            "get": {
+                "tags": [
+                    "Location - Continents"
+                ],
+                "summary": "Listar los continentes",
+                "operationId": "1bb26527d2572c5e457ef71f12dccd13",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Filtro de Busqueda.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "juan"
+                        }
+                    },
+                    {
+                        "name": "column",
+                        "in": "query",
+                        "description": "Columna a ordenar.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "id",
+                                "name",
+                                "created_at",
+                                "updated_at"
+                            ],
+                            "example": "name"
+                        }
+                    },
+                    {
+                        "name": "dir",
+                        "in": "query",
+                        "description": "Orden de datos.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de continentes cargada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "continents": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Continent"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "pagination": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "count": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "per_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "current_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "total_pages": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/location/continents/find/{id}": {
+            "get": {
+                "tags": [
+                    "Location - Continents"
+                ],
+                "summary": "Obtener un continente específico",
+                "operationId": "2db18d3be382ac92a62d2a71b99de23f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del continente",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Continente cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "continent": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Continent"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Identificador del continente no registrado.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": 1
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "No hay ningún registro."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/location/countries/all": {
+            "get": {
+                "tags": [
+                    "Location - Countries"
+                ],
+                "summary": "Listar los países",
+                "operationId": "323fc15997aa3191eb70e6e2c264cd63",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Filtro de Busqueda.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "juan"
+                        }
+                    },
+                    {
+                        "name": "column",
+                        "in": "query",
+                        "description": "Columna a ordenar.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "id",
+                                "name",
+                                "created_at",
+                                "updated_at"
+                            ],
+                            "example": "name"
+                        }
+                    },
+                    {
+                        "name": "dir",
+                        "in": "query",
+                        "description": "Orden de datos.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de países cargada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "countries": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Country"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "pagination": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "count": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "per_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "current_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "total_pages": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/location/countries/find/{id}": {
+            "get": {
+                "tags": [
+                    "Location - Countries"
+                ],
+                "summary": "Obtener un país específico",
+                "operationId": "b950aa906534fa751a93226bce7da039",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del país",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Country cargada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "country": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Country"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Identificador del país no registrado.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": 1
                                                 }
                                             },
                                             "type": "object"
@@ -11679,13 +12497,13 @@
                 ]
             }
         },
-        "/organizational_structure/areas/positions/all/{area_id}": {
+        "/organizational_structure/positions/all/{area_id}": {
             "get": {
                 "tags": [
                     "Organizational Structure - Positions"
                 ],
                 "summary": "Listar Cargos",
-                "operationId": "5268eea7f70fe8a4f49371c3a3f09a1a",
+                "operationId": "9e267b8165452e5eea06c0efa45a2665",
                 "parameters": [
                     {
                         "name": "area_id",
@@ -11849,13 +12667,13 @@
                 ]
             }
         },
-        "/organizational_structure/areas/positions/find/{id}": {
+        "/organizational_structure/positions/find/{id}": {
             "get": {
                 "tags": [
                     "Organizational Structure - Positions"
                 ],
                 "summary": "Obtener un cargo específico",
-                "operationId": "36cf1901e94f5389c2b25bfe3338a322",
+                "operationId": "fd941343604a969889a610ae671118d5",
                 "parameters": [
                     {
                         "name": "id",
@@ -11962,13 +12780,13 @@
                 ]
             }
         },
-        "/organizational_structure/areas/positions/store": {
+        "/organizational_structure/positions/store": {
             "post": {
                 "tags": [
                     "Organizational Structure - Positions"
                 ],
                 "summary": "Crear un cargo",
-                "operationId": "303678ee1e9e4f4fad030f3dc2e60c47",
+                "operationId": "1bbf2d5799ad99884baac131b70f556c",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -12120,13 +12938,13 @@
                 ]
             }
         },
-        "/organizational_structure/areas/positions/update/{id}": {
+        "/organizational_structure/positions/update/{id}": {
             "put": {
                 "tags": [
                     "Organizational Structure - Positions"
                 ],
                 "summary": "Editar un cargo específico",
-                "operationId": "632f42e77fc110595013da2334b731e5",
+                "operationId": "25602e17795835b47e9a4e5ae13ed4f2",
                 "parameters": [
                     {
                         "name": "id",
@@ -12300,13 +13118,13 @@
                 ]
             }
         },
-        "/organizational_structure/areas/positions/delete/{id}": {
+        "/organizational_structure/positions/delete/{id}": {
             "delete": {
                 "tags": [
                     "Organizational Structure - Positions"
                 ],
                 "summary": "Desactivar un cargo específico",
-                "operationId": "a24f52e43db074f652e80ab7182c0133",
+                "operationId": "d80065ffe63d880f9babbd4c42640ea2",
                 "parameters": [
                     {
                         "name": "id",
@@ -12450,13 +13268,13 @@
                 ]
             }
         },
-        "/organizational_structure/areas/positions/restore/{id}": {
+        "/organizational_structure/positions/restore/{id}": {
             "patch": {
                 "tags": [
                     "Organizational Structure - Positions"
                 ],
                 "summary": "Activar un cargo",
-                "operationId": "1968902befaf1a1676e3a760e39fdddb",
+                "operationId": "4266676642d5e247ffc133ad228025ea",
                 "parameters": [
                     {
                         "name": "id",
@@ -12601,13 +13419,13 @@
                 ]
             }
         },
-        "/organizational_structure/areas/positions/authorization/assign/{id}": {
+        "/organizational_structure/positions/authorization/assign/{id}": {
             "post": {
                 "tags": [
                     "Organizational Structure - Positions"
                 ],
-                "summary": "Asignar un permiso a un cargo específio",
-                "operationId": "63a507a091cc867db665c0b6c64f8258",
+                "summary": "Asignar un permiso a un cargo específico",
+                "operationId": "c63fc00503792235a9912dc244f189c8",
                 "parameters": [
                     {
                         "name": "id",
@@ -12745,13 +13563,13 @@
                 ]
             }
         },
-        "/organizational_structure/areas/positions/authorization/remove/{id}": {
+        "/organizational_structure/positions/authorization/remove/{id}": {
             "post": {
                 "tags": [
                     "Organizational Structure - Positions"
                 ],
-                "summary": "Remover un permiso a un cargo específio",
-                "operationId": "acb6c5c308277877e4ff36b1a841c19b",
+                "summary": "Remover un permiso a un cargo específico",
+                "operationId": "057c5a99f6f6e5b8bee5024a74f5f69f",
                 "parameters": [
                     {
                         "name": "id",
@@ -14436,6 +15254,271 @@
                                                 "id": {
                                                     "type": "string",
                                                     "example": "Identificador del proveedor"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "No hay ningún registro."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/location/regions/all": {
+            "get": {
+                "tags": [
+                    "Location - Regions"
+                ],
+                "summary": "Listar los regións",
+                "operationId": "d84c1ad48f97cfe935f218f4419b9c29",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Filtro de Busqueda.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "juan"
+                        }
+                    },
+                    {
+                        "name": "column",
+                        "in": "query",
+                        "description": "Columna a ordenar.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "id",
+                                "name",
+                                "created_at",
+                                "updated_at"
+                            ],
+                            "example": "name"
+                        }
+                    },
+                    {
+                        "name": "dir",
+                        "in": "query",
+                        "description": "Orden de datos.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de regións cargada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "regions": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Region"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "pagination": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "count": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "per_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "current_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "total_pages": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/location/regions/find/{id}": {
+            "get": {
+                "tags": [
+                    "Location - Regions"
+                ],
+                "summary": "Obtener una región específico",
+                "operationId": "f833fdab6d820bf382e8c1da8f4374c3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la región",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Region cargada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "region": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Region"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Identificador de la región no registrado.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": 1
                                                 }
                                             },
                                             "type": "object"
@@ -20856,7 +21939,7 @@
                 "tags": [
                     "Users"
                 ],
-                "summary": "Asignar un permiso a un usuario específio",
+                "summary": "Asignar un permiso a un usuario específico",
                 "operationId": "87edba0d365be22a834515c7bb0d4bb4",
                 "parameters": [
                     {
@@ -21883,6 +22966,181 @@
                 },
                 "type": "object"
             },
+            "Continent": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "item_id": {
+                        "type": "integer",
+                        "example": 6
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Americas"
+                    },
+                    "translations": {
+                        "description": "Traducciones del nombre del continente por idioma.",
+                        "type": "object",
+                        "example": {
+                            "ko": "아메리카",
+                            "pt-BR": "América",
+                            "pt": "América",
+                            "nl": "Amerika",
+                            "hr": "Amerika",
+                            "fa": "قاره آمریکا",
+                            "de": "Amerika",
+                            "es": "América",
+                            "fr": "Amérique",
+                            "ja": "アメリカ州",
+                            "it": "America",
+                            "zh-CN": "美洲",
+                            "tr": "Amerika",
+                            "ru": "Америка",
+                            "uk": "Америка",
+                            "pl": "Ameryka"
+                        }
+                    },
+                    "settings": {
+                        "type": "object",
+                        "example": {
+                            "wiki_data_id": "Q828"
+                        },
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-03-30T13:17:29.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-04-06T15:21:16.000000Z"
+                    },
+                    "regions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Region"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "Country": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 48
+                    },
+                    "region_id": {
+                        "type": "integer",
+                        "example": 8
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Colombia"
+                    },
+                    "iso3": {
+                        "type": "string",
+                        "example": "COL"
+                    },
+                    "iso2": {
+                        "type": "string",
+                        "example": "CO"
+                    },
+                    "numeric_code": {
+                        "type": "string",
+                        "example": "170"
+                    },
+                    "phone_code": {
+                        "type": "string",
+                        "example": "57"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "COP"
+                    },
+                    "currency_name": {
+                        "type": "string",
+                        "example": "Colombian peso"
+                    },
+                    "currency_symbol": {
+                        "type": "string",
+                        "example": "$"
+                    },
+                    "tld": {
+                        "type": "string",
+                        "example": ".co"
+                    },
+                    "native": {
+                        "type": "string",
+                        "example": "Colombia"
+                    },
+                    "nationality": {
+                        "type": "string",
+                        "example": "Colombian"
+                    },
+                    "latitude": {
+                        "type": "string",
+                        "example": "4.00000000"
+                    },
+                    "longitude": {
+                        "type": "string",
+                        "example": "-72.00000000"
+                    },
+                    "emoji": {
+                        "type": "string",
+                        "example": "🇨🇴"
+                    },
+                    "emojiU": {
+                        "type": "string",
+                        "example": "U+1F1E8 U+1F1F4"
+                    },
+                    "translations": {
+                        "description": "Traducciones del nombre del país por idioma.",
+                        "type": "object",
+                        "example": {
+                            "ko": "콜롬비아",
+                            "pt-BR": "Colômbia",
+                            "pt": "Colômbia",
+                            "nl": "Colombia",
+                            "hr": "Kolumbija",
+                            "fa": "کلمبیا",
+                            "de": "Kolumbien",
+                            "es": "Colombia",
+                            "fr": "Colombie",
+                            "ja": "コロンビア",
+                            "it": "Colombia",
+                            "zh-CN": "哥伦比亚",
+                            "tr": "Kolombiya",
+                            "ru": "Колумбия",
+                            "uk": "Колумбія",
+                            "pl": "Kolumbia"
+                        }
+                    },
+                    "settings": {
+                        "type": "object",
+                        "example": [],
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-03-30T13:17:29.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-04-06T15:21:16.000000Z"
+                    },
+                    "region": {
+                        "$ref": "#/components/schemas/Region"
+                    }
+                },
+                "type": "object"
+            },
             "Employee": {
                 "properties": {
                     "id": {
@@ -22799,6 +24057,69 @@
                 },
                 "type": "object"
             },
+            "Region": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "continent_id": {
+                        "type": "integer",
+                        "example": 6
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "América Central"
+                    },
+                    "translations": {
+                        "description": "Traducciones del nombre de la región por idioma.",
+                        "type": "object",
+                        "example": {
+                            "ko": "중앙아메리카",
+                            "pt": "América Central",
+                            "nl": "Centraal-Amerika",
+                            "hr": "Srednja Amerika",
+                            "fa": "آمریکای مرکزی",
+                            "de": "Zentralamerika",
+                            "es": "América Central",
+                            "fr": "Amérique centrale",
+                            "ja": "中央アメリカ",
+                            "it": "America centrale",
+                            "zh-CN": "中美洲",
+                            "ru": "Центральная Америка",
+                            "uk": "Центральна Америка",
+                            "pl": "Ameryka Środkowa"
+                        }
+                    },
+                    "settings": {
+                        "type": "object",
+                        "example": {
+                            "wiki_data_id": "Q27611"
+                        },
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-03-30T13:17:29.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-04-06T15:21:16.000000Z"
+                    },
+                    "continent": {
+                        "$ref": "#/components/schemas/Continent"
+                    },
+                    "countries": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Country"
+                        }
+                    }
+                },
+                "type": "object"
+            },
             "RiskManager": {
                 "properties": {
                     "id": {
@@ -23366,6 +24687,14 @@
             "description": "Endpoints para gestionar cajas de compensación"
         },
         {
+            "name": "Location - Continents",
+            "description": "Endpoints para gestionar continentes"
+        },
+        {
+            "name": "Location - Countries",
+            "description": "Endpoints para gestionar países"
+        },
+        {
             "name": "Employees",
             "description": "Endpoints para gestionar empleados"
         },
@@ -23404,6 +24733,10 @@
         {
             "name": "Providers",
             "description": "Endpoints para gestionar proveedores"
+        },
+        {
+            "name": "Location - Regions",
+            "description": "Endpoints para gestionar regións"
         },
         {
             "name": "Risk Managers",

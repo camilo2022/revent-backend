@@ -31,8 +31,6 @@ class ColorUpdateRequest extends FormRequest
             'description' => ['required', 'string', 'max:255'],
             'settings' => ['required', 'array'],
             'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . Color::ITEM_ID],
-            'icon' => ['sometimes', 'array'],
-            'icon.file' => ['sometimes', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ];
     }
 
@@ -47,8 +45,6 @@ class ColorUpdateRequest extends FormRequest
             'unique' => 'Ya está registrado.',
             'uppercase' => 'El campo debe estar en mayúsculas.',
             'array' => 'Debe ser un arreglo.',
-            'image' => 'Debe ser una imagen.',
-            'mimes' => 'Extensión inválida. Permitidas :values.',
         ];
     }
 
@@ -58,9 +54,7 @@ class ColorUpdateRequest extends FormRequest
             'name' => 'Nombre',
             'description' => 'Descripción',
             'settings' => 'Configuración',
-            'settings.code' => 'Código',
-            'icon' => 'Icono',
-            'icon.file' => 'Archivo del icono',
+            'settings.code' => 'Código'
         ];
     }
 

@@ -12,7 +12,7 @@ class Subitem extends Model implements Auditable
 {
     use Auditing, SoftDeletes;
 
-    protected $table = 'items';
+    protected $table = 'subitems';
 
     protected $fillable = [
         'name',
