@@ -24,7 +24,13 @@ class InventorySiigoController extends Controller
             'type' => $request->input('type', 'Product'),
         ];
 
-        foreach ([true, false] as $positive) {
+        if ($request->has('positive')) {
+            $positiveValues = [$request->boolean('positive')];
+        } else {
+            $positiveValues = [true, false];
+        }
+
+        foreach ($positiveValues as $positive) {
             ExportInventorySiigoJob::dispatch(
                 [...$baseFilters, 'positive' => $positive],
                 $request->input('email', $emails)

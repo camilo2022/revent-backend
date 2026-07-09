@@ -3,14 +3,15 @@
 namespace App\Console\Commands;
 
 use App\Jobs\ExportInvoiceSiigoJob;
+use App\Jobs\ExportPurchaseSiigoJob;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-class ExportInvoiceSiigoScheduled extends Command
+class ExportPurchaseSiigoScheduled extends Command
 {
-    protected $signature = 'siigo:export-invoice-scheduled';
+    protected $signature = 'siigo:export-purchase-scheduled';
 
-    protected $description = 'Ejecuta la exportación automática de facturas Siigo del mes en curso (cron)';
+    protected $description = 'Ejecuta la exportación automática de compras Siigo del mes en curso (cron)';
 
     public function handle(): int
     {
@@ -29,12 +30,12 @@ class ExportInvoiceSiigoScheduled extends Command
             'page_size' => 100,
         ];
 
-        ExportInvoiceSiigoJob::dispatch(
+        ExportPurchaseSiigoJob::dispatch(
             $filters,
             $emails
         );
 
-        $this->info('✅ Job de exportación de facturas Siigo despachado correctamente.');
+        $this->info('✅ Job de exportación de compras Siigo despachado correctamente.');
 
         return self::SUCCESS;
     }

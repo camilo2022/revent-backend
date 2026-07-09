@@ -55,7 +55,7 @@ class ExportInventorySiigoJob implements ShouldQueue
             "✅ Tu exportación de inventario Siigo está lista.\n\nDescarga: {$downloadUrl}",
             fn ($msg) => $msg
                 ->to($this->notifyEmail)
-                ->subject("Exportación lista: {$name}")
+                ->subject("Exportación de inventario lista: {$name}")
         );
     }
 
@@ -65,7 +65,7 @@ class ExportInventorySiigoJob implements ShouldQueue
             "❌ Falló la exportación de inventario Siigo.\n\nError: {$e->getMessage()}",
             fn ($msg) => $msg
                 ->to($this->notifyEmail)
-                ->subject("Error en exportación Siigo")
+                ->subject("Error en exportación de inventario Siigo")
         );
     }
 }
