@@ -13,6 +13,7 @@ use App\Http\Controllers\ContinentController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\FileTypeController;
 use App\Http\Controllers\GenderController;
 use App\Http\Controllers\HealthEntityController;
 use App\Http\Controllers\Integration\InventorySiigoController;
@@ -98,7 +99,7 @@ Route::prefix('/location')->group(function () {
     });
 });
 
-/*Route::prefix('/file_types')->controller(FileTypeController::class)->group(function () {
+Route::prefix('/file_types')->controller(FileTypeController::class)->group(function () {
     Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:file_types.all']);
     Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:file_types.find']);
     Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:file_types.store']);
@@ -107,7 +108,7 @@ Route::prefix('/location')->group(function () {
     Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:file_types.restore']);
 });
 
-Route::prefix('/identification')->group(function () {
+/*Route::prefix('/identification')->group(function () {
     Route::prefix('/document_types')->controller(DocumentTypeController::class)->group(function () {
         Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:identification.document_types.all']);
         Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:identification.document_types.find']);

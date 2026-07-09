@@ -82,10 +82,9 @@ class Country extends Model implements Auditable
         return $query->where(function (Builder $q) use ($terms) {
             foreach ($terms as $term) {
                 $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
+
                 $q->where(function (Builder $sq) use ($like) {
-                    $sq->orWhere('name', 'LIKE', $like)
-                        ->orWhere('iso3', 'LIKE', $like)
-                        ->orWhere('iso2', 'LIKE', $like);
+                    $sq->orWhere('name', 'LIKE', $like);
                 });
             }
         });

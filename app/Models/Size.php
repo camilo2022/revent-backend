@@ -13,7 +13,7 @@ class Size extends Model implements Auditable
 {
     use Auditing, SoftDeletes;
 
-    public const ITEM_ID = 17;
+    public const ITEM_ID = 12;
 
     protected $table = 'subitems';
 

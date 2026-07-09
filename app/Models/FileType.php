@@ -14,7 +14,7 @@ class FileType extends Model implements Auditable
 {
     use Auditing, SoftDeletes;
 
-    public const ITEM_ID = 6;
+    public const ITEM_ID = 1;
 
     protected $table = 'subitems';
 

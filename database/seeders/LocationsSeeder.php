@@ -10,7 +10,7 @@ use App\Models\City;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 
-class LocationSeeder extends Seeder
+class LocationsSeeder extends Seeder
 {
     public function run(): void
     {
@@ -24,15 +24,15 @@ class LocationSeeder extends Seeder
     private function seed_continents(): array
     {
         $map  = [];
-        $data = json_decode(File::get(public_path('json/regions.json')), true);
+        $data = json_decode(File::get(public_path('json/continents.json')), true);
 
         foreach (collect($data)->sortBy('id') as $row) {
             $translations = $row['translations'] ?? [];
 
             $continent = Continent::create([
-                'name'         => $translations['es'] ?? $row['name'],
+                'name' => $translations['es'] ?? $row['name'],
                 'translations' => $translations,
-                'settings'     => [
+                'settings' => [
                     'wiki_data_id' => $row['wikiDataId'] ?? null,
                 ],
             ]);
@@ -46,14 +46,14 @@ class LocationSeeder extends Seeder
     private function seed_regions(array $continentMap): array
     {
         $map  = [];
-        $data = json_decode(File::get(public_path('json/subregions.json')), true);
+        $data = json_decode(File::get(public_path('json/regions.json')), true);
 
         foreach (collect($data)->sortBy('id') as $row) {
             $translations = $row['translations'] ?? [];
 
             $region = Region::create([
                 'continent_id' => $continentMap[$row['region_id']] ?? null,
-                'name'         => $translations['es'] ?? $row['name'],
+                'name' => $translations['es'] ?? $row['name'],
                 'translations' => $translations,
                 'settings'     => [
                     'wiki_data_id' => $row['wikiDataId'] ?? null,
@@ -72,9 +72,11 @@ class LocationSeeder extends Seeder
         $data = json_decode(File::get(public_path('json/countries.json')), true);
 
         foreach (collect($data)->sortBy('id') as $row) {
+            $translations = $row['translations'] ?? [];
+            
             $country = Country::create([
                 'region_id'       => $regionMap[$row['subregion_id']] ?? null,
-                'name'            => $row['name'],
+                'name'            => $translations['es'] ?? $row['name'],
                 'iso3'            => $row['iso3'],
                 'iso2'            => $row['iso2'],
                 'numeric_code'    => $row['numeric_code'],
@@ -89,7 +91,7 @@ class LocationSeeder extends Seeder
                 'longitude'       => $row['longitude'] ?? null,
                 'emoji'           => $row['emoji'],
                 'emojiU'          => $row['emojiU'],
-                'translations'    => $row['translations'] ?? [],
+                'translations'    => $translations,
                 'settings'        => [
                     'capital'   => $row['capital'] ?? null,
                     'timezones' => $row['timezones'] ?? [],

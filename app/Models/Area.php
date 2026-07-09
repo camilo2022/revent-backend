@@ -15,7 +15,7 @@ class Area extends Model implements Auditable
 {
     use Auditing, HasRoles, SoftDeletes;
 
-    public const ITEM_ID = 7;
+    public const ITEM_ID = 2;
 
     protected $table = 'subitems';
 

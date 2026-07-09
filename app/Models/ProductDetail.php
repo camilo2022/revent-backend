@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OwenIt\Auditing\Contracts\Auditable;
@@ -31,6 +32,10 @@ class ProductDetail extends Model implements Auditable
         'description'
     ];
 
+    protected $appends = [
+        'code'
+    ];
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
@@ -44,5 +49,16 @@ class ProductDetail extends Model implements Auditable
     public function size(): BelongsTo
     {
         return $this->belongsTo(Size::class);
+    }
+
+    protected function code(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => implode('-', [
+                $this->product?->code ?? 'NA',
+                $this->color?->settings?->code ?? '00',
+                $this->size?->settings?->code ?? '00',
+            ]),
+        );
     }
 }

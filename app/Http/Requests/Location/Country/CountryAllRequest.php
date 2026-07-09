@@ -3,26 +3,57 @@
 namespace App\Http\Requests\Location\Country;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class CountryAllRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
+    protected function failedValidation(Validator $validator)
     {
-        return false;
+        throw new HttpResponseException(response()->json([
+            'message' => 'Error de validación.',
+            'attributes' => $this->attributes(),
+            'errors' => $validator->errors()
+        ], 422));
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
-    public function rules(): array
+    public function authorize()
+    {
+        return true;
+    }
+
+    public function rules()
     {
         return [
-            //
+            'per_page' => ['nullable', 'numeric'],
+            'page' => ['nullable', 'numeric'],
+            'search' => ['nullable', 'string'],
+            'column' => ['nullable', 'string', 'in:id,name,created_at,updated_at'],
+            'dir' => ['nullable', 'string', 'in:asc,desc'],
+            'region_id' => ['nullable', 'exists:regions,id'],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'required' => 'Es obligatorio.',
+            'string' => 'Debe ser una cadena de texto.',
+            'numeric' => 'Debe ser un valor numérico.',
+            'in' => 'Valor inválido. Permitidos: :values.',
+            'exists' => 'No hay ningún registro.'
+        ];
+    }
+
+    public function attributes()
+    {
+        return [
+            'per_page' => 'Registros por pagina.',
+            'page' => 'N° de pagina.',
+            'search' => 'Filtro de Busqueda.',
+            'column' => 'Columna a ordenar.',
+            'dir' => 'Orden de datos.',
+            'region_id' => 'Identificador de la región'
         ];
     }
 }

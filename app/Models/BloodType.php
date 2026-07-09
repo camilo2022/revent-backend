@@ -13,7 +13,7 @@ class BloodType extends Model implements Auditable
 {
     use Auditing, SoftDeletes;
 
-    public const ITEM_ID = 10;
+    public const ITEM_ID = 5;
 
     protected $table = 'subitems';
 

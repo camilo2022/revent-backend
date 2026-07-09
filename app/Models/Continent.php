@@ -46,7 +46,10 @@ class Continent extends Model implements Auditable
         return $query->where(function (Builder $q) use ($terms) {
             foreach ($terms as $term) {
                 $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $term) . '%';
-                $q->orWhere('name', 'LIKE', $like);
+
+                $q->where(function (Builder $sq) use ($like) {
+                    $sq->orWhere('name', 'LIKE', $like);
+                });
             }
         });
     }
