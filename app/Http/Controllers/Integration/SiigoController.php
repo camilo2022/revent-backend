@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Integration;
 
+use App\Exports\SiigoExport;
 use App\Http\Controllers\Controller;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
@@ -9,6 +10,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SiigoController extends Controller
 {
@@ -24,11 +26,27 @@ class SiigoController extends Controller
 
     private string $fidelizacion_url = 'https://fidelizacionapi.uniapps.com.co/api/fidelizacion/contact/find-contact-list';
 
+    // NUEVO: acumulador global del resultado de Unico
+    private array $unico_summary = [
+        'enviadas' => 0,
+        'insertadas' => 0,
+        'rechazadas' => 0,
+        'detalle_rechazadas' => [],
+    ];
+
     public function execute(array $params = [])
     {
+        // reset por si el controlador se reutiliza en el mismo ciclo de vida
+        $this->unico_summary = [
+            'enviadas' => 0,
+            'insertadas' => 0,
+            'rechazadas' => 0,
+            'detalle_rechazadas' => [],
+        ];
+
         $token_siigo = $this->auth_siigo();
         $token_unico = $this->auth_unico();
-        $params;
+
         return $this->invoices_siigo(
             $token_siigo,
             $token_unico,
@@ -45,8 +63,37 @@ class SiigoController extends Controller
                 'page' => $request->input('page', 1),
                 'page_size' => $request->input('page_size', 100),
             ]);
+
+            /*$filename = 'facturas_' . now()->format('Y_m_d_His') . '.xlsx';
+            Excel::store(
+                new SiigoExport(
+                    $invoices,
+                ),
+                "exports/{$filename}",
+                'public'
+            );
+
+            return route('exports.download', ['file' => $filename]);*/
+
+            $grouped = collect($invoices)
+                ->groupBy('mall_id')
+                ->map(function ($items, $mallId) {
+                    return [
+                        'mall_id' => $mallId,
+                        'purchase_subtotal' => $items->sum('purchase_subtotal'),
+                        'purchase_total' => $items->sum('purchase_total'),
+                        'price' => $items->sum('price'),
+                        'invoices' => $items->count(),
+                    ];
+                })
+                ->values();
+
             return $this->successResponse(
-                $invoices,
+                [
+                    'invoices' => $invoices,
+                    'grouped' => $grouped,
+                    'unico_summary' => $this->unico_summary, // NUEVO
+                ],
                 $this->getMessage('Success'),
                 200
             );
@@ -107,7 +154,6 @@ class SiigoController extends Controller
         $allPurchases = [];
 
         do {
-
             $response = Http::retry(5, 10000)->withHeaders([
                 'Content-Type'  => 'application/json',
                 'Authorization' => $token_siigo,
@@ -146,14 +192,14 @@ class SiigoController extends Controller
         $valid_documents = $this->valid_documents($invoices);
 
         $malls = [
-            596 => (object) [
+            704 => (object) [
                 "fantasy_name" => "REVENT CALZADO",
                 "place_local_code" => "162",
                 "place_number" => "247",
                 "mall_id" => 1,
                 "mall_name" => "UNICO CALI"
             ],
-            704 => (object) [
+            596 => (object) [
                 "fantasy_name" => "REVENT CALZADO",
                 "place_local_code" => "476",
                 "place_number" => "057",
@@ -162,10 +208,15 @@ class SiigoController extends Controller
             ]
         ];
 
-        return array_values(array_filter(array_map(function ($invoice) use ($malls, $valid_documents) {
-            foreach($invoice['items'] ?? [] as $item) {
-                $parts = preg_split('/[*-]/', $item['description'] ?? '');
+        $result = [];
 
+        foreach ($invoices as $invoice) {
+            if (!isset($malls[$invoice['cost_center']])) {
+                continue;
+            }
+
+            foreach ($invoice['items'] ?? [] as $item) {
+                $parts = preg_split('/[*-]/', $item['description'] ?? '');
                 $count = count($parts);
 
                 $name = $parts[0] ?? '#N/A';
@@ -183,34 +234,34 @@ class SiigoController extends Controller
                     $size = $parts[$count - 1] ?? '#N/A';
                 }
 
-                if(isset($item['taxes']) && isset($malls[$invoice['cost_center']])) {
-                    return [
-                        'document_number' => in_array($invoice['customer']['identification'], $valid_documents) ? $invoice['customer']['identification'] : '22222222222',
-                        'place_local_code' => $malls[$invoice['cost_center']]->place_local_code,
-                        'mall_id' => $malls[$invoice['cost_center']]->mall_id,
-                        'purchase_mode_id' => 1,
-                        'purchase_date' => Carbon::parse($invoice['date'])->format('d/m/Y'),
-                        'purchase_number' => $invoice['name'],
-                        'purchase_discount' => null,
-                        'purchase_taxes' => collect($item['taxes'])->sum('value'),
-                        'purchase_subtotal' => $item['price'],
-                        'purchase_total' => $item['total'],
-                        'purchase_channel_id' => 1,
-                        'name' => $name,
-                        'category' => $category,
-                        'quantity' => $item['quantity'],
-                        'price' => $item['price'],
-                        'discount' => null,
-                        'sku' => $item['code'],
-                        'size' => $size,
-                        'color' => $color,
-                        'description' => $item['description'],
-                    ];
-                }
-
-                return null;
+                $result[] = [
+                    'document_number' => in_array($invoice['customer']['identification'] ?? null, $valid_documents)
+                        ? $invoice['customer']['identification']
+                        : '22222222222',
+                    'place_local_code' => $malls[$invoice['cost_center']]->place_local_code,
+                    'mall_id' => $malls[$invoice['cost_center']]->mall_id,
+                    'purchase_mode_id' => 1,
+                    'purchase_date' => Carbon::parse($invoice['date'])->format('d/m/Y'),
+                    'purchase_number' => $invoice['name'],
+                    'purchase_discount' => null,
+                    'purchase_taxes' => collect($item['taxes'] ?? [])->sum('value'),
+                    'purchase_subtotal' => ($item['price'] ?? 0) * ($item['quantity'] ?? 0),
+                    'purchase_total' => $item['total'] ?? 0,
+                    'purchase_channel_id' => 1,
+                    'name' => $name,
+                    'category' => $category,
+                    'quantity' => $item['quantity'] ?? null,
+                    'price' => $item['price'] ?? null,
+                    'discount' => null,
+                    'sku' => $item['code'] ?? null,
+                    'size' => $size,
+                    'color' => $color,
+                    'description' => $item['description'] ?? null,
+                ];
             }
-        }, $invoices)));
+        }
+
+        return $result;
     }
 
     private function auth_unico(): string
@@ -240,10 +291,25 @@ class SiigoController extends Controller
             ]);
 
         if (! $response->successful()) {
-            return $response->body();
+            throw new \Exception(
+                'Error cargando ventas en Unico: ' . $response->body()
+            );
         }
 
-        return $response->json();
+        $json = $response->json();
+
+        // NUEVO: acumular enviadas/insertadas/rechazadas/detalle_rechazadas
+        $data = $json['data'] ?? [];
+
+        $this->unico_summary['enviadas'] += $data['enviadas'] ?? 0;
+        $this->unico_summary['insertadas'] += $data['insertadas'] ?? 0;
+        $this->unico_summary['rechazadas'] += $data['rechazadas'] ?? 0;
+        $this->unico_summary['detalle_rechazadas'] = array_merge(
+            $this->unico_summary['detalle_rechazadas'],
+            $data['detalle_rechazadas'] ?? []
+        );
+
+        return $json;
     }
 
     private function valid_documents(array $invoices): array

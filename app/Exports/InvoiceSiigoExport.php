@@ -154,7 +154,7 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
                         'PROVEEDOR' => $provider,
                         'CATEGORIA' => $category,
                         'TALLA' => $size,
-                        'PRECIO' => ($item['price'] ?? 0) * $multiplier,
+                        'PRECIO' => (($item['price'] ?? 0) * ($item['quantity'] ?? 0)) * $multiplier,
                         'IMPUESTO' => collect($item['taxes'])->sum('value') * $multiplier,
                         'TOTAL' => ($item['total'] ?? 0) * $multiplier,
                         'CANTIDAD' => ($item['quantity'] ?? 0) * $multiplier,
