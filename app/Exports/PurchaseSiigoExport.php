@@ -75,32 +75,32 @@ class PurchaseSiigoExport implements FromGenerator, Responsable, WithHeadings, W
 
                 $parts = preg_split('/[*-]/', $item['description'] ?? '');
                 $count = count($parts);
-                $name = trim($parts[0] ?? '#N/A');
-                $color = trim($parts[1] ?? '#N/A');
-                $provider = '#N/A';
-                $category = '#N/A';
-                $size = '#N/A';
+                $name = trim($parts[0] ?? '');
+                $color = trim($parts[1] ?? '');
+                $provider = '';
+                $category = '';
+                $size = '';
 
                 if ($count === 3) {
-                    $size = trim($parts[2] ?? '#N/A');
+                    $size = trim($parts[2] ?? '');
                 } elseif ($count === 4) {
-                    $category = trim($parts[2] ?? '#N/A');
-                    $size = trim($parts[3] ?? '#N/A');
+                    $category = trim($parts[2] ?? '');
+                    $size = trim($parts[3] ?? '');
                 } elseif ($count >= 5) {
-                    $provider = trim($parts[$count - 3] ?? '#N/A');
-                    $category = trim($parts[$count - 2] ?? '#N/A');
-                    $size = trim($parts[$count - 1] ?? '#N/A');
+                    $provider = trim($parts[$count - 3] ?? '');
+                    $category = trim($parts[$count - 2] ?? '');
+                    $size = trim($parts[$count - 1] ?? '');
                 }
 
                 yield [
-                    'NUMERO' => $purchase['number'] ?? '#N/A',
-                    'DOCUMENTO' => $purchase['name'] ?? '#N/A',
-                    'FECHA DOCUMENTO' => $purchase['date'] ?? '#N/A',
-                    'CENTRO DE COSTO' => $cost_center['name'] ?? '#N/A',
-                    'OBSERVACIONES' => $purchase['observations'] ?? '#N/A',
-                    'MODELO' => $this->products[$item['code'] ?? '']['model'] ?? '#N/A',
-                    'CODIGO' => $item['code'] ?? '#N/A',
-                    'DESCRIPCION' => $item['description'] ?? '#N/A',
+                    'NUMERO' => $purchase['number'] ?? '',
+                    'DOCUMENTO' => $purchase['name'] ?? '',
+                    'FECHA DOCUMENTO' => $purchase['date'] ?? '',
+                    'CENTRO DE COSTO' => $cost_center['name'] ?? '',
+                    'OBSERVACIONES' => $purchase['observations'] ?? '',
+                    'MODELO' => $this->products[$item['code'] ?? '']['model'] ?? '',
+                    'CODIGO' => $item['code'] ?? '',
+                    'DESCRIPCION' => $item['description'] ?? '',
                     'NOMBRE' => $name,
                     'COLOR' => $color,
                     'PROVEEDOR' => $provider,
@@ -110,7 +110,7 @@ class PurchaseSiigoExport implements FromGenerator, Responsable, WithHeadings, W
                     'PRECIO' => $item['price'] ?? 0,
                     'TOTAL' => $item['total'],
                     'IMPUESTO' => collect($item['taxes'] ?? [])->sum('value'),
-                    'BODEGA' => ($warehouse['code'] ?? '#N/A') . ' - ' . ($warehouse['name'] ?? ($warehouseData['name'] ?? '#N/A')),
+                    'BODEGA' => ($warehouse['code'] ?? '') . ' - ' . ($warehouse['name'] ?? ($warehouseData['name'] ?? '')),
                 ];
             }
         }

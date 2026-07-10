@@ -91,11 +91,6 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
                 $seller = $this->sellers[$document['seller'] ?? ''] ?? [];
 
                 foreach ($document['items'] ?? [] as $item) {
-
-                    if (!isset($item['taxes'])) {
-                        continue;
-                    }
-
                     $warehouseData = $item['warehouse'] ?? [];
                     $warehouseId = $warehouseData['id'] ?? null;
 
@@ -119,46 +114,46 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
 
                     $count = count($parts);
 
-                    $name = trim($parts[0] ?? '#N/A');
-                    $color = trim($parts[1] ?? '#N/A');
-                    $provider = '#N/A';
-                    $category = '#N/A';
-                    $size = '#N/A';
+                    $name = trim($parts[0] ?? '');
+                    $color = trim($parts[1] ?? '');
+                    $provider = '';
+                    $category = '';
+                    $size = '';
 
                     if ($count === 3) {
-                        $size = trim($parts[2] ?? '#N/A');
+                        $size = trim($parts[2] ?? '');
                     } elseif ($count === 4) {
-                        $category = trim($parts[2] ?? '#N/A');
-                        $size = trim($parts[3] ?? '#N/A');
+                        $category = trim($parts[2] ?? '');
+                        $size = trim($parts[3] ?? '');
                     } elseif ($count >= 5) {
-                        $provider = trim($parts[$count - 3] ?? '#N/A');
-                        $category = trim($parts[$count - 2] ?? '#N/A');
-                        $size = trim($parts[$count - 1] ?? '#N/A');
+                        $provider = trim($parts[$count - 3] ?? '');
+                        $category = trim($parts[$count - 2] ?? '');
+                        $size = trim($parts[$count - 1] ?? '');
                     }
 
                     $multiplier = $documentGroup['is_credit_note'] ? -1 : 1;
 
                     yield [
-                        'PREFIJO' => $documentGroup['is_credit_note'] ? '#N/A' : ($document['prefix'] ?? '#N/A'),
-                        'NUMERO' => $document['number'] ?? '#N/A',
-                        'DOCUMENTO' => $document['name'] ?? '#N/A',
-                        'DOCUMENTO RELACIONADO' => $documentGroup['is_credit_note'] ? ($document['invoice']['name'] ?? '#N/A') : '#N/A',
-                        'FECHA DOCUMENTO' => $document['date'] ?? '#N/A',
-                        'CENTRO DE COSTO' => $cost_center['name'] ?? '#N/A',
-                        'VENDEDOR' => $seller['first_name'] ?? '#N/A',
-                        'MODELO' => $this->products[$item['code'] ?? '']['model'] ?? '#N/A',
-                        'CODIGO' => $item['code'] ?? '#N/A',
-                        'DESCRIPCION' => $item['description'] ?? '#N/A',
+                        'PREFIJO' => $documentGroup['is_credit_note'] ? '' : ($document['prefix'] ?? ''),
+                        'NUMERO' => $document['number'] ?? '',
+                        'DOCUMENTO' => $document['name'] ?? '',
+                        'DOCUMENTO RELACIONADO' => $documentGroup['is_credit_note'] ? ($document['invoice']['name'] ?? '') : '',
+                        'FECHA DOCUMENTO' => $document['date'] ?? '',
+                        'CENTRO DE COSTO' => $cost_center['name'] ?? '',
+                        'VENDEDOR' => $seller['first_name'] ?? '',
+                        'MODELO' => $this->products[$item['code'] ?? '']['model'] ?? '',
+                        'CODIGO' => $item['code'] ?? '',
+                        'DESCRIPCION' => $item['description'] ?? '',
                         'NOMBRE' => $name,
                         'COLOR' => $color,
                         'PROVEEDOR' => $provider,
                         'CATEGORIA' => $category,
                         'TALLA' => $size,
                         'PRECIO' => (($item['price'] ?? 0) * ($item['quantity'] ?? 0)) * $multiplier,
-                        'IMPUESTO' => collect($item['taxes'])->sum('value') * $multiplier,
+                        'IMPUESTO' => collect($item['taxes'] ?? [])->sum('value') * $multiplier,
                         'TOTAL' => ($item['total'] ?? 0) * $multiplier,
                         'CANTIDAD' => ($item['quantity'] ?? 0) * $multiplier,
-                        'BODEGA' => ($warehouse['code'] ?? '#N/A') . ' - ' . ($warehouse['name'] ?? ($warehouseData['name'] ?? '#N/A')),
+                        'BODEGA' => ($warehouse['code'] ?? '') . ' - ' . ($warehouse['name'] ?? ($warehouseData['name'] ?? '')),
                         'FECHA' => $firstDate,
                         'SEGUNDA_FECHA' => $secondDate,
                         'DIFERENCIA' => $diffDays,

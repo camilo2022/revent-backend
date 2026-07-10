@@ -112,21 +112,21 @@ class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, 
 
                 $count = count($parts);
 
-                $name = $parts[0] ?? '#N/A';
-                $color = $parts[1] ?? '#N/A';
-                $provider = '#N/A';
-                $category = '#N/A';
-                $size = '#N/A';
+                $name = $parts[0] ?? '';
+                $color = $parts[1] ?? '';
+                $provider = '';
+                $category = '';
+                $size = '';
 
                 if ($count === 3) {
-                    $size = $parts[2] ?? '#N/A';
+                    $size = $parts[2] ?? '';
                 } elseif ($count === 4) {
-                    $category = $parts[2] ?? '#N/A';
-                    $size = $parts[3] ?? '#N/A';
+                    $category = $parts[2] ?? '';
+                    $size = $parts[3] ?? '';
                 } elseif ($count >= 5) {
-                    $provider = $parts[$count - 3] ?? '#N/A';
-                    $category = $parts[$count - 2] ?? '#N/A';
-                    $size = $parts[$count - 1] ?? '#N/A';
+                    $provider = $parts[$count - 3] ?? '';
+                    $category = $parts[$count - 2] ?? '';
+                    $size = $parts[$count - 1] ?? '';
                 }
 
                 if (in_array($product['account_group']['id'] ?? null, [1190, 1338], true)) continue;
@@ -151,7 +151,7 @@ class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, 
                         'CODIGO_BARRAS' => $product['additional_fields']['barcode'] ?? null,
                         'MARCA' => $product['additional_fields']['brand'] ?? null,
                         'MODELO' => $product['additional_fields']['model'] ?? null,
-                        'BODEGA' => ($this->stores[($warehouse['id'] ?? null)]['code'] ?? '#N/A') . ' - ' . ($warehouse['name'] ?? null),
+                        'BODEGA' => ($this->stores[($warehouse['id'] ?? null)]['code'] ?? '') . ' - ' . ($warehouse['name'] ?? null),
                         'CANTIDAD' => $warehouse['quantity'] ?? 0,
                         'FECHA' => $firstDate,
                         'SEGUNDA_FECHA' => $secondDate,
