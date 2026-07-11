@@ -14,7 +14,7 @@ class UserCollection extends ResourceCollection
                 return [
                     'id' => $user->id,
                     'employee_id' => $user->employee_id,
-                    'email' => $user->email,
+                    'username' => $user->username,
                     'created_at' => $this->formatDate($user->created_at),
                     'updated_at' => $this->formatDate($user->updated_at),
                     'deleted_at' => $this->formatDate($user->deleted_at),

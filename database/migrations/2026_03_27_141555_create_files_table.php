@@ -14,7 +14,7 @@ return new class extends Migration
             $table->id();
             $table->morphs('model');
             $table->string('name');
-            $table->foreignIdFor(FileType::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Tipo de archivo');
+            $table->foreignIdFor(FileType::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Tipo de archivo');
             $table->string('path');
             $table->string('mime')->nullable();
             $table->string('extension')->nullable();

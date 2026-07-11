@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\FabricType;
+namespace App\Http\Requests\Identification\PersonType;
 
-use App\Models\FabricType;
+use App\Models\PersonType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class FabricTypeFindRequest extends FormRequest
+class PersonTypeFindRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -26,7 +26,7 @@ class FabricTypeFindRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:subitems,id,item_id,' . FabricType::ITEM_ID],
+            'id' => ['required', 'exists:subitems,id,item_id,' . PersonType::ITEM_ID],
         ];
     }
 
@@ -41,7 +41,7 @@ class FabricTypeFindRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del tipo de tela'
+            'id' => 'Identificador del tipo de persona'
         ];
     }
 

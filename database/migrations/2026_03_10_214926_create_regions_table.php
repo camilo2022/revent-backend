@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('regions', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Continent::class)->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignIdFor(Continent::class)->constrained()->onUpdate('cascade')->restrictOnDelete();
             $table->string('name', 70);
             $table->json('translations')->default(new Expression('(JSON_OBJECT())'));
             $table->json('settings')->default(new Expression('(JSON_OBJECT())'));

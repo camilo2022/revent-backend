@@ -27,8 +27,13 @@ use App\Traits\ApiResponser;
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="item_id", type="integer", example=15),
- *     @OA\Property(property="name", type="string", example="users"),
- *     @OA\Property(property="description", type="string", example="categoria que gestiona los usuarios"),
+ *     @OA\Property(property="name", type="string", example="No aplica"),
+ *     @OA\Property(property="description", type="string", example="No aplica"),
+ *     @OA\Property(
+ *         property="settings",
+ *         type="object",
+ *         @OA\Property(property="code", type="string", example="00")
+ *     ),
  *     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
  *     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
@@ -350,7 +355,7 @@ class CategoryController extends Controller
             $category = new Category();
             $category->name = $request->input('name');
             $category->description = $request->input('description');
-            $category->settings->code = $request->input('settings.code');
+            $category->settings = $request->input('settings');
             $category->save();
 
             return $this->successResponse(
@@ -468,7 +473,7 @@ class CategoryController extends Controller
             $category = Category::findOrFail($id);
             $category->name = $request->input('name');
             $category->description = $request->input('description');
-            $category->settings->code = $request->input('settings.code');
+            $category->settings = $request->input('settings');
             $category->save();
 
             return $this->successResponse(

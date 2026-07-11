@@ -7,7 +7,7 @@ use App\Models\File;
 
 class FileService
 {
-    public function save($model, $file, $file_type_id, $file_subtype_id, $disk = 'public', $folder = 'files')
+    public function save($model, $file, $file_type_id, $disk = 'public', $folder = 'files')
     {
 
         if (str_starts_with($file->getMimeType(), 'image/')) {
@@ -40,7 +40,6 @@ class FileService
                 'model_id' => $model->id,
                 'model_type' => get_class($model),
                 'file_type_id' => $file_type_id,
-                'file_subtype_id' => $file_subtype_id,
                 'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
             ],
             [

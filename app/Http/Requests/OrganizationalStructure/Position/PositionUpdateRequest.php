@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\OrganizationalStructure\Position;
 
+use App\Models\Area;
 use App\Models\Position;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,6 +28,7 @@ class PositionUpdateRequest extends FormRequest
     {
         return [
             'id' => ['required', 'exists:subitems,id,item_id,' . Position::ITEM_ID],
+            'area_id' => ['required', 'exists:subitems,id,item_id,' . Area::ITEM_ID],
             'name' => ['required', 'string', 'uppercase', 'min:4', 'max:50', 'unique:subitems,name,' . $this->route('id') . ',id,item_id,' . Position::ITEM_ID],
             'description' => ['required', 'uppercase', 'string', 'max:255']
         ];
@@ -48,6 +50,7 @@ class PositionUpdateRequest extends FormRequest
     {
         return [
             'id' => 'Identificador del cargo',
+            'area_id' => 'Identificador del área',
             'name' => 'Nombre',
             'description' => 'Descripción'
         ];

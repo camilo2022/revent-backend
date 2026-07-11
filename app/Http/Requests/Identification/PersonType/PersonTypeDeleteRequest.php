@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\FabricType;
+namespace App\Http\Requests\Identification\PersonType;
 
-use App\Models\FabricType;
+use App\Models\PersonType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class FabricTypeStoreRequest extends FormRequest
+class PersonTypeDeleteRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -26,8 +26,7 @@ class FabricTypeStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'uppercase', 'string', 'min:4', 'max:50', 'unique:subitems,name,NULL,id,item_id,' . FabricType::ITEM_ID],
-            'description' => ['required', 'uppercase', 'string', 'max:255']
+            'id' => ['required', 'exists:subitems,id,deleted_at,NULL,item_id,'.PersonType::ITEM_ID],
         ];
     }
 
@@ -35,19 +34,19 @@ class FabricTypeStoreRequest extends FormRequest
     {
         return [
             'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'min' => 'Se permite mínimo :min caracteres.',
-            'unique' => 'Ya está registrado.',
-            'uppercase' => 'Debe de ingresar mayúsculas.'
+            'exists' => 'No hay ningún registro.'
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'name' => 'Nombre',
-            'description' => 'Descripción'
+            'id' => 'Identificador del tipo de persona'
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge(['id' => $this->route('id')]);
     }
 }

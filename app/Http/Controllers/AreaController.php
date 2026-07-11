@@ -142,7 +142,7 @@ class AreaController extends Controller
     public function all(AreaAllRequest $request)
     {
         try {
-            $areas = Area::with(['positions'])
+            $areas = Area::with(['item', 'positions'])
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -293,12 +293,7 @@ class AreaController extends Controller
      *                 @OA\Property(
      *                     property="area",
      *                     type="object",
-     *                     @OA\Property(property="name", type="string", example="name_module_example"),
-     *                     @OA\Property(property="description", type="string", example="description_module_example"),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="id", type="integer", example=1)
+     *                     ref="#/components/schemas/Area"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -408,14 +403,7 @@ class AreaController extends Controller
      *                 @OA\Property(
      *                     property="area",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="NAME_AREA"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_AREA"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+     *                     ref="#/components/schemas/Area"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -507,14 +495,7 @@ class AreaController extends Controller
      *                 @OA\Property(
      *                     property="area",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="name_module_example"),
-     *                     @OA\Property(property="description", type="string", example="description_module_example"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", example="2026-03-12 20:01:03")
+     *                     ref="#/components/schemas/Area"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -603,14 +584,7 @@ class AreaController extends Controller
      *                 @OA\Property(
      *                     property="area",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="name_module_example"),
-     *                     @OA\Property(property="description", type="string", example="description_module_example"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+     *                     ref="#/components/schemas/Area"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),

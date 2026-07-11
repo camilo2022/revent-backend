@@ -31,8 +31,7 @@ class TrademarkUpdateRequest extends FormRequest
             'description' => ['required', 'string', 'max:255'],
             'settings' => ['required', 'array'],
             'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . Trademark::ITEM_ID],
-            'icon' => ['sometimes', 'array'],
-            'icon.file' => ['sometimes', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'icon' => ['sometimes', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ];
     }
 
@@ -60,7 +59,6 @@ class TrademarkUpdateRequest extends FormRequest
             'settings' => 'Configuración',
             'settings.code' => 'Código',
             'icon' => 'Icono',
-            'icon.file' => 'Archivo del icono',
         ];
     }
 

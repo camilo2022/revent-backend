@@ -2,63 +2,68 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Provider\ProviderAllRequest;
-use App\Http\Requests\Provider\ProviderDeleteRequest;
-use App\Http\Requests\Provider\ProviderFindRequest;
-use App\Http\Requests\Provider\ProviderRestoreRequest;
-use App\Http\Requests\Provider\ProviderStoreRequest;
-use App\Http\Requests\Provider\ProviderUpdateRequest;
-use App\Http\Resources\Provider\ProviderCollection;
-use App\Http\Resources\Provider\ProviderResource;
-use App\Models\Provider;
+use App\Http\Requests\Identification\PersonType\PersonTypeAllRequest;
+use App\Http\Requests\Identification\PersonType\PersonTypeDeleteRequest;
+use App\Http\Requests\Identification\PersonType\PersonTypeFindRequest;
+use App\Http\Requests\Identification\PersonType\PersonTypeRestoreRequest;
+use App\Http\Requests\Identification\PersonType\PersonTypeStoreRequest;
+use App\Http\Requests\Identification\PersonType\PersonTypeUpdateRequest;
+use App\Http\Resources\Identification\PersonType\PersonTypeCollection;
+use App\Http\Resources\Identification\PersonType\PersonTypeResource;
+use App\Models\PersonType;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 
 /**
  * @OA\Tag(
- *     name="Providers",
- *     description="Endpoints para gestionar proveedores"
+ *     name="Identification - PersonTypes",
+ *     description="Endpoints para gestionar de Tipos de persona"
  * )
  *
  * @OA\Schema(
- *     schema="Provider",
+ *     schema="PersonType",
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="item_id", type="integer", example=10),
- *     @OA\Property(property="name", type="string", example="No Aplica"),
- *     @OA\Property(property="description", type="string", example="No Aplica"),
+ *     @OA\Property(property="item_id", type="integer", example=1),
+ *     @OA\Property(property="name", type="string", example="sistemas"),
+ *     @OA\Property(property="description", type="string", example="area que gestiona los usuarios"),
  *     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
  *     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
  *     @OA\Property(
  *         property="item",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=5),
- *         @OA\Property(property="name", type="string", example="Proveedors"),
- *         @OA\Property(property="description", type="string", example="Listado de proveedores."),
+ *         @OA\Property(property="id", type="integer", example=1),
+ *         @OA\Property(property="name", type="string", example="Tipos de persona"),
+ *         @OA\Property(property="description", type="string", example="Listado de tipos de persona disponibles en la organización."),
  *         @OA\Property(property="settings", type="string", example="{}"),
  *         @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
  *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
  *         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
  *     ),
+ *     @OA\Property(
+ *         property="document_types",
+ *         type="array",
+ *         @OA\Items(ref="#/components/schemas/DocumentType")
+ *     )
  * )
  */
-class ProviderController extends Controller
+class PersonTypeController extends Controller
 {
     use ApiMessage, ApiResponser;
 
     /**
      * @OA\Get(
-     *     path="/providers/all",
-     *     tags={"Providers"},
-     *     summary="Listar proveedores",
+     *     path="/identification/person_types/all",
+     *     tags={"Identification - PersonTypes"},
+     *     summary="Listar tipos de persona",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="search",
      *         in="query",
      *         description="Filtro de Busqueda.",
      *         required=false,
-     *         @OA\Schema(type="string", example="juan")
+     *         @OA\Schema(type="string", example="sistemas")
      *     ),
      *     @OA\Parameter(
      *         name="column",
@@ -90,15 +95,15 @@ class ProviderController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Lista de proveedores cargada correctamente",
+     *         description="Lista de tipos de persona cargada correctamente",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="providers",
+     *                     property="person_types",
      *                     type="array",
-     *                     @OA\Items(ref="#/components/schemas/Provider")
+     *                     @OA\Items(ref="#/components/schemas/PersonType")
      *                 ),
      *                 @OA\Property(
      *                     property="meta",
@@ -134,10 +139,10 @@ class ProviderController extends Controller
      *     )
      * )
      */
-    public function all(ProviderAllRequest $request)
+    public function all(PersonTypeAllRequest $request)
     {
         try {
-            $providers = Provider::with(['item'])
+            $person_types = PersonType::with(['item', 'document_types'])
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -148,10 +153,10 @@ class ProviderController extends Controller
                     return $query->orderBy($request->input('column'), $request->input('dir'));
                 });
 
-            $providers = $providers->paginate($request->integer('per_page', $providers->count()));
+            $person_types = $person_types->paginate($request->integer('per_page', $person_types->count()));
 
             return $this->successResponse(
-                new ProviderCollection($providers),
+                new PersonTypeCollection($person_types),
                 $this->getMessage('Success'),
                 200
             );
@@ -168,27 +173,27 @@ class ProviderController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/providers/find/{id}",
-     *     tags={"Providers"},
-     *     summary="Obtener un proveedor específico",
+     *     path="/identification/person_types/find/{id}",
+     *     tags={"Identification - PersonTypes"},
+     *     summary="Obtener un tipo de persona especifico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="Identificador del proveedor",
+     *         description="Identificador del tipo de persona",
      *         required=true,
      *         @OA\Schema(type="integer", example=1)
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Proveedor cargado con éxito",
+     *         description="Área cargada con éxito",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="provider",
-     *                     ref="#/components/schemas/Provider"
+     *                     property="area",
+     *                     ref="#/components/schemas/PersonType"
      *                 ),
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -197,7 +202,7 @@ class ProviderController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Identificador del proveedor no registrado.",
+     *         description="Identificador del tipo de persona no registrado.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -232,13 +237,14 @@ class ProviderController extends Controller
      *     )
      * )
      */
-    public function find(ProviderFindRequest $request, $id)
+    public function find(PersonTypeFindRequest $request, $id)
     {
         try {
-            $provider = Provider::with(['item'])->findOrFail($id);
+            $area = PersonType::with(['item', 'document_types'])
+                ->findOrFail($id);
 
             return $this->successResponse(
-                new ProviderResource($provider),
+                new PersonTypeResource($area),
                 $this->getMessage('Success'),
                 200
             );
@@ -255,40 +261,40 @@ class ProviderController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/providers/store",
-     *     tags={"Providers"},
-     *     summary="Crear un proveedor",
+     *     path="/identification/person_types/store",
+     *     tags={"Identification - PersonTypes"},
+     *     summary="Crear un tipo de persona",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name","description"},
+     *             required={"name"},
      *             @OA\Property(
      *                 property="name",
      *                 type="string",
-     *                 example="H",
-     *                 description="Nombre del proveedor"
+     *                 example="ADMINISTRACION",
+     *                 description="Nombre del Área"
      *             ),
      *             @OA\Property(
      *                 property="description",
      *                 type="string",
      *                 example="LISTA",
-     *                 description="Descripción del proveedor"
+     *                 description="Descripción del Área"
      *              )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Proveedor creado correctamente",
+     *         description="Área creada correctamente",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="provider",
+     *                     property="area",
      *                     type="object",
-     *                     @OA\Property(property="name", type="string", example="NAME_PROVIDER"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_PROVIDER"),
+     *                     @OA\Property(property="name", type="string", example="name_module_example"),
+     *                     @OA\Property(property="description", type="string", example="description_module_example"),
      *                     @OA\Property(property="item_id", type="integer", example=1),
      *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
      *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
@@ -307,8 +313,8 @@ class ProviderController extends Controller
      *             @OA\Property(
      *                 property="attributes",
      *                 type="object",
-     *                 @OA\Property(property="name", type="string", example="Nombre del proveedor"),
-     *                 @OA\Property(property="description", type="string", example="Descripción del proveedor")
+     *                 @OA\Property(property="name", type="string", example="Nombre del Área"),
+     *                 @OA\Property(property="description", type="string", example="Descripción del Área")
      *             ),
      *             @OA\Property(
      *                 property="errors",
@@ -316,7 +322,7 @@ class ProviderController extends Controller
      *                 @OA\Property(
      *                     property="name",
      *                     type="array",
-     *                     @OA\Items(type="string", example="Formato Inválido. El campo debe estar en mayúsculas.")
+     *                     @OA\Items(type="string", example="El campo debe estar en mayúsculas.")
      *                 )
      *             )
      *         )
@@ -337,17 +343,16 @@ class ProviderController extends Controller
      *     )
      * )
      */
-    public function store(ProviderStoreRequest $request)
+    public function store(PersonTypeStoreRequest $request)
     {
         try {
-            $provider = new Provider();
-            $provider->name = $request->input('name');
-            $provider->description = $request->input('description');
-            $provider->settings->code = $request->input('settings.code');
-            $provider->save();
+            $area = new PersonType();
+            $area->name = $request->input('name');
+            $area->description = $request->input('description');
+            $area->save();
 
             return $this->successResponse(
-                new ProviderResource($provider),
+                new PersonTypeResource($area),
                 $this->getMessage('Success'),
                 201
             );
@@ -364,14 +369,14 @@ class ProviderController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/providers/update/{id}",
-     *     tags={"Providers"},
-     *     summary="Editar un proveedor específico",
+     *     path="/identification/person_types/update/{id}",
+     *     tags={"Identification - PersonTypes"},
+     *     summary="Editar un tipo de persona específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="Identificador del proveedor",
+     *         description="Identificador del tipo de persona",
      *         required=true,
      *         @OA\Schema(type="integer", example=1)
      *     ),
@@ -382,31 +387,31 @@ class ProviderController extends Controller
      *             @OA\Property(
      *                 property="name",
      *                 type="string",
-     *                 example="M",
-     *                 description="Nombre del proveedor"
+     *                 example="Usuarios",
+     *                 description="Nombre del Área"
      *             ),
      *             @OA\Property(
      *                 property="description",
      *                 type="string",
-     *                 example="LISTA DE USUARIOS",
-     *                 description="Descripción del proveedor"
+     *                 example="Lista de Usuarios",
+     *                 description="Descripción del Área"
      *              )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Proveedor editado correctamente",
+     *         description="Área editada correctamente",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="provider",
+     *                     property="area",
      *                     type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="NAME_PROVIDER"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_PROVIDER"),
+     *                     @OA\Property(property="name", type="string", example="NAME_AREA"),
+     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_AREA"),
      *                     @OA\Property(property="settings", type="string", example="{}"),
      *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
      *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
@@ -425,8 +430,8 @@ class ProviderController extends Controller
      *             @OA\Property(
      *                 property="attributes",
      *                 type="object",
-     *                 @OA\Property(property="name", type="string", example="Nombre del proveedor"),
-     *                 @OA\Property(property="description", type="string", example="Descripción del proveedor")
+     *                 @OA\Property(property="name", type="string", example="Nombre del Área"),
+     *                 @OA\Property(property="description", type="string", example="Descripción del Área")
      *             ),
      *             @OA\Property(
      *                 property="errors",
@@ -434,7 +439,7 @@ class ProviderController extends Controller
      *                 @OA\Property(
      *                     property="name",
      *                     type="array",
-     *                     @OA\Items(type="string", example="Formato Inválido. El campo debe estar en mayúsculas.")
+     *                     @OA\Items(type="string", example="El campo debe estar en mayúsculas.")
      *                 )
      *             )
      *         )
@@ -455,17 +460,16 @@ class ProviderController extends Controller
      *     )
      * )
      */
-    public function update(ProviderUpdateRequest $request, $id)
+    public function update(PersonTypeUpdateRequest $request, $id)
     {
         try {
-            $provider = Provider::findOrFail($id);
-            $provider->name = $request->input('name');
-            $provider->description = $request->input('description');
-            $provider->settings->code = $request->input('settings.code');
-            $provider->save();
+            $area = PersonType::findOrFail($id);
+            $area->name = $request->input('name');
+            $area->description = $request->input('description');
+            $area->save();
 
             return $this->successResponse(
-                new ProviderResource($provider),
+                new PersonTypeResource($area),
                 $this->getMessage('Success'),
                 200
             );
@@ -482,31 +486,31 @@ class ProviderController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/providers/delete/{id}",
-     *     tags={"Providers"},
-     *     summary="Desactivar un proveedor específico",
+     *     path="/identification/person_types/delete/{id}",
+     *     tags={"Identification - PersonTypes"},
+     *     summary="Desactivar un tipo de persona específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="Identificador del proveedor",
+     *         description="Identificador del tipo de persona",
      *         required=true,
      *         @OA\Schema(type="integer", example=1)
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Proveedor desactivado correctamente",
+     *         description="Área desactivada correctamente",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="provider",
+     *                     property="area",
      *                     type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="NAME_PROVIDER"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_PROVIDER"),
+     *                     @OA\Property(property="name", type="string", example="name_module_example"),
+     *                     @OA\Property(property="description", type="string", example="description_module_example"),
      *                     @OA\Property(property="settings", type="string", example="{}"),
      *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
      *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
@@ -525,7 +529,7 @@ class ProviderController extends Controller
      *             @OA\Property(
      *                 property="attributes",
      *                 type="object",
-     *                 @OA\Property(property="id", type="string", example="Identificador del proveedor")
+     *                 @OA\Property(property="id", type="string", example="Identificador del tipo de persona")
      *             ),
      *             @OA\Property(
      *                 property="errors",
@@ -554,14 +558,14 @@ class ProviderController extends Controller
      *     )
      * )
      */
-    public function delete(ProviderDeleteRequest $request, $id)
+    public function delete(PersonTypeDeleteRequest $request, $id)
     {
         try {
-            $provider = Provider::findOrFail($id);
-            $provider->delete();
+            $area = PersonType::findOrFail($id);
+            $area->delete();
 
             return $this->successResponse(
-                new ProviderResource($provider),
+                new PersonTypeResource($area),
                 $this->getMessage('Success'),
                 200
             );
@@ -578,31 +582,31 @@ class ProviderController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/providers/restore/{id}",
-     *     tags={"Providers"},
-     *     summary="Activar un proveedor específico",
+     *     path="/identification/person_types/restore/{id}",
+     *     tags={"Identification - PersonTypes"},
+     *     summary="Activar un tipo de persona específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="Identificador del proveedor",
+     *         description="Identificador del tipo de persona",
      *         required=true,
      *         @OA\Schema(type="integer", example=1)
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Proveedor activado correctamente",
+     *         description="Área activada correctamente",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="provider",
+     *                     property="area",
      *                     type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="NAME_PROVIDER"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_PROVIDER"),
+     *                     @OA\Property(property="name", type="string", example="name_module_example"),
+     *                     @OA\Property(property="description", type="string", example="description_module_example"),
      *                     @OA\Property(property="settings", type="string", example="{}"),
      *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
      *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
@@ -621,7 +625,7 @@ class ProviderController extends Controller
      *             @OA\Property(
      *                 property="attributes",
      *                 type="object",
-     *                 @OA\Property(property="id", type="string", example="Identificador del proveedor")
+     *                 @OA\Property(property="id", type="string", example="Identificador del tipo de persona")
      *             ),
      *             @OA\Property(
      *                 property="errors",
@@ -650,14 +654,14 @@ class ProviderController extends Controller
      *     )
      * )
      */
-    public function restore(ProviderRestoreRequest $request, $id)
+    public function restore(PersonTypeRestoreRequest $request, $id)
     {
         try {
-            $provider = Provider::withTrashed()->findOrFail($id);
-            $provider->restore();
+            $area = PersonType::withTrashed()->findOrFail($id);
+            $area->restore();
 
             return $this->successResponse(
-                new ProviderResource($provider),
+                new PersonTypeResource($area),
                 $this->getMessage('Success'),
                 200
             );

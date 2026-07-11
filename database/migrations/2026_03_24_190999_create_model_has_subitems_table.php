@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('model_has_subitems', function (Blueprint $table) {
-            $table->foreignIdFor(Subitem::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Subitem');
+            $table->foreignIdFor(Subitem::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Subitem');
             $table->morphs('model');
             $table->unique(['subitem_id', 'model_id', 'model_type']);
         });

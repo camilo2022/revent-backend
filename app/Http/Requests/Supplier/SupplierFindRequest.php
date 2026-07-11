@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Http\Requests\FabricType;
+namespace App\Http\Requests\Supplier;
 
-use App\Models\FabricType;
+use App\Models\Supplier;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Validation\Rule;
 
-class FabricTypeRestoreRequest extends FormRequest
+class SupplierFindRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -27,7 +26,7 @@ class FabricTypeRestoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', Rule::exists('subitems', 'id')->where('item_id', FabricType::ITEM_ID)->whereNotNull('deleted_at')]
+            'id' => ['required', 'exists:subitems,id,item_id,'.Supplier::ITEM_ID],
         ];
     }
 
@@ -42,7 +41,7 @@ class FabricTypeRestoreRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del tipo de tela'
+            'id' => 'Identificador del proveedor'
         ];
     }
 

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Provider;
+namespace App\Http\Requests\Identification\PersonType;
 
-use App\Models\Provider;
+use App\Models\PersonType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ProviderUpdateRequest extends FormRequest
+class PersonTypeUpdateRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -26,11 +26,11 @@ class ProviderUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:subitems,id,item_id,' . Provider::ITEM_ID],
-            'name' => ['required', 'string', 'min:1', 'max:50', 'unique:subitems,name,' . $this->route('id') . ',id,item_id,' . Provider::ITEM_ID],
-            'description' => ['nullable', 'string', 'max:255'],
+            'id' => ['required', 'exists:subitems,id,item_id,' . PersonType::ITEM_ID],
+            'name' => ['required', 'string', 'min:4', 'max:50', 'uppercase', 'unique:subitems,name,' . $this->route('id') . ',id,item_id,' . PersonType::ITEM_ID],
+            'description' => ['required', 'uppercase', 'string', 'max:255'],
             'settings' => ['required', 'array'],
-            'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . Provider::ITEM_ID],
+            'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . PersonType::ITEM_ID],
         ];
     }
 
@@ -41,8 +41,8 @@ class ProviderUpdateRequest extends FormRequest
             'string' => 'Debe ser una cadena de texto.',
             'max' => 'Se permite máximo :max caracteres.',
             'min' => 'Se permite mínimo :min caracteres.',
+            'size' => 'Debe tener :size caracteres.',
             'unique' => 'Ya está registrado.',
-            'exists' => 'No está registrado.',
             'uppercase' => 'El campo debe estar en mayúsculas.',
             'array' => 'Debe ser un arreglo.',
         ];
@@ -51,7 +51,7 @@ class ProviderUpdateRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del proveedor',
+            'id' => 'Identificador del tipo de persona',
             'name' => 'Nombre',
             'description' => 'Descripción',
             'settings' => 'Configuración',

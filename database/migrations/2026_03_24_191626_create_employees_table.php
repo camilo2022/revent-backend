@@ -19,12 +19,12 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Person::class)->unique()->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Item');
-            $table->foreignIdFor(Position::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Item');
-            $table->foreignIdFor(RiskManager::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Item');
-            $table->foreignIdFor(HealthEntity::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Item');
-            $table->foreignIdFor(PensionFund::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Item');
-            $table->foreignIdFor(CompensationFund::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Item');
+            $table->foreignIdFor(Person::class)->unique()->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Item');
+            $table->foreignIdFor(Position::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Item');
+            $table->foreignIdFor(RiskManager::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Item');
+            $table->foreignIdFor(HealthEntity::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Item');
+            $table->foreignIdFor(PensionFund::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Item');
+            $table->foreignIdFor(CompensationFund::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Item');
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->timestamps();

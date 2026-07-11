@@ -23,7 +23,7 @@ class ItemsAndSubitemsSeeder extends Seeder
     {
         $item = new Item();
         $item->name = 'Tipos de archivos';
-        $item->description = 'Clasificación estandarizada de archivos según su naturaleza, uso y propósito dentro de procesos administrativos, legales o documentales.';
+        $item->description = 'Listado de tipos de archivos en la organización.';
         $item->save();
 
         $file_type = new FileType();
@@ -55,7 +55,7 @@ class ItemsAndSubitemsSeeder extends Seeder
 
         $item = new Item();
         $item->name = 'Géneros';
-        $item->description = 'Listado de géneros disponibles.';
+        $item->description = 'Listado de géneros.';
         $item->save();
 
         $gender = new Gender();

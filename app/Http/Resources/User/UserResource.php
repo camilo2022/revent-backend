@@ -13,7 +13,7 @@ class UserResource extends JsonResource
             'user' => [
                 'id' => $this->id,
                 'employee_id' => $this->employee_id,
-                'email' => $this->email,
+                'username' => $this->username,
                 'created_at' => $this->formatDate($this->created_at),
                 'updated_at' => $this->formatDate($this->updated_at),
                 'deleted_at' => $this->formatDate($this->deleted_at),

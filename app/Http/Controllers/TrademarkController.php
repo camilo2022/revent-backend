@@ -71,7 +71,7 @@ class TrademarkController extends Controller
      *         in="query",
      *         description="Columna a ordenar.",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"id","name","description","created_at", "updated_at"}, example="name")
+     *         @OA\Schema(type="string", enum={"id","name","description","created_at","updated_at"}, example="name")
      *     ),
      *     @OA\Parameter(
      *         name="dir",
@@ -355,21 +355,10 @@ class TrademarkController extends Controller
             $trademark = new Trademark();
             $trademark->name = $request->input('name');
             $trademark->description = $request->input('description');
-            $trademark->settings->code = $request->input('settings.code');
+            $trademark->settings = $request->input('settings');
             $trademark->save();
 
-            if ($request->hasFile('icon.file')) {
-                app(FileService::class)->save(
-                    $trademark,
-                    $request->file('icon.file'),
-                    $request->integer('icon.file_type_id'),
-                    $request->integer('icon.file_subtype_id'),
-                    'public',
-                    'Trademark'
-                );
-            }
-
-            $trademark->load(['icon']);
+            if($request->hasFile('icon')) app(FileService::class)->save($trademark, $request->file('icon'), $request->integer('file_type_id'), 'public', 'trademark');
 
             return $this->successResponse(
                 new TrademarkResource($trademark),
@@ -492,21 +481,10 @@ class TrademarkController extends Controller
             $trademark = Trademark::findOrFail($id);
             $trademark->name = $request->input('name');
             $trademark->description = $request->input('description');
-            $trademark->settings->code = $request->input('settings.code');
+            $trademark->settings = $request->input('settings');
             $trademark->save();
 
-            if ($request->hasFile('icon.file')) {
-                app(FileService::class)->save(
-                    $trademark,
-                    $request->file('icon.file'),
-                    $request->integer('icon.file_type_id'),
-                    $request->integer('icon.file_subtype_id'),
-                    'public',
-                    'Trademark'
-                );
-            }
-
-            $trademark->load(['icon']);
+            if($request->hasFile('icon')) app(FileService::class)->save($trademark, $request->file('icon'), $request->integer('file_type_id'), 'public', 'trademark');
 
             return $this->successResponse(
                 new TrademarkResource($trademark),

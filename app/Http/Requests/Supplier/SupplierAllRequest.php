@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\FabricType;
+namespace App\Http\Requests\Supplier;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class FabricTypeAllRequest extends FormRequest
+class SupplierAllRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {

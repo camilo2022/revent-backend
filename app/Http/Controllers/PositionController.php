@@ -303,12 +303,7 @@ class PositionController extends Controller
      *                 @OA\Property(
      *                     property="position",
      *                     type="object",
-     *                     @OA\Property(property="name", type="string", example="NAME_POSITION_EXAMPLE"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_POSITION"),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="id", type="integer", example=1)
+     *                     ref="#/components/schemas/Position"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -420,14 +415,7 @@ class PositionController extends Controller
      *                 @OA\Property(
      *                     property="position",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="NAME_POSITION"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_POSITION"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+     *                     ref="#/components/schemas/Position"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -521,14 +509,7 @@ class PositionController extends Controller
      *                 @OA\Property(
      *                     property="position",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="NAME_POSITION"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_POSITION"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", example="2026-03-12 20:01:03")
+     *                     ref="#/components/schemas/Position"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -617,14 +598,7 @@ class PositionController extends Controller
      *                 @OA\Property(
      *                     property="position",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="NAME_POSITION"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_POSITION"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+     *                     ref="#/components/schemas/Position"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),

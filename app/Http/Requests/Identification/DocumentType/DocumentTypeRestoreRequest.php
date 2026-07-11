@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Requests\Provider;
+namespace App\Http\Requests\Identification\DocumentType;
 
-use App\Models\Provider;
+use App\Models\DocumentType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
-class ProviderRestoreRequest extends FormRequest
+class DocumentTypeRestoreRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -27,7 +27,7 @@ class ProviderRestoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', Rule::exists('subitems', 'id')->where('item_id', Provider::ITEM_ID)->whereNotNull('deleted_at')]
+            'id' => ['required', Rule::exists('subitems', 'id')->where('item_id', DocumentType::ITEM_ID)->whereNotNull('deleted_at')]
         ];
     }
 
@@ -42,7 +42,7 @@ class ProviderRestoreRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del proveedor'
+            'id' => 'Identificador del tipo de documento'
         ];
     }
 

@@ -10,10 +10,14 @@ use App\Http\Requests\Person\PersonStoreRequest;
 use App\Http\Requests\Person\PersonUpdateRequest;
 use App\Http\Resources\Person\PersonCollection;
 use App\Http\Resources\Person\PersonResource;
+use App\Models\City;
+use App\Models\Country;
+use App\Models\Department;
 use App\Models\Person;
 use App\Services\FileService;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * @OA\Tag(
@@ -25,26 +29,57 @@ use App\Traits\ApiResponser;
  *     schema="Person",
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="names", type="string", example="Nombre"),
+ *     @OA\Property(property="last_names", type="string", example="Apellido"),
+ *     @OA\Property(property="document_type_id", type="integer", example=1),
  *     @OA\Property(property="document", type="integer", example=10000001),
- *     @OA\Property(property="names", type="string", example="NAME_EXAMPLE"),
- *     @OA\Property(property="last_names", type="integer", example="NAME_LAST_NAMES"),
- *     @OA\Property(property="birth_date", format="date-time", example="2026-03-30T13:17:29.000000Z"),
+ *     @OA\Property(property="gender_id", type="integer", example=1),
+ *     @OA\Property(property="birth_date", format="date", example="2026-03-30"),
+ *     @OA\Property(property="blood_type_id", type="integer", example=1),
+ *     @OA\Property(property="location_type", type="string", example="App\\Models\\City"),
+ *     @OA\Property(property="location_id", type="integer", example=1),
  *     @OA\Property(property="address", type="string", example="Calle 7"),
- *     @OA\Property(property="phone", type="string", example="0001254"),
+ *     @OA\Property(property="phone_country_id", type="integer", example=1),
+ *     @OA\Property(property="phone", type="string", example="3222759176"),
+ *     @OA\Property(property="email", type="string", format="email", example="example@example.com"),
  *     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
  *     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
  *     @OA\Property(
+ *         property="document_type",
+ *         type="object",
+ *         ref="#/components/schemas/DocumentType"
+ *     ),
+ *     @OA\Property(
  *         property="gender",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=25),
- *         @OA\Property(property="item_id", type="integer", example=7),
- *         @OA\Property(property="name", type="string", example="NAME_GENDER"),
- *         @OA\Property(property="description", type="string", example="DESCRIPTION_GENDER"),
- *         @OA\Property(property="settings", type="object", example={}),
- *         @OA\Property(property="created_at",type="string",format="date-time",example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="deleted_at",type="string",format="date-time",nullable=true,example=null)
+ *         ref="#/components/schemas/Gender"
+ *     ),
+ *     @OA\Property(
+ *         property="blood_type",
+ *         type="object",
+ *         ref="#/components/schemas/BloodType"
+ *     ),
+ *     @OA\Property(
+ *         property="location",
+ *         discriminator=@OA\Discriminator(
+ *             propertyName="type",
+ *             mapping={
+ *                 "country"="#/components/schemas/Country",
+ *                 "department"="#/components/schemas/Department",
+ *                 "city"="#/components/schemas/City"
+ *             }
+ *         ),
+ *         oneOf={
+ *             @OA\Schema(ref="#/components/schemas/Country"),
+ *             @OA\Schema(ref="#/components/schemas/Department"),
+ *             @OA\Schema(ref="#/components/schemas/City")
+ *         }
+ *     ),
+ *     @OA\Property(
+ *         property="phone_country",
+ *         type="object",
+ *         ref="#/components/schemas/Country"
  *     ),
  *     @OA\Property(
  *         property="photo",
@@ -54,7 +89,6 @@ use App\Traits\ApiResponser;
  *         @OA\Property(property="model_id", type="integer", example=2),
  *         @OA\Property(property="name", type="string", example="2"),
  *         @OA\Property(property="file_type_id", type="integer", example=1),
- *         @OA\Property(property="file_subtype_id", type="integer", example=8),
  *         @OA\Property(property="path", type="string", format="uri", example="person/file.jpg"),
  *         @OA\Property(property="mime", type="string", example="image/jpeg"),
  *         @OA\Property(property="extension", type="string", example="jpg"),
@@ -83,33 +117,9 @@ use App\Traits\ApiResponser;
  *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-31T18:58:06.000000Z")
  *     ),
  *     @OA\Property(
- *         property="blood_type",
+ *         property="employee",
  *         type="object",
- *         @OA\Property(property="id", type="integer", example=25),
- *         @OA\Property(property="item_id", type="integer", example=7),
- *         @OA\Property(property="name", type="string", example="NAME_EXAMPLE"),
- *         @OA\Property(property="description", type="string", example="DESCRIPTION_EXAMPLE"),
- *         @OA\Property(property="settings", type="object", example={}),
- *         @OA\Property(property="created_at",type="string",format="date-time",example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-30T13:17:34.000000Z"),
- *         @OA\Property(property="deleted_at",type="string",format="date-time",nullable=true,example=null)
- *     ),
- *     @OA\Property(
- *         property="person",
- *         type="object",
- *         @OA\Property(property="id", type="integer", example=1),
- *         @OA\Property(property="person_id", type="integer", example=1),
- *         @OA\Property(property="operation_center", type="string", example="001"),
- *         @OA\Property(property="position_id", type="integer", example=1),
- *         @OA\Property(property="risk_manager_id", type="integer", example=1),
- *         @OA\Property(property="health_entity_id", type="integer", example=1),
- *         @OA\Property(property="pension_fund_id", type="integer", example=1),
- *         @OA\Property(property="compensation_fund_id", type="integer", example=1),
- *         @OA\Property(property="start_date", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
- *         @OA\Property(property="end_date", type="string", format="date-time", nullable=true, example=null),
- *         @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
- *         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
+ *         ref="#/components/schemas/Employee"
  *     )
  * )
  */
@@ -135,7 +145,7 @@ class PersonController extends Controller
      *         in="query",
      *         description="Columna a ordenar.",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"id","document","names","last_names","gender_id","birth_date","blood_type_id","address","phone","created_at","updated_at","deleted_at"}, example="names")
+     *         @OA\Schema(type="string", enum={"id","names","last_names","document_type_id","document","gender_id","birth_date","blood_type_id","address","phone","created_at","updated_at","deleted_at"}, example="names")
      *     ),
      *     @OA\Parameter(
      *         name="dir",
@@ -207,10 +217,14 @@ class PersonController extends Controller
     public function all(PersonAllRequest $request)
     {
         try {
-            $people = Person::with(['gender', 'blood_type', 'employee', 'photo'])
-                ->when($request->boolean('with_employee'), function ($query) use ($request) {
-                    return $query;
-                })
+            $people = Person::with([
+                    'location' => fn (MorphTo $morphTo) => $morphTo->morphWith([
+                        Country::class => ['region' => ['continent']],
+                        Department::class => ['country' => ['region' => ['continent']]],
+                        City::class => ['department' => ['country' => ['region' => ['continent']]]],
+                    ]),
+                    'document_type' => ['person_type'], 'gender', 'blood_type', 'phone_country', 'employee', 'photo' => ['file_type']
+                ])
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -292,8 +306,14 @@ class PersonController extends Controller
     public function find(PersonFindRequest $request, $id)
     {
         try {
-            $person = Person::with(['gender', 'blood_type', 'employee', 'photo'])
-                ->findOrFail($id);
+            $person = Person::with([
+                    'location' => fn (MorphTo $morphTo) => $morphTo->morphWith([
+                        Country::class => ['region' => ['continent']],
+                        Department::class => ['country' => ['region' => ['continent']]],
+                        City::class => ['department' => ['country' => ['region' => ['continent']]]],
+                    ]),
+                    'document_type' => ['person_type'], 'gender', 'blood_type', 'phone_country', 'employee', 'photo' => ['file_type']
+                ])->findOrFail($id);
 
             return $this->successResponse(
                 new PersonResource($person),
@@ -322,65 +342,21 @@ class PersonController extends Controller
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 required={"document","names","last_names","gender_id","birth_date","blood_type_id","address","phone","photo_type_id","photo_subtype_id"},
-     *                 @OA\Property(
-     *                     property="document",
-     *                     type="string",
-     *                     example="123456789"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="names",
-     *                     type="string",
-     *                     example="Zaray"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="last_names",
-     *                     type="string",
-     *                     example="Cortez Castro"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="gender_id",
-     *                     type="integer",
-     *                     example=1
-     *                 ),
-     *                 @OA\Property(
-     *                     property="birth_date",
-     *                     type="string",
-     *                     format="date",
-     *                     example="2000-01-01"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="blood_type_id",
-     *                     type="integer",
-     *                     example=2
-     *                 ),
-     *                 @OA\Property(
-     *                     property="address",
-     *                     type="string",
-     *                     example="Calle 123 #45-67"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="phone",
-     *                     type="string",
-     *                     example="3001234567"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="photo_type_id",
-     *                     type="string",
-     *                     example="1"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="photo_subtype_id",
-     *                     type="string",
-     *                     example="8"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="photo",
-     *                     type="string",
-     *                     format="binary",
-     *                     nullable=true,
-     *                     description="Archivo de imagen (jpg, png, etc.)"
-     *                 )
+     *                 required={"names","last_names","document_type_id","document","gender_id","birth_date","blood_type_id","address","phone","file_type_id"},
+     *                 @OA\Property(property="names", type="string", example="Nombre"),
+     *                 @OA\Property(property="last_names", type="string", example="Apellido"),
+     *                 @OA\Property(property="document_type_id", type="integer", example=1),
+     *                 @OA\Property(property="document", type="string", example="123456789"),
+     *                 @OA\Property(property="gender_id", type="integer", example=1),
+     *                 @OA\Property(property="birth_date", type="string", format="date", example="2000-01-01"),
+     *                 @OA\Property(property="blood_type_id", type="integer", example=2),
+     *                 @OA\Property(property="location_id", type="integer", example=1),
+     *                 @OA\Property(property="location_type", type="string", example="App\\Models\\City"),
+     *                 @OA\Property(property="address", type="string", example="Calle 123 #45-67"),
+     *                 @OA\Property(property="neighborhood", type="string", example="Barrio XYZ"),
+     *                 @OA\Property(property="phone", type="string", example="3001234567"),
+     *                 @OA\Property(property="file_type_id", type="string", example="1"),
+     *                 @OA\Property(property="photo", type="string", format="binary", nullable=true, description="Archivo de imagen (jpg, png, etc.)")
      *             )
      *         )
      *     ),
@@ -394,15 +370,7 @@ class PersonController extends Controller
      *                 @OA\Property(
      *                     property="person",
      *                     type="object",
-     *                     @OA\Property(property="document", type="integer", example=10000001),
-     *                     @OA\Property(property="names", type="string", example="NAME_EXAMPLE"),
-     *                     @OA\Property(property="last_names", type="integer", example="NAME_LAST_NAMES"),
-     *                     @OA\Property(property="birth_date", format="date-time", example="2026-03-30T13:17:29.000000Z"),
-     *                     @OA\Property(property="address", type="string", example="Calle 7"),
-     *                     @OA\Property(property="phone", type="string", example="0001254"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
-     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     ref="#/components/schemas/Person"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -417,13 +385,18 @@ class PersonController extends Controller
      *             @OA\Property(
      *                 property="attributes",
      *                 type="object",
-     *                  @OA\Property(property="document", type="string", example="Número de documento"),
      *                  @OA\Property(property="names", type="string", example="Nombres"),
      *                  @OA\Property(property="last_names", type="string", example="Apellidos"),
+     *                  @OA\Property(property="document_type_id", type="string", example="Tipo de documento"),
+     *                  @OA\Property(property="document", type="string", example="Número de documento"),
      *                  @OA\Property(property="gender_id", type="string", example="Genero"),
      *                  @OA\Property(property="birth_date", type="string", example="Fecha de nacimiento"),
      *                  @OA\Property(property="blood_type_id", type="string", example="Tipo de sangre"),
+     *                  @OA\Property(property="location_id", type="string", example="Ubicación"),
+     *                  @OA\Property(property="location_type", type="string", example="App\\Models\\City"),
      *                  @OA\Property(property="address", type="string", example="Dirección"),
+     *                  @OA\Property(property="neighborhood", type="string", example="Barrio"),
+     *                  @OA\Property(property="phone_country_id", type="string", example="País del código de teléfono"),
      *                  @OA\Property(property="phone", type="string", example="Número de teléfono"),
      *                  @OA\Property(property="photo", type="string", example="Foto")
      *             ),
@@ -458,26 +431,23 @@ class PersonController extends Controller
     {
         try {
             $person = new Person();
-            $person->document = $request->input('document');
             $person->names = $request->input('names');
             $person->last_names = $request->input('last_names');
+            $person->document_type_id = $request->integer('document_type_id');
+            $person->document = $request->input('document');
             $person->gender_id = $request->integer('gender_id');
             $person->birth_date = $request->input('birth_date');
             $person->blood_type_id = $request->integer('blood_type_id');
+            $person->location_id = $request->integer('location_id');
+            $person->location_type = $request->input('location_type');
             $person->address = $request->input('address');
+            $person->neighborhood = $request->input('neighborhood');
+            $person->phone_country_id = $request->integer('phone_country_id');
             $person->phone = $request->input('phone');
+            $person->email = $request->input('email');
             $person->save();
 
-            if ($request->hasFile('photo')) {
-                app(FileService::class)->save(
-                    $person,
-                    $request->file('photo'),
-                    $request->integer('photo_type_id'),
-                    $request->integer('photo_subtype_id'),
-                    'public',
-                    'person'
-                );
-            }
+            if ($request->hasFile('photo')) app(FileService::class)->save($person, $request->file('photo'), $request->integer('photo_type_id'), 'public', 'person');
 
             return $this->successResponse(
                 new PersonResource($person),
@@ -506,55 +476,21 @@ class PersonController extends Controller
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 required={"document","names","last_names","gender_id","birth_date","blood_type_id","address","phone"},
-     *                 @OA\Property(
-     *                     property="document",
-     *                     type="string",
-     *                     example="123456789"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="names",
-     *                     type="string",
-     *                     example="Zaray"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="last_names",
-     *                     type="string",
-     *                     example="Cortez Castro"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="gender_id",
-     *                     type="integer",
-     *                     example=1
-     *                 ),
-     *                 @OA\Property(
-     *                     property="birth_date",
-     *                     type="string",
-     *                     format="date",
-     *                     example="2000-01-01"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="blood_type_id",
-     *                     type="integer",
-     *                     example=2
-     *                 ),
-     *                 @OA\Property(
-     *                     property="address",
-     *                     type="string",
-     *                     example="Calle 123 #45-67"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="phone",
-     *                     type="string",
-     *                     example="3001234567"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="photo",
-     *                     type="string",
-     *                     format="binary",
-     *                     nullable=true,
-     *                     description="Archivo de imagen (jpg, png, etc.)"
-     *                 )
+     *                 required={"names","last_names","document_type_id","document","gender_id","birth_date","blood_type_id","address","phone","file_type_id"},
+     *                 @OA\Property(property="names", type="string", example="Nombre"),
+     *                 @OA\Property(property="last_names", type="string", example="Apellido"),
+     *                 @OA\Property(property="document_type_id", type="integer", example=1),
+     *                 @OA\Property(property="document", type="string", example="123456789"),
+     *                 @OA\Property(property="gender_id", type="integer", example=1),
+     *                 @OA\Property(property="birth_date", type="string", format="date", example="2000-01-01"),
+     *                 @OA\Property(property="blood_type_id", type="integer", example=2),
+     *                 @OA\Property(property="location_id", type="integer", example=1),
+     *                 @OA\Property(property="location_type", type="string", example="App\\Models\\City"),
+     *                 @OA\Property(property="address", type="string", example="Calle 123 #45-67"),
+     *                 @OA\Property(property="neighborhood", type="string", example="Barrio XYZ"),
+     *                 @OA\Property(property="phone", type="string", example="3001234567"),
+     *                 @OA\Property(property="file_type_id", type="string", example="1"),
+     *                 @OA\Property(property="photo", type="string", format="binary", nullable=true, description="Archivo de imagen (jpg, png, etc.)")
      *             )
      *         )
      *     ),
@@ -568,16 +504,7 @@ class PersonController extends Controller
      *                 @OA\Property(
      *                     property="person",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="document", type="integer", example=10000001),
-     *                     @OA\Property(property="names", type="string", example="NAME_EXAMPLE"),
-     *                     @OA\Property(property="last_names", type="integer", example="NAME_LAST_NAMES"),
-     *                     @OA\Property(property="birth_date", format="date-time", example="2026-03-30T13:17:29.000000Z"),
-     *                     @OA\Property(property="address", type="string", example="Calle 7"),
-     *                     @OA\Property(property="phone", type="string", example="0001254"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
-     *                     @OA\Property(property="deleted_at",type="string",format="date-time",nullable=true,example=null)
+     *                     ref="#/components/schemas/Person"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -590,15 +517,20 @@ class PersonController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
-     *                 property="attributes",
-     *                 type="object",
-     *                  @OA\Property(property="document", type="string", example="Número de documento"),
+     *                  property="attributes",
+     *                  type="object",
      *                  @OA\Property(property="names", type="string", example="Nombres"),
      *                  @OA\Property(property="last_names", type="string", example="Apellidos"),
+     *                  @OA\Property(property="document_type_id", type="string", example="Tipo de documento"),
+     *                  @OA\Property(property="document", type="string", example="Número de documento"),
      *                  @OA\Property(property="gender_id", type="string", example="Genero"),
      *                  @OA\Property(property="birth_date", type="string", example="Fecha de nacimiento"),
      *                  @OA\Property(property="blood_type_id", type="string", example="Tipo de sangre"),
+     *                  @OA\Property(property="location_id", type="string", example="Ubicación"),
+     *                  @OA\Property(property="location_type", type="string", example="App\\Models\\City"),
      *                  @OA\Property(property="address", type="string", example="Dirección"),
+     *                  @OA\Property(property="neighborhood", type="string", example="Barrio"),
+     *                  @OA\Property(property="phone_country_id", type="string", example="País del código de teléfono"),
      *                  @OA\Property(property="phone", type="string", example="Número de teléfono"),
      *                  @OA\Property(property="photo", type="string", example="Foto")
      *             ),
@@ -633,26 +565,23 @@ class PersonController extends Controller
     {
         try {
             $person = Person::findOrFail($id);
-            $person->document = $request->input('document');
             $person->names = $request->input('names');
             $person->last_names = $request->input('last_names');
+            $person->document_type_id = $request->integer('document_type_id');
+            $person->document = $request->input('document');
             $person->gender_id = $request->integer('gender_id');
             $person->birth_date = $request->input('birth_date');
             $person->blood_type_id = $request->integer('blood_type_id');
+            $person->location_id = $request->integer('location_id');
+            $person->location_type = $request->input('location_type');
             $person->address = $request->input('address');
+            $person->neighborhood = $request->input('neighborhood');
+            $person->phone_country_id = $request->integer('phone_country_id');
             $person->phone = $request->input('phone');
+            $person->email = $request->input('email');
             $person->save();
 
-            if ($request->hasFile('photo')) {
-                app(FileService::class)->save(
-                    $person,
-                    $request->file('photo'),
-                    $request->integer('photo_type_id'),
-                    $request->integer('photo_subtype_id'),
-                    'public',
-                    'person'
-                );
-            }
+            if ($request->hasFile('photo')) app(FileService::class)->save($person, $request->file('photo'), $request->integer('photo_type_id'), 'public', 'person');
 
             return $this->successResponse(
                 new PersonResource($person),
@@ -691,18 +620,9 @@ class PersonController extends Controller
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="employee",
+     *                     property="person",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="document", type="integer", example=10000001),
-     *                     @OA\Property(property="names", type="string", example="NAME_EXAMPLE"),
-     *                     @OA\Property(property="last_names", type="integer", example="NAME_LAST_NAMES"),
-     *                     @OA\Property(property="birth_date", format="date-time", example="2026-03-30T13:17:29.000000Z"),
-     *                     @OA\Property(property="address", type="string", example="Calle 7"),
-     *                     @OA\Property(property="phone", type="string", example="0001254"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", example="2026-03-12 20:01:03")
+     *                     ref="#/components/schemas/Person"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -789,18 +709,9 @@ class PersonController extends Controller
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="employee",
+     *                     property="person",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="document", type="integer", example=10000001),
-     *                     @OA\Property(property="names", type="string", example="NAME_EXAMPLE"),
-     *                     @OA\Property(property="last_names", type="integer", example="NAME_LAST_NAMES"),
-     *                     @OA\Property(property="birth_date", format="date-time", example="2026-03-30T13:17:29.000000Z"),
-     *                     @OA\Property(property="address", type="string", example="Calle 7"),
-     *                     @OA\Property(property="phone", type="string", example="0001254"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+     *                     ref="#/components/schemas/Person"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),

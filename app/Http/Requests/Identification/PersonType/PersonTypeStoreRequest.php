@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Provider;
+namespace App\Http\Requests\Identification\PersonType;
 
-use App\Models\Provider;
+use App\Models\PersonType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ProviderStoreRequest extends FormRequest
+class PersonTypeStoreRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -26,10 +26,10 @@ class ProviderStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'min:1', 'max:50', 'unique:subitems,name,NULL,id,item_id,' . Provider::ITEM_ID],
-            'description' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'uppercase', 'string', 'min:4', 'max:50', 'unique:subitems,name,NULL,id,item_id,' . PersonType::ITEM_ID],
+            'description' => ['required', 'uppercase', 'string', 'max:255'],
             'settings' => ['required', 'array'],
-            'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . Provider::ITEM_ID],
+            'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . PersonType::ITEM_ID],
         ];
     }
 
@@ -40,6 +40,7 @@ class ProviderStoreRequest extends FormRequest
             'string' => 'Debe ser una cadena de texto.',
             'max' => 'Se permite máximo :max caracteres.',
             'min' => 'Se permite mínimo :min caracteres.',
+            'size' => 'Debe tener :size caracteres.',
             'unique' => 'Ya está registrado.',
             'uppercase' => 'El campo debe estar en mayúsculas.',
             'array' => 'Debe ser un arreglo.',
@@ -52,7 +53,7 @@ class ProviderStoreRequest extends FormRequest
             'name' => 'Nombre',
             'description' => 'Descripción',
             'settings' => 'Configuración',
-            'settings.code' => 'Código'
+            'settings.code' => 'Código',
         ];
     }
 }

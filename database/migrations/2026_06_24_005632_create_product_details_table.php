@@ -17,9 +17,9 @@ return new class extends Migration
         Schema::create('product_details', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->nullable()->unique();
-            $table->foreignIdFor(Product::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Producto');
-            $table->foreignIdFor(Color::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Color');
-            $table->foreignIdFor(Size::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Talla');
+            $table->foreignIdFor(Product::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Producto');
+            $table->foreignIdFor(Color::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Color');
+            $table->foreignIdFor(Size::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Talla');
             $table->text('description')->nullable();
             $table->timestamps();
             $table->index(['product_id', 'color_id', 'size_id'])->unique();

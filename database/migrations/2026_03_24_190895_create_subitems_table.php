@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('subitems', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Item::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Item');
+            $table->foreignIdFor(Item::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Item');
             $table->text('name')->comment('Nombre');
             $table->text('description')->nullable()->comment('Descripcion');
             $table->json('settings')->default(new Expression('(JSON_OBJECT())'))->comment('Configuraciones');

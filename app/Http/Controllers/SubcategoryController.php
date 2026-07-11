@@ -25,9 +25,13 @@ use App\Traits\ApiResponser;
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="item_id", type="integer", example=16),
- *     @OA\Property(property="name", type="string", example="Super"),
- *     @OA\Property(property="description", type="string", example="Admin"),
- *     @OA\Property(property="settings", type="object", nullable=true),
+ *     @OA\Property(property="name", type="string", example="No aplica"),
+ *     @OA\Property(property="description", type="string", example="No aplica"),
+ *     @OA\Property(
+ *         property="settings",
+ *         type="object",
+ *         @OA\Property(property="code", type="string", example="00")
+ *     ),
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time"),
  *     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true),
@@ -349,7 +353,7 @@ class SubcategoryController extends Controller
             $subcategory = new Subcategory();
             $subcategory->name = $request->input('name');
             $subcategory->description = $request->input('description');
-            $subcategory->settings->code = $request->input('settings.code');
+            $subcategory->settings = $request->input('settings');
             $subcategory->save();
 
             return $this->successResponse(
@@ -467,7 +471,7 @@ class SubcategoryController extends Controller
             $subcategory = Subcategory::findOrFail($id);
             $subcategory->name = $request->input('name');
             $subcategory->description = $request->input('description');
-            $subcategory->settings->code = $request->input('settings.code');
+            $subcategory->settings = $request->input('settings');
             $subcategory->save();
 
             return $this->successResponse(

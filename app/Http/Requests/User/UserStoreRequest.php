@@ -26,7 +26,7 @@ class UserStoreRequest extends FormRequest
     {
         return [
             'employee_id' => ['required', 'numeric', 'exists:employees,id,deleted_at,NULL', 'unique:users,employee_id'],
-            'email' => ['required', 'string', 'email', 'max:40', 'unique:users,email'],
+            'username' => ['required', 'string', 'max:40', 'unique:users,username'],
             'password' => ['required', 'string', 'min:8', 'regex:~^(?=.*\p{Ll})(?=.*\p{Lu})(?=.*\d)(?=.*[@$!%*#?&._-]).{8,}$~u', 'confirmed'],
             'password_confirmation' => ['required', 'string', 'min:8', 'regex:~^(?=.*\p{Ll})(?=.*\p{Lu})(?=.*\d)(?=.*[@$!%*#?&._-]).{8,}$~u',]
 
@@ -43,7 +43,6 @@ class UserStoreRequest extends FormRequest
             'exists' => 'No hay ningún registro.',
             'max' => 'Se permite máximo :max caracteres.',
             'min' => 'Se permite mínimo :min caracteres.',
-            'email' => 'Debe ser un correo electrónico.',
             'confirmed' => 'Las contraseñas no coinciden.'
         ];
     }
@@ -52,7 +51,7 @@ class UserStoreRequest extends FormRequest
     {
         return [
             'employee_id' => 'Empleado',
-            'email' => 'Correo electrónico del usuario',
+            'username' => 'Nombre de usuario',
             'password' => 'Contraseña del usuario',
             'password_confirmation' => 'Confirmación contraseña del usuario',
         ];

@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('departments', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Country::class)->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignIdFor(Country::class)->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->string('name', 70);
             $table->string('state_code', 10)->nullable();
             $table->string('type', 50);

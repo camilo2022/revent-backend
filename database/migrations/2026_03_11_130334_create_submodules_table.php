@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('url')->unique();
             $table->string('icon');
-            $table->foreignIdFor(Module::class)->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignIdFor(Permission::class)->unique()->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignIdFor(Module::class)->constrained()->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignIdFor(Permission::class)->unique()->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

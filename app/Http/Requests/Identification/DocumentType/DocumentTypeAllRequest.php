@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Provider;
+namespace App\Http\Requests\Identification\DocumentType;
 
+use App\Models\PersonType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ProviderAllRequest extends FormRequest
+class DocumentTypeAllRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -25,6 +26,7 @@ class ProviderAllRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'person_type_id' => ['nullable', 'numeric', 'exists:subitems,id,item_id,' . PersonType::ITEM_ID],
             'per_page' => ['nullable', 'numeric'],
             'page' => ['nullable', 'numeric'],
             'search' => ['nullable', 'string'],
@@ -41,6 +43,7 @@ class ProviderAllRequest extends FormRequest
             'string' => 'Debe ser una cadena de texto.',
             'numeric' => 'Debe ser un valor numérico.',
             'in' => 'Valor inválido. Permitidos: :values.',
+            'exists' => 'No hay ningún registro.',
             'boolean' => 'Deber ser verdadero o falso.'
         ];
     }
@@ -48,6 +51,7 @@ class ProviderAllRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'person_type_id' => 'Identificador del tipo de persona.',
             'per_page' => 'Registros por pagina.',
             'page' => 'N° de pagina.',
             'search' => 'Filtro de Busqueda.',

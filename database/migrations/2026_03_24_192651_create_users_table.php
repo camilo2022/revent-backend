@@ -14,9 +14,8 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Employee::class)->unique()->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Item');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->foreignIdFor(Employee::class)->unique()->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Item');
+            $table->string('username')->unique();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
@@ -24,7 +23,7 @@ return new class extends Migration
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
+            $table->string('username')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });

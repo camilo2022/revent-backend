@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
 
@@ -18,25 +19,37 @@ class Person extends Model implements Auditable
     protected $table = 'people';
 
     protected $fillable = [
-        'document',
         'names',
         'last_names',
+        'document_type_id',
+        'document',
         'gender_id',
         'birth_date',
         'blood_type_id',
+        'location_id',
+        'location_type',
         'address',
-        'phone'
+        'neighborhood',
+        'phone_country_id',
+        'phone',
+        'email'
     ];
 
     protected $auditInclude = [
-        'document',
         'names',
         'last_names',
+        'document_type_id',
+        'document',
         'gender_id',
         'birth_date',
         'blood_type_id',
+        'location_id',
+        'location_type',
         'address',
-        'phone'
+        'neighborhood',
+        'phone_country_id',
+        'phone',
+        'email'
     ];
 
     protected $casts = [
@@ -48,6 +61,11 @@ class Person extends Model implements Auditable
         return $this->hasOne(Employee::class);
     }
 
+    public function document_type(): BelongsTo
+    {
+        return $this->belongsTo(DocumentType::class);
+    }
+
     public function gender(): BelongsTo
     {
         return $this->belongsTo(Gender::class);
@@ -56,6 +74,16 @@ class Person extends Model implements Auditable
     public function blood_type(): BelongsTo
     {
         return $this->belongsTo(BloodType::class);
+    }
+
+    public function location(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function phone_country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'phone_country_id');
     }
 
     public function photo(): MorphOne
@@ -73,16 +101,26 @@ class Person extends Model implements Auditable
         return $query->where(function (Builder $q) use ($terms) {
             foreach ($terms as $term) {
                 $q->orWhere(function (Builder $sq) use ($term) {
-                    $sq->orWhere('document', 'LIKE', '%' . $term . '%')
-                        ->orWhere('names', 'LIKE', '%' . $term . '%')
+                    $sq->orWhere('names', 'LIKE', '%' . $term . '%')
                         ->orWhere('last_names', 'LIKE', '%' . $term . '%')
+                        ->orWhereHas('document_type', function (Builder $sq) use ($term) {
+                            $sq->orWhere('name', 'LIKE', '%' . $term . '%')
+                                ->orWhere('description', 'LIKE', '%' . $term . '%');
+                        })
+                        ->orWhere('document', 'LIKE', '%' . $term . '%')
                         ->orWhere('birth_date', 'LIKE', '%' . $term . '%')
+                        ->orWhereHas('blood_type', function (Builder $sq) use ($term) {
+                            $sq->orWhere('name', 'LIKE', '%' . $term . '%')
+                                ->orWhere('description', 'LIKE', '%' . $term . '%');
+                        })
+                        ->orWhere('address', 'LIKE', '%' . $term . '%')
+                        ->orWhere('neighborhood', 'LIKE', '%' . $term . '%')
+                        ->orWhereHas('gender', function (Builder $sq) use ($term) {
+                            $sq->orWhere('name', 'LIKE', '%' . $term . '%')
+                                ->orWhere('description', 'LIKE', '%' . $term . '%');
+                        })
                         ->orWhere('phone', 'LIKE', '%' . $term . '%')
-                        ->orWhereHas('gender', function (Builder $genderQuery) use ($term) {
-                            $genderQuery->where('description', 'LIKE', "%{$term}%");
-                        })->orWhereHas('blood_type', function (Builder $bloodQuery) use ($term) {
-                            $bloodQuery->where('name', 'LIKE', "%{$term}%");
-                        });
+                        ->orWhere('email', 'LIKE', '%' . $term . '%');
                 });
             }
         });

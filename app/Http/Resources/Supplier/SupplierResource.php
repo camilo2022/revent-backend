@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Http\Resources\Provider;
+namespace App\Http\Resources\Supplier;
 
 use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProviderResource extends JsonResource
+class SupplierResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'provider' => [
+            'supplier' => [
                 'id' => $this->id,
                 'item_id' => $this->item_id,
                 'name' => $this->name,

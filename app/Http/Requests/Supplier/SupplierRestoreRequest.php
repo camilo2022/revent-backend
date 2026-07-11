@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Requests\FabricType;
+namespace App\Http\Requests\Supplier;
 
-use App\Models\FabricType;
+use App\Models\Supplier;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
-class FabricTypeUpdateRequest extends FormRequest
+class SupplierRestoreRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -26,9 +27,7 @@ class FabricTypeUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:subitems,id,item_id,' . FabricType::ITEM_ID],
-            'name' => ['required', 'uppercase', 'string', 'min:4', 'max:50', 'unique:subitems,name,' . $this->route('id') . ',id,item_id,' . FabricType::ITEM_ID],
-            'description' => ['required', 'uppercase', 'string', 'max:255']
+            'id' => ['required', Rule::exists('subitems', 'id')->where('item_id', Supplier::ITEM_ID)->whereNotNull('deleted_at')]
         ];
     }
 
@@ -36,21 +35,14 @@ class FabricTypeUpdateRequest extends FormRequest
     {
         return [
             'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'min' => 'Se permite mínimo :min caracteres.',
-            'unique' => 'Ya está registrado.',
-            'exists' => 'No está registrado.',
-            'uppercase' => 'Debe de ingresar mayúsculas.'
+            'exists' => 'No hay ningún registro.'
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del tipo de tela',
-            'name' => 'Nombre',
-            'description' => 'Descripción'
+            'id' => 'Identificador del proveedor'
         ];
     }
 

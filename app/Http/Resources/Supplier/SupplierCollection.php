@@ -1,25 +1,24 @@
 <?php
 
-namespace App\Http\Resources\Provider;
+namespace App\Http\Resources\Supplier;
 
 use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class ProviderCollection extends ResourceCollection
+class SupplierCollection extends ResourceCollection
 {
     public function toArray($request)
     {
         return [
-            'providers' => $this->collection->map(function ($provider) {
+            'suppliers' => $this->collection->map(function ($supplier) {
                 return [
-                    'id' => $provider->id,
-                    'item_id' => $provider->item_id,
-                    'name' => $provider->name,
-                    'description' => $provider->description,
-                    'created_at' => $this->formatDate($provider->created_at),
-                    'updated_at' => $this->formatDate($provider->updated_at),
-                    'deleted_at' => $this->formatDate($provider->deleted_at),
-                    'item' => $provider->item,
+                    'id' => $supplier->id,
+                    'item_id' => $supplier->item_id,
+                    'name' => $supplier->name,
+                    'description' => $supplier->description,
+                    'created_at' => $this->formatDate($supplier->created_at),
+                    'updated_at' => $this->formatDate($supplier->updated_at),
+                    'deleted_at' => $this->formatDate($supplier->deleted_at),
                 ];
             }),
             'meta' => [

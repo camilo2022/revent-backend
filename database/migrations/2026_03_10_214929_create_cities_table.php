@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('cities', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Department::class)->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignIdFor(Department::class)->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->string('name', 70);
             $table->string('latitude', 20)->nullable();
             $table->string('longitude', 20)->nullable();

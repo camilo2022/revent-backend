@@ -16,10 +16,10 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Trademark::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Marca');
             $table->string('code')->unique();
-            $table->foreignIdFor(Category::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Categoría');
-            $table->foreignIdFor(Subcategory::class)->constrained()->onUpdate('cascade')->onDelete('cascade')->comment('Subcategoría');
+            $table->foreignIdFor(Trademark::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Marca');
+            $table->foreignIdFor(Category::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Categoría');
+            $table->foreignIdFor(Subcategory::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Subcategoría');
             $table->text('observation')->nullable();
             $table->timestamps();
         });

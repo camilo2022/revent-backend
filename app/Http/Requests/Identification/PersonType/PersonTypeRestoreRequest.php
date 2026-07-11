@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Requests\FabricType;
+namespace App\Http\Requests\Identification\PersonType;
 
-use App\Models\FabricType;
+use App\Models\PersonType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
-class FabricTypeDeleteRequest extends FormRequest
+class PersonTypeRestoreRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -26,7 +27,7 @@ class FabricTypeDeleteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:subitems,id,deleted_at,NULL,item_id,' . FabricType::ITEM_ID],
+            'id' => ['required', Rule::exists('subitems', 'id')->where('item_id', PersonType::ITEM_ID)->whereNotNull('deleted_at')]
         ];
     }
 
@@ -41,7 +42,7 @@ class FabricTypeDeleteRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del tipo de tela'
+            'id' => 'Identificador del tipo de persona'
         ];
     }
 
