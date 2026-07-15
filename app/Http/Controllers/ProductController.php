@@ -8,8 +8,10 @@ use App\Http\Requests\Product\ProductStoreRequest;
 use App\Http\Requests\Product\ProductUpdateRequest;
 use App\Http\Resources\Product\ProductCollection;
 use App\Http\Resources\Product\ProductResource;
+use App\Models\Color;
 use App\Models\Product;
 use App\Models\ProductDetail;
+use App\Models\Size;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 
@@ -27,7 +29,7 @@ use App\Traits\ApiResponser;
  *     @OA\Property(property="code", type="string", example="RV0001"),
  *     @OA\Property(property="category_id", type="integer", example=1),
  *     @OA\Property(property="subcategory_id", type="integer", example=1),
- *     @OA\Property(property="observation", type="string", example="observacion del producto"),
+ *     @OA\Property(property="description", type="string", nullable=true, example="descripcion del producto"),
  *     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
  *     @OA\Property(
@@ -46,8 +48,9 @@ use App\Traits\ApiResponser;
  *         ref="#/components/schemas/Subcategory"
  *     ),
  *     @OA\Property(
- *         property="product_details",
+ *         property="colors",
  *         type="array",
+ *         description="Detalles de nivel color (ProductDetail con model_type=Product). Cada uno puede traer su propio arreglo 'sizes' con las tallas hijas.",
  *         @OA\Items(ref="#/components/schemas/ProductDetail")
  *     )
  * )
@@ -56,27 +59,48 @@ use App\Traits\ApiResponser;
  *     schema="ProductDetail",
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="uuid", type="string", format="uuid", example="000x0000-x00x-00x0-x000-00000000000"),
- *     @OA\Property(property="product_id", type="integer", example=1),
- *     @OA\Property(property="color_id", type="integer", example=1),
- *     @OA\Property(property="size_id", type="integer", example=1),
- *     @OA\Property(property="description", type="string", example="descripcion del producto"),
+ *     @OA\Property(property="uuid", type="string", format="uuid", nullable=true, example="000x0000-x00x-00x0-x000-00000000000"),
+ *     @OA\Property(property="model_id", type="integer", example=1),
+ *     @OA\Property(property="model_type", type="string", example="App\\Models\\Product"),
+ *     @OA\Property(property="assignable_id", type="integer", example=1),
+ *     @OA\Property(property="assignable_type", type="string", example="App\\Models\\Color"),
+ *     @OA\Property(property="description", type="string", nullable=true, example="descripcion del producto"),
+ *     @OA\Property(property="code", type="string", example="AGUILA-01-36"),
  *     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
  *     @OA\Property(
- *         property="product",
- *         type="object",
- *         ref="#/components/schemas/Product"
+ *         property="model",
+ *         discriminator=@OA\Discriminator(
+ *             propertyName="type",
+ *             mapping={
+ *                 "product"="#/components/schemas/Product",
+ *                 "product_detail"="#/components/schemas/ProductDetail"
+ *             }
+ *         ),
+ *         oneOf={
+ *             @OA\Schema(ref="#/components/schemas/Product"),
+ *             @OA\Schema(ref="#/components/schemas/ProductDetail")
+ *         }
  *     ),
  *     @OA\Property(
- *         property="color",
- *         type="object",
- *         ref="#/components/schemas/Color"
+ *         property="assignable",
+ *         discriminator=@OA\Discriminator(
+ *             propertyName="type",
+ *             mapping={
+ *                 "color"="#/components/schemas/Color",
+ *                 "size"="#/components/schemas/Size"
+ *             }
+ *         ),
+ *         oneOf={
+ *             @OA\Schema(ref="#/components/schemas/Color"),
+ *             @OA\Schema(ref="#/components/schemas/Size")
+ *         }
  *     ),
  *     @OA\Property(
- *         property="size",
- *         type="object",
- *         ref="#/components/schemas/Size"
+ *         property="sizes",
+ *         type="array",
+ *         description="Solo presente en nivel color: tallas hijas de este registro",
+ *         @OA\Items(ref="#/components/schemas/ProductDetail")
  *     )
  * )
  */
@@ -290,52 +314,18 @@ class ProductController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"trademark_id","code","category_id","subcategory_id"},
-     *             @OA\Property(
-     *                 property="trademark_id",
-     *                 type="integer",
-     *                 example=1,
-     *                 description="ID de la marca"
-     *             ),
-     *             @OA\Property(
-     *                 property="code",
-     *                 type="string",
-     *                 example="REF-001",
-     *                 description="Código o referencia del producto"
-     *             ),
-     *             @OA\Property(
-     *                 property="category_id",
-     *                 type="integer",
-     *                 example=2,
-     *                 description="ID de la categoría"
-     *             ),
-     *             @OA\Property(
-     *                 property="subcategory_id",
-     *                 type="integer",
-     *                 example=5,
-     *                 description="ID de la subcategoría"
-     *             ),
-     *             @OA\Property(
-     *                 property="observation",
-     *                 type="string",
-     *                 nullable=true,
-     *                 example="Producto de temporada",
-     *                 description="Observación adicional del producto"
-     *             )
+     *             @OA\Property(property="trademark_id", type="integer", example=1, description="ID de la marca"),
+     *             @OA\Property(property="code", type="string", example="REF-001", description="Código o referencia del producto"),
+     *             @OA\Property(property="category_id", type="integer", example=2, description="ID de la categoría"),
+     *             @OA\Property(property="subcategory_id", type="integer", example=5, description="ID de la subcategoría"),
+     *             @OA\Property(property="observation", type="string", nullable=true, example="Producto de temporada", description="Observación adicional del producto")
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Producto creado correctamente",
      *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="product",
-     *                     type="object",
-     *                     ref="#/components/schemas/Product"
-     *                 )
-     *             ),
+     *             @OA\Property(property="data", type="object", @OA\Property(property="product", ref="#/components/schemas/Product")),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
      *             @OA\Property(property="error", type="boolean", example=false)
      *         )
@@ -344,94 +334,38 @@ class ProductController extends Controller
      *         response=422,
      *         description="Error de validación.",
      *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="message",
-     *                 type="string",
-     *                 example="Error de validación."
-     *             ),
+     *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
      *                 property="attributes",
      *                 type="object",
-     *                 @OA\Property(
-     *                     property="trademark_id",
-     *                     type="string",
-     *                     example="Identificador de la marca"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="code",
-     *                     type="string",
-     *                     example="Codigo - Referencia"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="category_id",
-     *                     type="string",
-     *                     example="Identificador de la categoria"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="subcategory_id",
-     *                     type="string",
-     *                     example="Identificador de la subcategoria"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="observation",
-     *                     type="string",
-     *                     example="Observacion"
-     *                 )
+     *                 @OA\Property(property="trademark_id", type="string", example="Identificador de la marca"),
+     *                 @OA\Property(property="code", type="string", example="Código - Referencia"),
+     *                 @OA\Property(property="category_id", type="string", example="Identificador de la categoría"),
+     *                 @OA\Property(property="subcategory_id", type="string", example="Identificador de la subcategoría"),
+     *                 @OA\Property(property="observation", type="string", example="Observación")
      *             ),
      *             @OA\Property(
      *                 property="errors",
      *                 type="object",
-     *                 @OA\Property(
-     *                     property="trademark_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Es obligatorio.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="code",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Debe tener 8 caracteres.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="category_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Es obligatorio.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="subcategory_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Es obligatorio.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="details.0.color_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Es obligatorio.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="details.0.size_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Es obligatorio.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="details.1",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="La combinación de color y talla ya fue agregada.")
-     *                 )
+     *                 @OA\Property(property="trademark_id", type="array", @OA\Items(type="string", example="Es obligatorio.")),
+     *                 @OA\Property(property="code", type="array", @OA\Items(type="string", example="Debe tener 8 caracteres.")),
+     *                 @OA\Property(property="category_id", type="array", @OA\Items(type="string", example="Es obligatorio.")),
+     *                 @OA\Property(property="subcategory_id", type="array", @OA\Items(type="string", example="Es obligatorio.")),
+     *                 @OA\Property(property="details.0.color_id", type="array", @OA\Items(type="string", example="Es obligatorio.")),
+     *                 @OA\Property(property="details.0.size_id", type="array", @OA\Items(type="string", example="Es obligatorio.")),
+     *                 @OA\Property(property="details.1", type="array", @OA\Items(type="string", example="La combinación de color y talla ya fue agregada."))
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=401,
      *         description="No autenticado",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/UnauthorizedResponse"
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")
      *     ),
      *     @OA\Response(
      *         response=500,
      *         description="Error del servidor",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/ServerErrorResponse"
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/ServerErrorResponse")
      *     )
      * )
      */
@@ -443,19 +377,28 @@ class ProductController extends Controller
             $product->code = $request->input('code');
             $product->category_id = $request->integer('category_id');
             $product->subcategory_id = $request->integer('subcategory_id');
-            $product->observation = $request->input('observation');
+            $product->description = $request->input('description');
             $product->save();
 
-            foreach($request->input('details', []) as $detail) {
-                $product_detail = new ProductDetail();
-                $product_detail->product_id = $product->id;
-                $product_detail->color_id = $detail['color_id'];
-                $product_detail->size_id = $detail['size_id'];
-                $product_detail->observation = $detail['observation'];
-                $product_detail->save();
-            }
+            foreach ($request->input('colors_id', []) as $color_item) {
+                $product_color = new ProductDetail();
+                $product_color->model_id = $product->id;
+                $product_color->model_type = Product::class;
+                $product_color->assignable_id = $color_item['color_id'];
+                $product_color->assignable_type = Color::class;
+                $product_color->description = $color_item['description'] ?? null;
+                $product_color->save();
 
-            $product->load(['trademark', 'category', 'subcategory', 'product_details' => ['color', 'size']]);
+                foreach ($color_item['sizes_id'] as $size_item) {
+                    $product_size = new ProductDetail();
+                    $product_size->model_id = $product_color->id;
+                    $product_size->model_type = ProductDetail::class;
+                    $product_size->assignable_id = $size_item['size_id'];
+                    $product_size->assignable_type = Size::class;
+                    $product_size->description = $size_item['description'] ?? null;
+                    $product_size->save();
+                }
+            }
 
             return $this->successResponse(
                 new ProductResource($product),
@@ -490,52 +433,18 @@ class ProductController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"trademark_id","code","category_id","subcategory_id"},
-     *             @OA\Property(
-     *                 property="trademark_id",
-     *                 type="integer",
-     *                 example=1,
-     *                 description="ID de la marca"
-     *             ),
-     *             @OA\Property(
-     *                 property="code",
-     *                 type="string",
-     *                 example="REF-001",
-     *                 description="Código o referencia del producto"
-     *             ),
-     *             @OA\Property(
-     *                 property="category_id",
-     *                 type="integer",
-     *                 example=2,
-     *                 description="ID de la categoría"
-     *             ),
-     *             @OA\Property(
-     *                 property="subcategory_id",
-     *                 type="integer",
-     *                 example=5,
-     *                 description="ID de la subcategoría"
-     *             ),
-     *             @OA\Property(
-     *                 property="observation",
-     *                 type="string",
-     *                 nullable=true,
-     *                 example="Producto de temporada",
-     *                 description="Observación adicional del producto"
-     *             )
+     *             @OA\Property(property="trademark_id", type="integer", example=1, description="ID de la marca"),
+     *             @OA\Property(property="code", type="string", example="REF-001", description="Código o referencia del producto"),
+     *             @OA\Property(property="category_id", type="integer", example=2, description="ID de la categoría"),
+     *             @OA\Property(property="subcategory_id", type="integer", example=5, description="ID de la subcategoría"),
+     *             @OA\Property(property="observation", type="string", nullable=true, example="Producto de temporada", description="Observación adicional del producto")
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Producto editado correctamente",
      *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="product",
-     *                     type="object",
-     *                     ref="#/components/schemas/Product"
-     *                 )
-     *             ),
+     *             @OA\Property(property="data", type="object", @OA\Property(property="product", ref="#/components/schemas/Product")),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
      *             @OA\Property(property="error", type="boolean", example=false)
      *         )
@@ -544,94 +453,38 @@ class ProductController extends Controller
      *         response=422,
      *         description="Error de validación.",
      *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="message",
-     *                 type="string",
-     *                 example="Error de validación."
-     *             ),
+     *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
      *                 property="attributes",
      *                 type="object",
-     *                 @OA\Property(
-     *                     property="trademark_id",
-     *                     type="string",
-     *                     example="Identificador de la marca"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="code",
-     *                     type="string",
-     *                     example="Codigo - Referencia"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="category_id",
-     *                     type="string",
-     *                     example="Identificador de la categoria"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="subcategory_id",
-     *                     type="string",
-     *                     example="Identificador de la subcategoria"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="observation",
-     *                     type="string",
-     *                     example="Observacion"
-     *                 )
+     *                 @OA\Property(property="trademark_id", type="string", example="Identificador de la marca"),
+     *                 @OA\Property(property="code", type="string", example="Código - Referencia"),
+     *                 @OA\Property(property="category_id", type="string", example="Identificador de la categoría"),
+     *                 @OA\Property(property="subcategory_id", type="string", example="Identificador de la subcategoría"),
+     *                 @OA\Property(property="observation", type="string", example="Observación")
      *             ),
      *             @OA\Property(
      *                 property="errors",
      *                 type="object",
-     *                 @OA\Property(
-     *                     property="trademark_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Es obligatorio.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="code",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Debe tener 8 caracteres.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="category_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Es obligatorio.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="subcategory_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Es obligatorio.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="details.0.color_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Es obligatorio.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="details.0.size_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="Es obligatorio.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="details.1",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="La combinación de color y talla ya fue agregada.")
-     *                 )
+     *                 @OA\Property(property="trademark_id", type="array", @OA\Items(type="string", example="Es obligatorio.")),
+     *                 @OA\Property(property="code", type="array", @OA\Items(type="string", example="Debe tener 8 caracteres.")),
+     *                 @OA\Property(property="category_id", type="array", @OA\Items(type="string", example="Es obligatorio.")),
+     *                 @OA\Property(property="subcategory_id", type="array", @OA\Items(type="string", example="Es obligatorio.")),
+     *                 @OA\Property(property="details.0.color_id", type="array", @OA\Items(type="string", example="Es obligatorio.")),
+     *                 @OA\Property(property="details.0.size_id", type="array", @OA\Items(type="string", example="Es obligatorio.")),
+     *                 @OA\Property(property="details.1", type="array", @OA\Items(type="string", example="La combinación de color y talla ya fue agregada."))
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=401,
      *         description="No autenticado",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/UnauthorizedResponse"
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")
      *     ),
      *     @OA\Response(
      *         response=500,
      *         description="Error del servidor",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/ServerErrorResponse"
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/ServerErrorResponse")
      *     )
      * )
      */
@@ -646,16 +499,25 @@ class ProductController extends Controller
             $product->observation = $request->input('observation');
             $product->save();
 
-            foreach($request->input('details', []) as $detail) {
-                $product_detail = new ProductDetail();
-                $product_detail->product_id = $product->id;
-                $product_detail->color_id = $detail['color_id'];
-                $product_detail->size_id = $detail['size_id'];
-                $product_detail->observation = $detail['observation'];
-                $product_detail->save();
-            }
+            foreach ($request->input('colors_id', []) as $color_item) {
+                $product_color = new ProductDetail();
+                $product_color->model_id = $product->id;
+                $product_color->model_type = Product::class;
+                $product_color->assignable_id = $color_item['color_id'];
+                $product_color->assignable_type = Color::class;
+                $product_color->description = $color_item['description'] ?? null;
+                $product_color->save();
 
-            $product->load(['trademark', 'category', 'subcategory', 'product_details' => ['color', 'size']]);
+                foreach ($color_item['sizes_id'] as $size_item) {
+                    $product_size = new ProductDetail();
+                    $product_size->model_id = $product_color->id;
+                    $product_size->model_type = ProductDetail::class;
+                    $product_size->assignable_id = $size_item['size_id'];
+                    $product_size->assignable_type = Size::class;
+                    $product_size->description = $size_item['description'] ?? null;
+                    $product_size->save();
+                }
+            }
 
             return $this->successResponse(
                 new ProductResource($product),

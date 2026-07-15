@@ -70,7 +70,7 @@ class AreaController extends Controller
      *         in="query",
      *         description="Columna a ordenar.",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"id","name","description","created_at", "updated_at"}, example="name")
+     *         @OA\Schema(type="string", enum={"id","name","description","created_at","updated_at","deleted_at"}, example="name")
      *     ),
      *     @OA\Parameter(
      *         name="dir",
@@ -302,7 +302,7 @@ class AreaController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -412,7 +412,7 @@ class AreaController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -504,7 +504,7 @@ class AreaController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -593,7 +593,7 @@ class AreaController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(

@@ -9,17 +9,17 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
-use Spatie\Permission\Traits\HasRoles;
 
 class Supplier extends Model implements Auditable
 {
-    use Auditing, HasRoles, SoftDeletes;
+    use Auditing, SoftDeletes;
 
     protected $table = 'suppliers';
 
     protected $guard_name = 'api';
 
     protected $fillable = [
+        'code',
         'legal_name',
         'trade_name',
         'document_type_id',
@@ -34,6 +34,7 @@ class Supplier extends Model implements Auditable
     ];
 
     protected $auditInclude = [
+        'code',
         'legal_name',
         'trade_name',
         'document_type_id',

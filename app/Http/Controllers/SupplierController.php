@@ -211,7 +211,7 @@ class SupplierController extends Controller
                         Department::class => ['country' => ['region' => ['continent']]],
                         City::class => ['department' => ['country' => ['region' => ['continent']]]],
                     ]),
-                    'document_type' => ['supplier_type'], 'phone_country'
+                    'document_type' => ['person_type'], 'phone_country'
                 ])
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
@@ -295,7 +295,7 @@ class SupplierController extends Controller
                         Department::class => ['country' => ['region' => ['continent']]],
                         City::class => ['department' => ['country' => ['region' => ['continent']]]],
                     ]),
-                    'document_type' => ['supplier_type'], 'employee'
+                    'document_type' => ['person_type'], 'employee'
                 ])->findOrFail($id);
 
             return $this->successResponse(
@@ -360,7 +360,7 @@ class SupplierController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -488,7 +488,7 @@ class SupplierController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -602,7 +602,7 @@ class SupplierController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -661,7 +661,7 @@ class SupplierController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/suppliers/remove/{id}",
+     *     path="/suppliers/restore/{id}",
      *     tags={"Suppliers"},
      *     summary="Activar un proveedor específica",
      *     security={{"sanctum":{}}},
@@ -691,7 +691,7 @@ class SupplierController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(

@@ -34,11 +34,15 @@ class ProductStoreRequest extends FormRequest
             'code' => ['required', 'uppercase', 'string', 'size:8', 'unique:products,code'],
             'category_id' => ['required', 'exists:subitems,id,item_id,' . Category::ITEM_ID],
             'subcategory_id' => ['required', 'exists:subitems,id,item_id,' . Subcategory::ITEM_ID],
-            'observation' => ['nullable', 'string', 'max:1000'],
-            'details' => ['required', 'array', 'min:1'],
-            'details.*' => ['array'],
-            'details.*.color_id' => ['required', 'exists:subitems,id,item_id,' . Color::ITEM_ID],
-            'details.*.size_id' => ['required', 'exists:subitems,id,item_id,' . Size::ITEM_ID]
+            'description' => ['nullable', 'string', 'max:1000'],
+            'colors_id' => ['required', 'array', 'min:1'],
+            'colors_id.*' => ['array'],
+            'colors_id.*.color_id' => ['required',  'distinct', 'exists:subitems,id,item_id,' . Color::ITEM_ID],
+            'colors_id.*.description' => ['nullable', 'string', 'max:1000'],
+            'colors_id.*.sizes_id' => ['required', 'array', 'min:1'],
+            'colors_id.*.sizes_id.*' => ['array'],
+            'colors_id.*.sizes_id.*.size_id' => ['required', 'distinct', 'exists:subitems,id,item_id,' . Size::ITEM_ID],
+            'colors_id.*.sizes_id.*.description' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
@@ -50,7 +54,12 @@ class ProductStoreRequest extends FormRequest
             'max' => 'Se permite máximo :max caracteres.',
             'size' => 'Debe tener :size caracteres.',
             'unique' => 'Ya está registrado.',
-            'uppercase' => 'El campo debe estar en mayúsculas.'
+            'uppercase' => 'El campo debe estar en mayúsculas.',
+            'array' => 'Debe ser un arreglo.',
+            'exists' => 'El valor seleccionado no es válido.',
+            'distinct' => 'Ya fue agregado.',
+            'colors_id.min' => 'Se permite mínimo :min colores.',
+            'colors_id.*.sizes_id.min' => 'Se permite mínimo :min tallas.'
         ];
     }
 
@@ -61,24 +70,13 @@ class ProductStoreRequest extends FormRequest
             'code' => 'Codigo - Referencia',
             'category_id' => 'Identificador de la categoria',
             'subcategory_id' => 'Identificador de la subcategoria',
-            'observation' => 'Observacion'
+            'description' => 'Descripción',
+            'colors_id' => 'Colores',
+            'colors_id.*.color_id' => 'Color',
+            'colors_id.*.description' => 'Descripción del color',
+            'colors_id.*.sizes_id' => 'Tallas',
+            'colors_id.*.sizes_id.*.size_id' => 'Talla',
+            'colors_id.*.sizes_id.*.description' => 'Descripción de la talla',
         ];
-    }
-
-    public function withValidator(Validator $validator): void
-    {
-        $validator->after(function ($validator) {
-            $combinations = [];
-            foreach ($this->input('details', []) as $index => $detail) {
-                $key = ($detail['color_id'] ?? '') . '-' . ($detail['size_id'] ?? '');
-                if (isset($combinations[$key])) {
-                    $validator->errors()->add(
-                        "details.$index",
-                        'La combinación de color y talla ya fue agregada.'
-                    );
-                }
-                $combinations[$key] = true;
-            }
-        });
     }
 }

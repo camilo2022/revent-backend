@@ -32,7 +32,7 @@ class SupplierUpdateRequest extends FormRequest
         return [
             'id' => ['required', 'exists:suppliers,id,item_id'],
             'code' => ['required', 'string', 'size:2', 'unique:suppliers,code,' . $this->route('id') . ',id'],
-            'legal_name' => ['required', 'string', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'],
+            'legal_name' => ['required', 'string', 'max:100', 'unique:suppliers,legal_name,' . $this->route('id') . ',id', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'],
             'trade_name' => ['nullable', 'string', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'],
             'document_type_id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . DocumentType::ITEM_ID . ',deleted_at,NULL'],
             'document' => ['required', 'string', 'digits_between:5,14', 'unique:people,document,' . $this->route('id') . ',id'],
@@ -76,6 +76,7 @@ class SupplierUpdateRequest extends FormRequest
     {
         return [
             'id' => 'Identificador del proveedor',
+            'code' => 'Código',
             'legal_name' => 'Nombre legal',
             'trade_name' => 'Nombre comercial',
             'document_type_id' => 'Identificador del tipo de documento',

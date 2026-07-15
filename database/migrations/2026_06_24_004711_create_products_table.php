@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignIdFor(Trademark::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Marca');
             $table->foreignIdFor(Category::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Categoría');
             $table->foreignIdFor(Subcategory::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Subcategoría');
-            $table->text('observation')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

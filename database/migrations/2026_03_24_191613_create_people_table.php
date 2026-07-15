@@ -3,7 +3,7 @@
 use App\Models\BloodType;
 use App\Models\Country;
 use App\Models\Gender;
-use Dom\DocumentType;
+use App\Models\DocumentType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

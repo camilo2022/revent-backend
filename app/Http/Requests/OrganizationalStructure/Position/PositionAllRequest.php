@@ -25,6 +25,7 @@ class PositionAllRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'area_id' => ['nullable', 'numeric'],
             'per_page' => ['nullable', 'numeric'],
             'page' => ['nullable', 'numeric'],
             'search' => ['nullable', 'string'],
@@ -49,6 +50,7 @@ class PositionAllRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'area_id' => 'Identificador de área.',
             'per_page' => 'Registros por pagina.',
             'page' => 'N° de pagina.',
             'search' => 'Filtro de Busqueda.',

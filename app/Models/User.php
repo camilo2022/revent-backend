@@ -23,26 +23,24 @@ class User extends Authenticatable implements Auditable
 
     protected $fillable = [
         'employee_id',
-        'email',
+        'username',
         'password',
     ];
 
     protected $auditInclude = [
         'employee_id',
-        'email',
+        'username',
         'password',
     ];
 
     protected $hidden = [
         'password',
-        'email_verified_at',
         'remember_token',
     ];
 
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -73,7 +71,7 @@ class User extends Authenticatable implements Auditable
         return $query->where(function (Builder $q) use ($terms) {
             foreach ($terms as $term) {
                 $q->orWhere(function (Builder $sq) use ($term) {
-                    $sq->orWhere('email', 'LIKE', '%' . $term . '%')
+                    $sq->orWhere('username', 'LIKE', '%' . $term . '%')
                         ->orWhereHas('employee.person', function (Builder $employeeQuery) use ($term) {
                             $employeeQuery->where('names', 'LIKE', "%{$term}%")
                                 ->orWhere('last_names', 'LIKE', "%{$term}%");

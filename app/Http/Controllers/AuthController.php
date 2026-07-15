@@ -28,12 +28,11 @@ class AuthController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"email", "password"},
+     *             required={"username", "password"},
      *             @OA\Property(
-     *                 property="email",
+     *                 property="username",
      *                 type="string",
-     *                 format="email",
-     *                 example="superadmin@kanri.com"
+     *                 example="revent"
      *             ),
      *             @OA\Property(
      *                 property="password",
@@ -98,7 +97,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         try {
-            $user = User::with(['employee' => ['person']])->where('email', $request->input('email'))->firstOrFail();
+            $user = User::with(['employee' => ['person']])->where('username', $request->input('username'))->firstOrFail();
 
             if (!Hash::check($request->input('password'), $user->password)) {
                 return $this->errorResponse(
@@ -164,7 +163,7 @@ class AuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(

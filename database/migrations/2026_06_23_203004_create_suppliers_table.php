@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique();
-            $table->string('legal_name');
+            $table->string('legal_name')->unique();
             $table->string('trade_name')->nullable();
             $table->foreignIdFor(DocumentType::class)->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->string('document')->unique();

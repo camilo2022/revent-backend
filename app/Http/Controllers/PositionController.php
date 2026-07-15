@@ -57,13 +57,13 @@ class PositionController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/organizational_structure/positions/all/{area_id}",
+     *     path="/organizational_structure/positions/all",
      *     tags={"Organizational Structure - Positions"},
      *     summary="Listar Cargos",
      *     security={{"sanctum":{}}},
      *      @OA\Parameter(
      *         name="area_id",
-     *         in="path",
+     *         in="query",
      *         description="Identificador del área",
      *         required=true,
      *         @OA\Schema(type="integer", example=1)
@@ -80,7 +80,7 @@ class PositionController extends Controller
      *         in="query",
      *         description="Columna a ordenar.",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"id","name","description","created_at", "updated_at"}, example="name")
+     *         @OA\Schema(type="string", enum={"id","name","description","created_at","updated_at","deleted_at"}, example="name")
      *     ),
      *     @OA\Parameter(
      *         name="dir",
@@ -149,11 +149,13 @@ class PositionController extends Controller
      *     )
      * )
      */
-    public function all(PositionAllRequest $request, $area_id)
+    public function all(PositionAllRequest $request)
     {
         try {
             $positions = Position::with(['item', 'area', 'roles', 'permissions'])
-                ->whereHas('area', fn($r) => $r->where('id', $area_id))
+                ->when($request->filled('area_id'), function ($query) use ($request) {
+                    return $query->whereHas('area', fn($r) => $r->where('id', $request->integer('area_id')));
+                })
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -312,7 +314,7 @@ class PositionController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -424,7 +426,7 @@ class PositionController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -518,7 +520,7 @@ class PositionController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -607,7 +609,7 @@ class PositionController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -707,7 +709,7 @@ class PositionController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -821,7 +823,7 @@ class PositionController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(

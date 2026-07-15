@@ -1,35 +1,27 @@
 <?php
 
-namespace App\Http\Resources\Supplier;
+namespace App\Http\Resources\Store;
 
 use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class SupplierResource extends JsonResource
+class StoreResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'supplier' => [
+            'store' => [
                 'id' => $this->id,
                 'code' => $this->code,
-                'legal_name' => $this->legal_name,
-                'trade_name' => $this->trade_name,
-                'document_type_id' => $this->document_type_id,
-                'document' => $this->document,
+                'name' => $this->name,
                 'location_id' => $this->location_id,
                 'location_type' => $this->location_type,
                 'address' => $this->address,
                 'neighborhood' => $this->neighborhood,
-                'phone_country_id' => $this->phone_country_id,
-                'phone' => $this->phone,
-                'email' => $this->email,
                 'created_at' => $this->formatDate($this->created_at),
                 'updated_at' => $this->formatDate($this->updated_at),
                 'deleted_at' => $this->formatDate($this->deleted_at),
-                'document_type' => $this->document_type,
-                'location' => $this->location,
-                'phone_country' => $this->phone_country
+                'location' => $this->location
             ]
         ];
     }

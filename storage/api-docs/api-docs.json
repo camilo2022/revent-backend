@@ -50,7 +50,8 @@
                                 "name",
                                 "description",
                                 "created_at",
-                                "updated_at"
+                                "updated_at",
+                                "deleted_at"
                             ],
                             "example": "name"
                         }
@@ -355,7 +356,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -497,7 +498,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -614,7 +615,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -727,7 +728,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1077,14 +1078,13 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "email",
+                                    "username",
                                     "password"
                                 ],
                                 "properties": {
-                                    "email": {
+                                    "username": {
                                         "type": "string",
-                                        "format": "email",
-                                        "example": "superadmin@kanri.com"
+                                        "example": "revent"
                                     },
                                     "password": {
                                         "type": "string",
@@ -1246,7 +1246,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1778,7 +1778,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1958,7 +1958,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2112,7 +2112,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2263,7 +2263,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2690,7 +2690,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2870,7 +2870,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3024,7 +3024,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3175,7 +3175,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3308,7 +3308,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3452,7 +3452,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -4161,7 +4161,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -4347,7 +4347,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -4501,7 +4501,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -4652,7 +4652,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -5079,7 +5079,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -5259,7 +5259,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -5413,7 +5413,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -5564,7 +5564,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6768,7 +6768,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6910,7 +6910,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7027,7 +7027,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7140,7 +7140,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7609,7 +7609,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -7866,7 +7866,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8063,7 +8063,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8233,7 +8233,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8663,7 +8663,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8843,7 +8843,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8997,7 +8997,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -9148,7 +9148,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -9576,7 +9576,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -9756,7 +9756,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -9910,7 +9910,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -10061,7 +10061,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -10489,7 +10489,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -10669,7 +10669,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -10823,7 +10823,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -10974,7 +10974,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -11402,7 +11402,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -11578,7 +11578,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -12300,7 +12300,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -12480,7 +12480,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -12634,7 +12634,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -12785,7 +12785,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -13225,7 +13225,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -13437,7 +13437,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -13902,7 +13902,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -14138,7 +14138,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -14303,7 +14303,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -14367,13 +14367,13 @@
                 ]
             }
         },
-        "/people/remove/{id}": {
+        "/people/restore/{id}": {
             "patch": {
                 "tags": [
                     "People"
                 ],
                 "summary": "Activar una persona específica",
-                "operationId": "1417b80bdab8fa06bbc8462c3b826a67",
+                "operationId": "7752565283040084fd0f404e05d3b4ee",
                 "parameters": [
                     {
                         "name": "id",
@@ -14416,7 +14416,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -14843,7 +14843,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -15023,7 +15023,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -15177,7 +15177,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -15328,7 +15328,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -15392,17 +15392,17 @@
                 ]
             }
         },
-        "/organizational_structure/positions/all/{area_id}": {
+        "/organizational_structure/positions/all": {
             "get": {
                 "tags": [
                     "Organizational Structure - Positions"
                 ],
                 "summary": "Listar Cargos",
-                "operationId": "9e267b8165452e5eea06c0efa45a2665",
+                "operationId": "dedb63b64d5cdcd7e92498af3d420659",
                 "parameters": [
                     {
                         "name": "area_id",
-                        "in": "path",
+                        "in": "query",
                         "description": "Identificador del área",
                         "required": true,
                         "schema": {
@@ -15432,7 +15432,8 @@
                                 "name",
                                 "description",
                                 "created_at",
-                                "updated_at"
+                                "updated_at",
+                                "deleted_at"
                             ],
                             "example": "name"
                         }
@@ -15737,7 +15738,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -15879,7 +15880,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -15996,7 +15997,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -16109,7 +16110,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -16242,7 +16243,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -16386,7 +16387,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -16825,19 +16826,19 @@
                                                 },
                                                 "code": {
                                                     "type": "string",
-                                                    "example": "Codigo - Referencia"
+                                                    "example": "Código - Referencia"
                                                 },
                                                 "category_id": {
                                                     "type": "string",
-                                                    "example": "Identificador de la categoria"
+                                                    "example": "Identificador de la categoría"
                                                 },
                                                 "subcategory_id": {
                                                     "type": "string",
-                                                    "example": "Identificador de la subcategoria"
+                                                    "example": "Identificador de la subcategoría"
                                                 },
                                                 "observation": {
                                                     "type": "string",
-                                                    "example": "Observacion"
+                                                    "example": "Observación"
                                                 }
                                             },
                                             "type": "object"
@@ -17040,19 +17041,19 @@
                                                 },
                                                 "code": {
                                                     "type": "string",
-                                                    "example": "Codigo - Referencia"
+                                                    "example": "Código - Referencia"
                                                 },
                                                 "category_id": {
                                                     "type": "string",
-                                                    "example": "Identificador de la categoria"
+                                                    "example": "Identificador de la categoría"
                                                 },
                                                 "subcategory_id": {
                                                     "type": "string",
-                                                    "example": "Identificador de la subcategoria"
+                                                    "example": "Identificador de la subcategoría"
                                                 },
                                                 "observation": {
                                                     "type": "string",
-                                                    "example": "Observacion"
+                                                    "example": "Observación"
                                                 }
                                             },
                                             "type": "object"
@@ -17773,7 +17774,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -17953,7 +17954,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -18107,7 +18108,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -18258,7 +18259,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -18686,7 +18687,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -18881,7 +18882,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -19340,7 +19341,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -19526,7 +19527,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -19680,7 +19681,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -19831,7 +19832,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -19845,6 +19846,809 @@
                                                 "id": {
                                                     "type": "string",
                                                     "example": "Identificador de la tallas"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "No hay ningún registro."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/stores/all": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "Listar los tiendas",
+                "operationId": "4f71aeba2dc5fa80f9f07cc0f7558fea",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Filtro de Busqueda.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "juan"
+                        }
+                    },
+                    {
+                        "name": "column",
+                        "in": "query",
+                        "description": "Columna a ordenar.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "id",
+                                "code",
+                                "name",
+                                "location_id",
+                                "location_type",
+                                "address",
+                                "neighborhood",
+                                "created_at",
+                                "updated_at",
+                                "deleted_at"
+                            ],
+                            "example": "name"
+                        }
+                    },
+                    {
+                        "name": "dir",
+                        "in": "query",
+                        "description": "Orden de datos.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "example": "asc"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "with_trashed",
+                        "in": "query",
+                        "description": "Registros inactivos.",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de tiendas cargada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "users": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Store"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "pagination": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "count": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "per_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "current_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "total_pages": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/stores/find/{id}": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "Obtener una tienda específica",
+                "operationId": "2239f99eaffbbbeb8f6b7f31a24b226b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la tienda",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tienda cargada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "store": {
+                                                    "$ref": "#/components/schemas/Store"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/stores/store": {
+            "post": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "Crear una tienda",
+                "operationId": "494384899394718af9db4c09881eb7a8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "id",
+                                    "code",
+                                    "name",
+                                    "location_id",
+                                    "location_type",
+                                    "address",
+                                    "neighborhood"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "00"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Nombre legal"
+                                    },
+                                    "location_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "location_type": {
+                                        "type": "string",
+                                        "example": "App\\\\Models\\\\City"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Calle 123 #45-67"
+                                    },
+                                    "neighborhood": {
+                                        "type": "string",
+                                        "example": "Barrio XYZ"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tienda creada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "store": {
+                                                    "$ref": "#/components/schemas/Store"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "00"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Nombre legal"
+                                                },
+                                                "trade_name": {
+                                                    "type": "string",
+                                                    "example": "Nombre comercial"
+                                                },
+                                                "location_id": {
+                                                    "type": "string",
+                                                    "example": "Ubicación"
+                                                },
+                                                "location_type": {
+                                                    "type": "string",
+                                                    "example": "App\\\\Models\\\\City"
+                                                },
+                                                "address": {
+                                                    "type": "string",
+                                                    "example": "Dirección"
+                                                },
+                                                "neighborhood": {
+                                                    "type": "string",
+                                                    "example": "Barrio"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "document": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/stores/update/{id}": {
+            "put": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "Editar la información de una tienda en específico",
+                "operationId": "6417f8635c971a36dc1fdd6c182be2c4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "id",
+                                    "code",
+                                    "name",
+                                    "location_id",
+                                    "location_type",
+                                    "address",
+                                    "neighborhood"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "00"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Nombre legal"
+                                    },
+                                    "location_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "location_type": {
+                                        "type": "string",
+                                        "example": "App\\\\Models\\\\City"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Calle 123 #45-67"
+                                    },
+                                    "neighborhood": {
+                                        "type": "string",
+                                        "example": "Barrio XYZ"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tienda editada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "store": {
+                                                    "$ref": "#/components/schemas/Store"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "00"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Nombre legal"
+                                                },
+                                                "location_id": {
+                                                    "type": "string",
+                                                    "example": "Ubicación"
+                                                },
+                                                "location_type": {
+                                                    "type": "string",
+                                                    "example": "App\\\\Models\\\\City"
+                                                },
+                                                "address": {
+                                                    "type": "string",
+                                                    "example": "Dirección"
+                                                },
+                                                "neighborhood": {
+                                                    "type": "string",
+                                                    "example": "Barrio"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "document": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Es obligatorio."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/stores/delete/{id}": {
+            "delete": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "Desactivar una tienda específica",
+                "operationId": "e0cbe9424a2997b96be56ad63a1aa383",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la tienda",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tienda desactivada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "store": {
+                                                    "$ref": "#/components/schemas/Store"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la tienda"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "No hay ningún registro."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/stores/restore/{id}": {
+            "patch": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "Activar una tienda específica",
+                "operationId": "309cea96a3d05a096c23053ed3a902a4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la tienda",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tienda activada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "store": {
+                                                    "$ref": "#/components/schemas/Store"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación."
+                                        },
+                                        "attributes": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "Identificador de la tienda"
                                                 }
                                             },
                                             "type": "object"
@@ -20258,7 +21062,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -20438,7 +21242,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -20592,7 +21396,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -20743,7 +21547,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -21277,7 +22081,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -21464,7 +22268,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -22145,7 +22949,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -22365,7 +23169,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -22522,7 +23326,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -22586,13 +23390,13 @@
                 ]
             }
         },
-        "/suppliers/remove/{id}": {
+        "/suppliers/restore/{id}": {
             "patch": {
                 "tags": [
                     "Suppliers"
                 ],
                 "summary": "Activar un proveedor específica",
-                "operationId": "36509d351ce419f86d40d9de3bd04708",
+                "operationId": "fa9baeb1ff6251cb9e23e67e7f8ab222",
                 "parameters": [
                     {
                         "name": "id",
@@ -22635,7 +23439,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -23068,7 +23872,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -23254,7 +24058,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -23408,7 +24212,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -23559,7 +24363,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -23973,7 +24777,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -24139,7 +24943,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -24510,7 +25314,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -24649,7 +25453,7 @@
                         }
                     },
                     "422": {
-                        "description": "Contenido inválido.",
+                        "description": "Error de validación.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -26420,9 +27224,10 @@
                         "type": "integer",
                         "example": 1
                     },
-                    "observation": {
+                    "description": {
                         "type": "string",
-                        "example": "observacion del producto"
+                        "example": "descripcion del producto",
+                        "nullable": true
                     },
                     "created_at": {
                         "type": "string",
@@ -26443,7 +27248,8 @@
                     "subcategory": {
                         "$ref": "#/components/schemas/Subcategory"
                     },
-                    "product_details": {
+                    "colors": {
+                        "description": "Detalles de nivel color (ProductDetail con model_type=Product). Cada uno puede traer su propio arreglo 'sizes' con las tallas hijas.",
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/ProductDetail"
@@ -26461,23 +27267,33 @@
                     "uuid": {
                         "type": "string",
                         "format": "uuid",
-                        "example": "000x0000-x00x-00x0-x000-00000000000"
+                        "example": "000x0000-x00x-00x0-x000-00000000000",
+                        "nullable": true
                     },
-                    "product_id": {
+                    "model_id": {
                         "type": "integer",
                         "example": 1
                     },
-                    "color_id": {
+                    "model_type": {
+                        "type": "string",
+                        "example": "App\\\\Models\\\\Product"
+                    },
+                    "assignable_id": {
                         "type": "integer",
                         "example": 1
                     },
-                    "size_id": {
-                        "type": "integer",
-                        "example": 1
+                    "assignable_type": {
+                        "type": "string",
+                        "example": "App\\\\Models\\\\Color"
                     },
                     "description": {
                         "type": "string",
-                        "example": "descripcion del producto"
+                        "example": "descripcion del producto",
+                        "nullable": true
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "AGUILA-01-36"
                     },
                     "created_at": {
                         "type": "string",
@@ -26489,14 +27305,46 @@
                         "format": "date-time",
                         "example": "2026-04-06T15:21:16.000000Z"
                     },
-                    "product": {
-                        "$ref": "#/components/schemas/Product"
+                    "model": {
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "product": "#/components/schemas/Product",
+                                "product_detail": "#/components/schemas/ProductDetail"
+                            }
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Product"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ProductDetail"
+                            }
+                        ]
                     },
-                    "color": {
-                        "$ref": "#/components/schemas/Color"
+                    "assignable": {
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "color": "#/components/schemas/Color",
+                                "size": "#/components/schemas/Size"
+                            }
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Color"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Size"
+                            }
+                        ]
                     },
-                    "size": {
-                        "$ref": "#/components/schemas/Size"
+                    "sizes": {
+                        "description": "Solo presente en nivel color: tallas hijas de este registro",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProductDetail"
+                        }
                     }
                 },
                 "type": "object"
@@ -26758,6 +27606,76 @@
                             }
                         },
                         "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "Store": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "00"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Nombre legal"
+                    },
+                    "location_type": {
+                        "type": "string",
+                        "example": "App\\\\Models\\\\City"
+                    },
+                    "location_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "Calle 7"
+                    },
+                    "neighborhood": {
+                        "type": "string",
+                        "example": "Barrio XYZ"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-03-30T13:17:29.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-04-06T15:21:16.000000Z"
+                    },
+                    "deleted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "location": {
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "country": "#/components/schemas/Country",
+                                "department": "#/components/schemas/Department",
+                                "city": "#/components/schemas/City"
+                            }
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Country"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Department"
+                            },
+                            {
+                                "$ref": "#/components/schemas/City"
+                            }
+                        ]
                     }
                 },
                 "type": "object"
@@ -27425,6 +28343,10 @@
         {
             "name": "Sizes",
             "description": "Endpoints para gestionar tallas"
+        },
+        {
+            "name": "Stores",
+            "description": "Endpoints para gestionar tiendas"
         },
         {
             "name": "Classification - Subcategories",

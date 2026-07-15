@@ -13,12 +13,24 @@ class SupplierCollection extends ResourceCollection
             'suppliers' => $this->collection->map(function ($supplier) {
                 return [
                     'id' => $supplier->id,
-                    'item_id' => $supplier->item_id,
-                    'name' => $supplier->name,
-                    'description' => $supplier->description,
+                    'code' => $supplier->code,
+                    'legal_name' => $supplier->legal_name,
+                    'trade_name' => $supplier->trade_name,
+                    'document_type_id' => $supplier->document_type_id,
+                    'document' => $supplier->document,
+                    'location_id' => $supplier->location_id,
+                    'location_type' => $supplier->location_type,
+                    'address' => $supplier->address,
+                    'neighborhood' => $supplier->neighborhood,
+                    'phone_country_id' => $supplier->phone_country_id,
+                    'phone' => $supplier->phone,
+                    'email' => $supplier->email,
                     'created_at' => $this->formatDate($supplier->created_at),
                     'updated_at' => $this->formatDate($supplier->updated_at),
                     'deleted_at' => $this->formatDate($supplier->deleted_at),
+                    'document_type' => $supplier->document_type,
+                    'location' => $supplier->location,
+                    'phone_country' => $supplier->phone_country
                 ];
             }),
             'meta' => [

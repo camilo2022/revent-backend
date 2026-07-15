@@ -22,7 +22,7 @@ class Product extends Model implements Auditable
         'code',
         'category_id',
         'subcategory_id',
-        'observation'
+        'description'
     ];
 
     protected $auditInclude = [
@@ -30,7 +30,7 @@ class Product extends Model implements Auditable
         'code',
         'category_id',
         'subcategory_id',
-        'observation'
+        'description'
     ];
 
     public function trademark(): BelongsTo
@@ -48,7 +48,7 @@ class Product extends Model implements Auditable
         return $this->belongsTo(Subcategory::class);
     }
 
-    public function product_details(): HasMany
+    public function colors(): HasMany
     {
         return $this->hasMany(ProductDetail::class);
     }

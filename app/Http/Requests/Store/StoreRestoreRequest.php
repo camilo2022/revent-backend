@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Auth;
+namespace App\Http\Requests\Store;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
-class LoginRequest extends FormRequest
+class StoreRestoreRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -25,8 +26,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => ['required', 'string'],
-            'password' => ['required', 'string'],
+            'id' => ['required', Rule::exists('stores', 'id')->whereNotNull('deleted_at')]
         ];
     }
 
@@ -34,15 +34,19 @@ class LoginRequest extends FormRequest
     {
         return [
             'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de caracteres.',
+            'exists' => 'No hay ningún registro.'
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'username' => 'Nombre de usuario',
-            'password' => 'Contraseña',
+            'id' => 'Identificador de la tienda'
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge(['id' => $this->route('id')]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
@@ -17,7 +18,6 @@ class File extends Model implements Auditable
         'model_id',
         'model_type',
         'file_type_id',
-        'file_subtype_id',
         'name',
         'path',
         'mime',
@@ -31,7 +31,6 @@ class File extends Model implements Auditable
         'model_id',
         'model_type',
         'file_type_id',
-        'file_subtype_id',
         'name',
         'path',
         'mime',
@@ -54,13 +53,8 @@ class File extends Model implements Auditable
         return $this->morphTo();
     }
 
-    /*public function file_type(): BelongsTo
+    public function file_type(): BelongsTo
     {
         return $this->belongsTo(FileType::class);
     }
-
-    public function file_subtype(): BelongsTo
-    {
-        return $this->belongsTo(FileSubtype::class);
-    }*/
 }

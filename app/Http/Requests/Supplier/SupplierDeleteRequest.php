@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Supplier;
 
-use App\Models\Supplier;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -26,7 +25,7 @@ class SupplierDeleteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:subitems,id,deleted_at,NULL,item_id,'.Supplier::ITEM_ID],
+            'id' => ['required', 'exists:suppliers,id,deleted_at,NULL'],
         ];
     }
 

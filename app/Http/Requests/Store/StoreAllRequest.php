@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\Supplier;
+namespace App\Http\Requests\Store;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class SupplierAllRequest extends FormRequest
+class StoreAllRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -28,7 +28,7 @@ class SupplierAllRequest extends FormRequest
             'per_page' => ['nullable', 'numeric'],
             'page' => ['nullable', 'numeric'],
             'search' => ['nullable', 'string'],
-            'column' => ['nullable', 'string', 'in:id,code,legal_name,trade_name,document_type_id,document,location_id,location_type,address,neighborhood,phone_country_id,phone,email,created_at,updated_at,deleted_at'],
+            'column' => ['nullable', 'string', 'in:id,code,name,location_id,location_type,address,neighborhood,created_at,updated_at,deleted_at'],
             'dir' => ['nullable', 'string', 'in:asc,desc'],
             'with_trashed' => ['required', 'boolean']
         ];

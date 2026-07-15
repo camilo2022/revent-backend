@@ -228,14 +228,14 @@ class RolesAndPermissionsSeeder extends Seeder
                     ['name' => 'organizational_structure.areas.update', 'title' => 'Actualizar área', 'description' => 'Permite actualizar áreas.'],
                     ['name' => 'organizational_structure.areas.delete', 'title' => 'Eliminar área', 'description' => 'Permite eliminar áreas.'],
                     ['name' => 'organizational_structure.areas.restore', 'title' => 'Restaurar área', 'description' => 'Permite restaurar áreas.'],
-                    ['name' => 'organizational_structure.areas.positions.all', 'title' => 'Listar cargos', 'description' => 'Permite listar cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.find', 'title' => 'Consultar cargo', 'description' => 'Permite consultar un cargo.'],
-                    ['name' => 'organizational_structure.areas.positions.store', 'title' => 'Crear cargo', 'description' => 'Permite crear cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.update', 'title' => 'Actualizar cargo', 'description' => 'Permite actualizar cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.delete', 'title' => 'Eliminar cargo', 'description' => 'Permite eliminar cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.restore', 'title' => 'Restaurar cargo', 'description' => 'Permite restaurar cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.authorization.assign', 'title' => 'Asignar permisos', 'description' => 'Permite asignar permisos a cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.authorization.remove', 'title' => 'Remover permisos', 'description' => 'Permite remover permisos de cargos.'],
+                    ['name' => 'organizational_structure.positions.all', 'title' => 'Listar cargos', 'description' => 'Permite listar cargos.'],
+                    ['name' => 'organizational_structure.positions.find', 'title' => 'Consultar cargo', 'description' => 'Permite consultar un cargo.'],
+                    ['name' => 'organizational_structure.positions.store', 'title' => 'Crear cargo', 'description' => 'Permite crear cargos.'],
+                    ['name' => 'organizational_structure.positions.update', 'title' => 'Actualizar cargo', 'description' => 'Permite actualizar cargos.'],
+                    ['name' => 'organizational_structure.positions.delete', 'title' => 'Eliminar cargo', 'description' => 'Permite eliminar cargos.'],
+                    ['name' => 'organizational_structure.positions.restore', 'title' => 'Restaurar cargo', 'description' => 'Permite restaurar cargos.'],
+                    ['name' => 'organizational_structure.positions.authorization.assign', 'title' => 'Asignar permisos', 'description' => 'Permite asignar permisos a cargos.'],
+                    ['name' => 'organizational_structure.positions.authorization.remove', 'title' => 'Remover permisos', 'description' => 'Permite remover permisos de cargos.'],
                 ]
             ],
 
@@ -333,7 +333,177 @@ class RolesAndPermissionsSeeder extends Seeder
                     ['name' => 'risk_managers.delete', 'title' => 'Eliminar Administradoras de riesgos.', 'description' => 'Permite eliminar Administradoras de riesgos..'],
                     ['name' => 'risk_managers.restore', 'title' => 'Restaurar Administradoras de riesgos.', 'description' => 'Permite restaurar Administradoras de riesgos..'],
                 ]
-            ]
+            ],
+
+            [
+                'role' => [
+                    'name' => 'audits',
+                    'title' => 'Auditorías',
+                    'description' => 'Consulta del historial de auditoría del sistema.',
+                ],
+                'permissions' => [
+                    ['name' => 'audits.all', 'title' => 'Listar auditorías', 'description' => 'Permite listar todos los registros de auditoría.'],
+                    ['name' => 'audits.find', 'title' => 'Consultar auditoría', 'description' => 'Permite consultar un registro de auditoría específico.'],
+                ]
+            ],
+
+            [
+                'role' => [
+                    'name' => 'file_types',
+                    'title' => 'Tipos de archivo',
+                    'description' => 'Gestión de tipos de archivo.',
+                ],
+                'permissions' => [
+                    ['name' => 'file_types.all', 'title' => 'Listar tipos de archivo', 'description' => 'Permite listar tipos de archivo.'],
+                    ['name' => 'file_types.find', 'title' => 'Consultar tipo de archivo', 'description' => 'Permite consultar un tipo de archivo.'],
+                    ['name' => 'file_types.store', 'title' => 'Crear tipo de archivo', 'description' => 'Permite crear tipos de archivo.'],
+                    ['name' => 'file_types.update', 'title' => 'Actualizar tipo de archivo', 'description' => 'Permite actualizar tipos de archivo.'],
+                    ['name' => 'file_types.delete', 'title' => 'Eliminar tipo de archivo', 'description' => 'Permite eliminar tipos de archivo.'],
+                    ['name' => 'file_types.restore', 'title' => 'Restaurar tipo de archivo', 'description' => 'Permite restaurar tipos de archivo.'],
+                ]
+            ],
+
+            [
+                'role' => [
+                    'name' => 'identification',
+                    'title' => 'Identificación',
+                    'description' => 'Gestión de tipos de persona y tipos de documento.',
+                ],
+                'permissions' => [
+                    ['name' => 'identification.person_types.all', 'title' => 'Listar tipos de persona', 'description' => 'Permite listar tipos de persona.'],
+                    ['name' => 'identification.person_types.find', 'title' => 'Consultar tipo de persona', 'description' => 'Permite consultar un tipo de persona.'],
+                    ['name' => 'identification.person_types.store', 'title' => 'Crear tipo de persona', 'description' => 'Permite crear tipos de persona.'],
+                    ['name' => 'identification.person_types.update', 'title' => 'Actualizar tipo de persona', 'description' => 'Permite actualizar tipos de persona.'],
+                    ['name' => 'identification.person_types.delete', 'title' => 'Eliminar tipo de persona', 'description' => 'Permite eliminar tipos de persona.'],
+                    ['name' => 'identification.person_types.restore', 'title' => 'Restaurar tipo de persona', 'description' => 'Permite restaurar tipos de persona.'],
+
+                    ['name' => 'identification.document_types.all', 'title' => 'Listar tipos de documento', 'description' => 'Permite listar tipos de documento.'],
+                    ['name' => 'identification.document_types.find', 'title' => 'Consultar tipo de documento', 'description' => 'Permite consultar un tipo de documento.'],
+                    ['name' => 'identification.document_types.store', 'title' => 'Crear tipo de documento', 'description' => 'Permite crear tipos de documento.'],
+                    ['name' => 'identification.document_types.update', 'title' => 'Actualizar tipo de documento', 'description' => 'Permite actualizar tipos de documento.'],
+                    ['name' => 'identification.document_types.delete', 'title' => 'Eliminar tipo de documento', 'description' => 'Permite eliminar tipos de documento.'],
+                    ['name' => 'identification.document_types.restore', 'title' => 'Restaurar tipo de documento', 'description' => 'Permite restaurar tipos de documento.'],
+                ]
+            ],
+
+            [
+                'role' => [
+                    'name' => 'trademarks',
+                    'title' => 'Marcas',
+                    'description' => 'Gestión de marcas.',
+                ],
+                'permissions' => [
+                    ['name' => 'trademarks.all', 'title' => 'Listar marcas', 'description' => 'Permite listar marcas.'],
+                    ['name' => 'trademarks.find', 'title' => 'Consultar marca', 'description' => 'Permite consultar una marca.'],
+                    ['name' => 'trademarks.store', 'title' => 'Crear marca', 'description' => 'Permite crear marcas.'],
+                    ['name' => 'trademarks.update', 'title' => 'Actualizar marca', 'description' => 'Permite actualizar marcas.'],
+                    ['name' => 'trademarks.delete', 'title' => 'Eliminar marca', 'description' => 'Permite eliminar marcas.'],
+                    ['name' => 'trademarks.restore', 'title' => 'Restaurar marca', 'description' => 'Permite restaurar marcas.'],
+                ]
+            ],
+
+            [
+                'role' => [
+                    'name' => 'colors',
+                    'title' => 'Colores',
+                    'description' => 'Gestión de colores.',
+                ],
+                'permissions' => [
+                    ['name' => 'colors.all', 'title' => 'Listar colores', 'description' => 'Permite listar colores.'],
+                    ['name' => 'colors.find', 'title' => 'Consultar color', 'description' => 'Permite consultar un color.'],
+                    ['name' => 'colors.store', 'title' => 'Crear color', 'description' => 'Permite crear colores.'],
+                    ['name' => 'colors.update', 'title' => 'Actualizar color', 'description' => 'Permite actualizar colores.'],
+                    ['name' => 'colors.delete', 'title' => 'Eliminar color', 'description' => 'Permite eliminar colores.'],
+                    ['name' => 'colors.restore', 'title' => 'Restaurar color', 'description' => 'Permite restaurar colores.'],
+                ]
+            ],
+
+            [
+                'role' => [
+                    'name' => 'sizes',
+                    'title' => 'Tallas',
+                    'description' => 'Gestión de tallas.',
+                ],
+                'permissions' => [
+                    ['name' => 'sizes.all', 'title' => 'Listar tallas', 'description' => 'Permite listar tallas.'],
+                    ['name' => 'sizes.find', 'title' => 'Consultar talla', 'description' => 'Permite consultar una talla.'],
+                    ['name' => 'sizes.store', 'title' => 'Crear talla', 'description' => 'Permite crear tallas.'],
+                    ['name' => 'sizes.update', 'title' => 'Actualizar talla', 'description' => 'Permite actualizar tallas.'],
+                    ['name' => 'sizes.delete', 'title' => 'Eliminar talla', 'description' => 'Permite eliminar tallas.'],
+                    ['name' => 'sizes.restore', 'title' => 'Restaurar talla', 'description' => 'Permite restaurar tallas.'],
+                ]
+            ],
+
+            [
+                'role' => [
+                    'name' => 'classification',
+                    'title' => 'Clasificación',
+                    'description' => 'Gestión de categorías y subcategorías.',
+                ],
+                'permissions' => [
+                    ['name' => 'classification.categories.all', 'title' => 'Listar categorías', 'description' => 'Permite listar categorías.'],
+                    ['name' => 'classification.categories.find', 'title' => 'Consultar categoría', 'description' => 'Permite consultar una categoría.'],
+                    ['name' => 'classification.categories.store', 'title' => 'Crear categoría', 'description' => 'Permite crear categorías.'],
+                    ['name' => 'classification.categories.update', 'title' => 'Actualizar categoría', 'description' => 'Permite actualizar categorías.'],
+                    ['name' => 'classification.categories.delete', 'title' => 'Eliminar categoría', 'description' => 'Permite eliminar categorías.'],
+                    ['name' => 'classification.categories.restore', 'title' => 'Restaurar categoría', 'description' => 'Permite restaurar categorías.'],
+                    ['name' => 'classification.categories.subcategories.assign', 'title' => 'Asignar subcategorías', 'description' => 'Permite asignar subcategorías a una categoría.'],
+                    ['name' => 'classification.categories.subcategories.remove', 'title' => 'Remover subcategorías', 'description' => 'Permite remover subcategorías de una categoría.'],
+
+                    ['name' => 'classification.subcategories.all', 'title' => 'Listar subcategorías', 'description' => 'Permite listar subcategorías.'],
+                    ['name' => 'classification.subcategories.find', 'title' => 'Consultar subcategoría', 'description' => 'Permite consultar una subcategoría.'],
+                    ['name' => 'classification.subcategories.store', 'title' => 'Crear subcategoría', 'description' => 'Permite crear subcategorías.'],
+                    ['name' => 'classification.subcategories.update', 'title' => 'Actualizar subcategoría', 'description' => 'Permite actualizar subcategorías.'],
+                    ['name' => 'classification.subcategories.delete', 'title' => 'Eliminar subcategoría', 'description' => 'Permite eliminar subcategorías.'],
+                    ['name' => 'classification.subcategories.restore', 'title' => 'Restaurar subcategoría', 'description' => 'Permite restaurar subcategorías.'],
+                ]
+            ],
+
+            [
+                'role' => [
+                    'name' => 'suppliers',
+                    'title' => 'Proveedores',
+                    'description' => 'Gestión de proveedores.',
+                ],
+                'permissions' => [
+                    ['name' => 'suppliers.all', 'title' => 'Listar proveedores', 'description' => 'Permite listar proveedores.'],
+                    ['name' => 'suppliers.find', 'title' => 'Consultar proveedor', 'description' => 'Permite consultar un proveedor.'],
+                    ['name' => 'suppliers.store', 'title' => 'Crear proveedor', 'description' => 'Permite crear proveedores.'],
+                    ['name' => 'suppliers.update', 'title' => 'Actualizar proveedor', 'description' => 'Permite actualizar proveedores.'],
+                    ['name' => 'suppliers.delete', 'title' => 'Eliminar proveedor', 'description' => 'Permite eliminar proveedores.'],
+                    ['name' => 'suppliers.restore', 'title' => 'Restaurar proveedor', 'description' => 'Permite restaurar proveedores.'],
+                ]
+            ],
+
+            [
+                'role' => [
+                    'name' => 'stores',
+                    'title' => 'Tiendas',
+                    'description' => 'Gestión de tiendas.',
+                ],
+                'permissions' => [
+                    ['name' => 'stores.all', 'title' => 'Listar tiendas', 'description' => 'Permite listar tiendas.'],
+                    ['name' => 'stores.find', 'title' => 'Consultar tienda', 'description' => 'Permite consultar una tienda.'],
+                    ['name' => 'stores.store', 'title' => 'Crear tienda', 'description' => 'Permite crear tiendas.'],
+                    ['name' => 'stores.update', 'title' => 'Actualizar tienda', 'description' => 'Permite actualizar tiendas.'],
+                    ['name' => 'stores.delete', 'title' => 'Eliminar tienda', 'description' => 'Permite eliminar tiendas.'],
+                    ['name' => 'stores.restore', 'title' => 'Restaurar tienda', 'description' => 'Permite restaurar tiendas.'],
+                ]
+            ],
+
+            [
+                'role' => [
+                    'name' => 'products',
+                    'title' => 'Productos',
+                    'description' => 'Gestión de productos.',
+                ],
+                'permissions' => [
+                    ['name' => 'products.all', 'title' => 'Listar productos', 'description' => 'Permite listar productos.'],
+                    ['name' => 'products.find', 'title' => 'Consultar producto', 'description' => 'Permite consultar un producto.'],
+                    ['name' => 'products.store', 'title' => 'Crear producto', 'description' => 'Permite crear productos.'],
+                    ['name' => 'products.update', 'title' => 'Actualizar producto', 'description' => 'Permite actualizar productos.'],
+                ]
+            ],
         ];
 
         foreach ($roles_and_permissions as $role_and_permission) {

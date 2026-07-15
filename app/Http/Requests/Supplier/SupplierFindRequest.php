@@ -26,7 +26,7 @@ class SupplierFindRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:subitems,id,item_id,'.Supplier::ITEM_ID],
+            'id' => ['required', 'exists:suppliers,id'],
         ];
     }
 

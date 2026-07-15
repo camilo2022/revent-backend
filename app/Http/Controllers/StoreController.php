@@ -2,61 +2,68 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Size\SizeAllRequest;
-use App\Http\Requests\Size\SizeDeleteRequest;
-use App\Http\Requests\Size\SizeFindRequest;
-use App\Http\Requests\Size\SizeRestoreRequest;
-use App\Http\Requests\Size\SizeStoreRequest;
-use App\Http\Requests\Size\SizeUpdateRequest;
-use App\Http\Resources\Size\SizeCollection;
-use App\Http\Resources\Size\SizeResource;
-use App\Models\Size;
+use App\Http\Requests\Store\StoreAllRequest;
+use App\Http\Requests\Store\StoreDeleteRequest;
+use App\Http\Requests\Store\StoreFindRequest;
+use App\Http\Requests\Store\StoreRestoreRequest;
+use App\Http\Requests\Store\StoreStoreRequest;
+use App\Http\Requests\Store\StoreUpdateRequest;
+use App\Http\Resources\Store\StoreCollection;
+use App\Http\Resources\Store\StoreResource;
+use App\Models\City;
+use App\Models\Country;
+use App\Models\Department;
+use App\Models\Store;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * @OA\Tag(
- *     name="Sizes",
- *     description="Endpoints para gestionar tallas"
+ *     name="Stores",
+ *     description="Endpoints para gestionar tiendas"
  * )
  *
  * @OA\Schema(
- *     schema="Size",
+ *     schema="Store",
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="item_id", type="integer", example=13),
- *     @OA\Property(property="name", type="string", example="TALLA 31"),
- *     @OA\Property(property="description", type="string", example="Talla de zapatos 31"),
- *     @OA\Property(
- *         property="settings",
- *         type="object",
- *         @OA\Property(property="code", type="string", example="00")
- *     ),
+ *     @OA\Property(property="code", type="string", example="00"),
+ *     @OA\Property(property="name", type="string", example="Nombre legal"),
+ *     @OA\Property(property="location_type", type="string", example="App\\Models\\City"),
+ *     @OA\Property(property="location_id", type="integer", example=1),
+ *     @OA\Property(property="address", type="string", example="Calle 7"),
+ *     @OA\Property(property="neighborhood", type="string", example="Barrio XYZ"),
  *     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
  *     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
  *     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null),
  *     @OA\Property(
- *         property="item",
- *         type="object",
- *         @OA\Property(property="id", type="integer", example=13),
- *         @OA\Property(property="name", type="string", example="Sizees"),
- *         @OA\Property(property="description", type="string", example="Listado de tallas."),
- *         @OA\Property(property="settings", type="string", example="{}"),
- *         @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-30T13:17:29.000000Z"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
- *         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+ *         property="location",
+ *         discriminator=@OA\Discriminator(
+ *             propertyName="type",
+ *             mapping={
+ *                 "country"="#/components/schemas/Country",
+ *                 "department"="#/components/schemas/Department",
+ *                 "city"="#/components/schemas/City"
+ *             }
+ *         ),
+ *         oneOf={
+ *             @OA\Schema(ref="#/components/schemas/Country"),
+ *             @OA\Schema(ref="#/components/schemas/Department"),
+ *             @OA\Schema(ref="#/components/schemas/City")
+ *         }
  *     )
  * )
  */
-class SizeController extends Controller
+class StoreController extends Controller
 {
     use ApiMessage, ApiResponser;
 
     /**
      * @OA\Get(
-     *     path="/sizes/all",
-     *     tags={"Sizes"},
-     *     summary="Listar tallas",
+     *     path="/stores/all",
+     *     tags={"Stores"},
+     *     summary="Listar los tiendas",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="search",
@@ -70,7 +77,7 @@ class SizeController extends Controller
      *         in="query",
      *         description="Columna a ordenar.",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"id","name","description","created_at", "updated_at"}, example="name")
+     *         @OA\Schema(type="string", enum={"id","code","name","location_id","location_type","address","neighborhood","created_at","updated_at","deleted_at"}, example="name")
      *     ),
      *     @OA\Parameter(
      *         name="dir",
@@ -95,15 +102,15 @@ class SizeController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Lista de tallas cargada correctamente",
+     *         description="Lista de tiendas cargada con éxito",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="sizes",
+     *                     property= "users",
      *                     type="array",
-     *                     @OA\Items(ref="#/components/schemas/Size")
+     *                     @OA\Items(ref="#/components/schemas/Store")
      *                 ),
      *                 @OA\Property(
      *                     property="meta",
@@ -139,24 +146,30 @@ class SizeController extends Controller
      *     )
      * )
      */
-    public function all(SizeAllRequest $request)
+    public function all(StoreAllRequest $request)
     {
         try {
-            $trademakers = Size::with(['item'])
+            $stores = Store::with([
+                    'location' => fn (MorphTo $morphTo) => $morphTo->morphWith([
+                        Country::class => ['region' => ['continent']],
+                        Department::class => ['country' => ['region' => ['continent']]],
+                        City::class => ['department' => ['country' => ['region' => ['continent']]]],
+                    ])
+                ])
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
-                ->when($request->boolean('with_trashed'), function ($query) {
+                ->when($request->boolean('with_trashed'), function ($query) use ($request) {
                     return $query->withTrashed();
                 })
                 ->when($request->filled('column') && $request->filled('dir'), function ($query) use ($request) {
                     return $query->orderBy($request->input('column'), $request->input('dir'));
                 });
 
-            $trademakers = $trademakers->paginate($request->integer('per_page', $trademakers->count()));
+            $stores = $stores->paginate($request->integer('per_page', $stores->count()));
 
             return $this->successResponse(
-                new SizeCollection($trademakers),
+                new StoreCollection($stores),
                 $this->getMessage('Success'),
                 200
             );
@@ -173,52 +186,31 @@ class SizeController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/sizes/find/{id}",
-     *     tags={"Sizes"},
-     *     summary="Obtener una marca específica",
+     *     path="/stores/find/{id}",
+     *     tags={"Stores"},
+     *     summary="Obtener una tienda específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="Identificador de la marca",
+     *         description="Identificador de la tienda",
      *         required=true,
      *         @OA\Schema(type="integer", example=1)
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Marca cargada con éxito",
+     *         description="Tienda cargada con éxito",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="size",
-     *                     ref="#/components/schemas/Size"
+     *                     property="store",
+     *                     ref="#/components/schemas/Store"
      *                 ),
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
      *             @OA\Property(property="error", type="boolean", example=false)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Identificador de la marca no registrado.",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Error de validación."),
-     *             @OA\Property(
-     *                 property="attributes",
-     *                 type="object",
-     *                 @OA\Property(property="id", type="string", example=1)
-     *             ),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example="No hay ningún registro.")
-     *                 )
-     *             )
      *         )
      *     ),
      *     @OA\Response(
@@ -237,13 +229,19 @@ class SizeController extends Controller
      *     )
      * )
      */
-    public function find(SizeFindRequest $request, $id)
+    public function find(StoreFindRequest $request, $id)
     {
         try {
-            $size = Size::with(['item'])->findOrFail($id);
+            $store = Store::with([
+                    'location' => fn (MorphTo $morphTo) => $morphTo->morphWith([
+                        Country::class => ['region' => ['continent']],
+                        Department::class => ['country' => ['region' => ['continent']]],
+                        City::class => ['department' => ['country' => ['region' => ['continent']]]],
+                    ])
+                ])->findOrFail($id);
 
             return $this->successResponse(
-                new SizeResource($size),
+                new StoreResource($store),
                 $this->getMessage('Success'),
                 200
             );
@@ -260,50 +258,36 @@ class SizeController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/sizes/store",
-     *     tags={"Sizes"},
-     *     summary="Crear una marca",
+     *     path="/stores/store",
+     *     tags={"Stores"},
+     *     summary="Crear una tienda",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name","group_id"},
-     *             @OA\Property(
-     *                 property="name",
-     *                 type="string",
-     *                 example="XS",
-     *                 description="Nombre de la marca"
-     *             ),
-     *             @OA\Property(
-     *                 property="description",
-     *                 type="string",
-     *                 example="LISTA",
-     *                 description="Descripción de la marca"
-     *             ),
-     *             @OA\Property(
-     *                 property="group_id",
-     *                 type="integer",
-     *                 example=1,
-     *                 description="Identificador de la categoría a la que pertenece la marca"
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"id","code","name","location_id","location_type","address","neighborhood"},
+     *                 @OA\Property(property="code", type="string", example="00"),
+     *                 @OA\Property(property="name", type="string", example="Nombre legal"),
+     *                 @OA\Property(property="location_id", type="integer", example=1),
+     *                 @OA\Property(property="location_type", type="string", example="App\\Models\\City"),
+     *                 @OA\Property(property="address", type="string", example="Calle 123 #45-67"),
+     *                 @OA\Property(property="neighborhood", type="string", example="Barrio XYZ")
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Marca creada correctamente",
+     *         description="Tienda creada con éxito",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="size",
+     *                     property="store",
      *                     type="object",
-     *                     @OA\Property(property="name", type="string", example="NAME_TRADEMARK"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_TRADEMARK"),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="id", type="integer", example=1)
+     *                     ref="#/components/schemas/Store"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -318,16 +302,21 @@ class SizeController extends Controller
      *             @OA\Property(
      *                 property="attributes",
      *                 type="object",
-     *                 @OA\Property(property="name", type="string", example="Nombre de la marca"),
-     *                 @OA\Property(property="description", type="string", example="Descripción de la marca")
+     *                  @OA\Property(property="code", type="string", example="00"),
+     *                  @OA\Property(property="name", type="string", example="Nombre legal"),
+     *                  @OA\Property(property="trade_name", type="string", example="Nombre comercial"),
+     *                  @OA\Property(property="location_id", type="string", example="Ubicación"),
+     *                  @OA\Property(property="location_type", type="string", example="App\\Models\\City"),
+     *                  @OA\Property(property="address", type="string", example="Dirección"),
+     *                  @OA\Property(property="neighborhood", type="string", example="Barrio")
      *             ),
      *             @OA\Property(
      *                 property="errors",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="name",
+     *                     property="document",
      *                     type="array",
-     *                     @OA\Items(type="string", example="Formato Inválido. El campo debe estar en mayúsculas.")
+     *                     @OA\Items(type="string", example="Es obligatorio.")
      *                 )
      *             )
      *         )
@@ -348,17 +337,20 @@ class SizeController extends Controller
      *     )
      * )
      */
-    public function store(SizeStoreRequest $request)
+    public function store(StoreStoreRequest $request)
     {
         try {
-            $size = new Size();
-            $size->name = $request->input('name');
-            $size->description = $request->input('description');
-            $size->settings->code = $request->input('settings.code');
-            $size->save();
+            $store = new Store();
+            $store->code = $request->input('code');
+            $store->name = $request->input('name');
+            $store->location_id = $request->integer('location_id');
+            $store->location_type = $request->input('location_type');
+            $store->address = $request->input('address');
+            $store->neighborhood = $request->input('neighborhood');
+            $store->save();
 
             return $this->successResponse(
-                new SizeResource($size),
+                new StoreResource($store),
                 $this->getMessage('Success'),
                 201
             );
@@ -375,59 +367,36 @@ class SizeController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/sizes/update/{id}",
-     *     tags={"Sizes"},
-     *     summary="Editar una marca específica",
+     *     path="/stores/update/{id}",
+     *     tags={"Stores"},
+     *     summary="Editar la información de una tienda en específico",
      *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         description="Identificador de la marca",
-     *         required=true,
-     *         @OA\Schema(type="integer", example=1)
-     *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name","group_id"},
-     *             @OA\Property(
-     *                 property="name",
-     *                 type="string",
-     *                 example="XXS",
-     *                 description="Nombre de la marca"
-     *             ),
-     *             @OA\Property(
-     *                 property="description",
-     *                 type="string",
-     *                 example="LISTA DE USUARIOS",
-     *                 description="Descripción de la marca"
-     *             ),
-     *             @OA\Property(
-     *               property="group_id",
-     *               type="integer",
-     *               example=1,
-     *               description="Identificador de la categoría a la que pertenece la marca"
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"id","code","name","location_id","location_type","address","neighborhood"},
+     *                 @OA\Property(property="code", type="string", example="00"),
+     *                 @OA\Property(property="name", type="string", example="Nombre legal"),
+     *                 @OA\Property(property="location_id", type="integer", example=1),
+     *                 @OA\Property(property="location_type", type="string", example="App\\Models\\City"),
+     *                 @OA\Property(property="address", type="string", example="Calle 123 #45-67"),
+     *                 @OA\Property(property="neighborhood", type="string", example="Barrio XYZ")
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Marca editada correctamente",
+     *         description="Tienda editada con éxito",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="size",
+     *                     property="store",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="NAME_TRADEMARK"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_TRADEMARK"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+     *                     ref="#/components/schemas/Store"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -440,18 +409,22 @@ class SizeController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
-     *                 property="attributes",
-     *                 type="object",
-     *                 @OA\Property(property="name", type="string", example="Nombre de la marca"),
-     *                 @OA\Property(property="description", type="string", example="Descripción de la marca")
+     *                  property="attributes",
+     *                  type="object",
+     *                  @OA\Property(property="code", type="string", example="00"),
+     *                  @OA\Property(property="name", type="string", example="Nombre legal"),
+     *                  @OA\Property(property="location_id", type="string", example="Ubicación"),
+     *                  @OA\Property(property="location_type", type="string", example="App\\Models\\City"),
+     *                  @OA\Property(property="address", type="string", example="Dirección"),
+     *                  @OA\Property(property="neighborhood", type="string", example="Barrio")
      *             ),
      *             @OA\Property(
      *                 property="errors",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="name",
+     *                     property="document",
      *                     type="array",
-     *                     @OA\Items(type="string", example="Formato Inválido. El campo debe estar en mayúsculas.")
+     *                     @OA\Items(type="string", example="Es obligatorio.")
      *                 )
      *             )
      *         )
@@ -472,17 +445,20 @@ class SizeController extends Controller
      *     )
      * )
      */
-    public function update(SizeUpdateRequest $request, $id)
+    public function update(StoreUpdateRequest $request, $id)
     {
         try {
-            $size = Size::findOrFail($id);
-            $size->name = $request->input('name');
-            $size->description = $request->input('description');
-            $size->settings->code = $request->input('settings.code');
-            $size->save();
+            $store = Store::findOrFail($id);
+            $store->code = $request->input('code');
+            $store->name = $request->input('name');
+            $store->location_id = $request->integer('location_id');
+            $store->location_type = $request->input('location_type');
+            $store->address = $request->input('address');
+            $store->neighborhood = $request->input('neighborhood');
+            $store->save();
 
             return $this->successResponse(
-                new SizeResource($size),
+                new StoreResource($store),
                 $this->getMessage('Success'),
                 200
             );
@@ -499,35 +475,28 @@ class SizeController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/sizes/delete/{id}",
-     *     tags={"Sizes"},
-     *     summary="Desactivar una marca específica",
+     *     path="/stores/delete/{id}",
+     *     tags={"Stores"},
+     *     summary="Desactivar una tienda específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="Identificador de la marca",
+     *         description="Identificador de la tienda",
      *         required=true,
      *         @OA\Schema(type="integer", example=1)
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Marca desactivada correctamente",
+     *         description="Tienda desactivada correctamente",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="size",
+     *                     property="store",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="NAME_TRADEMARK"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_TRADEMARK"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", example="2026-03-12 20:01:03")
+     *                     ref="#/components/schemas/Store"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -542,7 +511,7 @@ class SizeController extends Controller
      *             @OA\Property(
      *                 property="attributes",
      *                 type="object",
-     *                 @OA\Property(property="id", type="string", example="Identificador de la tallas")
+     *                 @OA\Property(property="id", type="string", example="Identificador de la tienda")
      *             ),
      *             @OA\Property(
      *                 property="errors",
@@ -571,14 +540,14 @@ class SizeController extends Controller
      *     )
      * )
      */
-    public function delete(SizeDeleteRequest $request, $id)
+    public function delete(StoreDeleteRequest $request, $id)
     {
         try {
-            $size = Size::findOrFail($id);
-            $size->delete();
+            $store = Store::findOrFail($id);
+            $store->delete();
 
             return $this->successResponse(
-                new SizeResource($size),
+                new StoreResource($store),
                 $this->getMessage('Success'),
                 200
             );
@@ -595,35 +564,28 @@ class SizeController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/sizes/restore/{id}",
-     *     tags={"Sizes"},
-     *     summary="Activar una marca específica",
+     *     path="/stores/restore/{id}",
+     *     tags={"Stores"},
+     *     summary="Activar una tienda específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="Identificador de la marca",
+     *         description="Identificador de la tienda",
      *         required=true,
      *         @OA\Schema(type="integer", example=1)
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Marca activada correctamente",
+     *         description="Tienda activada correctamente",
      *         @OA\JsonContent(
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="size",
+     *                     property="store",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=1),
-     *                     @OA\Property(property="item_id", type="integer", example=1),
-     *                     @OA\Property(property="name", type="string", example="NAME_TRADEMARK"),
-     *                     @OA\Property(property="description", type="string", example="DESCRIPTION_TRADEMARK"),
-     *                     @OA\Property(property="settings", type="string", example="{}"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-12 20:01:03"),
-     *                     @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
+     *                     ref="#/components/schemas/Store"
      *                 )
      *             ),
      *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
@@ -638,7 +600,7 @@ class SizeController extends Controller
      *             @OA\Property(
      *                 property="attributes",
      *                 type="object",
-     *                 @OA\Property(property="id", type="string", example="Identificador de la tallas")
+     *                 @OA\Property(property="id", type="string", example="Identificador de la tienda")
      *             ),
      *             @OA\Property(
      *                 property="errors",
@@ -667,14 +629,14 @@ class SizeController extends Controller
      *     )
      * )
      */
-    public function restore(SizeRestoreRequest $request, $id)
+    public function restore(StoreRestoreRequest $request, $id)
     {
         try {
-            $size = Size::withTrashed()->findOrFail($id);
-            $size->restore();
+            $store = Store::withTrashed()->findOrFail($id);
+            $store->restore();
 
             return $this->successResponse(
-                new SizeResource($size),
+                new StoreResource($store),
                 $this->getMessage('Success'),
                 200
             );

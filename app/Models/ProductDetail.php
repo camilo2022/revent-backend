@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
 
@@ -18,17 +20,19 @@ class ProductDetail extends Model implements Auditable
 
     protected $fillable = [
         'uuid',
-        'product_id',
-        'color_id',
-        'size_id',
+        'model_id',
+        'model_type',
+        'assignable_id',
+        'assignable_type',
         'description'
     ];
 
     protected $auditInclude = [
         'uuid',
-        'product_id',
-        'color_id',
-        'size_id',
+        'model_id',
+        'model_type',
+        'assignable_id',
+        'assignable_type',
         'description'
     ];
 
@@ -36,29 +40,42 @@ class ProductDetail extends Model implements Auditable
         'code'
     ];
 
-    public function product(): BelongsTo
+    public function sizes(): MorphMany
     {
-        return $this->belongsTo(Product::class);
+        return $this->morphMany(ProductDetail::class, 'model');
     }
 
-    public function color(): BelongsTo
+    public function model(): MorphTo
     {
-        return $this->belongsTo(Color::class);
+        return $this->morphTo();
     }
 
-    public function size(): BelongsTo
+    public function assignable(): MorphTo
     {
-        return $this->belongsTo(Size::class);
+        return $this->morphTo();
+    }
+
+    public function photo(): MorphMany
+    {
+        return $this->morphMany(File::class, 'model');
     }
 
     protected function code(): Attribute
     {
         return Attribute::make(
-            get: fn () => implode('-', [
-                $this->product?->code ?? 'NA',
-                $this->color?->settings?->code ?? '00',
-                $this->size?->settings?->code ?? '00',
-            ]),
+            get: function () {
+                if ($this->model_type === self::class) {
+                    return implode('-', [
+                        $this->model?->code ?? 'NA-00',
+                        $this->assignable?->settings?->code ?? '00',
+                    ]);
+                }
+
+                return implode('-', [
+                    $this->model?->code ?? 'NA',
+                    $this->assignable?->settings?->code ?? '00',
+                ]);
+            },
         );
     }
 }

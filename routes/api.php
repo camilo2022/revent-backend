@@ -30,6 +30,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SizeController;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SubcategoryController;
 use App\Http\Controllers\SubmoduleController;
 use App\Http\Controllers\TrademarkController;
@@ -207,7 +208,7 @@ Route::prefix('/organizational_structure')->group(function () {
     });
 
     Route::prefix('/positions')->controller(PositionController::class)->group(function () {
-        Route::get('/all/{area_id}', 'all')->middleware(['auth:sanctum', 'can:organizational_structure.areas.positions.all|employees.store|employees.update']);
+        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:organizational_structure.areas.positions.all|employees.store|employees.update']);
         Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:organizational_structure.areas.positions.find']);
         Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:organizational_structure.areas.positions.store']);
         Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:organizational_structure.areas.positions.update']);
@@ -323,14 +324,7 @@ Route::prefix('/suppliers')->controller(SupplierController::class)->group(functi
     Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:suppliers.restore']);
 });
 
-Route::prefix('/products')->controller(ProductController::class)->group(function () {
-    Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:products.all']);
-    Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:products.find']);
-    Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:products.store']);
-    Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:products.update']);
-});
-
-/*Route::prefix('/stores')->controller(StoreController::class)->group(function () {
+Route::prefix('/stores')->controller(StoreController::class)->group(function () {
     Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:stores.all']);
     Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:stores.find']);
     Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:stores.store']);
@@ -339,4 +333,9 @@ Route::prefix('/products')->controller(ProductController::class)->group(function
     Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:stores.restore']);
 });
 
-*/
+Route::prefix('/products')->controller(ProductController::class)->group(function () {
+    Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:products.all']);
+    Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:products.find']);
+    Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:products.store']);
+    Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:products.update']);
+});

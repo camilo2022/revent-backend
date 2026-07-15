@@ -307,7 +307,7 @@ class PersonTypeController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -349,6 +349,7 @@ class PersonTypeController extends Controller
             $area = new PersonType();
             $area->name = $request->input('name');
             $area->description = $request->input('description');
+            $area->settings = $request->input('settings');
             $area->save();
 
             return $this->successResponse(
@@ -424,7 +425,7 @@ class PersonTypeController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -466,6 +467,7 @@ class PersonTypeController extends Controller
             $area = PersonType::findOrFail($id);
             $area->name = $request->input('name');
             $area->description = $request->input('description');
+            $area->settings = $request->input('settings');
             $area->save();
 
             return $this->successResponse(
@@ -523,7 +525,7 @@ class PersonTypeController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
@@ -619,7 +621,7 @@ class PersonTypeController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Contenido inválido.",
+     *         description="Error de validación.",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Error de validación."),
      *             @OA\Property(
