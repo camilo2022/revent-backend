@@ -273,6 +273,10 @@ class SyncUnicoSiigoJob implements ShouldQueue
 
     private function purchases_unico(string $token, array $purchases): array
     {
+
+            Log::warning('purchases', [
+                'purchases' => $purchases,
+            ]);
         $response = Http::withToken($token)
             ->acceptJson()
             ->post("{$this->unico_base_url}/api/v1/api-users/purchases", [
