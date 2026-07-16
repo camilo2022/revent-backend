@@ -18,7 +18,7 @@ class ExportInvoiceSiigoScheduled extends Command
             'operaciones@revent.com.co',
             'ingenieria@revent.com.co',
             'leanmanagement@revent.com.co',
-            'camiloacacio16@gmail.com',
+            'tecnologia@revent.com.co'
         ];
 
         $date = Carbon::now();

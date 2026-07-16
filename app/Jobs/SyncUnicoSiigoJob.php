@@ -83,7 +83,7 @@ class SyncUnicoSiigoJob implements ShouldQueue
                     ? "✅ Sincronización Unico/Siigo completada.\n\nDetalles:\n" . json_encode($details, JSON_PRETTY_PRINT)
                     : "❌ Sincronización Unico/Siigo falló.\n\nDetalles:\n" . json_encode($details, JSON_PRETTY_PRINT),
                 function ($message) use ($success) {
-                    $message->to(['camiloacacio16@gmail.com', 'tecnologia@revent.com.co'])
+                    $message->to(['tecnologia@revent.com.co'])
                         ->subject($success
                             ? 'Sync Unico/Siigo: Completado'
                             : 'Sync Unico/Siigo: Error');

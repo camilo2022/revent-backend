@@ -15,7 +15,7 @@ class InvoiceSiigoController extends Controller
             'operaciones@revent.com.co',
             'ingenieria@revent.com.co',
             'leanmanagement@revent.com.co',
-            'camiloacacio16@gmail.com',
+            'tecnologia@revent.com.co'
         ];
 
         $month = $request->input('month');
