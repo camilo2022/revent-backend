@@ -17,6 +17,9 @@ class ExportInvoiceSiigoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $timeout = 3600;
+    public int $tries = 1;
+
     private string $siigo_base_url = 'https://api.siigo.com';
     private array $sellers = [];
     private array $cost_centers = [];
@@ -52,8 +55,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
                 $this->credit_notes,
                 $purchases,
                 $products,
-                $this->stores(),
-                $this->siigo_base_url
+                $this->stores()
             ),
             "exports/{$filename}",
             'public'

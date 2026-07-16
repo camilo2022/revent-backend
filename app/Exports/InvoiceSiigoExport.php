@@ -21,9 +21,8 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
     protected $purchases;
     protected $products;
     protected $stores;
-    protected $baseUrl;
 
-    public function __construct($token, $sellers, $cost_centers, $invoices, $credit_notes, $purchases, $products, $stores, $baseUrl)
+    public function __construct($token, $sellers, $cost_centers, $invoices, $credit_notes, $purchases, $products, $stores)
     {
         $this->token = $token;
         $this->sellers = $sellers;
@@ -33,7 +32,6 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
         $this->purchases = $purchases;
         $this->products = $products;
         $this->stores = $stores;
-        $this->baseUrl = $baseUrl;
     }
 
     public function headings(): array

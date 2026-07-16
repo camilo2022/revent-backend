@@ -12,9 +12,9 @@ class InvoiceSiigoController extends Controller
     public function export_invoice(Request $request)
     {
         $emails = [
-            'operaciones@revent.com.co',
+            /*'operaciones@revent.com.co',
             'ingenieria@revent.com.co',
-            'leanmanagement@revent.com.co',
+            'leanmanagement@revent.com.co',*/
             'tecnologia@revent.com.co'
         ];
 

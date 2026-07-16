@@ -17,6 +17,9 @@ class ExportPurchaseSiigoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $timeout = 3600;
+    public int $tries = 1;
+
     private string $siigo_base_url = 'https://api.siigo.com';
     private array $cost_centers = [];
     private array $purchases = [];
