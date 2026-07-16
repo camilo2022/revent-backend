@@ -20,9 +20,9 @@ class SiigoController extends Controller
     private string $siigo_username = 'reventgestion@gmail.com';
     private string $siigo_access_key = 'NWIwZTQ3ZmUtZjg0ZS00YzU0LWJlZjYtNzliMGIyOWIxMzk2Oj0/aTw2UDlxWFo=';
 
-    private string $unico_base_url = 'https://qa-api.unicoanalytics.com.co';
-    private string $unico_name = 'test_revent';
-    private string $unico_password = '7nsw9R8KCsrX';
+    private string $unico_base_url = 'https://api.unicoanalytics.com.co';
+    private string $unico_name = /*'test_revent'*/ 'locatario_revent';
+    private string $unico_password = /*'7nsw9R8KCsrX'*/'sV5vNCku8[&0';
 
     private string $fidelizacion_url = 'https://fidelizacionapi.uniapps.com.co/api/fidelizacion/contact/find-contact-list';
 
@@ -233,6 +233,8 @@ class SiigoController extends Controller
                     $category = $parts[$count - 2] ?? '#N/A';
                     $size = $parts[$count - 1] ?? '#N/A';
                 }
+
+                if($item['code'] == 'G18022025') continue;
 
                 $result[] = [
                     'document_number' => in_array($invoice['customer']['identification'] ?? null, $valid_documents)
