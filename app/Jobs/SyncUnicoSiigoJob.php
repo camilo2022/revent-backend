@@ -44,9 +44,6 @@ class SyncUnicoSiigoJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            Log::warning('params', [
-                'params' => $this->params,
-            ]);
             $token_siigo = $this->auth_siigo();
             $token_unico = $this->auth_unico();
 
@@ -121,9 +118,6 @@ class SyncUnicoSiigoJob implements ShouldQueue
 
     private function invoices_siigo(string $token_siigo, string $token_unico, array $filters = []): array
     {
-        Log::warning('filters', [
-            'filters' => $filters,
-        ]);
         $allowedFilters = [
             'created_start',
             'created_end',
@@ -166,8 +160,9 @@ class SyncUnicoSiigoJob implements ShouldQueue
 
             $data = $response->json();
 
-            if (!empty($data['results'])) {
-                $processedInvoices = $this->process_invoices($data['results']);
+            $processedInvoices = $this->process_invoices($data['results']);
+
+            if (!empty($processedInvoices)) {
                 $this->purchases_unico($token_unico, $processedInvoices);
                 $allPurchases = array_merge($allPurchases, $processedInvoices);
             }
