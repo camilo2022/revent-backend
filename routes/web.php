@@ -3,6 +3,7 @@
 use App\Http\Controllers\Integration\InventorySiigoController;
 use App\Http\Controllers\Integration\InvoiceSiigoController;
 use App\Http\Controllers\Integration\PurchaseSiigoController;
+use App\Http\Controllers\Integration\SiigoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,6 +17,7 @@ Route::get('/login', function () {
 Route::get('/siigo/export_inventory', [InventorySiigoController::class, 'export_inventory']);
 Route::get('/siigo/export_invoice', [InvoiceSiigoController::class, 'export_invoice']);
 Route::get('/siigo/export_purchase', [PurchaseSiigoController::class, 'export_purchase']);
+Route::get('/siigo/sync_unico', [SiigoController::class, 'sync']);
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);

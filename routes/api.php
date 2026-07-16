@@ -17,8 +17,6 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\FileTypeController;
 use App\Http\Controllers\GenderController;
 use App\Http\Controllers\HealthEntityController;
-use App\Http\Controllers\Integration\InventorySiigoController;
-use App\Http\Controllers\Integration\SiigoController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\PensionFundController;
 use App\Http\Controllers\PermissionController;
@@ -36,17 +34,6 @@ use App\Http\Controllers\SubmoduleController;
 use App\Http\Controllers\TrademarkController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-
-Route::prefix('/integrations')->group(function () {
-    Route::prefix('/siigo')->group(function () {
-        Route::controller(SiigoController::class)->group(function () {
-            Route::post('/sync', 'sync');
-        });
-        Route::controller(InventorySiigoController::class)->group(function () {
-            Route::get('/inventory/export', 'export_inventory');
-        });
-    });
-});
 
 Route::prefix('/audits')->controller(AuditController::class)->group(function () {
     Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:audits.all']);

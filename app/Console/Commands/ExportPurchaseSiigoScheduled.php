@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\ExportInvoiceSiigoJob;
 use App\Jobs\ExportPurchaseSiigoJob;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
