@@ -2,12 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\ExportPurchaseSiigoJob;
 use App\Jobs\SyncUnicoSiigoJob;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-class ExportPurchaseSiigoScheduled extends Command
+class SyncUnicoSiigoScheduled extends Command
 {
     protected $signature = 'siigo:sync-unico-scheduled';
 
