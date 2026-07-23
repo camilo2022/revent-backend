@@ -68,7 +68,7 @@ class SiigoInventoryService
                 $this->processPurchase($data['results'], $purchases);
             }
 
-            $url = $data['_links']['next']['href'] ?? null;
+            $url = /*$data['_links']['next']['href'] ??*/ null;
 
             if ($url) usleep(500000);
 
@@ -147,7 +147,7 @@ class SiigoInventoryService
                 $this->processProducts($data['results'], $products);
             }
 
-            $url = $data['_links']['next']['href'] ?? null;
+            $url = /*$data['_links']['next']['href'] ??*/ null;
 
             if ($url) usleep(500000);
 

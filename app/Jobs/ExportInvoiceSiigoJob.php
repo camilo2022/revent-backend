@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Exports\InvoiceSiigoExport;
+use App\Exports\InvoiceSiigoMultiSheetExport;
 use App\Services\SiigoInventoryService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -33,6 +33,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
 
     public function handle(): void
     {
+        ini_set('memory_limit', '-1');
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
 
@@ -47,8 +48,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
         $filename = 'facturas_de_venta_' . now()->format('Y_m_d_His') . '.xlsx';
 
         Excel::store(
-            new InvoiceSiigoExport(
-                $token,
+            new InvoiceSiigoMultiSheetExport(
                 $this->sellers,
                 $this->cost_centers,
                 $this->invoices,

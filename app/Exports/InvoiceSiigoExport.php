@@ -8,30 +8,24 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromGenerator;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 
-class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
+class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Responsable, WithHeadings, WithTitle, WithCustomValueBinder
 {
     use Exportable;
 
-    protected $token;
     protected $sellers;
     protected $cost_centers;
     protected $invoices;
-    protected $credit_notes;
-    protected $purchases;
-    protected $products;
-    protected $stores;
 
-    public function __construct($token, $sellers, $cost_centers, $invoices, $credit_notes, $purchases, $products, $stores)
+    public function __construct($sellers, $cost_centers, $invoices)
     {
-        $this->token = $token;
         $this->sellers = $sellers;
         $this->cost_centers = $cost_centers;
         $this->invoices = $invoices;
-        $this->credit_notes = $credit_notes;
-        $this->purchases = $purchases;
-        $this->products = $products;
-        $this->stores = $stores;
     }
 
     public function headings(): array
@@ -40,28 +34,18 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
             'PREFIJO',
             'NUMERO',
             'DOCUMENTO',
-            'DOCUMENTO RELACIONADO',
             'FECHA DOCUMENTO',
             'CENTRO DE COSTO',
             'VENDEDOR',
-            'MODELO',
-            'CODIGO',
-            'DESCRIPCION',
-            'NOMBRE',
-            'COLOR',
-            'PROVEEDOR',
-            'CATEGORIA',
-            'TALLA',
-            'PRECIO',
             'IMPUESTO',
             'DESCUENTO',
             'SUBTOTAL',
-            'TOTAL',
             'CANTIDAD',
-            'BODEGA',
-            'FECHA',
-            'SEGUNDA_FECHA',
-            'DIFERENCIA',
+            'TOTAL',
+            'METODOS PAGOS',
+            '360 CANTIDAD',
+            '360 VALOR',
+            '360'
         ];
     }
 
@@ -72,96 +56,95 @@ class InvoiceSiigoExport implements FromGenerator, Responsable, WithHeadings, Wi
 
     public function generator(): Generator
     {
-        $documents = [
-            [
-                'data' => $this->invoices,
-                'is_credit_note' => false,
-            ],
-            [
-                'data' => $this->credit_notes,
-                'is_credit_note' => true,
-            ],
+        foreach ($this->invoices as $document) {
+
+            $cost_center = $this->cost_centers[$document['cost_center'] ?? ''] ?? [];
+            $seller = $this->sellers[$document['seller'] ?? ''] ?? [];
+
+            $items = collect($document['items'])->where('code', '<>', 'G18022025')->values();
+
+            $impuesto = $items->pluck('taxes')->flatten()->sum('value');
+            $descuento = $items->sum('discount.value');
+            $cantidad = $items->sum('quantity');
+            $total = $items->sum('total');
+
+            $cantidad360 = $this->get360Cantidad($cantidad);
+            $valor360 = $this->get360Valor($total);
+            $resultado360 = $this->get360Resultado($cantidad360, $valor360);
+
+            yield [
+                'PREFIJO' => $document['prefix'] ?? '',
+                'NUMERO' => $document['number'] ?? '',
+                'DOCUMENTO' => isset($document['public_url'])
+                    ? '=HYPERLINK("' . $document['public_url'] . '","' . ($document['name'] ?? '') . '")'
+                    : ($document['name'] ?? ''),
+                'FECHA DOCUMENTO' => $document['date'] ?? '',
+                'CENTRO DE COSTO' => $cost_center['name'] ?? '',
+                'VENDEDOR' => $seller ? ($seller['first_name'] . ' ' . $seller['last_name']) : '',
+                'IMPUESTO' => $impuesto ?? 0,
+                'DESCUENTO' => $descuento ?? 0,
+                'SUBTOTAL' => $total - $impuesto,
+                'CANTIDAD' => $cantidad,
+                'TOTAL' => $total,
+                'METODOS PAGOS' => collect($document['payments'])->count(),
+                '360 CANTIDAD' => $cantidad360,
+                '360 VALOR' => $valor360,
+                '360' => $resultado360,
+            ];
+        }
+    }
+
+    public function bindValue(Cell $cell, $value)
+    {
+        if (is_string($value) && str_starts_with($value, '=HYPERLINK(')) {
+            $cell->setValueExplicit($value, DataType::TYPE_FORMULA);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
+    }
+
+    private function get360Cantidad(int $pares): string
+    {
+        return match (true) {
+            $pares <= 2 => '-',
+            $pares <= 5 => '360',
+            $pares <= 8 => '360X2',
+            $pares <= 11 => '360X3',
+            $pares <= 14 => '360X4',
+            $pares <= 17 => '360X5',
+            default => '360X6',
+        };
+    }
+
+    private function get360Valor(float $valor): string
+    {
+        return match (true) {
+            $valor < 200000 => '-',
+            $valor < 400000 => '360',
+            $valor < 600000 => '360X2',
+            $valor < 800000 => '360X3',
+            $valor < 1000000 => '360X4',
+            $valor < 1200000 => '360X5',
+            default => '360X6',
+        };
+    }
+
+    private function get360Resultado(string $cantidad, string $factura): float|string
+    {
+        if ($cantidad === '-' || $factura === '-') {
+            return '-';
+        }
+
+        $niveles = [
+            '360'   => 1,
+            '360X2' => 2,
+            '360X3' => 3,
+            '360X4' => 4,
+            '360X5' => 5,
+            '360X6' => 6,
         ];
 
-        foreach ($documents as $documentGroup) {
-
-            foreach ($documentGroup['data'] as $document) {
-
-                $cost_center = $this->cost_centers[$document['cost_center'] ?? ''] ?? [];
-                $seller = $this->sellers[$document['seller'] ?? ''] ?? [];
-
-                foreach ($document['items'] ?? [] as $item) {
-                    $warehouseData = $item['warehouse'] ?? [];
-                    $warehouseId = $warehouseData['id'] ?? null;
-
-                    $firstDate = $warehouseId
-                        ? ($this->purchases[$item['code'] ?? ''][$warehouseId]['first_date'] ?? null)
-                        : null;
-
-                    $secondDate = $warehouseId
-                        ? ($this->purchases[$item['code'] ?? ''][$warehouseId]['second_date'] ?? null)
-                        : null;
-
-                    $diffDays = ($firstDate && $secondDate)
-                        ? (new \DateTime($secondDate))->diff(new \DateTime($firstDate))->days
-                        : null;
-
-                    $warehouse = $warehouseId
-                        ? ($this->stores[$warehouseId] ?? [])
-                        : [];
-
-                    $parts = preg_split('/[*-]/', $item['description'] ?? '');
-
-                    $count = count($parts);
-
-                    $name = trim($parts[0] ?? '');
-                    $color = trim($parts[1] ?? '');
-                    $provider = '';
-                    $category = '';
-                    $size = '';
-
-                    if ($count === 3) {
-                        $size = trim($parts[2] ?? '');
-                    } elseif ($count === 4) {
-                        $category = trim($parts[2] ?? '');
-                        $size = trim($parts[3] ?? '');
-                    } elseif ($count >= 5) {
-                        $provider = trim($parts[$count - 3] ?? '');
-                        $category = trim($parts[$count - 2] ?? '');
-                        $size = trim($parts[$count - 1] ?? '');
-                    }
-
-                    $multiplier = $documentGroup['is_credit_note'] ? -1 : 1;
-
-                    yield [
-                        'PREFIJO' => $documentGroup['is_credit_note'] ? '' : ($document['prefix'] ?? ''),
-                        'NUMERO' => $document['number'] ?? '',
-                        'DOCUMENTO' => $document['name'] ?? '',
-                        'DOCUMENTO RELACIONADO' => $documentGroup['is_credit_note'] ? ($document['invoice']['name'] ?? '') : '',
-                        'FECHA DOCUMENTO' => $document['date'] ?? '',
-                        'CENTRO DE COSTO' => $cost_center['name'] ?? '',
-                        'VENDEDOR' => $seller['first_name'] ?? '',
-                        'MODELO' => $this->products[$item['code'] ?? '']['model'] ?? '',
-                        'CODIGO' => $item['code'] ?? '',
-                        'DESCRIPCION' => $item['description'] ?? '',
-                        'NOMBRE' => $name,
-                        'COLOR' => $color,
-                        'PROVEEDOR' => $provider,
-                        'CATEGORIA' => $category,
-                        'TALLA' => $size,
-                        'PRECIO' => ($item['price'] ?? 0) * $multiplier,
-                        'IMPUESTO' => collect($item['taxes'] ?? [])->sum('value') * $multiplier,
-                        'DESCUENTO' => ($item['discount']['value'] ?? 0) * $multiplier,
-                        'SUBTOTAL' => (($item['total'] ?? 0) - collect($item['taxes'] ?? [])->sum('value')) * $multiplier,
-                        'TOTAL' => ($item['total'] ?? 0) * $multiplier,
-                        'CANTIDAD' => ($item['quantity'] ?? 0) * $multiplier,
-                        'BODEGA' => ($warehouse['code'] ?? '') . ' - ' . ($warehouse['name'] ?? ($warehouseData['name'] ?? '')),
-                        'FECHA' => $firstDate,
-                        'SEGUNDA_FECHA' => $secondDate,
-                        'DIFERENCIA' => $diffDays,
-                    ];
-                }
-            }
-        }
+        return ($niveles[$cantidad] + $niveles[$factura]) / 2;
     }
 }
