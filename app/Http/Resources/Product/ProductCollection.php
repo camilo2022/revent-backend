@@ -23,7 +23,7 @@ class ProductCollection extends ResourceCollection
                     'deleted_at' => $this->formatDate($product->deleted_at),
                     'trademark' => $product->trademark,
                     'category' => $product->category,
-                    'subcategory' => $product->subcategory,
+                    'subcategory' => $product->subcategory
                 ];
             }),
             'meta' => [

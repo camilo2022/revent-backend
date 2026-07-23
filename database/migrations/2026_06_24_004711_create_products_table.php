@@ -21,6 +21,8 @@ return new class extends Migration
             $table->foreignIdFor(Category::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Categoría');
             $table->foreignIdFor(Subcategory::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Subcategoría');
             $table->text('description')->nullable();
+            $table->decimal('cost', 12, 2)->default(0)->comment('Costo');
+            $table->decimal('price', 12, 2)->default(0)->comment('Precio de venta');
             $table->timestamps();
         });
     }

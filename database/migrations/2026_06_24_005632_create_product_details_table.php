@@ -18,6 +18,7 @@ return new class extends Migration
             $table->morphs('assignable');
             $table->text('description')->nullable();
             $table->timestamps();
+            $table->index(['model_id', 'model_type', 'assignable_id', 'assignable_type'], 'product_details_model_assignable_unique')->unique();
         });
     }
 

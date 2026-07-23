@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
 
@@ -22,7 +23,9 @@ class Product extends Model implements Auditable
         'code',
         'category_id',
         'subcategory_id',
-        'description'
+        'description',
+        'cost',
+        'price'
     ];
 
     protected $auditInclude = [
@@ -30,7 +33,14 @@ class Product extends Model implements Auditable
         'code',
         'category_id',
         'subcategory_id',
-        'description'
+        'description',
+        'cost',
+        'price'
+    ];
+
+    protected $casts = [
+        'cost' => 'decimal:2',
+        'price' => 'decimal:2',
     ];
 
     public function trademark(): BelongsTo
@@ -48,9 +58,9 @@ class Product extends Model implements Auditable
         return $this->belongsTo(Subcategory::class);
     }
 
-    public function colors(): HasMany
+    public function colors(): MorphMany
     {
-        return $this->hasMany(ProductDetail::class);
+        return $this->morphMany(ProductDetail::class, 'model');
     }
 
     public function scopeSearch(Builder $query, ?string $search = null): Builder

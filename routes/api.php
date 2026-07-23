@@ -24,6 +24,7 @@ use App\Http\Controllers\PersonController;
 use App\Http\Controllers\PersonTypeController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductionOrderController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
@@ -326,3 +327,13 @@ Route::prefix('/products')->controller(ProductController::class)->group(function
     Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:products.store']);
     Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:products.update']);
 });
+
+Route::prefix('/production_order')->controller(ProductionOrderController::class)->group(function () {
+    Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:production_orders.all']);
+    Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:production_orders.find']);
+    Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:production_orders.store']);
+    Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:production_orders.update']);
+    Route::patch('/approved/{id}', 'approved')->middleware(['auth:sanctum', 'can:production_orders.approved']);
+    Route::patch('/canceled/{id}', 'canceled')->middleware(['auth:sanctum', 'can:production_orders.canceled']);
+});
+
