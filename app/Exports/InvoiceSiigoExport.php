@@ -66,7 +66,7 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
 
             $items = collect($document['items'])->where('code', '<>', 'G18022025')->values();
 
-            $impuesto = $items->pluck('taxes')->flatten()->sum('value');
+            $impuesto = $items->sum(fn ($item) => collect($item['taxes'] ?? [])->sum('value'));
             $descuento = $items->sum('discount.value');
             $cantidad = $items->sum('quantity');
             $total = $items->sum('total');
