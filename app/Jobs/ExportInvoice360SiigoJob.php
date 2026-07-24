@@ -338,7 +338,7 @@ class ExportInvoice360SiigoJob implements ShouldQueue
                 $this->documents[$item['DocName']] = [
                     'url' => "https://siigonube.siigo.com/#/invoice/843/{$item['ACEntryID']}",
                     'date' => $item['DocDate'],
-                    'name' => $item['FullName']
+                    'name' => strtoupper($item['FullName'])
                 ];
             }
         }

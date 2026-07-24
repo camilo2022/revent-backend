@@ -37,6 +37,7 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
             'PREFIJO',
             'NUMERO',
             'DOCUMENTO',
+            'CLIENTE',
             'FECHA DOCUMENTO',
             'CENTRO DE COSTO',
             'VENDEDOR',
@@ -81,9 +82,10 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
                 'DOCUMENTO' => isset($this->documents[$document['name']])
                     ? '=HYPERLINK("' . ($this->documents[$document['name']]['url'] ?? $document['public_url']) . '","' . ($document['name'] ?? '') . '")'
                     : ($document['name'] ?? ''),
+                'CLIENTE' => isset($this->documents[$document['name']]) ? $this->documents[$document['name']]['name'] : 'GENERICO',
                 'FECHA DOCUMENTO' => $this->documents[$document['name'] ?? '']['date'] ? Carbon::parse($this->documents[$document['name']]['date'])->format('Y-m-d h:i:s A') : ($document['date'] ?? ''),
                 'CENTRO DE COSTO' => $cost_center['name'] ?? '',
-                'VENDEDOR' => $seller ? ($seller['first_name'] . ' ' . $seller['last_name']) : '',
+                'VENDEDOR' => strtoupper($seller ? ($seller['first_name'] . ' ' . $seller['last_name']) : ''),
                 'IMPUESTO' => $impuesto ?? 0,
                 'DESCUENTO' => $descuento ?? 0,
                 'SUBTOTAL' => $total - $impuesto,
