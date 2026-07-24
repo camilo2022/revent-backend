@@ -48,7 +48,7 @@ class ExportInvoice360SiigoJob implements ShouldQueue
         $purchases = $siigo->getPurchases($token, $this->filters);
         $products = $siigo->getProducts($token, $this->filters);
 
-        $filename = 'facturas_de_venta_' . now()->format('Y_m_d_His') . '.xlsx';
+        $filename = 'facturas_de_venta_360_' . now()->format('Y_m_d_His') . '.xlsx';
 
         Excel::store(
             new InvoiceSiigoMultiSheetExport(
