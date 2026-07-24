@@ -11,10 +11,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/login', function () {
-    return view('login');
-});
-
 Route::get('/siigo/export_inventory', [InventorySiigoController::class, 'export_inventory']);
 Route::get('/siigo/export_invoice', [InvoiceSiigoController::class, 'export_invoice']);
 Route::get('/siigo/export_invoice_360', [Invoice360SiigoController::class, 'export_invoice_360']);

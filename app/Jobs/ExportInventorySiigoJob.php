@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 use App\Exports\InventorySiigoExport;
+use App\Mail\ExportInventorySiigoMail;
 use App\Services\SiigoInventoryService;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -51,21 +52,11 @@ class ExportInventorySiigoJob implements ShouldQueue
 
         $downloadUrl = route('exports.download', ['file' => $filename]);
 
-        Mail::raw(
-            "✅ Tu exportación de inventario Siigo está lista.\n\nDescarga: {$downloadUrl}",
-            fn ($msg) => $msg
-                ->to($this->notifyEmail)
-                ->subject("Exportación de inventario lista: {$name}")
-        );
+        Mail::to($this->notifyEmail)->send(new ExportInventorySiigoMail(success: true, filename: $filename, downloadUrl: $downloadUrl));
     }
 
     public function failed(\Throwable $e): void
     {
-        Mail::raw(
-            "❌ Falló la exportación de inventario Siigo.\n\nError: {$e->getMessage()}",
-            fn ($msg) => $msg
-                ->to($this->notifyEmail)
-                ->subject("Error en exportación de inventario Siigo")
-        );
+        Mail::to($this->notifyEmail)->send(new ExportInventorySiigoMail(success: false, errorMessage: $e->getMessage()));
     }
 }

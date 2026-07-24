@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Exports\PurchaseSiigoExport;
+use App\Mail\ExportPurchaseSiigoMail;
 use App\Services\SiigoInventoryService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -56,22 +57,12 @@ class ExportPurchaseSiigoJob implements ShouldQueue
 
         $downloadUrl = route('exports.download', ['file' => $filename]);
 
-        Mail::raw(
-            "✅ Tu exportación de compras Siigo está lista.\n\nDescarga: {$downloadUrl}",
-            fn ($msg) => $msg
-                ->to($this->notifyEmail)
-                ->subject("Exportación de compras lista: {$filename}")
-        );
+        Mail::to($this->notifyEmail)->send(new ExportPurchaseSiigoMail(success: true, filename: $filename, downloadUrl: $downloadUrl));
     }
 
     public function failed(\Throwable $e): void
     {
-        Mail::raw(
-            "❌ Falló la exportación de compras Siigo.\n\nError: {$e->getMessage()}",
-            fn ($msg) => $msg
-                ->to($this->notifyEmail)
-                ->subject("Error en exportación de compras Siigo")
-        );
+        Mail::to($this->notifyEmail)->send(new ExportPurchaseSiigoMail(success: false, errorMessage: $e->getMessage()));
     }
 
     private function cost_centers_siigo(string $token): void

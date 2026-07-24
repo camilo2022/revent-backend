@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Exports\InvoiceSiigoMultiSheetExport;
+use App\Mail\ExportInvoice360SiigoMail;
 use App\Services\SiigoInventoryService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -67,22 +68,12 @@ class ExportInvoice360SiigoJob implements ShouldQueue
 
         $downloadUrl = route('exports.download', ['file' => $filename]);
 
-        Mail::raw(
-            "✅ Tu exportación de facturas 360 Siigo está lista.\n\nDescarga: {$downloadUrl}",
-            fn ($msg) => $msg
-                ->to($this->notifyEmail)
-                ->subject("Exportación de facturas lista: {$filename}")
-        );
+        Mail::to($this->notifyEmail)->send(new ExportInvoice360SiigoMail(success: true, filename: $filename, downloadUrl: $downloadUrl));
     }
 
     public function failed(\Throwable $e): void
     {
-        Mail::raw(
-            "❌ Falló la exportación de facturas 360 Siigo.\n\nError: {$e->getMessage()}",
-            fn ($msg) => $msg
-                ->to($this->notifyEmail)
-                ->subject("Error en exportación de facturas Siigo")
-        );
+        Mail::to($this->notifyEmail)->send(new ExportInvoice360SiigoMail(success: false, errorMessage: $e->getMessage()));
     }
 
     private function sellers_siigo(string $token, array $filters = []): void

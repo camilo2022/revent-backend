@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Mail\SyncUnicoSiigoMail;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -81,17 +82,7 @@ class SyncUnicoSiigoJob implements ShouldQueue
     private function notify_result(bool $success, array $details): void
     {
         try {
-            Mail::raw(
-                $success
-                    ? "✅ Sincronización Unico/Siigo completada.\n\nDetalles:\n" . json_encode($details, JSON_PRETTY_PRINT)
-                    : "❌ Sincronización Unico/Siigo falló.\n\nDetalles:\n" . json_encode($details, JSON_PRETTY_PRINT),
-                function ($message) use ($success) {
-                    $message->to(['tecnologia@revent.com.co'])
-                        ->subject($success
-                            ? 'Sync Unico/Siigo: Completado'
-                            : 'Sync Unico/Siigo: Error');
-                }
-            );
+            Mail::to(['tecnologia@revent.com.co'])->send(new SyncUnicoSiigoMail($success, $details));
         } catch (\Throwable $mailException) {
             Log::warning('No se pudo enviar notificación de SyncUnicoSiigoJob', [
                 'error' => $mailException->getMessage(),
