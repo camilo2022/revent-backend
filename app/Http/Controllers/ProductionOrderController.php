@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductionOrder\ProductionOrderAllRequest;
+use App\Http\Requests\ProductionOrder\ProductionOrderApprovedRequest;
+use App\Http\Requests\ProductionOrder\ProductionOrderCanceledRequest;
 use App\Http\Requests\ProductionOrder\ProductionOrderFindRequest;
 use App\Http\Requests\ProductionOrder\ProductionOrderStoreRequest;
 use App\Http\Requests\ProductionOrder\ProductionOrderUpdateRequest;
@@ -517,13 +519,11 @@ class ProductionOrderController extends Controller
     public function update(ProductionOrderUpdateRequest $request, $id)
     {
         try {
-            $production_order = new ProductionOrder();
-            $production_order->consecutive = DB::selectOne('CALL production_order_consecutive()')->consecutive;
+            $production_order = ProductionOrder::findOrFail($id);
             $production_order->due_date = $request->date('due_date', 'Y-m-d');
             $production_order->supplier_id = $request->integer('supplier_id');
             $production_order->vat_percentage = $request->input('vat_percentage', 100);
             $production_order->delivery_note_percentage = $request->input('delivery_note_percentage', 0);
-            $production_order->status = ProductionOrder::PENDING;
             $production_order->save();
 
             foreach ($request->input('production_order_details', []) as $production_order_detail_item) {
@@ -552,6 +552,54 @@ class ProductionOrderController extends Controller
                     );
                 }
             }
+
+            return $this->successResponse(
+                new ProductionOrderResource($production_order),
+                $this->getMessage('Success'),
+                200
+            );
+        } catch (\Throwable $e) {
+            return $this->errorResponse(
+                [
+                    'message' => $this->getMessage(class_basename($e)),
+                    'error' => $e->getMessage()
+                ],
+                $this->getCode(class_basename($e))
+            );
+        }
+    }
+
+    public function approved(ProductionOrderApprovedRequest $request, $id)
+    {
+
+        try {
+            $production_order = ProductionOrder::findOrFail($id);
+            $production_order->status = ProductionOrder::APPROVED;
+            $production_order->save();
+
+            return $this->successResponse(
+                new ProductionOrderResource($production_order),
+                $this->getMessage('Success'),
+                200
+            );
+        } catch (\Throwable $e) {
+            return $this->errorResponse(
+                [
+                    'message' => $this->getMessage(class_basename($e)),
+                    'error' => $e->getMessage()
+                ],
+                $this->getCode(class_basename($e))
+            );
+        }
+    }
+
+    public function canceled(ProductionOrderCanceledRequest $request, $id)
+    {
+
+        try {
+            $production_order = ProductionOrder::findOrFail($id);
+            $production_order->status = ProductionOrder::CANCELED;
+            $production_order->save();
 
             return $this->successResponse(
                 new ProductionOrderResource($production_order),

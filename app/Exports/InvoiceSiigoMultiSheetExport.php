@@ -11,9 +11,9 @@ class InvoiceSiigoMultiSheetExport implements WithMultipleSheets
     protected $sheet_invoices;
     protected $sheet_invoices_details;
 
-    public function __construct($sellers, $cost_centers, $invoices, $credit_notes, $purchases, $products, $stores)
+    public function __construct($sellers, $cost_centers, $invoices, $credit_notes, $purchases, $products, $stores, $documents)
     {
-        $this->sheet_invoices = new InvoiceSiigoExport($sellers, $cost_centers, $invoices);
+        $this->sheet_invoices = new InvoiceSiigoExport($sellers, $cost_centers, $invoices, $documents);
         $this->sheet_invoices_details = new InvoiceDetailSiigoExport($sellers, $cost_centers, $invoices, $credit_notes, $purchases, $products, $stores);
     }
 

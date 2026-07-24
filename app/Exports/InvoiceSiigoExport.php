@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use Carbon\Carbon;
 use Generator;
 use Illuminate\Contracts\Support\Responsable;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -20,12 +21,14 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
     protected $sellers;
     protected $cost_centers;
     protected $invoices;
+    protected $documents;
 
-    public function __construct($sellers, $cost_centers, $invoices)
+    public function __construct($sellers, $cost_centers, $invoices, $documents)
     {
         $this->sellers = $sellers;
         $this->cost_centers = $cost_centers;
         $this->invoices = $invoices;
+        $this->documents = $documents;
     }
 
     public function headings(): array
@@ -75,10 +78,10 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
             yield [
                 'PREFIJO' => $document['prefix'] ?? '',
                 'NUMERO' => $document['number'] ?? '',
-                'DOCUMENTO' => isset($document['public_url'])
-                    ? '=HYPERLINK("' . $document['public_url'] . '","' . ($document['name'] ?? '') . '")'
+                'DOCUMENTO' => isset($this->documents[$document['name']])
+                    ? '=HYPERLINK("' . ($this->documents[$document['name']]['url'] ?? $document['public_url']) . '","' . ($document['name'] ?? '') . '")'
                     : ($document['name'] ?? ''),
-                'FECHA DOCUMENTO' => $document['date'] ?? '',
+                'FECHA DOCUMENTO' => $this->documents[$document['name'] ?? '']['date'] ? Carbon::parse($this->documents[$document['name']]['date'])->format('Y-m-d h:i:s A') : ($document['date'] ?? ''),
                 'CENTRO DE COSTO' => $cost_center['name'] ?? '',
                 'VENDEDOR' => $seller ? ($seller['first_name'] . ' ' . $seller['last_name']) : '',
                 'IMPUESTO' => $impuesto ?? 0,
