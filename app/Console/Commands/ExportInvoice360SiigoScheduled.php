@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\ExportInvoiceSiigoJob;
+use App\Jobs\ExportInvoice360SiigoJob;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -29,7 +29,7 @@ class ExportInvoice360SiigoScheduled extends Command
             'page_size' => 100,
         ];
 
-        ExportInvoiceSiigoJob::dispatch(
+        ExportInvoice360SiigoJob::dispatch(
             $filters,
             $emails
         );
