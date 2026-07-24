@@ -21,9 +21,9 @@ class SiigoInventoryService
     {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-            'Partner-Id'   => 'consultadeFacturas',
+            'Partner-Id' => 'consultadeFacturas',
         ])->post("{$this->baseUrl}/auth", [
-            'username'   => $this->username,
+            'username' => $this->username,
             'access_key' => $this->accessKey,
         ]);
 
@@ -48,9 +48,9 @@ class SiigoInventoryService
 
         do {
             $response = Http::retry(5, 10000)->withHeaders([
-                'Content-Type'  => 'application/json',
+                'Content-Type' => 'application/json',
                 'Authorization' => $token,
-                'Partner-Id'    => 'consultadeFacturas',
+                'Partner-Id' => 'consultadeFacturas',
             ])->get($url);
 
             if ($response->status() === 429) {
@@ -68,7 +68,7 @@ class SiigoInventoryService
                 $this->processPurchase($data['results'], $purchases);
             }
 
-            $url = /*$data['_links']['next']['href'] ??*/ null;
+            $url = $data['_links']['next']['href'] ?? null;
 
             if ($url) usleep(500000);
 
@@ -86,14 +86,14 @@ class SiigoInventoryService
                 if (!isset($item['warehouse'])) continue;
 
                 $code = $item['code'];
-                $wid  = $item['warehouse']['id'];
+                $wid = $item['warehouse']['id'];
                 $date = $invoice['date'];
 
                 if (!isset($purchases[$code][$wid])) {
                     $purchases[$code][$wid] = [
                         'warehouse_name' => $item['warehouse']['name'],
-                        'first_date'     => $date,
-                        'second_date'    => null,
+                        'first_date' => $date,
+                        'second_date' => null,
                     ];
                     continue;
                 }
@@ -102,7 +102,7 @@ class SiigoInventoryService
 
                 if ($date < $entry['first_date']) {
                     $entry['second_date'] = $entry['first_date'];
-                    $entry['first_date']  = $date;
+                    $entry['first_date'] = $date;
                 } elseif (
                     $date !== $entry['first_date'] &&
                     ($entry['second_date'] === null || ($date > $entry['first_date'] && $date < $entry['second_date']))
@@ -127,9 +127,9 @@ class SiigoInventoryService
 
         do {
             $response = Http::retry(5, 10000)->withHeaders([
-                'Content-Type'  => 'application/json',
+                'Content-Type' => 'application/json',
                 'Authorization' => $token,
-                'Partner-Id'    => 'consultadeFacturas',
+                'Partner-Id' => 'consultadeFacturas',
             ])->get($url);
 
             if ($response->status() === 429) {
@@ -147,7 +147,7 @@ class SiigoInventoryService
                 $this->processProducts($data['results'], $products);
             }
 
-            $url = /*$data['_links']['next']['href'] ??*/ null;
+            $url = $data['_links']['next']['href'] ?? null;
 
             if ($url) usleep(500000);
 
@@ -163,9 +163,7 @@ class SiigoInventoryService
         foreach ($results as $product) {
             $code = $product['code'] ?? null;
 
-            if ($code === null) {
-                continue;
-            }
+            if ($code === null) continue;
 
             $products[$code] = [
                 'id' => $product['id'] ?? null,

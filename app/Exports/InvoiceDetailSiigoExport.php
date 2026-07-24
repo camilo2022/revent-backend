@@ -20,8 +20,9 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
     protected $purchases;
     protected $products;
     protected $stores;
+    protected $column;
 
-    public function __construct($sellers, $cost_centers, $invoices, $credit_notes, $purchases, $products, $stores)
+    public function __construct($sellers, $cost_centers, $invoices, $credit_notes, $purchases, $products, $stores, $column = true)
     {
         $this->sellers = $sellers;
         $this->cost_centers = $cost_centers;
@@ -30,11 +31,12 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
         $this->purchases = $purchases;
         $this->products = $products;
         $this->stores = $stores;
+        $this->column = $column;
     }
 
     public function headings(): array
     {
-        return [
+        $headings = [
             'PREFIJO',
             'NUMERO',
             'DOCUMENTO',
@@ -51,16 +53,28 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
             'CATEGORIA',
             'TALLA',
             'PRECIO',
-            'IMPUESTO',
-            'DESCUENTO',
-            'SUBTOTAL',
+            'IMPUESTO'
+        ];
+
+        if($this->column) {
+            $headings = [
+                ...$headings,
+                'DESCUENTO',
+                'SUBTOTAL'
+            ];
+        }
+
+        $headings = [
+            ...$headings,
             'TOTAL',
             'CANTIDAD',
             'BODEGA',
             'FECHA',
             'SEGUNDA_FECHA',
-            'DIFERENCIA',
+            'DIFERENCIA'
         ];
+
+        return $headings;
     }
 
     public function title(): string
@@ -89,6 +103,8 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
                 $seller = $this->sellers[$document['seller'] ?? ''] ?? [];
 
                 foreach ($document['items'] ?? [] as $item) {
+                    if ($item['code'] == 'G18022025' && $this->column) continue;
+
                     $warehouseData = $item['warehouse'] ?? [];
                     $warehouseId = $warehouseData['id'] ?? null;
 
@@ -131,7 +147,7 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
 
                     $multiplier = $documentGroup['is_credit_note'] ? -1 : 1;
 
-                    yield [
+                    $row = [
                         'PREFIJO' => $documentGroup['is_credit_note'] ? '' : ($document['prefix'] ?? ''),
                         'NUMERO' => $document['number'] ?? '',
                         'DOCUMENTO' => $document['name'] ?? '',
@@ -149,8 +165,18 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
                         'TALLA' => $size,
                         'PRECIO' => ($item['price'] ?? 0) * $multiplier,
                         'IMPUESTO' => collect($item['taxes'] ?? [])->sum('value') * $multiplier,
-                        'DESCUENTO' => ($item['discount']['value'] ?? 0) * $multiplier,
-                        'SUBTOTAL' => (($item['total'] ?? 0) - collect($item['taxes'] ?? [])->sum('value')) * $multiplier,
+                    ];
+
+                    if($this->column) {
+                        $row = [
+                            ...$row,
+                            'DESCUENTO' => ($item['discount']['value'] ?? 0) * $multiplier,
+                            'SUBTOTAL' => (($item['total'] ?? 0) - collect($item['taxes'] ?? [])->sum('value')) * $multiplier,
+                        ];
+                    }
+
+                    $row = [
+                        ...$row,
                         'TOTAL' => ($item['total'] ?? 0) * $multiplier,
                         'CANTIDAD' => ($item['quantity'] ?? 0) * $multiplier,
                         'BODEGA' => ($warehouse['code'] ?? '') . ' - ' . ($warehouse['name'] ?? ($warehouseData['name'] ?? '')),
@@ -158,6 +184,8 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
                         'SEGUNDA_FECHA' => $secondDate,
                         'DIFERENCIA' => $diffDays,
                     ];
+
+                    yield $row;
                 }
             }
         }

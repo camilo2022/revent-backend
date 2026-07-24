@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Integration\InventorySiigoController;
+use App\Http\Controllers\Integration\Invoice360SiigoController;
 use App\Http\Controllers\Integration\InvoiceSiigoController;
 use App\Http\Controllers\Integration\PurchaseSiigoController;
 use App\Http\Controllers\Integration\SiigoController;
@@ -16,6 +17,7 @@ Route::get('/login', function () {
 
 Route::get('/siigo/export_inventory', [InventorySiigoController::class, 'export_inventory']);
 Route::get('/siigo/export_invoice', [InvoiceSiigoController::class, 'export_invoice']);
+Route::get('/siigo/export_invoice_360', [Invoice360SiigoController::class, 'export_invoice_360']);
 Route::get('/siigo/export_purchase', [PurchaseSiigoController::class, 'export_purchase']);
 Route::get('/siigo/sync_unico', [SiigoController::class, 'sync']);
 

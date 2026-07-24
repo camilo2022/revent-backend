@@ -8,7 +8,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('siigo:export-invoice-scheduled')->dailyAt('06:30');
+Schedule::command('siigo:export-invoice-scheduled')->dailyAt('06:15');
+
+Schedule::command('siigo:export-invoice-360-scheduled')->dailyAt('06:30');
 
 Schedule::command('siigo:export-purchase-scheduled')->dailyAt('06:45');
 

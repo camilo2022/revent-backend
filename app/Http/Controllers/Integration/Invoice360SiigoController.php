@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Jobs\ExportInvoiceSiigoJob;
+use App\Jobs\ExportInvoice360SiigoJob;
 use Carbon\Carbon;
 
-class InvoiceSiigoController extends Controller
+class Invoice360SiigoController extends Controller
 {
-    public function export_invoice(Request $request)
+    public function export_invoice_360(Request $request)
     {
         $emails = [
             'operaciones@revent.com.co',
@@ -35,7 +35,7 @@ class InvoiceSiigoController extends Controller
             'page_size' => $request->input('page_size', 100),
         ];
 
-        ExportInvoiceSiigoJob::dispatch(
+        ExportInvoice360SiigoJob::dispatch(
             $filters,
             $request->input('email', $emails)
         );

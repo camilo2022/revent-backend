@@ -2,8 +2,9 @@
 
 namespace App\Jobs;
 
-use App\Exports\InvoiceDetailSiigoExport;
+use App\Exports\InvoiceSiigoMultiSheetExport;
 use App\Services\SiigoInventoryService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 
-class ExportInvoiceSiigoJob implements ShouldQueue
+class ExportInvoice360SiigoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -25,6 +26,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
     private array $cost_centers = [];
     private array $invoices = [];
     private array $credit_notes = [];
+    private array $documents = [];
 
     public function __construct(
         public array $filters,
@@ -33,11 +35,13 @@ class ExportInvoiceSiigoJob implements ShouldQueue
 
     public function handle(): void
     {
+        ini_set('memory_limit', '-1');
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
 
         $this->sellers_siigo($token, $this->filters);
         $this->cost_centers_siigo($token);
+        $this->get_report_5430($token, $this->filters['created_start'], $this->filters['created_end']);
         $this->invoices_siigo($token, $this->filters);
         $this->credit_notes_siigo($token, $this->filters);
 
@@ -47,7 +51,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
         $filename = 'facturas_de_venta_' . now()->format('Y_m_d_His') . '.xlsx';
 
         Excel::store(
-            new InvoiceDetailSiigoExport(
+            new InvoiceSiigoMultiSheetExport(
                 $this->sellers,
                 $this->cost_centers,
                 $this->invoices,
@@ -55,7 +59,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
                 $purchases,
                 $products,
                 $this->stores(),
-                false
+                $this->documents
             ),
             "exports/{$filename}",
             'public'
@@ -64,7 +68,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
         $downloadUrl = route('exports.download', ['file' => $filename]);
 
         Mail::raw(
-            "✅ Tu exportación de facturas Siigo está lista.\n\nDescarga: {$downloadUrl}",
+            "✅ Tu exportación de facturas 360 Siigo está lista.\n\nDescarga: {$downloadUrl}",
             fn ($msg) => $msg
                 ->to($this->notifyEmail)
                 ->subject("Exportación de facturas lista: {$filename}")
@@ -74,7 +78,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
     public function failed(\Throwable $e): void
     {
         Mail::raw(
-            "❌ Falló la exportación de facturas Siigo.\n\nError: {$e->getMessage()}",
+            "❌ Falló la exportación de facturas 360 Siigo.\n\nError: {$e->getMessage()}",
             fn ($msg) => $msg
                 ->to($this->notifyEmail)
                 ->subject("Error en exportación de facturas Siigo")
@@ -255,5 +259,88 @@ class ExportInvoiceSiigoJob implements ShouldQueue
             58 => ['name' => 'GRAN MANZANA', 'code' => 'I3'],
             59 => ['name' => 'NUESTRO ATLANTICO', 'code' => 'P6'],
         ];
+    }
+
+    private function get_report_5430(string $token, string $createdStart, string $createdEnd)
+    {
+        $dateFrom = Carbon::parse($createdStart)->format('Ymd');
+        $dateTo = Carbon::parse($createdEnd)->format('Ymd');
+        foreach($this->cost_centers as $costCenterId => $cost_center) {
+            $title = base64_encode($cost_center['name']);
+
+            $filter = base64_encode(json_encode([
+                ['Field' => 'AccountID', 'Value' => []],
+                ['Field' => 'DocDate', 'Value' => [$dateFrom, $dateTo, null]],
+                ['Field' => '_var_IncudeCreditNote', 'Value' => ['1']],
+                ['Field' => 'CostCenterCode', 'Value' => []],
+                ['Field' => 'Currency', 'Value' => ['ALL']]
+            ], JSON_UNESCAPED_UNICODE));
+
+            $condition = base64_encode(
+                base64_encode(" AND ED.CostCenterCode = {$costCenterId}")
+            );
+
+            $params = json_encode([
+                'IncludeRetICAAndRetIVA' => '1',
+                'Title' => $title,
+                'Filter' => $filter,
+                'LngTitle' => '28848',
+                'Condition' => $condition,
+                'TabID' => '1636',
+            ], JSON_UNESCAPED_UNICODE);
+
+            $body = [
+                'AddOns' => [
+                    [
+                        'name' => 'POS Web',
+                        'state' => true,
+                        'tenantId' => '0x00000000000000000000000000605286',
+                        'type' => 1,
+                        'module' => 5,
+                        'complements' => null,
+                        'dateActive' => '07/06/2026 11:52:42.756',
+                        'documentBase' => 0,
+                        'payrollComplements' => null,
+                        'posActiveCashiers' => [
+                            'baseCashiers' => 1,
+                            'aditionalCashiers' => 26,
+                        ],
+                        'readOnly' => null,
+                        'subState' => 1,
+                        'updateType' => 1,
+                    ],
+                ],
+                'FilterCriterias' => '[]',
+                'GetTotalCount' => false,
+                'GridOrderCriteria' => null,
+                'Id' => 5430,
+                'Params' => $params,
+                'Skip' => 0,
+                'Sort' => ' ',
+                'Take' => 0,
+            ];
+
+            $response = Http::withToken($token)
+                ->acceptJson()
+                ->asJson()
+                ->post(
+                    'https://services.siigo.com/ACReportApi/api/v1/Report/post',
+                    $body
+                );
+
+            if (! $response->successful()) {
+                throw new \Exception($response->body());
+            }
+
+            $data = $response->json('data.Value.Table');
+
+            foreach($data as $item) {
+                $this->documents[$item['DocName']] = [
+                    'url' => "https://siigonube.siigo.com/#/invoice/843/{$item['ACEntryID']}",
+                    'date' => $item['DocDate'],
+                    'name' => $item['FullName']
+                ];
+            }
+        }
     }
 }
