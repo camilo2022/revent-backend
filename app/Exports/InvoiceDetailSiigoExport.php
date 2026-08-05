@@ -8,8 +8,10 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromGenerator;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
+class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle, WithColumnFormatting
 {
     use Exportable;
 
@@ -153,8 +155,8 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
                         'DOCUMENTO' => $document['name'] ?? '',
                         'DOCUMENTO RELACIONADO' => $documentGroup['is_credit_note'] ? ($document['invoice']['name'] ?? '') : '',
                         'FECHA DOCUMENTO' => $document['date'] ?? '',
-                        'CENTRO DE COSTO' => $cost_center['name'] ?? '',
-                        'VENDEDOR' => $seller['first_name'] ?? '',
+                        'CENTRO DE COSTO' => mb_strtoupper($cost_center['name'] ?? ''),
+                        'VENDEDOR' => mb_strtoupper($seller ? ($seller['first_name'] . ' ' . $seller['last_name']) : ''),
                         'MODELO' => $this->products[$item['code'] ?? '']['model'] ?? '',
                         'CODIGO' => $item['code'] ?? '',
                         'DESCRIPCION' => $item['description'] ?? '',
@@ -163,22 +165,22 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
                         'PROVEEDOR' => $provider,
                         'CATEGORIA' => $category,
                         'TALLA' => $size,
-                        'PRECIO' => ($item['price'] ?? 0) * $multiplier,
-                        'IMPUESTO' => collect($item['taxes'] ?? [])->sum('value') * $multiplier,
+                        'PRECIO' => (float) ($item['price'] ?? 0) * $multiplier,
+                        'IMPUESTO' => (float) collect($item['taxes'] ?? [])->sum('value') * $multiplier,
                     ];
 
                     if($this->column) {
                         $row = [
                             ...$row,
-                            'DESCUENTO' => ($item['discount']['value'] ?? 0) * $multiplier,
-                            'SUBTOTAL' => (($item['total'] ?? 0) - collect($item['taxes'] ?? [])->sum('value')) * $multiplier,
+                            'DESCUENTO' => (float) ($item['discount']['value'] ?? 0) * $multiplier,
+                            'SUBTOTAL' => (float) (($item['total'] ?? 0) - collect($item['taxes'] ?? [])->sum('value')) * $multiplier,
                         ];
                     }
 
                     $row = [
                         ...$row,
-                        'TOTAL' => ($item['total'] ?? 0) * $multiplier,
-                        'CANTIDAD' => ($item['quantity'] ?? 0) * $multiplier,
+                        'TOTAL' => (float) ($item['total'] ?? 0) * $multiplier,
+                        'CANTIDAD' => (int) ($item['quantity'] ?? 0) * $multiplier,
                         'BODEGA' => ($warehouse['code'] ?? '') . ' - ' . ($warehouse['name'] ?? ($warehouseData['name'] ?? '')),
                         'FECHA' => $firstDate,
                         'SEGUNDA_FECHA' => $secondDate,
@@ -189,5 +191,26 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
                 }
             }
         }
+    }
+
+    public function columnFormats(): array
+    {
+        // Columnas fijas: PRECIO = P, IMPUESTO = Q
+        $formats = [
+            'P' => NumberFormat::FORMAT_ACCOUNTING_USD, // PRECIO
+            'Q' => NumberFormat::FORMAT_ACCOUNTING_USD, // IMPUESTO
+        ];
+
+        if ($this->column) {
+            // Con DESCUENTO y SUBTOTAL: R = DESCUENTO, S = SUBTOTAL, T = TOTAL
+            $formats['R'] = NumberFormat::FORMAT_ACCOUNTING_USD; // DESCUENTO
+            $formats['S'] = NumberFormat::FORMAT_ACCOUNTING_USD; // SUBTOTAL
+            $formats['T'] = NumberFormat::FORMAT_ACCOUNTING_USD; // TOTAL
+        } else {
+            // Sin DESCUENTO/SUBTOTAL: R = TOTAL
+            $formats['R'] = NumberFormat::FORMAT_ACCOUNTING_USD; // TOTAL
+        }
+
+        return $formats;
     }
 }

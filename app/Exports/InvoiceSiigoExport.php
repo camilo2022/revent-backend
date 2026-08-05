@@ -106,7 +106,7 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
                 'HORA' => $fecha_documento
                     ? $fecha_documento->format('h:i:s A')
                     : '',
-                'CENTRO DE COSTO' => $cost_center['name'] ?? '',
+                'CENTRO DE COSTO' => mb_strtoupper($cost_center['name'] ?? ''),
                 'VENDEDOR' => mb_strtoupper($seller ? ($seller['first_name'] . ' ' . $seller['last_name']) : ''),
                 'IMPUESTO' => (float) ($impuesto ?? 0),
                 'DESCUENTO' => (float) ($descuento ?? 0),
