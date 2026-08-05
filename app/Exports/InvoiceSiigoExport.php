@@ -9,11 +9,12 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromGenerator;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
-use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Responsable, WithHeadings, WithTitle, WithCustomValueBinder, WithColumnFormatting
 {
@@ -135,10 +136,10 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
         $formatoContable = '_-$* #,##0_-;-$* #,##0_-;_-$* "-"_-;_-@_-';
 
         return [
-            'K' => $formatoContable, // IMPUESTO
-            'L' => $formatoContable, // DESCUENTO
-            'M' => $formatoContable, // SUBTOTAL
-            'O' => $formatoContable, // TOTAL
+            'K' => NumberFormat::FORMAT_ACCOUNTING_USD, // IMPUESTO
+            'L' => NumberFormat::FORMAT_ACCOUNTING_USD, // DESCUENTO
+            'M' => NumberFormat::FORMAT_ACCOUNTING_USD, // SUBTOTAL
+            'O' => NumberFormat::FORMAT_ACCOUNTING_USD, // TOTAL
         ];
     }
 
