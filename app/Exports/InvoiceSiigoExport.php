@@ -13,8 +13,9 @@ use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 
-class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Responsable, WithHeadings, WithTitle, WithCustomValueBinder
+class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Responsable, WithHeadings, WithTitle, WithCustomValueBinder, WithColumnFormatting
 {
     use Exportable;
 
@@ -39,6 +40,9 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
             'DOCUMENTO',
             'CLIENTE',
             'FECHA DOCUMENTO',
+            'DIA SEMANA',
+            'MES',
+            'HORA',
             'CENTRO DE COSTO',
             'VENDEDOR',
             'IMPUESTO',
@@ -60,17 +64,23 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
 
     public function generator(): Generator
     {
+        Carbon::setLocale('es');
+
         foreach ($this->invoices as $document) {
 
             $cost_center = $this->cost_centers[$document['cost_center'] ?? ''] ?? [];
             $seller = $this->sellers[$document['seller'] ?? ''] ?? [];
 
-            $items = collect($document['items'])->where('code', '<>', 'G18022025')->values();
+            $items = collect($document['items'])->whereNotIn('code', ['G18022025', 'P18022025'])->values();
 
             $impuesto = $items->sum(fn ($item) => collect($item['taxes'] ?? [])->sum('value'));
             $descuento = $items->sum('discount.value');
             $cantidad = $items->sum('quantity');
             $total = $items->sum('total');
+
+            $fecha_documento = !empty($this->documents[$document['name']]['date'])
+                ? Carbon::parse($this->documents[$document['name']]['date'])->locale('es')
+                : (!empty($document['date']) ? Carbon::parse($document['date'])->locale('es') : null);
 
             $cantidad360 = $this->get360Cantidad($cantidad);
             $valor360 = $this->get360Valor($total);
@@ -83,14 +93,25 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
                     ? '=HYPERLINK("' . ($this->documents[$document['name']]['url'] ?? $document['public_url']) . '","' . ($document['name'] ?? '') . '")'
                     : ($document['name'] ?? ''),
                 'CLIENTE' => isset($this->documents[$document['name']]) ? $this->documents[$document['name']]['name'] : 'GENERICO',
-                'FECHA DOCUMENTO' => $this->documents[$document['name'] ?? '']['date'] ? Carbon::parse($this->documents[$document['name']]['date'])->format('Y-m-d h:i:s A') : ($document['date'] ?? ''),
+                'FECHA DOCUMENTO' => $fecha_documento
+                    ? $fecha_documento->format('d/m/Y')
+                    : ($document['date'] ?? ''),
+                'DIA SEMANA' => $fecha_documento
+                    ? mb_strtoupper($fecha_documento->translatedFormat('l'))
+                    : '',
+                'MES' => $fecha_documento
+                    ? mb_strtoupper($fecha_documento->translatedFormat('F'))
+                    : '',
+                'HORA' => $fecha_documento
+                    ? $fecha_documento->format('h:i:s A')
+                    : '',
                 'CENTRO DE COSTO' => $cost_center['name'] ?? '',
-                'VENDEDOR' => strtoupper($seller ? ($seller['first_name'] . ' ' . $seller['last_name']) : ''),
-                'IMPUESTO' => $impuesto ?? 0,
-                'DESCUENTO' => $descuento ?? 0,
-                'SUBTOTAL' => $total - $impuesto,
-                'CANTIDAD' => $cantidad,
-                'TOTAL' => $total,
+                'VENDEDOR' => mb_strtoupper($seller ? ($seller['first_name'] . ' ' . $seller['last_name']) : ''),
+                'IMPUESTO' => (float) ($impuesto ?? 0),
+                'DESCUENTO' => (float) ($descuento ?? 0),
+                'SUBTOTAL' => (float) ($total - $impuesto),
+                'CANTIDAD' => (int) $cantidad,
+                'TOTAL' => (float) $total,
                 'METODOS PAGOS' => collect($document['payments'])->count(),
                 '360 CANTIDAD' => $cantidad360,
                 '360 VALOR' => $valor360,
@@ -107,6 +128,18 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
         }
 
         return parent::bindValue($cell, $value);
+    }
+
+    public function columnFormats(): array
+    {
+        $formatoContable = '_-$* #,##0_-;-$* #,##0_-;_-$* "-"_-;_-@_-';
+
+        return [
+            'K' => $formatoContable, // IMPUESTO
+            'L' => $formatoContable, // DESCUENTO
+            'M' => $formatoContable, // SUBTOTAL
+            'O' => $formatoContable, // TOTAL
+        ];
     }
 
     private function get360Cantidad(int $pares): string

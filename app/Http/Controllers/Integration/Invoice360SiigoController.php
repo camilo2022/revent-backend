@@ -19,11 +19,16 @@ class Invoice360SiigoController extends Controller
         ];
 
         $month = $request->input('month');
+        $createdStartInput = $request->input('created_start');
+        $createdEndInput = $request->input('created_end');
 
         if ($month) {
             $date = Carbon::createFromFormat('Y-m', $month);
             $createdStart = $date->copy()->startOfMonth()->startOfDay()->format('Y-m-d H:i:s');
             $createdEnd = $date->copy()->endOfMonth()->endOfDay()->format('Y-m-d H:i:s');
+        } elseif ($createdStartInput && $createdEndInput) {
+            $createdStart = Carbon::parse($createdStartInput)->startOfDay()->format('Y-m-d H:i:s');
+            $createdEnd = Carbon::parse($createdEndInput)->endOfDay()->format('Y-m-d H:i:s');
         } else {
             $createdStart = Carbon::now()->startOfMonth()->startOfDay()->format('Y-m-d H:i:s');
             $createdEnd = Carbon::now()->endOfMonth()->endOfDay()->format('Y-m-d H:i:s');
