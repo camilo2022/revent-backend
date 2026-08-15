@@ -40,7 +40,7 @@ class ExportPurchaseSiigoJob implements ShouldQueue
 
         $products = $siigo->getProducts($token, $this->filters);
 
-        $filename = 'compras_' . now()->format('Y_m_d_His') . '.xlsx';
+        $filename = 'reports/compras_' . now()->format('Y_m_d_His') . '.xlsx';
 
         Excel::store(
             new PurchaseSiigoExport(

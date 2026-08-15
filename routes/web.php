@@ -5,6 +5,7 @@ use App\Http\Controllers\Integration\Invoice360SiigoController;
 use App\Http\Controllers\Integration\InvoiceSiigoController;
 use App\Http\Controllers\Integration\PurchaseSiigoController;
 use App\Http\Controllers\Integration\SiigoController;
+use App\Http\Controllers\Integration\MasiveTransferSiigoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,6 +17,9 @@ Route::get('/siigo/export_invoice', [InvoiceSiigoController::class, 'export_invo
 Route::get('/siigo/export_invoice_360', [Invoice360SiigoController::class, 'export_invoice_360']);
 Route::get('/siigo/export_purchase', [PurchaseSiigoController::class, 'export_purchase']);
 Route::get('/siigo/sync_unico', [SiigoController::class, 'sync']);
+
+Route::get('/siigo/masive_transfer', [MasiveTransferSiigoController::class, 'masive_transfer']);
+Route::post('/siigo/masive_transfer_load', [MasiveTransferSiigoController::class, 'masive_transfer_load']);
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);
