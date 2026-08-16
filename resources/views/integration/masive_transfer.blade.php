@@ -7,6 +7,15 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Traslado masivos</title>
     <style>
+        * { box-sizing: border-box; }
+
+        body {
+            background: #f3f4f6;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+
         .excel-upload-wrapper {
             max-width: 480px;
             margin: 2rem auto;
@@ -269,6 +278,26 @@
                 transform: translateY(0);
             }
         }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #4f46e5;
+            text-decoration: none;
+            margin-top: 1.4rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .back-link svg {
+            width: 15px;
+            height: 15px;
+        }
     </style>
 </head>
 
@@ -282,7 +311,7 @@
                 Sube la plantilla Excel (.xlsx o .xls) para procesar los traslados
             </div>
 
-            <form action="/siigo/masive_transfer_load" method="POST" enctype="multipart/form-data"
+            <form action="{{ route('siigo.masive_transfer_upload') }}" method="POST" enctype="multipart/form-data"
                 id="excelUploadForm">
                 @csrf
 
@@ -344,6 +373,11 @@
             </form>
 
         </div>
+
+        <a href="{{ route('home') }}" class="back-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Volver a acciones disponibles
+        </a>
     </div>
 </body>
 

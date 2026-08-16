@@ -21,7 +21,7 @@ class MasiveTransferSiigoController extends Controller
         return view('integration.masive_transfer');
     }
 
-    public function masive_transfer_load(Request $request)
+    public function masive_transfer_upload(Request $request)
     {
 
         $request->validate([
@@ -74,14 +74,14 @@ class MasiveTransferSiigoController extends Controller
         }
 
         if(!empty($errors)) {
-            return view('integration.masive_transfer_load', compact('traslados', 'errors'));
+            return view('integration.masive_transfer_upload', compact('traslados', 'errors'));
         }
 
         [$user, $validate] = $this->obtener_datos_usuario($token);
         $errors = array_merge($errors, $validate);
 
         if(!empty($errors)) {
-            return view('integration.masive_transfer_load', compact('traslados', 'errors'));
+            return view('integration.masive_transfer_upload', compact('traslados', 'errors'));
         }
 
         [$traslado_detalles, $validate] = $this->validar_duplicados($transfer['traslado_detalles']->toArray());
@@ -115,7 +115,7 @@ class MasiveTransferSiigoController extends Controller
             Mail::to([$request->input('email')])->queue(new MasiveTransferSiigoMail(traslados: $traslados));
         }
 
-        return view('integration.masive_transfer_load', compact('traslados', 'errors'));
+        return view('integration.masive_transfer_upload', compact('traslados', 'errors'));
     }
 
     private function validar_duplicados(array $detalles)
@@ -552,7 +552,7 @@ class MasiveTransferSiigoController extends Controller
             ];
         }
 
-        $filename = "transfer_{$id}_" . now()->format('Y_m_d_His') . '.xlsx';
+        $filename = "transfer_{$document}_" . now()->format('Y_m_d_His') . '.xlsx';
 
         Excel::store(new MasiveTransferSiigoMultiSheetExport($traslado, $traslado_detalles), "exports/{$filename}", 'public');
 

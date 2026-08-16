@@ -8,24 +8,41 @@ use App\Jobs\ExportInventorySiigoJob;
 
 class InventorySiigoController extends Controller
 {
-    public function export_inventory(Request $request)
+    public function export_inventory()
     {
-        $emails = [
+        return view('integration.export_inventory');
+    }
+
+    public function export_inventory_download(Request $request)
+    {
+        $validated = $request->validate([
+            'emails' => 'nullable|array|min:1',
+            'emails.*' => 'required|email',
+            'created_start' => 'nullable|date|required_with:created_end',
+            'created_end' => 'nullable|date|required_with:created_start|after_or_equal:created_start',
+            'inventory_type' => 'nullable|in:positivo,negativo',
+            'page_size' => 'nullable|integer|min:1|max:1000',
+            'type' => 'nullable|string|in:Product,Variant'
+        ]);
+
+        $defaultEmails = [
             'operaciones@revent.com.co',
             'ingenieria@revent.com.co',
             'leanmanagement@revent.com.co',
             'tecnologia@revent.com.co'
         ];
 
+        $emails = $request->input('emails', $defaultEmails);
+
         $baseFilters = [
-            'created_start' => $request->input('created_start'),
-            'created_end' => $request->input('created_end'),
-            'page_size' => $request->input('page_size', 100),
-            'type' => $request->input('type', 'Product'),
+            'created_start' => $validated['created_start'] ?? null,
+            'created_end' => $validated['created_end'] ?? null,
+            'page_size' => $validated['page_size'] ?? 100,
+            'type' => $validated['type'] ?? 'Product',
         ];
 
-        if ($request->has('positive')) {
-            $positiveValues = [$request->boolean('positive')];
+        if (!empty($validated['inventory_type'])) {
+            $positiveValues = [$validated['inventory_type'] === 'positivo'];
         } else {
             $positiveValues = [true, false];
         }
@@ -33,13 +50,10 @@ class InventorySiigoController extends Controller
         foreach ($positiveValues as $positive) {
             ExportInventorySiigoJob::dispatch(
                 [...$baseFilters, 'positive' => $positive],
-                $request->input('email', $emails)
+                $emails
             );
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => '⏳ Exportación en proceso. Te notificaremos por email cuando esté lista.',
-        ]);
+        return view('integration.export_inventory_download', compact('emails'));
     }
 }
