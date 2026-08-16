@@ -24,12 +24,10 @@ class MasiveTransferSiigoExport extends DefaultValueBinder implements FromGenera
     public function headings(): array
     {
         return [
-            'usuario',
-            'contraseña',
+            'token',
             'fecha',
             'validar_disponible',
             'tipo',
-            'separar_traslados',
             'observacion'
         ];
     }
@@ -43,12 +41,10 @@ class MasiveTransferSiigoExport extends DefaultValueBinder implements FromGenera
     {
         foreach ($this->transfer as $transfer) {
             yield [
-                'usuario' => $transfer['usuario'],
-                'contraseña' => $transfer['contraseña'],
+                'token' => $transfer['token'],
                 'fecha' => $transfer['fecha'],
                 'validar_disponible' => $transfer['validar_disponible'],
                 'tipo' => $transfer['tipo'],
-                'separar_traslados' => $transfer['separar_traslados'],
                 'observacion' => $transfer['observacion']
             ];
         }
