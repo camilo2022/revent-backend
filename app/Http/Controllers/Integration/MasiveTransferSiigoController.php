@@ -26,7 +26,9 @@ class MasiveTransferSiigoController extends Controller
 
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls',
-            'email' => 'required|email',
+            'emails' => ['required', 'email', 'regex:/^[a-zA-Z0-9._%+-]+@revent\.com\.co$/'],
+        ], [
+            'emails.*.regex' => 'El correo :input debe pertenecer al dominio @revent.com.co',
         ]);
 
         $traslados = [];

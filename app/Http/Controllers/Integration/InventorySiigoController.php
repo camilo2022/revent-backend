@@ -17,19 +17,23 @@ class InventorySiigoController extends Controller
     {
         $validated = $request->validate([
             'emails' => 'nullable|array|min:1',
-            'emails.*' => 'required|email',
+            'emails.*' => ['required', 'email', 'regex:/^[a-zA-Z0-9._%+-]+@revent\.com\.co$/'],
             'created_start' => 'nullable|date|required_with:created_end',
             'created_end' => 'nullable|date|required_with:created_start|after_or_equal:created_start',
-            'inventory_type' => 'nullable|in:positivo,negativo',
+            'inventory_type'  => 'nullable|in:positivo,negativo',
             'page_size' => 'nullable|integer|min:1|max:1000',
-            'type' => 'nullable|string|in:Product,Variant'
+            'type' => 'nullable|string|in:Product,Variant',
+        ], [
+            'emails.*.regex' => 'El correo :input debe pertenecer al dominio @revent.com.co',
         ]);
 
         $defaultEmails = [
             'operaciones@revent.com.co',
             'ingenieria@revent.com.co',
             'leanmanagement@revent.com.co',
-            'tecnologia@revent.com.co'
+            'tecnologia@revent.com.co',
+            'auditoria@revent.com.co',
+            'inventario@revent.com.co'
         ];
 
         $emails = $request->input('emails', $defaultEmails);

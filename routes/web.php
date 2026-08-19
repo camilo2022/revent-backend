@@ -6,6 +6,7 @@ use App\Http\Controllers\Integration\InvoiceSiigoController;
 use App\Http\Controllers\Integration\PurchaseSiigoController;
 use App\Http\Controllers\Integration\SiigoController;
 use App\Http\Controllers\Integration\MasiveTransferSiigoController;
+use App\Http\Controllers\Integration\ProductTraceabilitySiigoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,10 +27,15 @@ Route::get('/siigo/export_invoice_360', [Invoice360SiigoController::class, 'expo
 Route::post('/siigo/export_invoice_360_download', [Invoice360SiigoController::class, 'export_invoice_360_download'])->name('siigo.export_invoice_360_download');
 
 Route::get('/siigo/export_purchase', [PurchaseSiigoController::class, 'export_purchase'])->name('siigo.export_purchase');
+Route::post('/siigo/export_purchase_download', [PurchaseSiigoController::class, 'export_purchase_download'])->name('siigo.export_purchase_download');
+
 Route::get('/siigo/sync_unico', [SiigoController::class, 'sync'])->name('siigo.sync');
 
 Route::get('/siigo/masive_transfer', [MasiveTransferSiigoController::class, 'masive_transfer'])->name('siigo.masive_transfer');
 Route::post('/siigo/masive_transfer_upload', [MasiveTransferSiigoController::class, 'masive_transfer_upload'])->name('siigo.masive_transfer_upload');
+
+Route::get('/siigo/product_traceability', [ProductTraceabilitySiigoController::class, 'product_traceability'])->name('siigo.product_traceability');
+Route::post('/siigo/product_traceability_download', [ProductTraceabilitySiigoController::class, 'product_traceability_download'])->name('siigo.product_traceability_download');
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);

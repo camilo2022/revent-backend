@@ -17,7 +17,9 @@ class ExportInventorySiigoScheduled extends Command
             'operaciones@revent.com.co',
             'ingenieria@revent.com.co',
             'leanmanagement@revent.com.co',
-            'tecnologia@revent.com.co'
+            'tecnologia@revent.com.co',
+            'auditoria@revent.com.co',
+            'inventario@revent.com.co'
         ];
 
         $baseFilters = [

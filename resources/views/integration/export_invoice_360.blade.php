@@ -306,16 +306,22 @@
                 <div class="section-title">Correos de notificación</div>
 
                 <div id="emailsContainer">
-                    <div class="email-row">
-                        <input type="email" name="emails[]" class="excel-field-input email-input"
-                            placeholder="nombre@correo.com" value="{{ old('emails.0') }}">
-                        <button type="button" class="email-remove-btn" disabled title="Quitar correo">
-                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"/>
-                                <line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
-                        </button>
-                    </div>
+                    @foreach (old('emails', ['']) as $index => $emailValue)
+                        <div class="email-row">
+                            <input type="email" name="emails[]"
+                                class="excel-field-input email-input @error('emails.' . $index) is-invalid @enderror"
+                                placeholder="nombre@correo.com" value="{{ $emailValue }}">
+                            <button type="button" class="email-remove-btn" {{ $loop->count <= 1 ? 'disabled' : '' }} title="Quitar correo">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
+                        @error('emails.' . $index)
+                            <div class="excel-error show">{{ $message }}</div>
+                        @enderror
+                    @endforeach
                 </div>
 
                 <button type="button" class="email-add-btn" id="addEmailBtn">
@@ -331,9 +337,6 @@
                 </div>
 
                 @error('emails')
-                    <div class="excel-error show">{{ $message }}</div>
-                @enderror
-                @error('emails.*')
                     <div class="excel-error show">{{ $message }}</div>
                 @enderror
 

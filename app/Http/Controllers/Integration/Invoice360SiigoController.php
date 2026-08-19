@@ -18,11 +18,13 @@ class Invoice360SiigoController extends Controller
     {
         $validated = $request->validate([
             'emails' => 'nullable|array|min:1',
-            'emails.*' => 'required|email',
+            'emails.*' => ['required', 'email', 'regex:/^[a-zA-Z0-9._%+-]+@revent\.com\.co$/'],
             'month' => 'nullable|date_format:Y-m',
             'created_start' => 'nullable|date|required_with:created_end',
             'created_end' => 'nullable|date|required_with:created_start|after_or_equal:created_start',
             'page_size' => 'nullable|integer|min:1|max:1000',
+        ], [
+            'emails.*.regex' => 'El correo :input debe pertenecer al dominio @revent.com.co',
         ]);
 
         $defaultEmails = [
@@ -47,13 +49,13 @@ class Invoice360SiigoController extends Controller
             }
 
             $createdStart = $date->copy()->startOfMonth()->startOfDay()->format('Y-m-d H:i:s');
-            $createdEnd   = $date->copy()->endOfMonth()->endOfDay()->format('Y-m-d H:i:s');
+            $createdEnd = $date->copy()->endOfMonth()->endOfDay()->format('Y-m-d H:i:s');
         }
 
         $filters = [
             'created_start' => $createdStart,
-            'created_end'   => $createdEnd,
-            'page_size'     => $validated['page_size'] ?? 100,
+            'created_end' => $createdEnd,
+            'page_size' => $validated['page_size'] ?? 100,
         ];
 
         ExportInvoice360SiigoJob::dispatch($filters, $emails);

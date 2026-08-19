@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Reporte de facturación</title>
+    <title>Reporte de compra</title>
     <style>
         * { box-sizing: border-box; }
 
@@ -295,12 +295,12 @@
     <div class="excel-upload-wrapper">
         <div class="excel-upload-card">
 
-            <div class="excel-upload-title">Generar reporte de facturación</div>
+            <div class="excel-upload-title">Generar reporte de compra</div>
             <div class="excel-upload-subtitle">
                 Elige un mes completo o un rango de fechas manual. El reporte se enviará a los correos indicados.
             </div>
 
-            <form action="{{ route('siigo.export_invoice_download') }}" method="POST" id="invoiceReportForm">
+            <form action="{{ route('siigo.export_purchase_download') }}" method="POST" id="purchaseReportForm">
                 @csrf
 
                 <div class="section-title">Correos de notificación</div>
@@ -411,7 +411,7 @@
     (function () {
         const emailsContainer = document.getElementById('emailsContainer');
         const addEmailBtn = document.getElementById('addEmailBtn');
-        const form = document.getElementById('invoiceReportForm');
+        const form = document.getElementById('purchaseReportForm');
         const formError = document.getElementById('formError');
 
         const modeTabs = document.querySelectorAll('.mode-tab');

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Traslado masivos</title>
+    <title>Trazabilidad de referencias</title>
     <style>
         * { box-sizing: border-box; }
 
@@ -59,7 +59,8 @@
             color: #dc2626;
         }
 
-        .excel-field-input {
+        .excel-field-input,
+        .excel-field-select {
             width: 100%;
             padding: 0.65rem 0.85rem;
             font-size: 0.88rem;
@@ -70,11 +71,17 @@
             transition: border-color 0.2s ease, background 0.2s ease;
         }
 
+        .excel-field-select {
+            width: 100%;
+            cursor: pointer;
+        }
+
         .excel-field-input::placeholder {
             color: #9ca3af;
         }
 
-        .excel-field-input:focus {
+        .excel-field-input:focus,
+        .excel-field-select:focus {
             outline: none;
             border-color: #16a34a;
             background: #ffffff;
@@ -84,12 +91,35 @@
             border-color: #fca5a5;
         }
 
+        .excel-field-input.is-invalid,
+        .excel-field-select.is-invalid {
+            border-color: #fca5a5;
+            background: #fef2f2;
+        }
+
         .excel-field-hint {
             font-size: 0.75rem;
             color: #9ca3af;
             margin-top: 0.3rem;
         }
 
+        /* ---- Secciones ---- */
+        .section-divider {
+            border: none;
+            border-top: 1px solid #f1f3f5;
+            margin: 1.4rem 0;
+        }
+
+        .section-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.8rem;
+        }
+
+        /* ---- Dropzone de archivo ---- */
         .excel-dropzone {
             position: relative;
             border: 2px dashed #cbd5e1;
@@ -267,18 +297,6 @@
             display: block;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-4px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         .back-link {
             display: inline-flex;
             align-items: center;
@@ -299,34 +317,16 @@
             height: 15px;
         }
 
-        .excel-download-btn {
-            text-align: center;
-            display: inline-block;
-            text-decoration: none;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 1.25rem;
-            padding: 0.75rem;
-            background: #16a34a;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s ease, transform 0.1s ease;
-        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
 
-        .excel-download-btn:hover {
-            background: #15803d;
-        }
-
-        .excel-download-btn:active {
-            transform: scale(0.98);
-        }
-
-        .excel-download-btn:disabled {
-            background: #d1d5db;
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -336,31 +336,56 @@
     <div class="excel-upload-wrapper">
         <div class="excel-upload-card">
 
-            <div class="excel-upload-title">Cargar archivo de traslados masivos</div>
+            <div class="excel-upload-title">Buscar trazabilidad de referencias</div>
             <div class="excel-upload-subtitle">
-                Sube la plantilla Excel (.xlsx o .xls) para procesar los traslados
-                <a href="{{ asset('storage/formats/formato_traslado.xlsx') }}" class="excel-download-btn" download>
-                    Descargar formato
-                </a>
+                Selecciona la bodega, la fecha inicial y sube el archivo con las referencias a consultar.
             </div>
 
-            <form action="{{ route('siigo.masive_transfer_upload') }}" method="POST" enctype="multipart/form-data"
-                id="excelUploadForm">
+            <form action="{{ route('siigo.product_traceability_download') }}" method="POST"
+                enctype="multipart/form-data" id="traceabilityForm">
                 @csrf
 
+                <div class="section-title">Parámetros de búsqueda</div>
+
                 <div class="excel-field-group">
-                    <label for="notifyEmail" class="excel-field-label">
-                        Correo de notificación <span class="required-mark">*</span>
+                    <label for="warehouseCode" class="excel-field-label">
+                        Bodega <span class="required-mark">*</span>
                     </label>
-                    <input type="email" name="email" id="notifyEmail" class="excel-field-input"
-                        placeholder="nombre@correo.com" value="{{ old('email') }}" required>
+                    <select name="warehouse_id" id="warehouseCode"
+                        class="excel-field-select @error('warehouse_id') is-invalid @enderror" required>
+                        <option value="" disabled {{ old('warehouse_id') ? '' : 'selected' }}>Selecciona una bodega</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse['id'] }}" {{ old('warehouse_id') == $warehouse['id'] ? 'selected' : '' }}>
+                                {{ $warehouse['name'] }}
+                            </option>
+                        @endforeach
+                    </select>
                     <div class="excel-field-hint">
-                        Te enviaremos el resultado a este correo para que lo consultes cuando quieras.
+                        Se buscará la trazabilidad de las referencias en la bodega seleccionada.
                     </div>
-                    @error('email')
+                    @error('warehouse_id')
                         <div class="excel-error show">{{ $message }}</div>
                     @enderror
                 </div>
+
+                <div class="excel-field-group">
+                    <label for="startDate" class="excel-field-label">
+                        Fecha inicial <span class="required-mark">*</span>
+                    </label>
+                    <input type="date" name="start_date" id="startDate"
+                        class="excel-field-input @error('start_date') is-invalid @enderror"
+                        value="{{ old('start_date') }}" required>
+                    <div class="excel-field-hint">
+                        Se consultarán los movimientos desde esta fecha hacia adelante.
+                    </div>
+                    @error('start_date')
+                        <div class="excel-error show">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <hr class="section-divider">
+
+                <div class="section-title">Archivo de referencias</div>
 
                 <div class="excel-dropzone" id="excelDropzone">
                     <div class="excel-icon">
@@ -394,14 +419,18 @@
                     <button type="button" class="excel-remove-btn" id="excelRemoveBtn">&times;</button>
                 </div>
 
-                <div class="excel-error" id="excelError"></div>
+                <div class="excel-field-hint">
+                    El archivo debe contener la columna con los códigos de referencia a buscar.
+                </div>
+
+                <div class="excel-error" id="fileError"></div>
 
                 @error('file')
                     <div class="excel-error show">{{ $message }}</div>
                 @enderror
 
-                <button type="submit" class="excel-submit-btn" id="excelSubmitBtn" disabled>
-                    Subir archivo
+                <button type="submit" class="excel-submit-btn" id="submitBtn" disabled>
+                    Buscar trazabilidad
                 </button>
             </form>
 
@@ -412,18 +441,19 @@
             Volver a acciones disponibles
         </a>
     </div>
+
 </body>
 
 <script>
-    (function() {
+    (function () {
         const dropzone = document.getElementById('excelDropzone');
         const input = document.getElementById('excelInput');
         const fileInfo = document.getElementById('excelFileInfo');
         const fileName = document.getElementById('excelFileName');
         const fileSize = document.getElementById('excelFileSize');
         const removeBtn = document.getElementById('excelRemoveBtn');
-        const submitBtn = document.getElementById('excelSubmitBtn');
-        const errorBox = document.getElementById('excelError');
+        const submitBtn = document.getElementById('submitBtn');
+        const fileError = document.getElementById('fileError');
 
         const allowedExt = ['xlsx', 'xls'];
         const maxSizeMB = 10;
@@ -461,7 +491,7 @@
 
         function handleFile(file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            errorBox.classList.remove('show');
+            fileError.classList.remove('show');
 
             if (!allowedExt.includes(ext)) {
                 showError('Solo se permiten archivos .xlsx o .xls');
@@ -490,8 +520,8 @@
         }
 
         function showError(msg) {
-            errorBox.textContent = msg;
-            errorBox.classList.add('show');
+            fileError.textContent = msg;
+            fileError.classList.add('show');
         }
 
         function formatSize(bytes) {
