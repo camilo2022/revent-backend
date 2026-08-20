@@ -237,6 +237,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s ease, transform 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .excel-submit-btn:hover {
@@ -250,6 +254,24 @@
         .excel-submit-btn:disabled {
             background: #d1d5db;
             cursor: not-allowed;
+        }
+
+        .excel-submit-btn .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        .excel-submit-btn.is-loading .spinner {
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .excel-error {
@@ -401,7 +423,8 @@
                 @enderror
 
                 <button type="submit" class="excel-submit-btn" id="excelSubmitBtn" disabled>
-                    Subir archivo
+                    <span class="spinner"></span>
+                    <span class="excel-submit-btn-text">Subir archivo</span>
                 </button>
             </form>
 
@@ -416,6 +439,7 @@
 
 <script>
     (function() {
+        const form = document.getElementById('excelUploadForm');
         const dropzone = document.getElementById('excelDropzone');
         const input = document.getElementById('excelInput');
         const fileInfo = document.getElementById('excelFileInfo');
@@ -423,6 +447,7 @@
         const fileSize = document.getElementById('excelFileSize');
         const removeBtn = document.getElementById('excelRemoveBtn');
         const submitBtn = document.getElementById('excelSubmitBtn');
+        const submitBtnText = submitBtn.querySelector('.excel-submit-btn-text');
         const errorBox = document.getElementById('excelError');
 
         const allowedExt = ['xlsx', 'xls'];
@@ -499,6 +524,18 @@
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
             return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
         }
+
+        // --- Evitar doble envío: deshabilitar el boton apenas se hace submit ---
+        form.addEventListener('submit', function (e) {
+            // Si el boton ya esta deshabilitado (segundo intento de submit), bloquear.
+            if (submitBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            submitBtn.disabled = true;
+            submitBtn.classList.add('is-loading');
+            submitBtnText.textContent = 'Enviando...';
+        });
     })();
 </script>
 
