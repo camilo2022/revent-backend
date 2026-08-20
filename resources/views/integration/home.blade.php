@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Reportes disponibles</title>
+    <title>Acciones disponibles</title>
 
     <style>
         * { box-sizing: border-box; }
@@ -85,8 +85,7 @@
         .icon-facturacion360 { background: #d97706; }
         .icon-compra { background: #dc2626; }
         .icon-traslado { background: #7c3aed; }
-
-        .report-card:nth-child(1 of .report-card) { } /* no necesario, ignora esta línea */
+        .icon-trazabilidad { background: #0891b2; }
 
         .report-body {
             flex: 1;
@@ -119,25 +118,25 @@
             display: flex;
             align-items: center;
             gap: 0.35rem;
+            color: #1f2937;
         }
 
-        .icon-inventario ~ .report-body,
-        .report-card:nth-child(1) .report-action { color: #4f46e5; }
-        .report-card:nth-child(2) .report-action { color: #16a34a; }
-        .report-card:nth-child(3) .report-action { color: #d97706; }
-        .report-card:nth-child(4) .report-action { color: #dc2626; }
+        /* Color del texto/flecha según el ícono de la tarjeta (no depende de la posición) */
+        .report-card:has(.icon-inventario) .report-action { color: #4f46e5; }
+        .report-card:has(.icon-facturacion) .report-action { color: #16a34a; }
+        .report-card:has(.icon-facturacion360) .report-action { color: #d97706; }
+        .report-card:has(.icon-compra) .report-action { color: #dc2626; }
+        .report-card:has(.icon-traslado) .report-action { color: #7c3aed; }
+        .report-card:has(.icon-trazabilidad) .report-action { color: #0891b2; }
 
         .report-action svg {
             width: 14px;
             height: 14px;
+            transition: transform 0.15s ease;
         }
 
         .report-card:hover .report-action svg {
             transform: translateX(2px);
-        }
-
-        .report-action svg {
-            transition: transform 0.15s ease;
         }
     </style>
 </head>
@@ -250,6 +249,26 @@
             <div class="report-footer">
                 <span class="report-action">
                     Cargar traslados
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
+
+        <a href="{{ route('siigo.product_traceability') }}" class="report-card">
+            <div class="report-icon icon-trazabilidad">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    <path d="M11 8v3l2 2"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Trazabilidad de Producto</div>
+                <div class="report-desc">Consulta el historial de movimientos de una referencia por bodega y fecha.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Consultar trazabilidad
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </span>
             </div>

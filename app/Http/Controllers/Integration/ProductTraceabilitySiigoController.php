@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Integration;
 
+use App\Exports\ProductTraceabilitySiigoExport;
 use App\Http\Controllers\Controller;
+use App\Imports\ProductTraceabilitySiigoImport;
 use App\Services\SiigoInventoryService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductTraceabilitySiigoController extends Controller
 {
@@ -36,9 +39,33 @@ class ProductTraceabilitySiigoController extends Controller
             'file' => 'required|file|mimes:xlsx,xls|max:10240',
         ]);
 
+        $codigos = Excel::toCollection(new ProductTraceabilitySiigoImport, $request->file('file'))->first()->map(function ($item) {
+                $item['codigo'] = strtoupper($item['codigo']);
+                return $item;
+            })->pluck('codigo')->unique()->values()->all();
+
         $data = $this->movimientos_productos_bodegas($token, $request->integer('warehouse_id'), $request->input('start_date'), $warehouses);
 
-        return $data = collect($data)->unique()->values()->all();
+        $data = collect($data)->unique()->map(function ($item) {
+                $item = (object) $item;
+                $url_hyperlink = '';
+
+                if(str_starts_with($item->Voucher, 'FV-')){
+                    $url_hyperlink = "https://siigonube.siigo.com/#/invoice/843/{$item->VoucherID}";
+                } else if (str_starts_with($item->Voucher, 'FC-')){
+                    $url_hyperlink = "https://siigonube.siigo.com/#/purchase/1008/{$item->VoucherID}";
+                } else if (str_starts_with($item->Voucher, 'NT-')){
+                    $url_hyperlink = "https://siigonube.siigo.com/#/inventories/1372/{$item->VoucherID}";
+                } else if (str_starts_with($item->Voucher, 'A-')){
+                    $url_hyperlink = "https://siigonube.siigo.com/#/inventories/1542/{$item->VoucherID}";
+                } else if (str_starts_with($item->Voucher, 'NC-')){
+                    $url_hyperlink = "https://siigonube.siigo.com/#/credit-note/1017/{$item->VoucherID}";
+                }
+                $item->UrlHyperLink = $url_hyperlink;
+                return $item;
+            })->groupBy('ProductCode');
+
+        return Excel::download(new ProductTraceabilitySiigoExport($codigos, $data), "TRAZABILIDAD DE PRODUCTOS.xlsx");
     }
 
     private function movimientos_productos_bodegas(string $token, int $warehouseId, string $startDate, array $warehouses)
@@ -174,6 +201,7 @@ class ProductTraceabilitySiigoController extends Controller
 
         $response = Http::withToken($token)
             ->acceptJson()
+            ->timeout(600)
             ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
 
         if (!$response->successful()) {

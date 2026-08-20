@@ -6,6 +6,7 @@ use App\Exports\MasiveTransferSiigoMultiSheetExport;
 use App\Http\Controllers\Controller;
 use App\Imports\MasiveTransferSiigoSheetsImport;
 use App\Mail\MasiveTransferSiigoMail;
+use App\Services\SiigoInventoryService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -16,6 +17,9 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class MasiveTransferSiigoController extends Controller
 {
+    private string $siigo_base_url = 'https://api.siigo.com';
+    private array|Collection $sellers = [];
+
     public function masive_transfer()
     {
         return view('integration.masive_transfer');
@@ -26,9 +30,9 @@ class MasiveTransferSiigoController extends Controller
 
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls',
-            'emails' => ['required', 'email', 'regex:/^[a-zA-Z0-9._%+-]+@revent\.com\.co$/'],
+            'email' => ['required', 'email', 'regex:/^[a-zA-Z0-9._%+-]+@revent\.com\.co$/'],
         ], [
-            'emails.*.regex' => 'El correo :input debe pertenecer al dominio @revent.com.co',
+            'email.regex' => 'El correo :input debe pertenecer al dominio @revent.com.co',
         ]);
 
         $traslados = [];
@@ -86,10 +90,13 @@ class MasiveTransferSiigoController extends Controller
             return view('integration.masive_transfer_upload', compact('traslados', 'errors'));
         }
 
-        [$traslado_detalles, $validate] = $this->validar_duplicados($transfer['traslado_detalles']->toArray());
+        $bodegas = $this->bodegas();
+
+        [$traslado_detalles, $validate] = $this->validar_duplicados($transfer['traslado_detalles']->toArray(), $bodegas);
         $errors = array_merge($errors, $validate);
 
-        $bodegas = $this->bodegas();
+        [$traslado_detalles, $validate] = $this->validar_permiso_bodega($traslado_detalles, $bodegas, $user);
+        $errors = array_merge($errors, $validate);
 
         [$detalles, $validate] = $this->buscar_producto($token, $traslado_detalles);
         $errors = array_merge($errors, $validate);
@@ -108,19 +115,37 @@ class MasiveTransferSiigoController extends Controller
         $detalles = $this->separar_traslados($detalles);
 
         if(empty($errors)) {
+            $siigo = new SiigoInventoryService();
+            $token_admin = $siigo->auth();
+            $this->sellers_siigo($token_admin);
+
             foreach ($detalles as $detalle) {
-                [$traslado, $validate] = $this->traslado($token, $detalle, $config);
+                [$traslado, $validate] = $this->traslado($token, $detalle, $config, $bodegas);
                 $errors = array_merge($errors, $validate);
                 $traslados[] = $traslado;
+
+                // NOTIFICACION AL CORREO DE LA BODEGA DE SALIDA DEL ENVIO DEL TRASLADO
+                if ($traslado['data']['bodega_salida_data'] && !empty($traslado['data']['bodega_salida_data']['users'] ?? [])) {
+
+                    $emails = $this->sellers->whereIn('id', $traslado['data']['bodega_salida_data']['users'])->pluck('email')->filter()->toArray();
+                    Mail::to(['camiloacacio16@gmail.com', 'chatgptinsano2025@gmail.com'])->queue(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-exit-siigo'));
+                }
+                // NOTIFICACION AL CORREO DE LA BODEGA DE INGRESO DE LA RECEPCION DEL TRASLADO
+                if ($traslado['data']['bodega_ingreso_data'] && !empty($traslado['data']['bodega_salida_data']['users'] ?? [])) {
+
+                    $emails = $this->sellers->whereIn('id', $traslado['data']['bodega_ingreso_data']['users'])->pluck('email')->filter()->toArray();
+                    Mail::to(['camiloacacio20@gmail.com'])->queue(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-entrance-siigo'));
+                }
             }
 
-            Mail::to([$request->input('email')])->queue(new MasiveTransferSiigoMail(traslados: $traslados));
+            // NOTIFICACION AL CORREO INGRESADO
+            Mail::to([$request->input('email')])->queue(new MasiveTransferSiigoMail(traslados: $traslados, errors: $errors));
         }
 
         return view('integration.masive_transfer_upload', compact('traslados', 'errors'));
     }
 
-    private function validar_duplicados(array $detalles)
+    private function validar_duplicados(array $detalles, array $bodegas)
     {
         $validate = [];
 
@@ -138,13 +163,45 @@ class MasiveTransferSiigoController extends Controller
 
             $detalle = $items->first();
 
+            $bodega_salida = $bodegas['DIRECTO'][$detalle['bodega_salida']] ?? ($bodegas['TRANSITO'][$detalle['bodega_salida']] ?? null);
+            $bodega_entrada  =$bodegas['DIRECTO'][$detalle['bodega_salida']] ?? ($bodegas['TRANSITO'][$detalle['bodega_salida']] ?? null);
+
             $validate[] = [
                 'Row' => null,
                 'ProductCode' => $detalle['codigo'],
-                'Description' => $detalle['codigo'], // Si no tienes descripción en el array
-                'WarehouseCode' => $detalle['bodega_salida'] . ' - ' . $detalle['bodega_entrada'],
+                'Description' => $detalle['codigo'],
+                'WarehouseCode' => $detalle['bodega_salida'] . ' - ' . ($bodega_salida['name'] ?? '#N/A') . ' -> ' . $detalle['bodega_entrada'] . ' - ' . ($bodega_entrada['name'] ?? '#N/A'),
                 'Error' => 'Producto duplicado para la misma bodega de salida y entrada',
             ];
+        }
+
+        return [$detalles, $validate];
+    }
+
+    private function validar_permiso_bodega(array $detalles, array $bodegas, array $user)
+    {
+        $validate = [];
+
+        foreach ($detalles as $row => $detalle) {
+            $bodega = $bodegas['DIRECTO'][$detalle['bodega_salida']] ?? ($bodegas['TRANSITO'][$detalle['bodega_salida']] ?? null);
+
+            if(empty($bodega)) {
+                $validate[] = [
+                    'Row' => $row + 1,
+                    'ProductCode' => $detalle['codigo'],
+                    'Description' => $detalle['codigo'],
+                    'WarehouseCode' => $detalle['bodega_salida'] . ' - #N/A',
+                    'Error' => 'No tiene acceso a la bodega de salida',
+                ];
+            } else if(!in_array($user['id'], $bodega['users'] ?? [])) {
+                $validate[] = [
+                    'Row' => $row + 1,
+                    'ProductCode' => $detalle['codigo'],
+                    'Description' => $detalle['codigo'],
+                    'WarehouseCode' => $detalle['bodega_salida'] . ' - ' . $bodega['name'],
+                    'Error' => 'No tiene acceso a la bodega de salida',
+                ];
+            }
         }
 
         return [collect($detalles), $validate];
@@ -174,10 +231,7 @@ class MasiveTransferSiigoController extends Controller
 
                 $response = Http::retry(3, 3000)->withToken($token)
                     ->asJson()
-                    ->post(
-                        'https://services.siigo.com/catalog/api/v1/Autocomplete/GetData',
-                        $body
-                    );
+                    ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
 
                 if (! $response->successful()) {
                     $validate = [
@@ -391,7 +445,7 @@ class MasiveTransferSiigoController extends Controller
                     'Row' => $row + 1,
                     'ProductCode' => $detalle['Description'],
                     'Description' => $detalle['LongDescription'],
-                    'WarehouseCode' => $detalle['DestinationWarehouseCode'],
+                    'WarehouseCode' => $detalle['DestinationWarehouseCode'] . ' - #N/A',
                     'Error' => 'La bodega de entrada no está configurada para traslado',
                 ];
             } else if(!$bodega['transito']) {
@@ -407,7 +461,7 @@ class MasiveTransferSiigoController extends Controller
                     'Row' => $row + 1,
                     'ProductCode' => $detalle['Description'],
                     'Description' => $detalle['LongDescription'],
-                    'WarehouseCode' => $bodega['transito'],
+                    'WarehouseCode' => $bodega['transito'] . ' - #N/A',
                     'Error' => 'La bodega de transito configurada no existe',
                 ];
             } else {
@@ -435,7 +489,7 @@ class MasiveTransferSiigoController extends Controller
         return array_values($traslados);
     }
 
-    private function traslado(string $token, array $detalles, array $config)
+    private function traslado(string $token, array $detalles, array $config, array $bodegas)
     {
         $validate = [];
 
@@ -489,10 +543,7 @@ class MasiveTransferSiigoController extends Controller
 
         $response = Http::withToken($token)
             ->asJson()
-            ->post(
-                'https://services.siigo.com/ACEntryApi/api/v1/WarehouseTransfer/Save/',
-                $body
-            );
+            ->post('https://services.siigo.com/ACEntryApi/api/v1/WarehouseTransfer/Save/', $body);
 
         if (! $response->successful()) {
             $validate = [
@@ -508,6 +559,12 @@ class MasiveTransferSiigoController extends Controller
 
         $document = $this->consultar_documento($token, $data);
 
+        $bodega_salida_codigo = collect($detalles)->first()['WarehouseCode'];
+        $bodega_ingreso_codigo = collect($detalles)->first()['DestinationWarehouseCode'];
+
+        $bodega_salida = $bodegas['DIRECTO'][$bodega_salida_codigo] ?? ($bodegas['TRANSITO'][$bodega_salida_codigo] ?? null);
+        $bodega_ingreso = $bodegas['DIRECTO'][$bodega_ingreso_codigo] ?? ($bodegas['TRANSITO'][$bodega_ingreso_codigo] ?? null);
+
         return [
             [
                 'preview' => "https://siigonube.siigo.com/#/inventories/1372/{$data}",
@@ -518,7 +575,11 @@ class MasiveTransferSiigoController extends Controller
                     'document' => $document['DocName'],
                     'user' => $document['CreatedByUser'],
                     'created_at' => $document['CreatedByDate'],
-                    'date' => $document['DocDate']
+                    'date' => $document['DocDate'],
+                    'bodega_salida' => $bodega_salida_codigo,
+                    'bodega_ingreso' => $bodega_ingreso_codigo,
+                    'bodega_salida_data' => $bodega_salida,
+                    'bodega_ingreso_data' => $bodega_ingreso,
                 ]
             ],
             $validate
@@ -572,12 +633,12 @@ class MasiveTransferSiigoController extends Controller
         return [
             'DIRECTO' => [
                 -1 => ['name' => 'Sin asignar', 'transito' => null],
-                2  => ['name' => 'P R I N C I P A L', 'transito' => 67],
+                2  => ['name' => 'P R I N C I P A L', 'transito' => 67, 'users' => [597]],
                 3  => ['name' => 'ALEGRA', 'transito' => null, 'users' => [1362]],
                 4  => ['name' => 'PUNTO DE VENTA', 'transito' => null],
                 9  => ['name' => 'MAYALES', 'transito' => null],
                 13 => ['name' => 'PROD FABRICA', 'transito' => null],
-                15 => ['name' => 'REVENT', 'transito' => 68],
+                15 => ['name' => 'REVENT', 'transito' => 68, 'users' => [597]],
                 16 => ['name' => 'MATERIA PRIMA', 'transito' => null],
                 17 => ['name' => 'OCEAN MALL', 'transito' => null],
                 19 => ['name' => 'NUESTRO', 'transito' => null],
@@ -607,8 +668,8 @@ class MasiveTransferSiigoController extends Controller
                 63 => ['name' => 'NUESTRO URABÁ', 'transito' => null]
             ],
             'TRANSITO' => [
-                67 => ['name' => 'TRANSITO P R I N C I P A L', 'transito' => null],
-                68 => ['name' => 'TRANSITO REVENT', 'transito' => null]
+                67 => ['name' => 'TRANSITO P R I N C I P A L', 'users' => [597]],
+                68 => ['name' => 'TRANSITO REVENT', 'users' => [597]]
             ]
         ];
     }
@@ -660,5 +721,51 @@ class MasiveTransferSiigoController extends Controller
             ],
             $validate
         ];
+    }
+
+    private function sellers_siigo(string $token, array $filters = []): void
+    {
+        $page = $filters['page'] ?? 1;
+        $pageSize = $filters['page_size'] ?? 100;
+        $totalPages = null;
+
+        do {
+            $response = Http::retry(5, 10000)->withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => $token,
+                'Partner-Id' => 'consultadeFacturas',
+            ])->get("{$this->siigo_base_url}/v1/users", [
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]);
+
+            if ($response->status() === 429) {
+                sleep(1);
+                continue;
+            }
+
+            if (! $response->successful()) {
+                throw new \Exception($response->body());
+            }
+
+            $data = $response->json();
+
+            if (!empty($data['results'])) {
+                $this->sellers = array_merge($this->sellers, $data['results']);
+            }
+
+            if ($totalPages === null) {
+                $pagination = $data['pagination'];
+                $totalPages = (int) ceil($pagination['total_results'] / $pagination['page_size']);
+            }
+
+            $page++;
+
+            if ($page <= $totalPages) {
+                usleep(500000);
+            }
+        } while ($page <= $totalPages);
+
+        $this->sellers = collect($this->sellers);
     }
 }

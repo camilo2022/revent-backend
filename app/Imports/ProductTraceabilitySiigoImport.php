@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Events\BeforeSheet;
 
 HeadingRowFormatter::default('none');
 
-class MasiveTransferDetailsSiigoImport implements  ToCollection, WithHeadingRow, WithEvents
+class ProductTraceabilitySiigoImport implements  ToCollection, WithHeadingRow, WithEvents
 {
     public $sheetNames;
     public $sheetData;
