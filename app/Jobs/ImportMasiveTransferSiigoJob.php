@@ -128,7 +128,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                     $emails = $this->sellers->whereIn('id', $traslado['data']['bodega_salida_data']['users'])->pluck('email')->filter()->toArray();
 
                     if (!empty($emails)) {
-                        Mail::to(['camiloacacio16@gmail.com'])->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-exit-siigo'));
+                        Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-exit-siigo'));
                     }
                 }
 
@@ -136,7 +136,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                     $emails = $this->sellers->whereIn('id', $traslado['data']['bodega_ingreso_data']['users'])->pluck('email')->filter()->toArray();
 
                     if (!empty($emails)) {
-                        Mail::to(['chatgptinsano2025@gmail.com'])->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-entrance-siigo'));
+                        Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-entrance-siigo'));
                     }
                 }
             }
@@ -661,38 +661,38 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             'DIRECTO' => [
                 -1 => ['name' => 'Sin asignar', 'transito' => null],
                 2  => ['name' => 'P R I N C I P A L', 'transito' => 67, 'users' => [597]],
-                3  => ['name' => 'ALEGRA', 'transito' => null, 'users' => [1362]],
-                4  => ['name' => 'PUNTO DE VENTA', 'transito' => null],
-                9  => ['name' => 'MAYALES', 'transito' => null],
+                3  => ['name' => 'ALEGRA', 'transito' => null, 'users' => [735, 742, 816, 823, 824, 873, 875, 878, 879, 880, 883, 884, 957, 972, 975, 979, 997, 1002, 1003, 1049, 1062, 1065, 1068, 1114, 1128, 1163, 1164, 1182, 1223, 1237, 1238, 1242, 1251, 1279, 1280, 1314, 1348, 1350, 1362, 11571, 11579, 11581, 11591]],
+                4  => ['name' => 'PUNTO DE VENTA', 'transito' => null, 'users' => [877]],
+                9  => ['name' => 'MAYALES', 'transito' => null, 'users' => [948, 951, 952, 978, 1005, 1016, 1059, 1115, 1116, 1126, 1127, 1171, 1175, 1176, 1177, 1179, 1216, 1258, 1291, 1309, 1310, 1311, 1361, 1370, 1372, 1391, 1452, 1471, 1472, 1520, 11578]],
                 13 => ['name' => 'PROD FABRICA', 'transito' => null],
                 15 => ['name' => 'REVENT', 'transito' => 68, 'users' => [597]],
                 16 => ['name' => 'MATERIA PRIMA', 'transito' => null],
-                17 => ['name' => 'OCEAN MALL', 'transito' => null],
-                19 => ['name' => 'NUESTRO', 'transito' => null],
-                22 => ['name' => 'ALAMEDAS', 'transito' => null],
-                24 => ['name' => 'PORTAL', 'transito' => null],
+                17 => ['name' => 'OCEAN MALL', 'transito' => null, 'users' => [1087, 1183, 1197, 1200, 1201, 1224, 1263, 1264, 1390, 1442, 1530, 11572, 11573]],
+                19 => ['name' => 'NUESTRO', 'transito' => null, 'users' => [982, 983, 984, 985, 987, 989, 994, 1015, 1017, 1026, 1029, 1056, 1057, 1074, 1095, 1096, 1098, 1099, 1104, 1117, 1121, 1135, 1159, 1217, 1219, 1347, 1455, 1470, 11559, 11560, 11602]],
+                22 => ['name' => 'ALAMEDAS', 'transito' => null, 'users' => [986, 992, 1034, 1061, 1064, 1092, 1097, 1157, 1162, 1165, 1232, 1288, 1373, 1382, 1408, 1409, 1469, 1533, 11561]],
+                24 => ['name' => 'PORTAL', 'transito' => null, 'users' => [732, 792, 865, 871, 887, 888, 891, 893, 894, 896, 897, 898, 899, 938, 959, 971, 998, 1001, 1027, 1063, 1072, 1123, 1131, 1132, 1180, 1188, 1226, 1228, 1278, 1295, 1296, 1315, 1318, 1319, 1331, 1351, 1364, 1365, 1378, 1461, 1462, 1463, 1481, 1497, 1508, 1512, 1523, 11574, 11575, 11576, 11598]],
                 27 => ['name' => 'CARIBE PLAZA 1', 'transito' => null],
-                28 => ['name' => 'PLAZA DEL SOL', 'transito' => null],
-                31 => ['name' => 'WEB', 'transito' => null],
-                32 => ['name' => 'CASTELLANA', 'transito' => null],
-                33 => ['name' => 'UNICO BQ', 'transito' => null],
+                28 => ['name' => 'PLAZA DEL SOL', 'transito' => null, 'users' => [780, 930, 1181, 1221, 1261, 1268, 1298, 1328, 1385, 1400, 1430, 1438, 1454, 1467, 1480, 11592]],
+                31 => ['name' => 'WEB', 'transito' => null, 'users' => [940, 980, 1146]],
+                32 => ['name' => 'CASTELLANA', 'transito' => null, 'users' => [926, 1021, 1035, 1040, 1042, 1044, 1046, 1051, 1052, 1053, 1054, 1055, 1058, 1066, 1070, 1073, 1075, 1082, 1085, 1091, 1102, 1106, 1133, 1134, 1142, 1152, 1153, 1154, 1167, 1173, 1174, 1184, 1185, 1187, 1195, 1196, 1202, 1225, 1227, 1229, 1230, 1265, 1266, 1267, 1275, 1276, 1277, 1299, 1307, 1308, 1317, 1352, 1419, 1444, 1483, 1488, 1492, 1494, 1515, 1516, 1517, 1534, 11569, 11570]],
+                33 => ['name' => 'UNICO BQ', 'transito' => null, 'users' => [740, 813, 882, 1018, 1122, 1212, 1220, 1222, 1252, 1256, 1259, 1260, 1273, 1274, 1281, 1282, 1283, 1284, 1285, 1286, 1289, 1305, 1312, 1313, 1320, 1321, 1357, 1360, 1375, 1379, 1403, 1424, 1449, 1451, 1460, 1511, 1514, 1524, 11562]],
                 34 => ['name' => 'CREAR ENSAMBLES', 'transito' => null],
                 35 => ['name' => 'Credito de Calzado', 'transito' => null],
                 36 => ['name' => 'ECOMMERCE', 'transito' => null],
-                37 => ['name' => 'CARNAVAL', 'transito' => null],
-                44 => ['name' => 'INSTAGRAM', 'transito' => null],
+                37 => ['name' => 'CARNAVAL', 'transito' => null, 'users' => [810, 886, 1145, 1147, 1148, 1150, 1151, 1160, 1203, 1233, 1257, 1297, 1324, 1325, 1429, 1466, 1532, 11563, 11565]],
+                44 => ['name' => 'INSTAGRAM', 'transito' => null, 'users' => [1547]],
                 45 => ['name' => 'GARANTIAS', 'transito' => null],
-                46 => ['name' => 'GUATAPURI', 'transito' => null],
+                46 => ['name' => 'GUATAPURI', 'transito' => null, 'users' => [1037, 1060, 1166, 1170, 1178, 1255, 1271, 1292, 1304, 1329, 1330, 1356, 1384, 1439, 1445, 1473, 1474, 1475, 1504, 11580]],
                 47 => ['name' => 'TEMPORADA 2025', 'transito' => null],
-                49 => ['name' => 'VENTURA PLAZA', 'transito' => null],
-                50 => ['name' => 'FABRICATO', 'transito' => null],
-                51 => ['name' => 'UNICO CALI', 'transito' => null],
+                49 => ['name' => 'VENTURA PLAZA', 'transito' => null, 'users' => [1344, 1345, 1371, 1383, 1495, 1556, 11556]],
+                50 => ['name' => 'FABRICATO', 'transito' => null, 'users' => [1332, 1333, 1334, 1335, 1336, 1337, 1338, 1339, 1340, 1341, 1342, 1343, 1346, 1349, 1380, 1387, 1388, 1416, 1418, 1423, 1443, 1468, 1476, 1489, 1490, 1509, 1526, 1527, 1535, 1538, 11557, 11597]],
+                51 => ['name' => 'UNICO CALI', 'transito' => null, 'users' => [1205, 1206, 1207, 1209, 1210, 1211, 1213, 1235, 1239, 1240, 1241, 1244, 1245, 1269, 1270, 1300, 1322, 1353, 1359, 1386, 1411, 1412, 1413, 1421, 1433, 1435, 1477, 1496, 1536, 11590]],
                 56 => ['name' => 'CARIBE PLAZA 2', 'transito' => null],
-                57 => ['name' => 'MAYORCA', 'transito' => null],
-                58 => ['name' => 'GRAN MANZANA', 'transito' => null],
-                59 => ['name' => 'NUESTRO ATLANTICO', 'transito' => null],
+                57 => ['name' => 'MAYORCA', 'transito' => null, 'users' => [1537, 1542, 1543, 1544, 1545, 1546, 1548, 1549, 1552, 1554, 1555, 11558, 11568, 11577, 11582]],
+                58 => ['name' => 'GRAN MANZANA', 'transito' => null, 'users' => [1498, 1500, 1501, 1502, 1503, 1513, 1531, 11584]],
+                59 => ['name' => 'NUESTRO ATLANTICO', 'transito' => null, 'users' => [885, 11585, 11586, 11587, 11588, 11589, 11595]],
                 62 => ['name' => 'NUESTRO CARTAGO', 'transito' => null],
-                63 => ['name' => 'NUESTRO URABÁ', 'transito' => null]
+                63 => ['name' => 'NUESTRO URABÁ', 'transito' => null],
             ],
             'TRANSITO' => [
                 67 => ['name' => 'TRANSITO P R I N C I P A L', 'users' => [597]],
