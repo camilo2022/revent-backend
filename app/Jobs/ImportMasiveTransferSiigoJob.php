@@ -117,16 +117,16 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 $errors = array_merge($errors, $validate);
                 $traslados[] = $traslado;
 
-                if ($traslado['data']['bodega_salida_data'] && !empty($traslado['data']['bodega_salida_data']['users'] ?? [])) {
-                    $emails = $traslado['data']['bodega_salida_data']['users']['emails'] ?? [];
+                if ($traslado['data']['bodega_salida_data'] && !empty($traslado['data']['bodega_salida_data']['emails'] ?? [])) {
+                    $emails = $traslado['data']['bodega_salida_data']['emails'] ?? [];
 
                     if (!empty($emails)) {
                         Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-exit-siigo'));
                     }
                 }
 
-                if ($traslado['data']['bodega_ingreso_data'] && !empty($traslado['data']['bodega_ingreso_data']['users'] ?? [])) {
-                    $emails = $traslado['data']['bodega_ingreso_data']['users']['emails'] ?? [];
+                if ($traslado['data']['bodega_ingreso_data'] && !empty($traslado['data']['bodega_ingreso_data']['emails'] ?? [])) {
+                    $emails = $traslado['data']['bodega_ingreso_data']['emails'] ?? [];
 
                     if (!empty($emails)) {
                         Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-entrance-siigo'));
