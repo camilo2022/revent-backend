@@ -45,3 +45,12 @@ Route::get('/exports/download/{file}', function (string $file) {
 
     return response()->download($path);
 })->name('exports.download');
+
+Route::get('/formats/download/{file}', function (string $file) {
+    abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);
+
+    $path = public_path("storage/formats/{$file}");
+    abort_unless(file_exists($path), 404);
+
+    return response()->download($path);
+})->name('formats.download');

@@ -361,7 +361,7 @@
             <div class="excel-upload-title">Cargar archivo de traslados masivos</div>
             <div class="excel-upload-subtitle">
                 Sube la plantilla Excel (.xlsx o .xls) para procesar los traslados
-                <a href="{{ asset('storage/formats/formato_traslado.xlsx') }}" class="excel-download-btn" download>
+                <a href="{{ route('formats.download', 'formato_traslado.xlsx') }}" class="excel-download-btn" download>
                     Descargar formato
                 </a>
             </div>

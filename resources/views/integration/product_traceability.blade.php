@@ -372,7 +372,7 @@
             </div>
             <div class="excel-upload-subtitle">
                 Sube la plantilla Excel (.xlsx o .xls) para procesar los traslados
-                <a href="{{ asset('storage/formats/formato_trazabilidad_producto.xlsx') }}" class="excel-download-btn" download>
+                <a href="{{ route('formats.download', 'formato_trazabilidad_producto.xlsx') }}" class="excel-download-btn" download>
                     Descargar formato
                 </a>
             </div>
