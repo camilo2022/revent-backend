@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Exports\MasiveTransferSiigoMultiSheetExport;
 use App\Mail\MasiveTransferSiigoMail;
-use App\Services\SiigoInventoryService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -24,9 +23,6 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
     public int $tries = 1;
     public int $timeout = 3600;
-
-    private string $siigo_base_url = 'https://api.siigo.com';
-    private array|Collection $sellers = [];
 
     public function __construct(
         private Collection $transfer,
@@ -115,9 +111,6 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         $detalles = $this->separar_traslados($detalles);
 
         if (empty($errors)) {
-            $siigo = new SiigoInventoryService();
-            $token_admin = $siigo->auth();
-            $this->sellers_siigo($token_admin);
 
             foreach ($detalles as $detalle) {
                 [$traslado, $validate] = $this->traslado($token, $detalle, $config, $bodegas);
@@ -125,7 +118,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 $traslados[] = $traslado;
 
                 if ($traslado['data']['bodega_salida_data'] && !empty($traslado['data']['bodega_salida_data']['users'] ?? [])) {
-                    $emails = $this->sellers->whereIn('id', $traslado['data']['bodega_salida_data']['users'])->pluck('email')->filter()->toArray();
+                    $emails = $traslado['data']['bodega_salida_data']['users']['emails'] ?? [];
 
                     if (!empty($emails)) {
                         Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-exit-siigo'));
@@ -133,7 +126,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 }
 
                 if ($traslado['data']['bodega_ingreso_data'] && !empty($traslado['data']['bodega_ingreso_data']['users'] ?? [])) {
-                    $emails = $this->sellers->whereIn('id', $traslado['data']['bodega_ingreso_data']['users'])->pluck('email')->filter()->toArray();
+                    $emails = $traslado['data']['bodega_ingreso_data']['users']['emails'] ?? [];
 
                     if (!empty($emails)) {
                         Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-entrance-siigo'));
@@ -660,12 +653,12 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         return [
             'DIRECTO' => [
                 -1 => ['name' => 'Sin asignar', 'transito' => null],
-                2  => ['name' => 'P R I N C I P A L', 'transito' => 67, 'users' => [597]],
+                2  => ['name' => 'P R I N C I P A L', 'transito' => 67, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
                 3  => ['name' => 'ALEGRA', 'transito' => null, 'users' => [735, 742, 816, 823, 824, 873, 875, 878, 879, 880, 883, 884, 957, 972, 975, 979, 997, 1002, 1003, 1049, 1062, 1065, 1068, 1114, 1128, 1163, 1164, 1182, 1223, 1237, 1238, 1242, 1251, 1279, 1280, 1314, 1348, 1350, 1362, 11571, 11579, 11581, 11591]],
                 4  => ['name' => 'PUNTO DE VENTA', 'transito' => null, 'users' => [877]],
                 9  => ['name' => 'MAYALES', 'transito' => null, 'users' => [948, 951, 952, 978, 1005, 1016, 1059, 1115, 1116, 1126, 1127, 1171, 1175, 1176, 1177, 1179, 1216, 1258, 1291, 1309, 1310, 1311, 1361, 1370, 1372, 1391, 1452, 1471, 1472, 1520, 11578]],
                 13 => ['name' => 'PROD FABRICA', 'transito' => null],
-                15 => ['name' => 'REVENT', 'transito' => 68, 'users' => [597]],
+                15 => ['name' => 'REVENT', 'transito' => 68, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
                 16 => ['name' => 'MATERIA PRIMA', 'transito' => null],
                 17 => ['name' => 'OCEAN MALL', 'transito' => null, 'users' => [1087, 1183, 1197, 1200, 1201, 1224, 1263, 1264, 1390, 1442, 1530, 11572, 11573]],
                 19 => ['name' => 'NUESTRO', 'transito' => null, 'users' => [982, 983, 984, 985, 987, 989, 994, 1015, 1017, 1026, 1029, 1056, 1057, 1074, 1095, 1096, 1098, 1099, 1104, 1117, 1121, 1135, 1159, 1217, 1219, 1347, 1455, 1470, 11559, 11560, 11602]],
@@ -693,10 +686,12 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 59 => ['name' => 'NUESTRO ATLANTICO', 'transito' => null, 'users' => [885, 11585, 11586, 11587, 11588, 11589, 11595]],
                 62 => ['name' => 'NUESTRO CARTAGO', 'transito' => null],
                 63 => ['name' => 'NUESTRO URABÁ', 'transito' => null],
+                66 => ['name' => 'GUACARI SINCELEJO', 'transito' => null],
+                69 => ['name' => 'NUESTRO BOGOTÁ', 'transito' => null],
             ],
             'TRANSITO' => [
-                67 => ['name' => 'TRANSITO P R I N C I P A L', 'users' => [597]],
-                68 => ['name' => 'TRANSITO REVENT', 'users' => [597]]
+                67 => ['name' => 'TRANSITO P R I N C I P A L', 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+                68 => ['name' => 'TRANSITO REVENT', 'users' => [597], 'emails' => ['operaciones@revent.com.co']]
             ]
         ];
     }
@@ -746,51 +741,5 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             ],
             $validate
         ];
-    }
-
-    private function sellers_siigo(string $token, array $filters = []): void
-    {
-        $page = $filters['page'] ?? 1;
-        $pageSize = $filters['page_size'] ?? 100;
-        $totalPages = null;
-
-        do {
-            $response = Http::retry(5, 10000)->withHeaders([
-                'Content-Type' => 'application/json',
-                'Authorization' => $token,
-                'Partner-Id' => 'consultadeFacturas',
-            ])->get("{$this->siigo_base_url}/v1/users", [
-                'page' => $page,
-                'page_size' => $pageSize,
-            ]);
-
-            if ($response->status() === 429) {
-                sleep(1);
-                continue;
-            }
-
-            if (!$response->successful()) {
-                throw new \Exception($response->body());
-            }
-
-            $data = $response->json();
-
-            if (!empty($data['results'])) {
-                $this->sellers = array_merge($this->sellers, $data['results']);
-            }
-
-            if ($totalPages === null) {
-                $pagination = $data['pagination'];
-                $totalPages = (int) ceil($pagination['total_results'] / $pagination['page_size']);
-            }
-
-            $page++;
-
-            if ($page <= $totalPages) {
-                usleep(500000);
-            }
-        } while ($page <= $totalPages);
-
-        $this->sellers = collect($this->sellers);
     }
 }
