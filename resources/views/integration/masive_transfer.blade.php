@@ -424,7 +424,7 @@
 
                 <button type="submit" class="excel-submit-btn" id="excelSubmitBtn" disabled>
                     <span class="spinner"></span>
-                    <span class="excel-submit-btn-text">Subir archivo</span>
+                    <span class="excel-submit-btn-text">Realizar traslados</span>
                 </button>
             </form>
 

@@ -25,6 +25,7 @@ class MasiveTransferDetailSiigoExport extends DefaultValueBinder implements From
     {
         return [
             'codigo',
+            'descripcion',
             'bodega_salida',
             'bodega_entrada',
             'cantidad'
@@ -41,6 +42,7 @@ class MasiveTransferDetailSiigoExport extends DefaultValueBinder implements From
         foreach ($this->transfer_details as $transfer_detail) {
             yield [
                 'codigo' => $transfer_detail['codigo'],
+                'descripcion' => $transfer_detail['descripcion'],
                 'bodega_salida' => $transfer_detail['bodega_salida'],
                 'bodega_entrada' => $transfer_detail['bodega_entrada'],
                 'cantidad' => $transfer_detail['cantidad']

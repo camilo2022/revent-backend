@@ -328,6 +328,36 @@
                 transform: translateY(0);
             }
         }
+
+        .excel-download-btn {
+            text-align: center;
+            display: inline-block;
+            text-decoration: none;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1.25rem;
+            padding: 0.75rem;
+            background: #16a34a;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        .excel-download-btn:hover {
+            background: #15803d;
+        }
+
+        .excel-download-btn:active {
+            transform: scale(0.98);
+        }
+
+        .excel-download-btn:disabled {
+            background: #d1d5db;
+        }
     </style>
 </head>
 
@@ -339,6 +369,12 @@
             <div class="excel-upload-title">Buscar trazabilidad de referencias</div>
             <div class="excel-upload-subtitle">
                 Selecciona la bodega, la fecha inicial y sube el archivo con las referencias a consultar.
+            </div>
+            <div class="excel-upload-subtitle">
+                Sube la plantilla Excel (.xlsx o .xls) para procesar los traslados
+                <a href="{{ asset('storage/formats/formato_trazabilidad_producto.xlsx') }}" class="excel-download-btn" download>
+                    Descargar formato
+                </a>
             </div>
 
             <form action="{{ route('siigo.product_traceability_download') }}" method="POST"

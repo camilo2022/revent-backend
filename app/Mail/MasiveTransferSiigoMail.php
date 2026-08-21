@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class MasiveTransferSiigoMail extends Mailable implements ShouldQueue
+class MasiveTransferSiigoMail extends Mailable
 {
     use Queueable, SerializesModels;
 
