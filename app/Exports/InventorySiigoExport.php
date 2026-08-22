@@ -46,6 +46,7 @@ class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, 
             'CODIGO_BARRAS',
             'MARCA',
             'MODELO',
+            'ESTADO',
             'BODEGA',
             'CANTIDAD',
             'FECHA',
@@ -139,6 +140,9 @@ class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, 
 
                     $diffDays = ($firstDate && $secondDate) ? (new \DateTime($secondDate))->diff(new \DateTime($firstDate))->days : null;
 
+                    $warehouseId = $warehouse['id'] ?? null;
+                    $store = $this->stores[$warehouseId] ?? null;
+
                     yield [
                         'CUENTA DE GRUPO' => $product['account_group']['name'] ?? null,
                         'CODIGO' => $product['code'] ?? null,
@@ -151,7 +155,8 @@ class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, 
                         'CODIGO_BARRAS' => $product['additional_fields']['barcode'] ?? null,
                         'MARCA' => $product['additional_fields']['brand'] ?? null,
                         'MODELO' => $product['additional_fields']['model'] ?? null,
-                        'BODEGA' => ($this->stores[($warehouse['id'] ?? null)]['code'] ?? '') . ' - ' . ($warehouse['name'] ?? null),
+                        'ESTADO' => $store['status'] ?? 'APROBADO',
+                        'BODEGA' => ($store['code'] ?? 'S/C') . ' - ' . ($store['name'] ?? ($warehouse['name'] ?? null)),
                         'CANTIDAD' => $warehouse['quantity'] ?? 0,
                         'FECHA' => $firstDate,
                         'SEGUNDA_FECHA' => $secondDate,
