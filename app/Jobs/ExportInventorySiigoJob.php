@@ -31,7 +31,7 @@ class ExportInventorySiigoJob implements ShouldQueue
         $siigo = new SiigoInventoryService();
 
         $name = $this->filters['positive'] ? "inventarios_con_ingreso" : "inventarios_por_ingreso";
-        $filename = "reports/{$name}_" . now()->format('Ymd_His') . ".xlsx";
+        $filename = "{$name}_" . now()->format('Ymd_His') . ".xlsx";
 
         $token = $siigo->auth();
 
