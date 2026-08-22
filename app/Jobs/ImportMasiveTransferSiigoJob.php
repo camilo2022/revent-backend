@@ -307,52 +307,51 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
     private function validar_bodega_salida(string $token, array $detalles, array $config)
     {
         $validate = [];
-        $bodegasCache = [];
 
         $fecha = Carbon::parse($config['fecha'])->format('Ymd');
 
         foreach ($detalles as $row => $detalle) {
             $productCode = $detalle['ProductCode'];
+            $warehouseCode = $detalle['WarehouseCode'];
 
-            if (array_key_exists($productCode, $bodegasCache)) {
-                $bodegas = $bodegasCache[$productCode];
-            } else {
-                $bodegas = [];
+            $body = [
+                'type' => 1,
+                'browserID' => '67',
+                'query' => '',
+                'filter' => "productcode = {$productCode} AND period < CONCAT(Year('$fecha'), FORMAT(CONVERT(datetime, '$fecha'), 'MM'))",
+                'filter2' => "transactiondate >= CONCAT(Year('$fecha'), FORMAT(CONVERT(datetime, '$fecha'), 'MM'), '01') AND CONVERT(DATE, transactiondate, 120) <= CONVERT(DATE, '$fecha', 120) AND productcode = {$productCode}",
+                'numRecordView' => 0,
+                'tags' => (object) [
+                    '{FilterWareHouse}' => "{condition} ProductWarehouseId = {$warehouseCode}",
+                ],
+            ];
 
-                foreach ([0, 10, 20, 30] as $numRecordView) {
-                    $body = [
-                        'type' => 1,
-                        'browserID' => '67',
-                        'query' => '',
-                        'filter' => "productcode = {$productCode} AND period < CONCAT(Year('$fecha'), FORMAT(CONVERT(datetime, '$fecha'), 'MM'))",
-                        "filter2" => "transactiondate >= CONCAT(Year('$fecha'), FORMAT(CONVERT(datetime, '$fecha'), 'MM'), '01') AND CONVERT(DATE, transactiondate, 120) <= CONVERT(DATE, '$fecha', 120) AND productcode = {$productCode}",
-                        "numRecordView" => $numRecordView,
-                        'tags' => (object) [
-                            "{FilterWareHouse}" => ""
-                        ]
-                    ];
+            $response = Http::retry(3, 3000)->withToken($token)
+                ->asJson()
+                ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
 
-                    $response = Http::retry(3, 3000)->withToken($token)
-                        ->asJson()
-                        ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
+            if (!$response->successful()) {
+                $validate = [
+                    [
+                        'Row'   => 'ERROR DESCONOCIDO',
+                        'Error' => $response->body(),
+                    ]
+                ];
+                return $validate;
+            }
 
-                    if (!$response->successful()) {
-                        $validate = [
-                            [
-                                'Row'   => 'ERROR DESCONOCIDO',
-                                'Error' => $response->body(),
-                            ]
-                        ];
-                        return $validate;
-                    }
+            $data = $response->json();
+            $bodegas = !empty($data) ? json_decode($data, true) : [];
 
-                    $data = $response->json();
-                    $data = json_decode($data, true);
-
-                    $bodegas = array_merge($bodegas, $data);
-                }
-
-                $bodegasCache[$productCode] = $bodegas;
+            if (empty($bodegas)) {
+                $validate[] = [
+                    'Row' => $row + 1,
+                    'ProductCode' => $detalle['Description'],
+                    'Description' => $detalle['LongDescription'],
+                    'WarehouseCode' => $detalle['WarehouseCode'],
+                    'Error' => 'La bodega de salida no existe',
+                ];
+                continue;
             }
 
             $existencia = collect($bodegas)->where('WarehouseID', $detalle['WarehouseCode'])->first();
@@ -384,54 +383,51 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
     private function validar_bodega_entrada(string $token, array $detalles, array $config)
     {
         $validate = [];
-        $bodegasCache = [];
 
         $fecha = Carbon::parse($config['fecha'])->format('Ymd');
 
         foreach ($detalles as $row => $detalle) {
             $productCode = $detalle['ProductCode'];
-            $warehouseCode = $detalle['WarehouseCode'];
-            $cacheKey = $productCode . '|' . $warehouseCode;
+            $warehouseCode = $detalle['DestinationWarehouseCode'];
 
-            if (array_key_exists($cacheKey, $bodegasCache)) {
-                $bodegas = $bodegasCache[$cacheKey];
-            } else {
-                $bodegas = [];
+            $body = [
+                'type' => 1,
+                'browserID' => '67',
+                'query' => '',
+                'filter' => "productcode = {$productCode} AND period < CONCAT(Year('$fecha'), FORMAT(CONVERT(datetime, '$fecha'), 'MM'))",
+                'filter2' => "transactiondate >= CONCAT(Year('$fecha'), FORMAT(CONVERT(datetime, '$fecha'), 'MM'), '01') AND CONVERT(DATE, transactiondate, 120) <= CONVERT(DATE, '$fecha', 120) AND productcode = {$productCode}",
+                'numRecordView' => 0,
+                'tags' => (object) [
+                    '{FilterWareHouse}' => "{condition} ProductWarehouseId = {$warehouseCode}",
+                ],
+            ];
 
-                foreach ([0, 10, 20, 30] as $numRecordView) {
-                    $body = [
-                        'type' => 1,
-                        'browserID' => '67',
-                        'query' => '',
-                        'filter' => "productcode = {$productCode} AND period < CONCAT(Year('$fecha'), FORMAT(CONVERT(datetime, '$fecha'), 'MM'))",
-                        "filter2" => "transactiondate >= CONCAT(Year('$fecha'), FORMAT(CONVERT(datetime, '$fecha'), 'MM'), '01') AND CONVERT(DATE, transactiondate, 120) <= CONVERT(DATE, '$fecha', 120) AND productcode = {$productCode}",
-                        "numRecordView" => $numRecordView,
-                        'tags' => (object) [
-                            "{FilterWareHouse}" => "{condition} ProductWarehouseId <> {$warehouseCode}"
-                        ]
-                    ];
+            $response = Http::retry(3, 3000)->withToken($token)
+                ->asJson()
+                ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
 
-                    $response = Http::retry(3, 3000)->withToken($token)
-                        ->asJson()
-                        ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
+            if (!$response->successful()) {
+                $validate = [
+                    [
+                        'Row'   => 'ERROR DESCONOCIDO',
+                        'Error' => $response->body(),
+                    ]
+                ];
+                return $validate;
+            }
 
-                    if (!$response->successful()) {
-                        $validate = [
-                            [
-                                'Row'   => 'ERROR DESCONOCIDO',
-                                'Error' => $response->body(),
-                            ]
-                        ];
-                        return $validate;
-                    }
+            $data = $response->json();
+            $bodegas = !empty($data) ? json_decode($data, true) : [];
 
-                    $data = $response->json();
-                    $data = json_decode($data, true);
-
-                    $bodegas = array_merge($bodegas, $data);
-                }
-
-                $bodegasCache[$cacheKey] = $bodegas;
+            if (empty($bodegas)) {
+                $validate[] = [
+                    'Row' => $row + 1,
+                    'ProductCode' => $detalle['Description'],
+                    'Description' => $detalle['LongDescription'],
+                    'WarehouseCode' => $detalle['DestinationWarehouseCode'],
+                    'Error' => 'La bodega de entrada no existe',
+                ];
+                continue;
             }
 
             $existencia = collect($bodegas)->where('WarehouseID', $detalle['DestinationWarehouseCode'])->first();
