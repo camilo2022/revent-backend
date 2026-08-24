@@ -52,6 +52,13 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             } else {
                 $config['fecha'] = Carbon::parse($fecha)->format('Y-m-d');
             }
+
+            if (Carbon::parse($config['fecha'])->gt(Carbon::today())) {
+                $errors[] = [
+                    'Row' => 'FECHA',
+                    'Error' => 'La fecha no puede ser mayor a la fecha actual',
+                ];
+            }
         } else {
             $errors[] = [
                 'Row' => 'FECHA',
