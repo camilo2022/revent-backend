@@ -244,31 +244,11 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             if (array_key_exists($codigo, $productosCache)) {
                 $producto = $productosCache[$codigo];
             } else {
-                $body = [
-                    'type' => 1,
-                    'browserID' => '33',
-                    'query' => $codigo,
-                    'filter' => 'IsInventoryControl=1',
-                    'tags' => (object) []
-                ];
+                $producto = $this->buscar_con_paginacion($token, $codigo, $validate);
 
-                $response = Http::retry(3, 3000)->withToken($token)
-                    ->asJson()
-                    ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
-
-                if (!$response->successful()) {
-                    $validate = [
-                        [
-                            'Row'   => 'ERROR DESCONOCIDO',
-                            'Error' => $response->body(),
-                        ]
-                    ];
+                if ($producto === false) {
                     return [[], $validate];
                 }
-
-                $data = $response->json();
-                $data = json_decode($data, true);
-                $producto = collect($data)->where('Code', $codigo)->first();
 
                 $productosCache[$codigo] = $producto;
             }
@@ -302,6 +282,63 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         }
 
         return [$items, $validate];
+    }
+
+    private function buscar_con_paginacion(string $token, string $codigo, array &$validate)
+    {
+        $numRecordView = 0;
+        $maxIntentos = 3;
+        $intentos = 0;
+
+        do {
+            $body = [
+                'type' => 1,
+                'browserID' => '33',
+                'query' => $codigo,
+                'filter' => 'IsInventoryControl=1',
+                'numRecordView' => $numRecordView,
+                'tags' => (object) []
+            ];
+
+            $response = Http::retry(3, 3000)->withToken($token)
+                ->asJson()
+                ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
+
+            if (!$response->successful()) {
+                $validate = [
+                    [
+                        'Row'   => 'ERROR DESCONOCIDO',
+                        'Error' => $response->body(),
+                    ]
+                ];
+                return false;
+            }
+
+            $rawBody = trim($response->body());
+
+            if ($rawBody === '""' || $rawBody === '' || $rawBody === 'null') {
+                return null;
+            }
+
+            $data = $response->json();
+            $data = json_decode($data, true);
+
+            if (empty($data)) {
+                return null;
+            }
+
+            $producto = collect($data)->where('Code', $codigo)->first();
+
+            if ($producto) {
+                return $producto;
+            }
+
+            $numRecordView += 10;
+            $intentos++;
+
+        } while ($intentos < $maxIntentos);
+
+        return null;
     }
 
     private function validar_bodega_salida(string $token, array $detalles, array $config)
