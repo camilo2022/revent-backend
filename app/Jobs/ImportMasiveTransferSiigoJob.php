@@ -600,6 +600,8 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
         $response = Http::withToken($token)
             ->asJson()
+            ->connectTimeout(60)
+            ->timeout(300)
             ->post('https://services.siigo.com/ACEntryApi/api/v1/WarehouseTransfer/Save/', $body);
 
         if (!$response->successful()) {
