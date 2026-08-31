@@ -29,9 +29,8 @@ class PurchaseOrderSiigoController extends Controller
     public function purchase_order_format(Request $request)
     {
         $cookie = $request->input('cookie');
-        preg_match('/TKNSGRDDREVENTCALZADOSAS=([^;]+)/', $cookie, $matches);
+        $token = $this->extraer_token($cookie);
 
-        $token = $matches[1] ?? null;
         $purchase_order_type_id = $request->input('purchase_order_type_id');
 
         $type_details = [
@@ -64,7 +63,7 @@ class PurchaseOrderSiigoController extends Controller
             'email.regex' => 'El correo :input debe pertenecer al dominio @revent.com.co',
         ]);
 
-        $compras = [];
+        $ordenes_compra = [];
         $errors = [];
 
         $email = $request->input('email');
@@ -83,10 +82,13 @@ class PurchaseOrderSiigoController extends Controller
             return $errors;
         }
 
-        preg_match('/TKNSGRDDREVENTCALZADOSAS=([^;]+)/', $cookie, $matches);
+        $token = $this->extraer_token($cookie);
 
-        $token = $matches[1] ?? null;
         $purchase_order_type_id = $config['tipo'];
+
+        [$user, $validate] = $this->obtener_datos_usuario($token);
+        $errors = array_merge($errors, $validate);
+        if(!empty($errors)) return $errors;
 
         if (empty($purchase_order_type_id)) {
             $errors[] = [
@@ -127,6 +129,8 @@ class PurchaseOrderSiigoController extends Controller
             ];
         }
 
+        $cost_center = [];
+
         if($purchase_order_type->UseCostCenter) {
             if(empty($config['centro_costo'])){
                 $errors[] = [
@@ -142,15 +146,20 @@ class PurchaseOrderSiigoController extends Controller
                     'Row' => 'CENTRO COSTO',
                     'Error' => 'El centro de costo no es valido',
                 ];
+            } else {
+                $cost_center = $cost_centers[$config['centro_costo']];
             }
         }
 
         $list_taxes = $this->list_taxes($token, $cookie);
 
-        if ($purchase_order_type->IsReteIva && isset($config['rete_iva'])) {
-            $exists = collect($list_taxes['rete_iva'])->contains('Id', $config['rete_iva']);
-
-            if (!$exists) {
+        if ($purchase_order_type->IsReteIva) {
+            if (!isset($config['rete_iva']) || $config['rete_iva'] === '') {
+                $errors[] = [
+                    'Row' => 'RETE IVA',
+                    'Error' => 'El rete iva es obligatorio',
+                ];
+            } elseif (!collect($list_taxes['rete_iva'] ?? [])->contains('Id', $config['rete_iva'])) {
                 $errors[] = [
                     'Row' => 'RETE IVA',
                     'Error' => 'El rete iva no es valido',
@@ -158,10 +167,13 @@ class PurchaseOrderSiigoController extends Controller
             }
         }
 
-        if ($purchase_order_type->IsReteIca && isset($config['rete_ica'])) {
-            $exists = collect($list_taxes['rete_ica'])->contains('Id', $config['rete_ica']);
-
-            if (!$exists) {
+        if ($purchase_order_type->IsReteIca) {
+            if (!isset($config['rete_ica']) || $config['rete_ica'] === '') {
+                $errors[] = [
+                    'Row' => 'RETE ICA',
+                    'Error' => 'El rete ica es obligatorio',
+                ];
+            } elseif (!collect($list_taxes['rete_ica'] ?? [])->contains('Id', $config['rete_ica'])) {
                 $errors[] = [
                     'Row' => 'RETE ICA',
                     'Error' => 'El rete ica no es valido',
@@ -202,17 +214,256 @@ class PurchaseOrderSiigoController extends Controller
 
         $date = Carbon::createFromFormat('d/m/Y', trim($fecha))->format('Ymd');
 
-        [$orden_compra_detalles, $errors] = $this->validar_detalles($token, $cookie, $order['orden_compra_detalles']->toArray(), $warehouses, $date, $list_taxes['imp_cargo'], $list_taxes['imp_retencion']);
+        [$orden_compra_detalles, $errors] = $this->validar_detalles($token, $cookie, $order['orden_compra_detalles']->toArray(), $warehouses, $date, $list_taxes['imp_cargo'], $list_taxes['imp_retencion'], $user);
         if(!empty($errors)) return $errors;
-        
-        return $orden_compra_detalles;
 
+        $orden_compra_detalles = collect($orden_compra_detalles)->groupBy('Warehouse_Id');
 
+        foreach($orden_compra_detalles as $warehouse_id => $detalles) {
 
-        return $errors;
+        }
     }
 
-    private function validar_detalles(string $token, string $cookie, array $orden_compra_detalles, array $warehouses, string $date, array $imp_cargo, array $imp_retencion)
+    private function separar_ordenes_compra(array $config, array $user, object $purchase_order_type, array $rete_iva, array $rete_ica, array $provider, array $cost_center, string $doc_date, array $detalles)
+    {
+        return [
+            "Process" => 1,
+            "ERPDocType" => $purchase_order_type->ERPType,
+            "ERPDocGeneral" => [
+                "ERPDocumentID" => -1,
+                "ForeignMoneyCode" => "",
+                "ApplyForAllDay" => false,
+                "GeneratePdf" => true,
+                "lngLastAccount" => -1,
+                "WFInstanceID" => -1,
+                "ERPDocDate" => $doc_date,
+                "Number" => -1,
+                "AccountID" => $provider['ID'],
+                "ContactID" => $provider['contactID'],
+                "SalesmanID" => $user['id'],
+                "ERPDocumentType" => $purchase_order_type->ERPDocumentType,
+                "ERPDocClass" => $purchase_order_type->ERPDocClass,
+                "ERPDocCode" => $purchase_order_type->ERPDocCode,
+                "ConsumptionTaxTotalValue" => 0,
+                "TaxDiscTotalValue" => 14000,
+                "VATTotalValue" => 7600,
+                "TotalValue" => 133600,
+                "TotalBase" => 140000,
+                "TotalBaseAIU" => 0,
+                "RetICAName" => "",
+                "RetICABaseValue" => 0,
+                "RetICATotalCode" => -1,
+                "RetICATotalValue" => 0,
+                "RetICATotaPercentage" => -1,
+                "RetVATTotalCode" => -1,
+                "RetVATTotalValue" => 0,
+                "RetVATTotalPercentage" => -1,
+                "RetVATName" => "",
+                "RetVATBaseValue" => 0,
+                "AttachmentsFSItemsGUID" => $purchase_order_type->AttachmentsFSItemsGUID,
+                "TotalDiscountPercentage" => 0,
+                "TotalDiscountValue" => 0,
+                "Header" => $purchase_order_type->Header,
+                "CommercialConditions" => $purchase_order_type->CommercialConditions,
+                "ERPDocumentCode" => -1,
+                "Observations" => $config['observaciones'] ?? '',
+                "IsAllowDecimals" => $purchase_order_type->AllowDecimals,
+                "CostCenterCode" => $purchase_order_type->UseCostCenter ? $cost_center['ID'] : $purchase_order_type->CostCenterDefaultCode,
+                "ConfigInitial" => json_encode(["BaseAIU" => "False"]),
+                "ConsumptionValue" => 0,
+                "AllowTaxImpoByValue" => $purchase_order_type->AllowTaxImpoByValue,
+                "TaxIncluded" => $purchase_order_type->TaxIncluded,
+                "ExternalERPDocName" => null,
+                "ERPDocType" => [
+                    "UseDIANVadility" => $purchase_order_type->UseDIANVadility,
+                    "ERPDocumentType" => $purchase_order_type->ERPDocumentType,
+                    "ERPType" => $purchase_order_type->ERPType,
+                    "IsPercentage" => $purchase_order_type->IsPercentage,
+                    "IsReteIva" => $purchase_order_type->IsReteIva,
+                    "IsReteIca" => $purchase_order_type->IsReteIca,
+                    "Atachments" => $purchase_order_type->Atachments,
+                    "IsSalesBySalesman" => $purchase_order_type->IsSalesBySalesman,
+                    "CostCenterDefaultName" => $purchase_order_type->CostCenterDefaultName,
+                    "UseWarehouse" => $purchase_order_type->UseWarehouse,
+                    "LastWarehouseCode" => $purchase_order_type->LastWarehouseCode,
+                    "UseUnitValue" => $purchase_order_type->UseUnitValue,
+                    "EnableTwoTaxes" => $purchase_order_type->EnableTwoTaxes,
+                    "ShowAIU" => $purchase_order_type->ShowAIU,
+                    "UseQuantity" => $purchase_order_type->UseQuantity,
+                    "IsItemsByAccount" => $purchase_order_type->IsItemsByAccount,
+                    "AllowTaxImpoByValue" => $purchase_order_type->AllowTaxImpoByValue,
+                    "TaxIncluded" => $purchase_order_type->TaxIncluded,
+                    "CreatedAsProviderByItem" => $purchase_order_type->CreatedAsProviderByItem,
+                    "AllowValueWithChargeTaxes" => $purchase_order_type->AllowValueWithChargeTaxes,
+                    "NextNumber" => $purchase_order_type->NextNumber,
+                    "AllowTaxAdd2" => $purchase_order_type->AllowTaxAdd2,
+                    "TaxAdd2Name" => $purchase_order_type->TaxAdd2Name,
+                    "ERPDocumentTypeID" => $purchase_order_type->ERPDocumentTypeID,
+                    "Name" => $purchase_order_type->Name,
+                    "ERPDocClass" => $purchase_order_type->ERPDocClass,
+                    "ERPDocCode" => $purchase_order_type->ERPDocCode,
+                    "NumberInitial" => $purchase_order_type->NumberInitial,
+                    "DIANPrefix" => $purchase_order_type->DIANPrefix,
+                    "ERPDocument" => $purchase_order_type->ERPDocument,
+                    "DIANResolution" => $purchase_order_type->DIANResolution,
+                    "DIANAuthorizationDate" => $purchase_order_type->DIANAuthorizationDate,
+                    "DIANNumberStart" => $purchase_order_type->DIANNumberStart,
+                    "DIANNumberEnd" => $purchase_order_type->DIANNumberEnd,
+                    "DIANVadility" => $purchase_order_type->DIANVadility,
+                    "SubjectEMail" => $purchase_order_type->SubjectEMail,
+                    "BodyEmail" => $purchase_order_type->BodyEmail,
+                    "IsAutomaticSignature" => $purchase_order_type->IsAutomaticSignature,
+                    "CreatedByDate" => $purchase_order_type->CreatedByDate,
+                    "CreatedByUser" => $purchase_order_type->CreatedByUser,
+                    "UpdatedByUser" => $purchase_order_type->UpdatedByUser,
+                    "UpdatedByDate" => $purchase_order_type->UpdatedByDate,
+                    "InternalDescription" => $purchase_order_type->InternalDescription,
+                    "IsAutomaticEnum" => $purchase_order_type->IsAutomaticEnum,
+                    "Consecutive" => $purchase_order_type->Consecutive,
+                    "IsOnlinePayment" => $purchase_order_type->IsOnlinePayment,
+                    "IsRoundNumber" => $purchase_order_type->IsRoundNumber,
+                    "IsDiscountPercentaje" => $purchase_order_type->IsDiscountPercentaje,
+                    "IsDiscountValue" => $purchase_order_type->IsDiscountValue,
+                    "Comments" => $purchase_order_type->Comments,
+                    "IsNew" => $purchase_order_type->IsNew,
+                    "UseDocumentSupport" => $purchase_order_type->UseDocumentSupport,
+                    "Prefix" => $purchase_order_type->Prefix,
+                    "PrintMsg" => $purchase_order_type->PrintMsg,
+                    "CreateTask" => $purchase_order_type->CreateTask,
+                    "TemplateName" => $purchase_order_type->TemplateName,
+                    "TemplatePath" => $purchase_order_type->TemplatePath,
+                    "ViewSelectedColumns" => $purchase_order_type->ViewSelectedColumns,
+                    "LayoutSelectedColumns" => $purchase_order_type->LayoutSelectedColumns,
+                    "SignatureEmail" => $purchase_order_type->SignatureEmail,
+                    "AllowRetVAT" => $purchase_order_type->AllowRetVAT,
+                    "AllowRetICA" => $purchase_order_type->AllowRetICA,
+                    "IsActive" => $purchase_order_type->IsActive,
+                    "Header" => $purchase_order_type->Header,
+                    "CommercialCoditions" => $purchase_order_type->CommercialCoditions,
+                    "TopContent" => $purchase_order_type->TopContent,
+                    "BottomContent" => $purchase_order_type->BottomContent,
+                    "LeftContent" => $purchase_order_type->LeftContent,
+                    "RightContent" => $purchase_order_type->RightContent,
+                    "FormatName" => $purchase_order_type->FormatName,
+                    "AttachmentsFSItemsGUID" => $purchase_order_type->AttachmentsFSItemsGUID,
+                    "AllowDecimals" => $purchase_order_type->AllowDecimals,
+                    "AllowSalesBySalesman" => $purchase_order_type->AllowSalesBySalesman,
+                    "AllowSalesByAccount" => $purchase_order_type->AllowSalesByAccount,
+                    "AllowOrderReference" => $purchase_order_type->AllowOrderReference,
+                    "AllowOrderDelivery" => $purchase_order_type->AllowOrderDelivery,
+                    "UseCostCenter" => $purchase_order_type->UseCostCenter,
+                    "CostCenterMandatory" => $purchase_order_type->CostCenterMandatory,
+                    "CostCenterDefaultCode" => $purchase_order_type->CostCenterDefaultCode,
+                    "IsShowResolutionDIAN" => $purchase_order_type->IsShowResolutionDIAN,
+                    "CLDocumentTypeCode" => $purchase_order_type->CLDocumentTypeCode,
+                    "TaxImpoByValue" => $purchase_order_type->TaxImpoByValue,
+                    "AssociatedType" => $purchase_order_type->AssociatedType,
+                    "Address" => $purchase_order_type->Address,
+                    "CityCode" => $purchase_order_type->CityCode,
+                    "Phone" => $purchase_order_type->Phone,
+                    "AccountCode" => $purchase_order_type->AccountCode,
+                    "ContactCode" => $purchase_order_type->ContactCode,
+                    "ProductWarehouseCode" => $purchase_order_type->ProductWarehouseCode,
+                    "PriceListCode" => $purchase_order_type->PriceListCode,
+                    "AllowCards" => $purchase_order_type->AllowCards,
+                    "AllowOthers" => $purchase_order_type->AllowOthers,
+                    "AllowCredit" => $purchase_order_type->AllowCredit,
+                    "AllowChangeSalesman" => $purchase_order_type->AllowChangeSalesman,
+                    "AllowDiscount" => $purchase_order_type->AllowDiscount,
+                    "AllowAllPriceList" => $purchase_order_type->AllowAllPriceList,
+                    "AllowChangePrice" => $purchase_order_type->AllowChangePrice,
+                    "AllowPreliminary" => $purchase_order_type->AllowPreliminary,
+                    "AllowAIU" => $purchase_order_type->AllowAIU,
+                    "TaxAdd2Code" => $purchase_order_type->TaxAdd2Code,
+                    "AllowAdvance" => $purchase_order_type->AllowAdvance,
+                    "ACAccountCodeAdvance" => $purchase_order_type->ACAccountCodeAdvance,
+                    "ACAccountCode" => $purchase_order_type->ACAccountCode,
+                    "ApplyAccountingBook" => $purchase_order_type->ApplyAccountingBook,
+                    "ElectronicInvoiceType" => $purchase_order_type->ElectronicInvoiceType,
+                    "ElectronicInvoiceKey" => $purchase_order_type->ElectronicInvoiceKey,
+                    "CreditACPaymentMeanCode" => $purchase_order_type->CreditACPaymentMeanCode,
+                    "ERPDocumentTypeJournalEntryCode" => $purchase_order_type->ERPDocumentTypeJournalEntryCode,
+                    "MoneyIncomeACAccountCode" => $purchase_order_type->MoneyIncomeACAccountCode,
+                    "MoneyWithdrawalACAccountCode" => $purchase_order_type->MoneyWithdrawalACAccountCode,
+                    "ESiigoTestEntryType" => $purchase_order_type->ESiigoTestEntryType,
+                    "ESiigoTestIncludeCufeQR" => $purchase_order_type->ESiigoTestIncludeCufeQR,
+                    "AllowReprintInvoices" => $purchase_order_type->AllowReprintInvoices,
+                    "ShowValues" => $purchase_order_type->ShowValues,
+                    "UseCodeBarReader" => $purchase_order_type->UseCodeBarReader,
+                    "DIANEndDate" => $purchase_order_type->DIANEndDate,
+                    "AllowSelfWithholdingTax" => $purchase_order_type->AllowSelfWithholdingTax,
+                    "SelfWithholdingTaxCode" => $purchase_order_type->SelfWithholdingTaxCode,
+                    "SelfWithholdingLowerLimit" => $purchase_order_type->SelfWithholdingLowerLimit,
+                    "AllowMultipleRemittance" => $purchase_order_type->AllowMultipleRemittance,
+                    "AllowDocumentReference" => $purchase_order_type->AllowDocumentReference,
+                    "Establishment" => $purchase_order_type->Establishment,
+                    "EmissionPoint" => $purchase_order_type->EmissionPoint,
+                    "ACAccountCodeGift" => $purchase_order_type->ACAccountCodeGift,
+                    "TypeRetention" => $purchase_order_type->TypeRetention,
+                    "ERPDocumentTypeCreditNoteCode" => $purchase_order_type->ERPDocumentTypeCreditNoteCode,
+                    "CanAnnullInvoice" => $purchase_order_type->CanAnnullInvoice,
+                    "CanMakeCreditNote" => $purchase_order_type->CanMakeCreditNote,
+                    "ERPDocumentAllowDecimals" => $purchase_order_type->ERPDocumentAllowDecimals,
+                    "NotifyWhenNotHaveStock" => $purchase_order_type->NotifyWhenNotHaveStock,
+                    "AllowISR" => $purchase_order_type->AllowISR,
+                    "NExterior" => $purchase_order_type->NExterior,
+                    "NInside" => $purchase_order_type->NInside,
+                    "Suburb" => $purchase_order_type->Suburb,
+                    "Location" => $purchase_order_type->Location,
+                    "PostalCode" => $purchase_order_type->PostalCode,
+                    "UtilityACAccountCode" => $purchase_order_type->UtilityACAccountCode,
+                    "LossACAccountCode" => $purchase_order_type->LossACAccountCode,
+                    "DiscountBonusACAccountCode" => $purchase_order_type->DiscountBonusACAccountCode,
+                    "CanChangeWarehouse" => $purchase_order_type->CanChangeWarehouse,
+                    "TaxClassificationCode" => $purchase_order_type->TaxClassificationCode,
+                    "EnableAutomaticCash" => $purchase_order_type->EnableAutomaticCash,
+                    "AutomaticCashACAccountCode" => $purchase_order_type->AutomaticCashACAccountCode,
+                    "AutomaticCashACPaymentMeanCode" => $purchase_order_type->AutomaticCashACPaymentMeanCode,
+                    "ComplementaryDataList" => $purchase_order_type->ComplementaryDataList,
+                    "IsDiscountPercent" => $purchase_order_type->IsDiscountPercentaje
+                ],
+                "ExternalPrefix" => null,
+                "ExternalConsecutive" => null,
+                "ExchangePersonalized" => false,
+                "CreatedAsProviderByItem" => $purchase_order_type->CreatedAsProviderByItem,
+                "IsDiscountPercent" => $purchase_order_type->IsDiscountPercentaje,
+                "lstERPDocItem" => $detalles,
+                "ERPDocumentTotal" => [],
+                "ERPDocumentDue" => null,
+                "ERPDocumentPayment" => null,
+                "AdvanceValue" => null,
+                "PaymentTotal" => null,
+                "ERPDocumentConfigModel" => null,
+                "JSONERPDocType" => [
+                    "ERPDocumentTypeID" => $purchase_order_type->ERPDocumentTypeID,
+                    "Name" => $purchase_order_type->Name,
+                    "ERPDocClass" => $purchase_order_type->ERPDocClass,
+                    "ERPDocCode" => $purchase_order_type->ERPDocCode,
+                    "IsAutomaticEnum" => $purchase_order_type->IsAutomaticEnum,
+                    "IsDiscountPercentaje" => $purchase_order_type->IsDiscountPercentaje,
+                    "BaseAIU" => false,
+                    "TemplateName" => $purchase_order_type->TemplateName,
+                    "InternalDescription" => $purchase_order_type->InternalDescription,
+                    "AllowRetVAT" => $purchase_order_type->AllowRetVAT,
+                    "AllowRetICA" => $purchase_order_type->AllowRetICA,
+                    "AllowDecimals" => $purchase_order_type->AllowDecimals,
+                    "AllowSalesBySalesman" => $purchase_order_type->AllowSalesBySalesman,
+                    "UseCostCenter" => $purchase_order_type->UseCostCenter,
+                    "IsShowResolutionDIAN" => $purchase_order_type->IsShowResolutionDIAN,
+                    "ACAccountCode" => $purchase_order_type->ACAccountCode,
+                    "EnableTwoTaxesOnSave" => false,
+                    "AllowTaxAdd2" => $purchase_order_type->AllowTaxAdd2,
+                    "IsConsumptionAddValue" => true,
+                    "TaxIncluded" => $purchase_order_type->TaxIncluded,
+                    "TaxImpoByValue" => $purchase_order_type->TaxImpoByValue,
+                    "CreatedAsProviderByItem" => $purchase_order_type->CreatedAsProviderByItem,
+                    "ExternalERPDocName" => null
+                ]
+            ]
+        ];
+    }
+
+    private function validar_detalles(string $token, string $cookie, array $orden_compra_detalles, array $warehouses, string $date, array $imp_cargo, array $imp_retencion, array $user)
     {
         $validate = [];
         $detalles = [];
@@ -223,7 +474,7 @@ class PurchaseOrderSiigoController extends Controller
         foreach($orden_compra_detalles as $row => $detalle) {
             $warehouse = $warehouses[$detalle['bodega']] ?? [];
 
-            if(empty($detalle['tipo_detalle'])) {
+            if(!isset($detalle['tipo_detalle']) || $detalle['tipo_detalle'] === '') {
                 $validate[] = [
                     'Row' => $row + 1,
                     'ProductCode' => $detalle['item'],
@@ -439,7 +690,7 @@ class PurchaseOrderSiigoController extends Controller
                 "Warehouse_Code" => $warehouseEntry['code'] ?? "",
                 "SalesmanCode" => "",
                 "SalesmanName" => "",
-                "SalesmanID" => "597",
+                "SalesmanID" => $user['id'],
                 "AccountID" => -1,
                 "AccountCode" => "",
                 "AccountName" => "",
@@ -515,7 +766,7 @@ class PurchaseOrderSiigoController extends Controller
         ];
     }
 
-    private function search_products(string $token, string $cookie, string $text)
+    private function search_products(string $token, string $cookie, string|null $text)
     {
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
@@ -599,6 +850,7 @@ class PurchaseOrderSiigoController extends Controller
 
         $data = $response->json();
 
+        if(!empty($data)) $data['ID'] = $account_id;
         return $data;
     }
 
@@ -700,4 +952,43 @@ class PurchaseOrderSiigoController extends Controller
         $data = [['id' => '-1', 'name' => 'Sin asignar'], ...$data];
         return $data;
     }
+
+    private function obtener_datos_usuario(string $token)
+    {
+        $validate = [];
+        $response = Http::retry(3, 3000)->withHeaders([
+            'Authorization' => $token,
+            'Accept' => '*/*',
+            'Referer' => 'https://siigonube.siigo.com/',
+        ])->get('https://services.siigo.com/cross/globalstate/api/v1/Settings/LoadSettings');
+
+        if (!$response->successful()) {
+            $validate = [
+                [
+                    'Row'   => 'TOKEN',
+                    'Error' => 'El token no sirve o expiró, genera uno nuevo',
+                ]
+            ];
+
+            return [[], $validate];
+        }
+
+        $data = $response->json();
+
+        return [
+            [
+                'id' => $data['userID'],
+                'name' => $data['userName'],
+            ],
+            $validate
+        ];
+    }
+
+    private function extraer_token(string $cookie): ?string
+    {
+        preg_match('/TKNSGRDDREVENTCALZADOSAS=([^;]+)/', $cookie, $matches);
+
+        return $matches[1] ?? null;
+    }
+
 }
