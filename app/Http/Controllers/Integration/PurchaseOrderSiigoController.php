@@ -9,8 +9,11 @@ use App\Services\SiigoInventoryService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Symfony\Component\DomCrawler\Crawler;
+use Illuminate\Support\Str;
 
 class PurchaseOrderSiigoController extends Controller
 {
@@ -79,7 +82,7 @@ class PurchaseOrderSiigoController extends Controller
                 'Row' => 'COOKIE',
                 'Error' => 'La cookie es obligatorio',
             ];
-            return $errors;
+            return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
         }
 
         $token = $this->extraer_token($cookie);
@@ -88,14 +91,14 @@ class PurchaseOrderSiigoController extends Controller
 
         [$user, $validate] = $this->obtener_datos_usuario($token);
         $errors = array_merge($errors, $validate);
-        if(!empty($errors)) return $errors;
+        if(!empty($errors)) return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
 
         if (empty($purchase_order_type_id)) {
             $errors[] = [
                 'Row' => 'TIPO',
                 'Error' => 'El tipo de orden de compra es obligatorio',
             ];
-            return $errors;
+            return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
         }
 
         $purchase_order_type = $this->purchase_order_type($token, $cookie, $purchase_order_type_id);
@@ -105,7 +108,7 @@ class PurchaseOrderSiigoController extends Controller
                 'Row' => 'TIPO',
                 'Error' => 'El tipo de orden de compra no es valido',
             ];
-            return $errors;
+            return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
         }
 
         if (isset($config['fecha']) && $config['fecha'] != '') {
@@ -180,14 +183,14 @@ class PurchaseOrderSiigoController extends Controller
                 ];
             }
         }
-        if(!empty($errors)) return $errors;
+        if(!empty($errors)) return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
 
         if(empty($config['proveedor'])){
             $errors[] = [
                 'Row' => 'PROVEEDOR',
                 'Error' => 'El proveedor es obligatorio',
             ];
-            return $errors;
+            return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
         }
 
         $search_providers = $this->search_providers($token, $cookie, $config['proveedor']);
@@ -197,13 +200,13 @@ class PurchaseOrderSiigoController extends Controller
                 'Row' => 'PROVEEDOR',
                 'Error' => 'El proveedor no es valido. Multiples regsitros de busqueda',
             ];
-            return $errors;
+            return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
         } elseif($search_providers->isEmpty()) {
             $errors[] = [
                 'Row' => 'PROVEEDOR',
                 'Error' => 'El proveedor no es valido',
             ];
-            return $errors;
+            return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
         }
 
         $search_providers = $search_providers->first();
@@ -212,20 +215,212 @@ class PurchaseOrderSiigoController extends Controller
         $warehouses = $this->warehouses();
         $warehouses = collect($warehouses)->keyBy('id')->all();
 
-        $date = Carbon::createFromFormat('d/m/Y', trim($fecha))->format('Ymd');
+        $fecha = Carbon::createFromFormat('Y-m-d', $config['fecha'])->format('Ymd');
 
-        [$orden_compra_detalles, $errors] = $this->validar_detalles($token, $cookie, $order['orden_compra_detalles']->toArray(), $warehouses, $date, $list_taxes['imp_cargo'], $list_taxes['imp_retencion'], $user);
-        if(!empty($errors)) return $errors;
+        [$orden_compra_detalles, $errors] = $this->validar_detalles($token, $cookie, $order['orden_compra_detalles']->toArray(), $warehouses, $fecha, $list_taxes['imp_cargo'], $list_taxes['imp_retencion'], $user);
+
+        if(!empty($errors)) return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
 
         $orden_compra_detalles = collect($orden_compra_detalles)->groupBy('Warehouse_Id');
 
         foreach($orden_compra_detalles as $warehouse_id => $detalles) {
+            $body = $this->separar_ordenes_compra($config, $user, $purchase_order_type, $list_taxes['rete_iva'], $list_taxes['rete_ica'], $provider, $cost_center, $fecha, $detalles);
 
+            [$orden_compra, $validate] = $this->orden_compra($token, $cookie, $body);
+
+            if (!empty($validate)) {
+                $errors = array_merge($errors, $validate);
+                continue;
+            }
+
+            $info = $this->consultar_orden_compra($token, $cookie, $orden_compra['documento_id']);
+
+            $ordenes_compra[] = [
+                'bodega' => $warehouses[$warehouse_id],
+                'documento' => $info['documento'],
+                'url' => $info['url'],
+            ];
         }
+
+        return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
     }
 
-    private function separar_ordenes_compra(array $config, array $user, object $purchase_order_type, array $rete_iva, array $rete_ica, array $provider, array $cost_center, string $doc_date, array $detalles)
+    private function consultar_orden_compra(string $token, string $cookie, int|string $erp_document_id): array
     {
+        $response = Http::withToken($token)->withHeaders([
+                'Cookie' => $cookie,
+            ])
+            ->timeout(600)
+            ->withoutRedirecting()
+            ->get('https://monolithprod.siigo.com/REVENTCALZADOSAS/Default.aspx', [
+                'TabID' => 1671,
+                'ERPDocumentID' => $erp_document_id,
+                'pTabID' => 1408,
+            ]);
+
+        if (!$response->successful()) {
+            return ['documento' => null, 'url' => null];
+        }
+
+        $crawler = new Crawler($response->body());
+
+        $documento = null;
+        $titleSpan = $crawler->filter('#Default_ucControlPane0_ContainerTitle');
+        if ($titleSpan->count()) {
+            $documento = trim(Str::after($titleSpan->text(), ':'));
+        }
+
+        $url = null;
+        $btnCopyUrl = $crawler->filter('#Default_ucControlPane0_ctl00_btnCopyUrl');
+        if ($btnCopyUrl->count()) {
+            $onclick = $btnCopyUrl->attr('onclick');
+
+            preg_match('/setClipboardText\(["\'](.*?)["\']\)/', $onclick, $matches);
+
+            if (isset($matches[1])) {
+                $url = html_entity_decode($matches[1]);
+            }
+        }
+
+        return [
+            'documento' => $documento,
+            'url' => $url,
+        ];
+    }
+
+    private function orden_compra(string $token, string $cookie, array $body)
+    {
+        $response = Http::withToken($token)->withHeaders([
+                'Cookie' => $cookie,
+            ])
+            ->timeout(600)
+            ->withoutRedirecting()
+            ->asMultipart()
+            ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Components/ERP/Business/ERPDocHandler.ashx', [
+                    ['name' => 'Process', 'contents' => $body['Process']],
+                    ['name' => 'ERPDocType', 'contents' => $body['ERPDocType']],
+                    ['name' => 'ERPDocGeneral', 'contents' => json_encode($body['ERPDocGeneral'])],
+                    ['name' => 'lstERPDocItem', 'contents' => json_encode($body['lstERPDocItem'])],
+                    ['name' => 'ERPDocumentTotal', 'contents' => json_encode($body['ERPDocumentTotal'])],
+                    ['name' => 'ERPDocumentDue', 'contents' => $body['ERPDocumentDue']],
+                    ['name' => 'ERPDocumentPayment', 'contents' => $body['ERPDocumentPayment']],
+                    ['name' => 'AdvanceValue', 'contents' => $body['AdvanceValue']],
+                    ['name' => 'PaymentTotal', 'contents' => $body['PaymentTotal']],
+                    ['name' => 'ERPDocumentConfigModel', 'contents' => $body['ERPDocumentConfigModel']],
+                    ['name' => 'JSONERPDocType', 'contents' => json_encode($body['JSONERPDocType'])],
+                ]
+            );
+
+        if (!$response->successful()) {
+            $validate = [
+                [
+                    'Row'   => 'ERROR DESCONOCIDO - ORDEN DE COMPRA',
+                    'Error' => $response->body(),
+                ]
+            ];
+            return [[], $validate];
+        }
+
+        $data = $this->parse_siigo_response($response->body());
+
+        if (empty($data['success']) || $data['success'] !== true) {
+            $validate = [
+                [
+                    'Row'   => 'SIIGO',
+                    'Error' => $data['msg'] ?? 'Error desconocido al crear la orden de compra',
+                ]
+            ];
+            return [[], $validate];
+        }
+
+        return [['documento_id' => $data['erpDocumentID'] ?? null, 'url' => 'https://monolithprod.siigo.com' . $data['url']], []];
+    }
+
+    private function parse_siigo_response(string $body): array
+    {
+        // Convierte { success:true, url: 'algo', erpDocumentID:2515553 } en JSON válido
+        $json = preg_replace('/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/', '$1"$2":', $body);
+        $json = preg_replace("/:\s*'([^']*)'/", ': "$1"', $json);
+
+        $data = json_decode($json, true);
+
+        return $data ?? [];
+    }
+
+    private function separar_ordenes_compra(array $config, array $user, object $purchase_order_type, array $rete_iva, array $rete_ica, array $provider, array $cost_center, string $doc_date, Collection $detalles)
+    {
+        $total_base = $detalles->sum('BaseValue');
+        $vat_total_value = $detalles->sum('TaxAdd_Value');
+        $tax_disc_total_value = $detalles->sum('TaxDiscount_Value');
+
+        $erp_document_total = collect();
+
+        $detalles->filter(function ($detalle) {
+                return isset($detalle['TaxAdd_Id'])
+                    && (int) $detalle['TaxAdd_Id'] > 0
+                    && (float) ($detalle['TaxAdd_Value'] ?? 0) > 0;
+            })
+            ->groupBy('TaxAdd_Id')
+            ->each(function ($items, $tax_id) use ($erp_document_total) {
+                $erp_document_total->push([
+                    'Id' => (int) $tax_id,
+                    'Value' => $items->sum('TaxAdd_Value'),
+                    'TotalBase' => $items->sum('BaseValue'),
+                ]);
+            });
+
+        $detalles->filter(function ($detalle) {
+                return isset($detalle['TaxDiscount_Id'])
+                    && (int) $detalle['TaxDiscount_Id'] > 0
+                    && (float) ($detalle['TaxDiscount_Value'] ?? 0) > 0;
+            })
+            ->groupBy('TaxDiscount_Id')
+            ->each(function ($items, $tax_id) use ($erp_document_total) {
+
+                $erp_document_total->push([
+                    'Id' => (int) $tax_id,
+                    'Value' => $items->sum('TaxDiscount_Value'),
+                    'TotalBase' => $items->sum('BaseValue'),
+                ]);
+            });
+
+        $erp_document_total = $erp_document_total->values()->all();
+
+        $ret_vat_total_code = (int) ($config['rete_iva'] ?? -1);
+        $ret_vat_total_value = 0;
+        $ret_vat_total_percentage = -1;
+        $ret_vat_name = '';
+        $ret_vat_base_value = 0;
+
+        if ($purchase_order_type->IsReteIva && $ret_vat_total_code != -1) {
+            $rete_iva_selected = collect($rete_iva)->firstWhere('Id', $ret_vat_total_code);
+            if ($rete_iva_selected) {
+                $ret_vat_total_percentage = (float) $rete_iva_selected['Value'];
+                $ret_vat_name = $rete_iva_selected['Name'];
+                $ret_vat_base_value = $vat_total_value;
+                $ret_vat_total_value = round($ret_vat_base_value * ($ret_vat_total_percentage / 100), 2);
+            }
+        }
+
+        $ret_ica_total_code = (int) ($config['rete_ica'] ?? -1);
+        $ret_ica_total_value = 0;
+        $ret_ica_total_percentage = -1;
+        $ret_ica_name = '';
+        $ret_ica_base_value = 0;
+
+        if ($purchase_order_type->IsReteIca && $ret_ica_total_code != -1) {
+            $rete_ica_selected = collect($rete_ica)->firstWhere('Id', $ret_ica_total_code);
+            if ($rete_ica_selected) {
+                $ret_ica_total_percentage = (float) $rete_ica_selected['Value'];
+                $ret_ica_name = $rete_ica_selected['Name'];
+                $ret_ica_base_value = $total_base;
+                $ret_ica_total_value = round($ret_ica_base_value * ($ret_ica_total_percentage / 1000), 2);
+            }
+        }
+
+        $total_value = $total_base + $vat_total_value - $tax_disc_total_value - $ret_ica_total_value - $ret_vat_total_value;
+
+
         return [
             "Process" => 1,
             "ERPDocType" => $purchase_order_type->ERPType,
@@ -233,7 +428,7 @@ class PurchaseOrderSiigoController extends Controller
                 "ERPDocumentID" => -1,
                 "ForeignMoneyCode" => "",
                 "ApplyForAllDay" => false,
-                "GeneratePdf" => true,
+                "GeneratePdf" => false,
                 "lngLastAccount" => -1,
                 "WFInstanceID" => -1,
                 "ERPDocDate" => $doc_date,
@@ -245,30 +440,30 @@ class PurchaseOrderSiigoController extends Controller
                 "ERPDocClass" => $purchase_order_type->ERPDocClass,
                 "ERPDocCode" => $purchase_order_type->ERPDocCode,
                 "ConsumptionTaxTotalValue" => 0,
-                "TaxDiscTotalValue" => 14000,
-                "VATTotalValue" => 7600,
-                "TotalValue" => 133600,
-                "TotalBase" => 140000,
+                "TaxDiscTotalValue" => $tax_disc_total_value,
+                "VATTotalValue" => $vat_total_value,
+                "TotalValue" => $total_value,
+                "TotalBase" => $total_base,
                 "TotalBaseAIU" => 0,
-                "RetICAName" => "",
-                "RetICABaseValue" => 0,
-                "RetICATotalCode" => -1,
-                "RetICATotalValue" => 0,
-                "RetICATotaPercentage" => -1,
-                "RetVATTotalCode" => -1,
-                "RetVATTotalValue" => 0,
-                "RetVATTotalPercentage" => -1,
-                "RetVATName" => "",
-                "RetVATBaseValue" => 0,
+                "RetICAName" => $ret_ica_name,
+                "RetICABaseValue" => $ret_ica_base_value,
+                "RetICATotalCode" => $ret_ica_total_code,
+                "RetICATotalValue" => $ret_ica_total_value,
+                "RetICATotaPercentage" => $ret_ica_total_percentage,
+                "RetVATTotalCode" => $ret_vat_total_code,
+                "RetVATTotalValue" => $ret_vat_total_value,
+                "RetVATTotalPercentage" => $ret_vat_total_percentage,
+                "RetVATName" => $ret_vat_name,
+                "RetVATBaseValue" => $ret_vat_base_value,
                 "AttachmentsFSItemsGUID" => $purchase_order_type->AttachmentsFSItemsGUID,
                 "TotalDiscountPercentage" => 0,
                 "TotalDiscountValue" => 0,
                 "Header" => $purchase_order_type->Header,
-                "CommercialConditions" => $purchase_order_type->CommercialConditions,
+                "CommercialConditions" => $purchase_order_type->CommercialCoditions,
                 "ERPDocumentCode" => -1,
                 "Observations" => $config['observaciones'] ?? '',
                 "IsAllowDecimals" => $purchase_order_type->AllowDecimals,
-                "CostCenterCode" => $purchase_order_type->UseCostCenter ? $cost_center['ID'] : $purchase_order_type->CostCenterDefaultCode,
+                "CostCenterCode" => $purchase_order_type->UseCostCenter ? $cost_center['id'] : $purchase_order_type->CostCenterDefaultCode,
                 "ConfigInitial" => json_encode(["BaseAIU" => "False"]),
                 "ConsumptionValue" => 0,
                 "AllowTaxImpoByValue" => $purchase_order_type->AllowTaxImpoByValue,
@@ -420,46 +615,46 @@ class PurchaseOrderSiigoController extends Controller
                     "AutomaticCashACAccountCode" => $purchase_order_type->AutomaticCashACAccountCode,
                     "AutomaticCashACPaymentMeanCode" => $purchase_order_type->AutomaticCashACPaymentMeanCode,
                     "ComplementaryDataList" => $purchase_order_type->ComplementaryDataList,
-                    "IsDiscountPercent" => $purchase_order_type->IsDiscountPercentaje
+                    "IsDiscountPercent" => $purchase_order_type->IsDiscountPercentaje,
                 ],
                 "ExternalPrefix" => null,
                 "ExternalConsecutive" => null,
                 "ExchangePersonalized" => false,
                 "CreatedAsProviderByItem" => $purchase_order_type->CreatedAsProviderByItem,
                 "IsDiscountPercent" => $purchase_order_type->IsDiscountPercentaje,
-                "lstERPDocItem" => $detalles,
-                "ERPDocumentTotal" => [],
-                "ERPDocumentDue" => null,
-                "ERPDocumentPayment" => null,
-                "AdvanceValue" => null,
-                "PaymentTotal" => null,
-                "ERPDocumentConfigModel" => null,
-                "JSONERPDocType" => [
-                    "ERPDocumentTypeID" => $purchase_order_type->ERPDocumentTypeID,
-                    "Name" => $purchase_order_type->Name,
-                    "ERPDocClass" => $purchase_order_type->ERPDocClass,
-                    "ERPDocCode" => $purchase_order_type->ERPDocCode,
-                    "IsAutomaticEnum" => $purchase_order_type->IsAutomaticEnum,
-                    "IsDiscountPercentaje" => $purchase_order_type->IsDiscountPercentaje,
-                    "BaseAIU" => false,
-                    "TemplateName" => $purchase_order_type->TemplateName,
-                    "InternalDescription" => $purchase_order_type->InternalDescription,
-                    "AllowRetVAT" => $purchase_order_type->AllowRetVAT,
-                    "AllowRetICA" => $purchase_order_type->AllowRetICA,
-                    "AllowDecimals" => $purchase_order_type->AllowDecimals,
-                    "AllowSalesBySalesman" => $purchase_order_type->AllowSalesBySalesman,
-                    "UseCostCenter" => $purchase_order_type->UseCostCenter,
-                    "IsShowResolutionDIAN" => $purchase_order_type->IsShowResolutionDIAN,
-                    "ACAccountCode" => $purchase_order_type->ACAccountCode,
-                    "EnableTwoTaxesOnSave" => false,
-                    "AllowTaxAdd2" => $purchase_order_type->AllowTaxAdd2,
-                    "IsConsumptionAddValue" => true,
-                    "TaxIncluded" => $purchase_order_type->TaxIncluded,
-                    "TaxImpoByValue" => $purchase_order_type->TaxImpoByValue,
-                    "CreatedAsProviderByItem" => $purchase_order_type->CreatedAsProviderByItem,
-                    "ExternalERPDocName" => null
-                ]
-            ]
+            ],
+            "lstERPDocItem" => $detalles->toArray(),
+            "ERPDocumentTotal" => $erp_document_total,
+            "ERPDocumentDue" => null,
+            "ERPDocumentPayment" => null,
+            "AdvanceValue" => "",
+            "PaymentTotal" => "",
+            "ERPDocumentConfigModel" => null,
+            "JSONERPDocType" => [
+                "ERPDocumentTypeID" => $purchase_order_type->ERPDocumentTypeID,
+                "Name" => $purchase_order_type->Name,
+                "ERPDocClass" => $purchase_order_type->ERPDocClass,
+                "ERPDocCode" => $purchase_order_type->ERPDocCode,
+                "IsAutomaticEnum" => $purchase_order_type->IsAutomaticEnum,
+                "IsDiscountPercentaje" => $purchase_order_type->IsDiscountPercentaje,
+                "BaseAIU" => false,
+                "TemplateName" => $purchase_order_type->TemplateName,
+                "InternalDescription" => $purchase_order_type->InternalDescription,
+                "AllowRetVAT" => $purchase_order_type->AllowRetVAT,
+                "AllowRetICA" => $purchase_order_type->AllowRetICA,
+                "AllowDecimals" => $purchase_order_type->AllowDecimals,
+                "AllowSalesBySalesman" => $purchase_order_type->AllowSalesBySalesman,
+                "UseCostCenter" => $purchase_order_type->UseCostCenter,
+                "IsShowResolutionDIAN" => $purchase_order_type->IsShowResolutionDIAN,
+                "ACAccountCode" => $purchase_order_type->ACAccountCode,
+                "EnableTwoTaxesOnSave" => false,
+                "AllowTaxAdd2" => $purchase_order_type->AllowTaxAdd2,
+                "IsConsumptionAddValue" => true,
+                "TaxIncluded" => $purchase_order_type->TaxIncluded,
+                "TaxImpoByValue" => $purchase_order_type->TaxImpoByValue,
+                "CreatedAsProviderByItem" => $purchase_order_type->CreatedAsProviderByItem,
+                "ExternalERPDocName" => null,
+            ],
         ];
     }
 
@@ -706,7 +901,7 @@ class PurchaseOrderSiigoController extends Controller
                 "ConsumptionValue" => 0,
                 "ValueWithChargeTaxes" => $valueWithChargeTaxes,
                 "ItemType" => $detalle['tipo_detalle'],
-                "pWarehouseList" => $pWarehouseList
+                "pWarehouseList" => json_encode($pWarehouseList)
             ];
         }
 
