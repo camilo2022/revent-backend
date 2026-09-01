@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\FromGenerator;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class PurchaseOrderTypeDetailSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
+class MasivePurchaseOrderTypeDetailSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
 {
     use Exportable;
 

@@ -9,36 +9,38 @@ use Maatwebsite\Excel\Concerns\FromGenerator;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class PurchaseOrderWarehousesSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
+class MasivePurchaseOrderReteICASiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
 {
     use Exportable;
 
-    protected $warehouses;
+    protected $retes_ica;
 
-    public function __construct($warehouses)
+    public function __construct($retes_ica)
     {
-        $this->warehouses = $warehouses;
+        $this->retes_ica = $retes_ica;
     }
 
     public function headings(): array
     {
         return [
             'id',
-            'nombre'
+            'nombre',
+            'valor'
         ];
     }
 
     public function title(): string
     {
-        return 'bodegas';
+        return 'rete_ica';
     }
 
     public function generator(): Generator
     {
-        foreach($this->warehouses as $warehouse) {
+        foreach($this->retes_ica as $rete_ica) {
             yield [
-                'id' => $warehouse['id'],
-                'nombre' => $warehouse['name']
+                'id' => $rete_ica['Id'],
+                'nombre' => $rete_ica['Name'] ?: 'No aplica',
+                'valor' => $rete_ica['Value']
             ];
         }
     }

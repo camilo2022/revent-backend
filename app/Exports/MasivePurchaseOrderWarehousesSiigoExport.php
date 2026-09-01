@@ -9,38 +9,36 @@ use Maatwebsite\Excel\Concerns\FromGenerator;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class PurchaseOrderImpRetencionSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
+class MasivePurchaseOrderWarehousesSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
 {
     use Exportable;
 
-    protected $imps_retencion;
+    protected $warehouses;
 
-    public function __construct($imps_retencion)
+    public function __construct($warehouses)
     {
-        $this->imps_retencion = $imps_retencion;
+        $this->warehouses = $warehouses;
     }
 
     public function headings(): array
     {
         return [
             'id',
-            'nombre',
-            'valor'
+            'nombre'
         ];
     }
 
     public function title(): string
     {
-        return 'imp_retencion';
+        return 'bodegas';
     }
 
     public function generator(): Generator
     {
-        foreach($this->imps_retencion as $imp_retencion) {
+        foreach($this->warehouses as $warehouse) {
             yield [
-                'id' => $imp_retencion['Id'],
-                'nombre' => $imp_retencion['Name'],
-                'valor' => $imp_retencion['Value']
+                'id' => $warehouse['id'],
+                'nombre' => $warehouse['name']
             ];
         }
     }

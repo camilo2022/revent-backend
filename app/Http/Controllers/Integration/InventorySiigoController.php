@@ -18,8 +18,6 @@ class InventorySiigoController extends Controller
         $validated = $request->validate([
             'emails' => 'nullable|array|min:1',
             'emails.*' => ['required', 'email', 'regex:/^[a-zA-Z0-9._%+-]+@revent\.com\.co$/'],
-            'created_start' => 'nullable|date|required_with:created_end',
-            'created_end' => 'nullable|date|required_with:created_start|after_or_equal:created_start',
             'inventory_type'  => 'nullable|in:positivo,negativo',
             'page_size' => 'nullable|integer|min:1|max:1000',
             'type' => 'nullable|string|in:Product,Variant',
@@ -39,8 +37,6 @@ class InventorySiigoController extends Controller
         $emails = $request->input('emails', $defaultEmails);
 
         $baseFilters = [
-            'created_start' => $validated['created_start'] ?? null,
-            'created_end' => $validated['created_end'] ?? null,
             'page_size' => $validated['page_size'] ?? 100,
             'type' => $validated['type'] ?? 'Product',
         ];

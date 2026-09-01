@@ -389,7 +389,7 @@
                 Selecciona el tipo de orden de compra y descarga la plantilla Excel correspondiente
             </div>
 
-            <form action="{{ route('siigo.purchase_order_format') }}" method="POST" id="downloadTypeForm">
+            <form action="{{ route('siigo.masive_purchase_order_format') }}" method="POST" id="downloadTypeForm">
                 @csrf
                 <div class="excel-field-group" style="margin-bottom: 0;">
                     <label for="downloadPurchaseOrderType" class="excel-field-label">
@@ -424,7 +424,7 @@
                 Sube la plantilla Excel (.xlsx o .xls) ya diligenciada para procesar la orden de compra
             </div>
 
-            <form action="{{ route('siigo.purchase_order_upload') }}" method="POST" enctype="multipart/form-data"
+            <form action="{{ route('siigo.masive_purchase_order_upload') }}" method="POST" enctype="multipart/form-data"
                 id="excelUploadForm">
                 @csrf
 

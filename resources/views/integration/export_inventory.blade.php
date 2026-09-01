@@ -303,40 +303,6 @@
 
                 <hr class="section-divider">
 
-                <div class="section-title">Rango de fechas</div>
-
-                <div class="date-range-group">
-                    <div class="excel-field-group">
-                        <label for="createdStart" class="excel-field-label">
-                            Fecha inicio
-                        </label>
-                        <input type="datetime-local" name="created_start" id="createdStart"
-                            class="excel-field-input" value="{{ old('created_start') }}">
-                    </div>
-                </div>
-
-                <div class="date-range-group">
-                    <div class="excel-field-group">
-                        <label for="createdEnd" class="excel-field-label">
-                            Fecha fin
-                        </label>
-                        <input type="datetime-local" name="created_end" id="createdEnd"
-                            class="excel-field-input" value="{{ old('created_end') }}">
-                    </div>
-                </div>
-                <div class="excel-field-hint">
-                    Si dejas ambas fechas en blanco, se generará el reporte sin filtrar por fecha. Si diligencias una, la otra pasa a ser obligatoria.
-                </div>
-
-                @error('created_start')
-                    <div class="excel-error show">{{ $message }}</div>
-                @enderror
-                @error('created_end')
-                    <div class="excel-error show">{{ $message }}</div>
-                @enderror
-
-                <hr class="section-divider">
-
                 <div class="section-title">Tipo de inventario</div>
 
                 <div class="excel-field-group">

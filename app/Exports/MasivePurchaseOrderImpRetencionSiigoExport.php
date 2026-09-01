@@ -9,38 +9,38 @@ use Maatwebsite\Excel\Concerns\FromGenerator;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class PurchaseOrderCostCenterSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
+class MasivePurchaseOrderImpRetencionSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
 {
     use Exportable;
 
-    protected $cost_centers;
+    protected $imps_retencion;
 
-    public function __construct($cost_centers)
+    public function __construct($imps_retencion)
     {
-        $this->cost_centers = $cost_centers;
+        $this->imps_retencion = $imps_retencion;
     }
 
     public function headings(): array
     {
         return [
             'id',
-            'codigo',
-            'nombre'
+            'nombre',
+            'valor'
         ];
     }
 
     public function title(): string
     {
-        return 'centro_costos';
+        return 'imp_retencion';
     }
 
     public function generator(): Generator
     {
-        foreach($this->cost_centers as $cost_center) {
+        foreach($this->imps_retencion as $imp_retencion) {
             yield [
-                'id' => $cost_center['id'],
-                'codigo' => $cost_center['code'],
-                'nombre' => $cost_center['name']
+                'id' => $imp_retencion['Id'],
+                'nombre' => $imp_retencion['Name'],
+                'valor' => $imp_retencion['Value']
             ];
         }
     }

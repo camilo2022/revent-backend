@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Integration;
 
-use App\Exports\PurchaseOrderSiigoMultiSheetExport;
+use App\Exports\MasivePurchaseOrderSiigoMultiSheetExport;
 use App\Http\Controllers\Controller;
 use App\Imports\MasivePurchaseOrderSiigoSheetsImport;
 use App\Services\SiigoInventoryService;
@@ -15,9 +15,9 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Symfony\Component\DomCrawler\Crawler;
 use Illuminate\Support\Str;
 
-class PurchaseOrderSiigoController extends Controller
+class MasivePurchaseOrderSiigoController extends Controller
 {
-    public function purchase_order()
+    public function masive_purchase_order()
     {
         $purchase_order_types = [
             23200 => 'OC-1-Orden de compra principal',
@@ -26,10 +26,10 @@ class PurchaseOrderSiigoController extends Controller
             30480 => 'OC-4-O.C. Materia Prima',
         ];
 
-        return view('integration.purchase_order', compact('purchase_order_types'));
+        return view('integration.masive_purchase_order', compact('purchase_order_types'));
     }
 
-    public function purchase_order_format(Request $request)
+    public function masive_purchase_order_format(Request $request)
     {
         $cookie = $request->input('cookie');
         $token = $this->extraer_token($cookie);
@@ -54,10 +54,10 @@ class PurchaseOrderSiigoController extends Controller
             'is_rete_ica' => $purchase_order_type->IsReteIca
         ];
 
-        return Excel::download(new PurchaseOrderSiigoMultiSheetExport($purchase_order_type, $filters, $warehouses, $cost_centers, $list_taxes, $type_details), "formato_{$purchase_order_type->ERPDocClass}_{$purchase_order_type->ERPDocCode}.xlsx");
+        return Excel::download(new MasivePurchaseOrderSiigoMultiSheetExport($purchase_order_type, $filters, $warehouses, $cost_centers, $list_taxes, $type_details), "formato_{$purchase_order_type->ERPDocClass}_{$purchase_order_type->ERPDocCode}.xlsx");
     }
 
-    public function purchase_order_upload(Request $request)
+    public function masive_purchase_order_upload(Request $request)
     {
         $request->validate([
             'file'  => 'required|file|mimes:xlsx,xls',
@@ -242,7 +242,7 @@ class PurchaseOrderSiigoController extends Controller
             ];
         }
 
-        return view('integration.purchase_order_upload', compact('ordenes_compra', 'errors'));
+        return view('integration.masive_purchase_order_upload', compact('ordenes_compra', 'errors'));
     }
 
     private function consultar_orden_compra(string $token, string $cookie, int|string $erp_document_id): array

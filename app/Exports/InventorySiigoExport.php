@@ -63,8 +63,6 @@ class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, 
     public function generator(): Generator
     {
         $allowedFilters = [
-            'created_start',
-            'created_end',
             'updated_start',
             'updated_end',
             'type',

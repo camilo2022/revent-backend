@@ -23,8 +23,6 @@ class ExportInventorySiigoScheduled extends Command
         ];
 
         $baseFilters = [
-            'created_start' => null,
-            'created_end' => null,
             'page_size' => 100,
             'type' => 'Product',
         ];

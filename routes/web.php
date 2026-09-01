@@ -7,7 +7,7 @@ use App\Http\Controllers\Integration\PurchaseSiigoController;
 use App\Http\Controllers\Integration\SiigoController;
 use App\Http\Controllers\Integration\MasiveTransferSiigoController;
 use App\Http\Controllers\Integration\ProductTraceabilitySiigoController;
-use App\Http\Controllers\Integration\PurchaseOrderSiigoController;
+use App\Http\Controllers\Integration\MasivePurchaseOrderSiigoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -38,9 +38,9 @@ Route::post('/siigo/masive_transfer_upload', [MasiveTransferSiigoController::cla
 Route::get('/siigo/product_traceability', [ProductTraceabilitySiigoController::class, 'product_traceability'])->name('siigo.product_traceability');
 Route::post('/siigo/product_traceability_download', [ProductTraceabilitySiigoController::class, 'product_traceability_download'])->name('siigo.product_traceability_download');
 
-Route::get('/siigo/purchase_order', [PurchaseOrderSiigoController::class, 'purchase_order'])->name('siigo.purchase_order');
-Route::post('/siigo/purchase_order_upload', [PurchaseOrderSiigoController::class, 'purchase_order_upload'])->name('siigo.purchase_order_upload');
-Route::post('/siigo/purchase_order_format', [PurchaseOrderSiigoController::class, 'purchase_order_format'])->name('siigo.purchase_order_format');
+Route::get('/siigo/masive_purchase_order', [MasivePurchaseOrderSiigoController::class, 'masive_purchase_order'])->name('siigo.masive_purchase_order');
+Route::post('/siigo/masive_purchase_order_upload', [MasivePurchaseOrderSiigoController::class, 'masive_purchase_order_upload'])->name('siigo.masive_purchase_order_upload');
+Route::post('/siigo/masive_purchase_order_format', [MasivePurchaseOrderSiigoController::class, 'masive_purchase_order_format'])->name('siigo.masive_purchase_order_format');
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);

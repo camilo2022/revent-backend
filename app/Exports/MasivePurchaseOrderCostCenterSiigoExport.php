@@ -9,38 +9,38 @@ use Maatwebsite\Excel\Concerns\FromGenerator;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class PurchaseOrderReteIVASiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
+class MasivePurchaseOrderCostCenterSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
 {
     use Exportable;
 
-    protected $retes_iva;
+    protected $cost_centers;
 
-    public function __construct($retes_iva)
+    public function __construct($cost_centers)
     {
-        $this->retes_iva = $retes_iva;
+        $this->cost_centers = $cost_centers;
     }
 
     public function headings(): array
     {
         return [
             'id',
-            'nombre',
-            'valor'
+            'codigo',
+            'nombre'
         ];
     }
 
     public function title(): string
     {
-        return 'rete_iva';
+        return 'centro_costos';
     }
 
     public function generator(): Generator
     {
-        foreach($this->retes_iva as $rete_iva) {
+        foreach($this->cost_centers as $cost_center) {
             yield [
-                'id' => $rete_iva['Id'],
-                'nombre' => $rete_iva['Name'] ?: 'No aplica',
-                'valor' => $rete_iva['Value']
+                'id' => $cost_center['id'],
+                'codigo' => $cost_center['code'],
+                'nombre' => $cost_center['name']
             ];
         }
     }

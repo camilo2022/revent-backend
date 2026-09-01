@@ -4,7 +4,7 @@ namespace App\Exports;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class PurchaseOrderSiigoMultiSheetExport implements WithMultipleSheets
+class MasivePurchaseOrderSiigoMultiSheetExport implements WithMultipleSheets
 {
     use Exportable;
 
@@ -24,17 +24,17 @@ class PurchaseOrderSiigoMultiSheetExport implements WithMultipleSheets
     {
         $this->filters = $filters;
 
-        $this->sheet_purchase_order = new PurchaseOrderSiigoExport($purchase_order_type, $filters, $cost_centers, $list_taxes['rete_iva'], $list_taxes['rete_ica']);
-        $this->sheet_purchase_order_details = new PurchaseOrderDetailSiigoExport($type_details, $warehouses, $list_taxes['imp_cargo'], $list_taxes['imp_retencion']);
-        $this->sheet_warehouses = new PurchaseOrderWarehousesSiigoExport($warehouses);
+        $this->sheet_purchase_order = new MasivePurchaseOrderSiigoExport($purchase_order_type, $filters, $cost_centers, $list_taxes['rete_iva'], $list_taxes['rete_ica']);
+        $this->sheet_purchase_order_details = new MasivePurchaseOrderDetailSiigoExport($type_details, $warehouses, $list_taxes['imp_cargo'], $list_taxes['imp_retencion']);
+        $this->sheet_warehouses = new MasivePurchaseOrderWarehousesSiigoExport($warehouses);
 
-        if($this->filters['use_cost_center']) $this->sheet_cost_centers = new PurchaseOrderCostCenterSiigoExport($cost_centers);
-        if($this->filters['is_rete_iva']) $this->sheet_rete_iva = new PurchaseOrderReteIVASiigoExport($list_taxes['rete_iva']);
-        if($this->filters['is_rete_ica']) $this->sheet_rete_ica = new PurchaseOrderReteICASiigoExport($list_taxes['rete_ica']);
+        if($this->filters['use_cost_center']) $this->sheet_cost_centers = new MasivePurchaseOrderCostCenterSiigoExport($cost_centers);
+        if($this->filters['is_rete_iva']) $this->sheet_rete_iva = new MasivePurchaseOrderReteIVASiigoExport($list_taxes['rete_iva']);
+        if($this->filters['is_rete_ica']) $this->sheet_rete_ica = new MasivePurchaseOrderReteICASiigoExport($list_taxes['rete_ica']);
 
-        $this->sheet_type_details = new PurchaseOrderTypeDetailSiigoExport($type_details);
-        $this->sheet_imp_cargo = new PurchaseOrderImpCargoSiigoExport($list_taxes['imp_cargo']);
-        $this->sheet_imp_retencion = new PurchaseOrderImpRetencionSiigoExport($list_taxes['imp_retencion']);
+        $this->sheet_type_details = new MasivePurchaseOrderTypeDetailSiigoExport($type_details);
+        $this->sheet_imp_cargo = new MasivePurchaseOrderImpCargoSiigoExport($list_taxes['imp_cargo']);
+        $this->sheet_imp_retencion = new MasivePurchaseOrderImpRetencionSiigoExport($list_taxes['imp_retencion']);
     }
 
     public function sheets(): array

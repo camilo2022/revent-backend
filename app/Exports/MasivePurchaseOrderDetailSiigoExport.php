@@ -14,7 +14,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PurchaseOrderDetailSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle, WithEvents
+class MasivePurchaseOrderDetailSiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle, WithEvents
 {
     use Exportable;
 

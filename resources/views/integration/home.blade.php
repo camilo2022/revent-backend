@@ -86,6 +86,7 @@
         .icon-compra { background: #dc2626; }
         .icon-traslado { background: #7c3aed; }
         .icon-trazabilidad { background: #0891b2; }
+        .icon-orden-compra { background: #db2777; }
 
         .report-body {
             flex: 1;
@@ -128,6 +129,7 @@
         .report-card:has(.icon-compra) .report-action { color: #dc2626; }
         .report-card:has(.icon-traslado) .report-action { color: #7c3aed; }
         .report-card:has(.icon-trazabilidad) .report-action { color: #0891b2; }
+        .report-card:has(.icon-orden-compra) .report-action { color: #db2777; }
 
         .report-action svg {
             width: 14px;
@@ -269,6 +271,26 @@
             <div class="report-footer">
                 <span class="report-action">
                     Consultar trazabilidad
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
+
+        <a href="{{ route('siigo.masive_purchase_order') }}" class="report-card">
+            <div class="report-icon icon-orden-compra">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                    <rect x="8" y="2" width="8" height="4" rx="1"/>
+                    <path d="M9 14l2 2 4-4"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Carga órdenes de compra</div>
+                <div class="report-desc">Sube un archivo Excel para generar múltiples órdenes de compra por bodega.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Cargar órdenes de compra
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </span>
             </div>
