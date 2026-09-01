@@ -300,7 +300,7 @@
                 Elige un mes completo o un rango de fechas manual. El reporte se enviará a los correos indicados.
             </div>
 
-            <form action="{{ route('siigo.export_invoice_download') }}" method="POST" id="invoiceReportForm">
+            <form action="{{ route('siigo.export_invoice_360_download') }}" method="POST" id="invoiceReportForm">
                 @csrf
 
                 <div class="section-title">Correos de notificación</div>
