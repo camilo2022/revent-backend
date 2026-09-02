@@ -112,9 +112,17 @@
             border-radius: 999px;
             font-size: 0.72rem;
             font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-iva {
             background: #dcfce7;
             color: #166534;
-            white-space: nowrap;
+        }
+
+        .badge-remision {
+            background: #e0e7ff;
+            color: #3730a3;
         }
 
         .order-card-details {
@@ -264,7 +272,9 @@
                         <div class="order-card-label">Orden de compra #{{ $index + 1 }}</div>
                         <div class="order-card-number">{{ $orden['documento'] ?? 'Sin número' }}</div>
                     </div>
-                    <span class="badge">Generada</span>
+                    <span class="badge {{ $orden['tipo'] === 'REMISION' ? 'badge-remision' : 'badge-iva' }}">
+                        {{ $orden['tipo'] === 'REMISION' ? 'Remisión' : 'IVA' }}
+                    </span>
                 </div>
 
                 <div class="order-card-details">

@@ -223,8 +223,43 @@ class MasivePurchaseOrderSiigoController extends Controller
 
         $orden_compra_detalles = collect($orden_compra_detalles)->groupBy('Warehouse_Id');
 
+        foreach ($orden_compra_detalles as $warehouse_id => $detalles) {
+            $warehouse = $warehouses[$warehouse_id];
+
+            $detalles_agrupados = $detalles->groupBy(function ($detalle) {
+                if ($detalle['TaxDiscount_Id'] == -1 && $detalle['TaxAdd_Id'] == -1) return 'REMISION';
+
+                return 'IVA';
+            });
+
+            foreach ($detalles_agrupados as $tipo => $detalles_tipo) {
+
+                $body = $this->separar_ordenes_compra($config, $user, $purchase_order_type, $list_taxes['rete_iva'], $list_taxes['rete_ica'], $provider, $cost_center, $fecha, $detalles_tipo, $warehouse, $tipo);
+
+                [$orden_compra, $validate] = $this->orden_compra($token, $cookie, $body);
+
+                if (!empty($validate)) {
+                    $errors = array_merge($errors, $validate);
+                    continue;
+                }
+
+                $info = $this->consultar_orden_compra($token, $cookie, $orden_compra['documento_id']);
+
+                $ordenes_compra[] = [
+                    'bodega' => $warehouse,
+                    'tipo' => $tipo,
+                    'documento' => $info['documento'],
+                    'url' => $info['url'],
+                ];
+
+                sleep(30);
+            }
+        }
+        /*$orden_compra_detalles = collect($orden_compra_detalles)->groupBy('Warehouse_Id');
+
         foreach($orden_compra_detalles as $warehouse_id => $detalles) {
-            $body = $this->separar_ordenes_compra($config, $user, $purchase_order_type, $list_taxes['rete_iva'], $list_taxes['rete_ica'], $provider, $cost_center, $fecha, $detalles);
+            $warehouse = $warehouses[$warehouse_id];
+            $body = $this->separar_ordenes_compra($config, $user, $purchase_order_type, $list_taxes['rete_iva'], $list_taxes['rete_ica'], $provider, $cost_center, $fecha, $detalles, $warehouse);
 
             [$orden_compra, $validate] = $this->orden_compra($token, $cookie, $body);
 
@@ -236,11 +271,13 @@ class MasivePurchaseOrderSiigoController extends Controller
             $info = $this->consultar_orden_compra($token, $cookie, $orden_compra['documento_id']);
 
             $ordenes_compra[] = [
-                'bodega' => $warehouses[$warehouse_id],
+                'bodega' => $warehouse,
                 'documento' => $info['documento'],
                 'url' => $info['url'],
             ];
-        }
+
+            sleep(10);
+        }*/
 
         return view('integration.masive_purchase_order_upload', compact('ordenes_compra', 'errors'));
     }
@@ -347,7 +384,7 @@ class MasivePurchaseOrderSiigoController extends Controller
         return $data ?? [];
     }
 
-    private function separar_ordenes_compra(array $config, array $user, object $purchase_order_type, array $rete_iva, array $rete_ica, array $provider, array $cost_center, string $doc_date, Collection $detalles)
+    private function separar_ordenes_compra(array $config, array $user, object $purchase_order_type, array $rete_iva, array $rete_ica, array $provider, array $cost_center, string $doc_date, Collection $detalles, array $warehouse, string $tipo)
     {
         $total_base = $detalles->sum('BaseValue');
         $vat_total_value = $detalles->sum('TaxAdd_Value');
@@ -420,6 +457,7 @@ class MasivePurchaseOrderSiigoController extends Controller
 
         $total_value = $total_base + $vat_total_value - $tax_disc_total_value - $ret_ica_total_value - $ret_vat_total_value;
 
+        $observaciones = "DIRIGIDO A: {$warehouse['id']} - {$warehouse['name']}. TIPO: {$tipo}. " . ($config['observaciones'] ?? '');
 
         return [
             "Process" => 1,
@@ -461,7 +499,7 @@ class MasivePurchaseOrderSiigoController extends Controller
                 "Header" => $purchase_order_type->Header,
                 "CommercialConditions" => $purchase_order_type->CommercialCoditions,
                 "ERPDocumentCode" => -1,
-                "Observations" => $config['observaciones'] ?? '',
+                "Observations" => $observaciones,
                 "IsAllowDecimals" => $purchase_order_type->AllowDecimals,
                 "CostCenterCode" => $purchase_order_type->UseCostCenter ? $cost_center['id'] : $purchase_order_type->CostCenterDefaultCode,
                 "ConfigInitial" => json_encode(["BaseAIU" => "False"]),
