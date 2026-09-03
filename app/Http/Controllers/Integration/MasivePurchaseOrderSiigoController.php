@@ -14,11 +14,62 @@ use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Symfony\Component\DomCrawler\Crawler;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class MasivePurchaseOrderSiigoController extends Controller
 {
     public function masive_purchase_order()
     {
+        $ordenes_compra = [
+            [
+                'bodega' => [
+                    'id' => 2,
+                    'name' => 'P R I N C I P A L'
+                ],
+                'tipo' => 'IVA',
+                'documento' => 'OC-1-11895',
+                'url' => 'https://monolithprod.siigo.com/REVENTCALZADOSAS/ERPPurchaseOrder/ERPPurchaseOrder.aspx?Ctrl=0&data=GOWS0sKTVgv8%2b36o%2bvLGLD42aBYKz%2bn25%2fblQIgfPYZpm9Vr%2fSmZJE58QWK0ef0b2JG5Ny8pWppTvNY3nBFBIA%3d%3d',
+            ],
+            [
+                'bodega' => [
+                    'id' => 2,
+                    'name' => 'P R I N C I P A L'
+                ],
+                'tipo' => 'REMISION',
+                'documento' => 'OC-1-11896',
+                'url' => 'https://monolithprod.siigo.com/REVENTCALZADOSAS/ERPPurchaseOrder/ERPPurchaseOrder.aspx?Ctrl=0&data=%2fCQ%2bTjk4%2b9%2bbPRilPyH7lDM3W7695MfalhzVF4%2bCH9abmYZT62%2fE3jzh%2b%2boRScTAIjvZflX6InDVFQkf1nJHEw%3d%3d',
+            ],
+            [
+                'bodega' => [
+                    'id' => 3,
+                    'name' => 'ALEGRA'
+                ],
+                'tipo' => 'IVA',
+                'documento' => 'OC-1-11897',
+                'url' => 'https://monolithprod.siigo.com/REVENTCALZADOSAS/ERPPurchaseOrder/ERPPurchaseOrder.aspx?Ctrl=0&data=w32T9dUR6XiL2ll9p5PMIsYl%2bjZYhi3bLSbPaxV%2fSgEQJnkxgfb3jM6yl3UoytIfEbcho2ZJ1EUGcUCG1RBT4g%3d%3d',
+            ],
+            [
+                'bodega' => [
+                    'id' => 3,
+                    'name' => 'ALEGRA'
+                ],
+                'tipo' => 'REMISION',
+                'documento' => 'OC-1-11898',
+                'url' => 'https://monolithprod.siigo.com/REVENTCALZADOSAS/ERPPurchaseOrder/ERPPurchaseOrder.aspx?Ctrl=0&data=odsyT6BWpGSckzjz0FJ2K0IXqPs7Sx%2bshLUTVmf6f%2bNKnt6HVg%2bcNjaupbcXlB3S3g%2bpxn8YLeFSIyhBSAbsxA%3d%3d',
+            ]
+        ];
+        $producto_imagen = 'https://revent.com.co/cdn/shop/files/YUPITALCO02.jpg?v=1771632250&width=400';
+        $producto_nombre = 'YUPITALCO02';
+
+        Mail::send(
+            'email.masive-purchase-order-provider-siigo',
+            compact('ordenes_compra', 'producto_imagen', 'producto_nombre'),
+            function ($message) {
+                $message->to('camiloacacio16@gmail.com')
+                        ->subject('Órdenes de compra generadas en Siigo');
+            }
+        );
+
         $purchase_order_types = [
             23200 => 'OC-1-Orden de compra principal',
             27279 => 'OC-2-Orden de servicio',
@@ -236,7 +287,7 @@ class MasivePurchaseOrderSiigoController extends Controller
 
                 $body = $this->separar_ordenes_compra($config, $user, $purchase_order_type, $list_taxes['rete_iva'], $list_taxes['rete_ica'], $provider, $cost_center, $fecha, $detalles_tipo, $warehouse, $tipo);
 
-                [$orden_compra, $validate] = $this->orden_compra($token, $cookie, $body);
+                [$orden_compra, $validate] = $this->orden_compra($token, $cookie, $body, $warehouse, $tipo);
 
                 if (!empty($validate)) {
                     $errors = array_merge($errors, $validate);
@@ -325,7 +376,7 @@ class MasivePurchaseOrderSiigoController extends Controller
         ];
     }
 
-    private function orden_compra(string $token, string $cookie, array $body)
+    private function orden_compra(string $token, string $cookie, array $body, array $warehouse, string $tipo)
     {
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
@@ -351,10 +402,11 @@ class MasivePurchaseOrderSiigoController extends Controller
         if (!$response->successful()) {
             $validate = [
                 [
-                    'Row'   => 'ERROR DESCONOCIDO - ORDEN DE COMPRA',
-                    'Error' => $response->body(),
+                    'Row'   => "ERROR SIIGO - ORDEN DE COMPRA: {$warehouse['id']} - {$warehouse['name']} {$tipo}",
+                    'Error' => "No se pudo realizar la carga debido a problemas con Siigo. Los detalles de esta bodega y tipo ({$tipo}) deben ser separados para realizar nuevamente la carga. Error de Siigo: " . $response->body(),
                 ]
             ];
+
             return [[], $validate];
         }
 
@@ -363,10 +415,11 @@ class MasivePurchaseOrderSiigoController extends Controller
         if (empty($data['success']) || $data['success'] !== true) {
             $validate = [
                 [
-                    'Row'   => 'SIIGO',
-                    'Error' => $data['msg'] ?? 'Error desconocido al crear la orden de compra',
+                    'Row'   => "ADVERTENCIA SIIGO - ORDEN DE COMPRA: {$warehouse['id']} - {$warehouse['name']} {$tipo}",
+                    'Error' => "Es posible que la orden de compra se haya creado correctamente en Siigo, pero la respuesta recibida no fue la esperada. Verifique directamente en Siigo si el documento fue creado antes de intentar realizar nuevamente la carga. Respuesta de Siigo: " . ($data['msg'] ?? 'Error desconocido al crear la orden de compra'),
                 ]
             ];
+
             return [[], $validate];
         }
 

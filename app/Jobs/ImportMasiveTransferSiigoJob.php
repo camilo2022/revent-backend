@@ -186,7 +186,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             $detalle = $items->first();
 
             $bodega_salida = $bodegas['DIRECTO'][$detalle['bodega_salida']] ?? ($bodegas['TRANSITO'][$detalle['bodega_salida']] ?? null);
-            $bodega_entrada = $bodegas['DIRECTO'][$detalle['bodega_salida']] ?? ($bodegas['TRANSITO'][$detalle['bodega_salida']] ?? null);
+            $bodega_entrada = $bodegas['DIRECTO'][$detalle['bodega_entrada']] ?? ($bodegas['TRANSITO'][$detalle['bodega_entrada']] ?? null);
 
             $validate[] = [
                 'Row' => null,
