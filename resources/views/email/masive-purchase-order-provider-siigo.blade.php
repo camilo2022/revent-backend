@@ -50,7 +50,7 @@
                     <td style="background-color:#ffffff; border:1px solid #eef0f2; border-radius:12px; padding:24px; font-family:Segoe UI, Arial, sans-serif;">
 
                         <p style="margin:0 0 16px 0; font-size:14px; color:#374151; line-height:1.6;">
-                            Estimados <strong>{{ $proveedor ?? 'señores' }}</strong>,
+                            Estimados <strong>{{ $provider['contactName'] ?? 'señores' }}</strong>,
                         </p>
 
                         <p style="margin:0 0 16px 0; font-size:14px; color:#374151; line-height:1.6;">
@@ -60,30 +60,30 @@
                             y confirmarnos su recepción a la mayor brevedad posible.
                         </p>
 
-                        @if(!empty($producto_imagen))
-                        <!-- Foto del producto a producir -->
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px 0;">
+                        @if(!empty($files) && count($files))
+
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 16px;">
+                            @foreach($files->chunk(4) as $fila)
+                                <tr>
+                                    @foreach($fila as $foto)
+                                        <td style="padding:4px;">
+                                            <img src="{{ $foto['url'] }}" alt="{{ $referencia }}" width="130" height="130"
+                                                style="display:block;width:130px;height:130px;object-fit:contain;border:1px solid #eef0f2;border-radius:8px;"
+                                            >
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+
                             <tr>
-                                <td align="center">
-                                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:160px;">
-                                        <tr>
-                                            <td style="border:1px solid #eef0f2; border-radius:12px; overflow:hidden; background-color:#f9fafb;">
-                                                <img src="{{ $producto_imagen }}" alt="{{ $producto_nombre ?? 'Producto a producir' }}" width="160" style="display:block; width:160px; height:auto;">
-                                            </td>
-                                        </tr>
-                                        @if(!empty($producto_nombre))
-                                        <tr>
-                                            <td align="center" style="padding-top:8px;">
-                                                <p style="margin:0; font-size:12px; font-weight:600; color:#6b7280;">
-                                                    Referencia: {{ $producto_nombre }}
-                                                </p>
-                                            </td>
-                                        </tr>
-                                        @endif
-                                    </table>
+                                <td colspan="4" align="center" style="padding-top:8px;">
+                                    <span style="font-size:12px;color:#6b7280;">
+                                        Referencia: {{ $referencia }}
+                                    </span>
                                 </td>
                             </tr>
                         </table>
+
                         @endif
 
                         <p style="margin:0; font-size:14px; color:#374151; line-height:1.6;">

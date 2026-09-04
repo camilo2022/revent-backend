@@ -87,6 +87,7 @@
         .icon-traslado { background: #7c3aed; }
         .icon-trazabilidad { background: #0891b2; }
         .icon-orden-compra { background: #db2777; }
+        .icon-fotos { background: #1f2937; }
 
         .report-body {
             flex: 1;
@@ -130,6 +131,7 @@
         .report-card:has(.icon-traslado) .report-action { color: #7c3aed; }
         .report-card:has(.icon-trazabilidad) .report-action { color: #0891b2; }
         .report-card:has(.icon-orden-compra) .report-action { color: #db2777; }
+        .report-card:has(.icon-fotos) .report-action { color: #1f2937; }
 
         .report-action svg {
             width: 14px;
@@ -245,7 +247,7 @@
                 </svg>
             </div>
             <div class="report-body">
-                <div class="report-title">Carga de Traslados Masivos</div>
+                <div class="report-title">Carga de Traslados de inventario Masivos</div>
                 <div class="report-desc">Sube un archivo Excel para generar múltiples traslados entre bodegas.</div>
             </div>
             <div class="report-footer">
@@ -285,12 +287,31 @@
                 </svg>
             </div>
             <div class="report-body">
-                <div class="report-title">Carga órdenes de compra</div>
+                <div class="report-title">Carga de Ordenes de compra Masivos</div>
                 <div class="report-desc">Sube un archivo Excel para generar múltiples órdenes de compra por bodega.</div>
             </div>
             <div class="report-footer">
                 <span class="report-action">
-                    Cargar órdenes de compra
+                    Cargar ordenes de compra
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
+
+        <a href="{{ route('siigo.product_photo') }}" class="report-card">
+            <div class="report-icon icon-fotos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Carga Fotos de Productos</div>
+                <div class="report-desc">Sube fotos JPG o PNG por referencia, para envío a proveedores y filtro de tiendas.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Cargar fotos
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </span>
             </div>

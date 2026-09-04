@@ -95,8 +95,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
         $bodegas = $this->bodegas();
 
-        [$traslado_detalles, $validate] = $this->validar_duplicados($this->transfer['traslado_detalles']->toArray(), $bodegas);
-        $errors = array_merge($errors, $validate);
+        $traslado_detalles = $this->agrupar_duplicados($this->transfer['traslado_detalles']->toArray(), $bodegas);
 
         [$traslado_detalles, $validate] = $this->validar_permiso_bodega($traslado_detalles, $bodegas, $user);
         $errors = array_merge($errors, $validate);
@@ -168,36 +167,22 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         ));
     }
 
-    private function validar_duplicados(array $detalles, array $bodegas)
+    private function agrupar_duplicados(array $detalles): array
     {
-        $validate = [];
-
-        $duplicados = collect($detalles)
+        return collect($detalles)
             ->groupBy(function ($item) {
                 return $item['codigo'] . '|' .
                     $item['bodega_salida'] . '|' .
                     $item['bodega_entrada'];
             })
-            ->filter(function ($items) {
-                return $items->count() > 1;
-            });
+            ->map(function ($items) {
+                $detalle = $items->first();
+                $detalle['cantidad'] = $items->sum('cantidad');
 
-        foreach ($duplicados as $items) {
-            $detalle = $items->first();
-
-            $bodega_salida = $bodegas['DIRECTO'][$detalle['bodega_salida']] ?? ($bodegas['TRANSITO'][$detalle['bodega_salida']] ?? null);
-            $bodega_entrada = $bodegas['DIRECTO'][$detalle['bodega_entrada']] ?? ($bodegas['TRANSITO'][$detalle['bodega_entrada']] ?? null);
-
-            $validate[] = [
-                'Row' => null,
-                'ProductCode' => $detalle['codigo'],
-                'Description' => $detalle['codigo'],
-                'WarehouseCode' => $detalle['bodega_salida'] . ' - ' . ($bodega_salida['name'] ?? '#N/A') . ' -> ' . $detalle['bodega_entrada'] . ' - ' . ($bodega_entrada['name'] ?? '#N/A'),
-                'Error' => 'Producto duplicado para la misma bodega de salida y entrada',
-            ];
-        }
-
-        return [$detalles, $validate];
+                return $detalle;
+            })
+            ->values()
+            ->all();
     }
 
     private function validar_permiso_bodega(array $detalles, array $bodegas, array $user)

@@ -1,10 +1,10 @@
-<!-- resources/views/integration/purchase_order_result.blade.php -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultado orden de compra</title>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Ordenes de compra masivo en proceso</title>
 
     <style>
         * { box-sizing: border-box; }
@@ -17,7 +17,7 @@
         }
 
         .result-wrapper {
-            max-width: 620px;
+            max-width: 580px;
             margin: 2rem auto;
         }
 
@@ -25,19 +25,11 @@
             display: flex;
             align-items: center;
             gap: 0.85rem;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
             border-radius: 14px;
             padding: 1.1rem 1.4rem;
             margin-bottom: 1.5rem;
-        }
-
-        .result-banner.success {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-        }
-
-        .result-banner.error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
         }
 
         .result-banner-icon {
@@ -47,11 +39,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #16a34a;
             border-radius: 50%;
         }
-
-        .result-banner.success .result-banner-icon { background: #16a34a; }
-        .result-banner.error .result-banner-icon { background: #dc2626; }
 
         .result-banner-icon svg {
             width: 20px;
@@ -62,138 +52,82 @@
         .result-banner-title {
             font-size: 1rem;
             font-weight: 600;
+            color: #14532d;
         }
-
-        .result-banner.success .result-banner-title { color: #14532d; }
-        .result-banner.error .result-banner-title { color: #7f1d1d; }
 
         .result-banner-subtitle {
             font-size: 0.82rem;
+            color: #166534;
         }
 
-        .result-banner.success .result-banner-subtitle { color: #166534; }
-        .result-banner.error .result-banner-subtitle { color: #991b1b; }
-
-        .order-card {
+        .info-card {
             background: #ffffff;
             border: 1px solid #eef0f2;
             border-radius: 16px;
             padding: 1.4rem 1.5rem;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-            margin-bottom: 1rem;
         }
 
-        .order-card-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
+        .info-card-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
             margin-bottom: 0.9rem;
         }
 
-        .order-card-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            margin-bottom: 0.15rem;
+        .info-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7rem;
+            margin-bottom: 0.9rem;
         }
 
-        .order-card-number {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #111827;
+        .info-step:last-child {
+            margin-bottom: 0;
         }
 
-        .badge {
-            display: inline-flex;
+        .info-step-icon {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            display: flex;
             align-items: center;
-            padding: 0.25rem 0.65rem;
-            border-radius: 999px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            white-space: nowrap;
+            justify-content: center;
+            background: #eff6ff;
+            border-radius: 8px;
+            margin-top: 0.05rem;
         }
 
-        .badge-iva {
-            background: #dcfce7;
-            color: #166534;
+        .info-step-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: #1d4ed8;
         }
 
-        .badge-remision {
-            background: #e0e7ff;
-            color: #3730a3;
-        }
-
-        .order-card-details {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.6rem;
-            padding-top: 0.9rem;
-            margin-top: 0.9rem;
-            border-top: 1px solid #f1f3f5;
-        }
-
-        .detail-label {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            margin-bottom: 0.1rem;
-        }
-
-        .detail-value {
-            font-size: 0.88rem;
-            font-weight: 500;
+        .info-step-text {
+            font-size: 0.85rem;
             color: #374151;
+            line-height: 1.45;
         }
 
-        .order-card-footer {
-            margin-top: 1rem;
+        .info-step-text strong {
+            color: #1f2937;
         }
 
-        .btn-link {
+        .email-highlight {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.55rem 1rem;
-            border-radius: 10px;
-            border: 1px solid #e5e7eb;
-            background: #f9fafb;
-            color: #4338ca;
             font-size: 0.85rem;
             font-weight: 600;
-            text-decoration: none;
-        }
-
-        .btn-link:hover {
-            background: #eef2ff;
-        }
-
-        .btn-link svg {
-            width: 15px;
-            height: 15px;
-        }
-
-        .error-card {
-            background: #ffffff;
-            border: 1px solid #fecaca;
-            border-radius: 14px;
-            padding: 1rem 1.2rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .error-card-title {
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #7f1d1d;
-            margin-bottom: 0.3rem;
-        }
-
-        .error-card-text {
-            font-size: 0.85rem;
-            color: #374151;
+            color: #1d4ed8;
+            background: #eff6ff;
+            padding: 0.35rem 0.7rem;
+            border-radius: 8px;
+            margin-top: 0.4rem;
+            word-break: break-all;
         }
 
         .back-link {
@@ -221,82 +155,92 @@
 
 <div class="result-wrapper">
 
-    @if (!empty($errors))
-        {{-- ================= BLOQUE DE ERRORES ================= --}}
-        <div class="result-banner error">
-            <div class="result-banner-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    {{-- ================= BLOQUE DE PROCESAMIENTO ================= --}}
+    <div class="result-banner">
+        <div class="result-banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+        <div>
+            <div class="result-banner-title">Ordenes de compra masivo en proceso</div>
+            <div class="result-banner-subtitle">
+                Tu archivo se recibió correctamente y se está procesando en segundo plano.
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <div class="info-card-title">¿Qué sigue?</div>
+
+        <div class="info-step">
+            <div class="info-step-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
                 </svg>
             </div>
-            <div>
-                <div class="result-banner-title">No se pudo generar la orden de compra</div>
-                <div class="result-banner-subtitle">Corrige los siguientes errores e intenta nuevamente.</div>
+            <div class="info-step-text">
+                Estamos validando el token, las bodegas, existencias y productos del archivo cargado. Este proceso puede tardar varios minutos dependiendo de la cantidad de traslados.
             </div>
         </div>
 
-        @foreach ($errors as $error)
-            <div class="error-card">
-                <div class="error-card-title">
-                    @if (isset($error['ProductCode']))
-                        Fila {{ $error['Row'] }} — {{ $error['ProductCode'] }}
-                        @if (!empty($error['WarehouseCode']))
-                            ({{ $error['WarehouseCode'] }})
-                        @endif
-                    @else
-                        {{ $error['Row'] }}
-                    @endif
-                </div>
-                <div class="error-card-text">{{ $error['Error'] }}</div>
-            </div>
-        @endforeach
-    @endif
-    @if(!empty($ordenes_compra))
-        {{-- ================= BLOQUE DE ÉXITO ================= --}}
-        <div class="result-banner success">
-            <div class="result-banner-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
+        <div class="info-step">
+            <div class="info-step-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
                 </svg>
             </div>
-            <div>
-                <div class="result-banner-title">{{ count($ordenes_compra) }} orden(es) de compra generada(s) correctamente</div>
-                <div class="result-banner-subtitle">Puedes ver el detalle de cada orden en Siigo desde el botón "Ver orden".</div>
+            <div class="info-step-text">
+                <strong>Si todo sale bien</strong>, recibirás un correo con el detalle de cada traslado generado y sus enlaces de consulta.
             </div>
         </div>
 
-        @foreach ($ordenes_compra as $index => $orden)
-            <div class="order-card">
-                <div class="order-card-header">
-                    <div>
-                        <div class="order-card-label">Orden de compra #{{ $index + 1 }}</div>
-                        <div class="order-card-number">{{ $orden['documento'] ?? 'Sin número' }}</div>
-                    </div>
-                    <span class="badge {{ $orden['tipo'] === 'REMISION' ? 'badge-remision' : 'badge-iva' }}">
-                        {{ $orden['tipo'] === 'REMISION' ? 'Remisión' : 'IVA' }}
-                    </span>
-                </div>
+        <div class="info-step">
+            <div class="info-step-icon" style="background:#fef2f2;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </div>
+            <div class="info-step-text">
+                <strong>Si algo falla</strong> (token vencido, bodega sin acceso, cantidad insuficiente, etc.), también te lo notificaremos por correo con el detalle de cada error para que puedas corregirlo.
+            </div>
+        </div>
 
-                <div class="order-card-details">
-                    <div>
-                        <div class="detail-label">Bodega</div>
-                        <div class="detail-value">{{ $orden['bodega']['id'] }} - {{ $orden['bodega']['name'] }}</div>
-                    </div>
-                </div>
-
-                <div class="order-card-footer">
-                    @if (!empty($orden['url']))
-                        <a href="{{ $orden['url'] }}" target="_blank" class="btn-link">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                            </svg>
-                            Ver orden
-                        </a>
-                    @endif
+        <div class="info-step">
+            <div class="info-step-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                    <path d="M2 8l10 6 10-6"/>
+                </svg>
+            </div>
+            <div class="info-step-text">
+                Serás notificado en:
+                <div class="email-highlight">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    compras@revent.com.co
                 </div>
             </div>
-        @endforeach
-    @endif
+        </div>
+
+        <div class="info-step">
+            <div class="info-step-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                    <path d="M2 8l10 6 10-6"/>
+                </svg>
+            </div>
+            <div class="info-step-text">
+                Será enviado a:
+                <div class="email-highlight">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    {{ $email }}
+                </div>
+            </div>
+        </div>
+    </div>
 
     <a href="{{ route('home') }}" class="back-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>

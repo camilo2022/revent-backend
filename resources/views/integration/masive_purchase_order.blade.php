@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Orden de compra</title>
-    <style>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Orden de compra masivos</title>
+     <style>
         * { box-sizing: border-box; }
 
         body {
@@ -140,6 +141,12 @@
             border-color: #16a34a;
             border-style: solid;
             background: #f0fdf4;
+        }
+
+        .excel-dropzone.is-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
         .excel-icon {
@@ -375,6 +382,64 @@
             background: #d1d5db;
             cursor: not-allowed;
         }
+
+        /* --- Buscador de fotos por referencia --- */
+        .search-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .search-btn {
+            margin-top: 0;
+            width: auto;
+            padding: 0 1.2rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .photo-status {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.6rem;
+            margin-top: 0.75rem;
+            padding: 0.6rem 0.8rem;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        .photo-status.show {
+            display: flex;
+        }
+
+        .photo-status.status-ok {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .photo-status.status-warn {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+
+        .photo-status-thumbs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .photo-status-thumbs img {
+            width: 150px;
+            height: 150px;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
     </style>
 </head>
 
@@ -442,6 +507,31 @@
                     @enderror
                 </div>
 
+                <div class="excel-field-group">
+                    <label for="referenciaInput" class="excel-field-label">
+                        Referencia <span class="required-mark">*</span>
+                    </label>
+                    <div class="search-row">
+                        <input type="text" id="referenciaInput" name="referencia" class="excel-field-input"
+                            placeholder="Ej: VAMPELT" required>
+                        <button type="button" id="searchBtn" class="excel-download-btn search-btn">
+                            Buscar
+                        </button>
+                    </div>
+                    <div class="excel-field-hint">
+                        Consulta si ya existe una foto cargada para esta referencia.
+                    </div>
+
+                    <div class="photo-status" id="photoStatusOk">
+                        <div class="photo-status-thumbs" id="photoStatusThumbs"></div>
+                        <span id="photoStatusOkText"></span>
+                    </div>
+                    <div class="photo-status status-warn" id="photoStatusWarn">
+                        No se encontraron fotos para esta referencia.
+                    </div>
+                    <div class="excel-error" id="searchError"></div>
+                </div>
+
                 <div class="excel-dropzone" id="excelDropzone">
                     <div class="excel-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"
@@ -496,6 +586,78 @@
 
 <script>
     (function() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        // --- Buscador de referencia/foto (solo informativo) ---
+        const referenciaInput = document.getElementById('referenciaInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchError = document.getElementById('searchError');
+        const photoStatusOk = document.getElementById('photoStatusOk');
+        const photoStatusOkText = document.getElementById('photoStatusOkText');
+        const photoStatusThumbs = document.getElementById('photoStatusThumbs');
+        const photoStatusWarn = document.getElementById('photoStatusWarn');
+
+        searchBtn.addEventListener('click', () => buscarReferencia());
+        referenciaInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarReferencia();
+            }
+        });
+
+        async function buscarReferencia() {
+            const referencia = referenciaInput.value.trim();
+            searchError.classList.remove('show');
+            photoStatusOk.classList.remove('show');
+            photoStatusWarn.classList.remove('show');
+
+            if (!referencia) {
+                showFieldError(searchError, 'Ingresa una referencia para buscar');
+                return;
+            }
+
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Buscando...';
+
+            try {
+                const res = await fetch("{{ route('siigo.product_photo_search') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ referencia }),
+                });
+                console.log(res);
+                if (!res.ok) throw new Error('request_failed');
+
+                const data = await res.json();
+
+                if (data.exists && data.photos.length) {
+                    photoStatusThumbs.innerHTML = '';
+                    data.photos.slice(0, 4).forEach((photo) => {
+                        const img = document.createElement('img');
+                        img.src = photo.url;
+                        img.alt = photo.name;
+                        photoStatusThumbs.appendChild(img);
+                    });
+                    photoStatusOkText.textContent = `${data.photos.length} foto(s) encontrada(s) para esta referencia.`;
+                    photoStatusOk.classList.add('show');
+                } else {
+                    photoStatusWarn.classList.add('show');
+                }
+            } catch (err) {
+                showFieldError(searchError, 'No se pudo buscar la referencia. Intenta de nuevo.');
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Buscar';
+            }
+        }
+
+        function showFieldError(el, msg) {
+            el.textContent = msg;
+            el.classList.add('show');
+        }
         // --- Formulario 1: habilitar el botón de descarga solo cuando hay tipo seleccionado ---
         const downloadType = document.getElementById('downloadPurchaseOrderType');
         const downloadBtn = document.getElementById('downloadBtn');

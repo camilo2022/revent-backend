@@ -8,6 +8,7 @@ use App\Http\Controllers\Integration\SiigoController;
 use App\Http\Controllers\Integration\MasiveTransferSiigoController;
 use App\Http\Controllers\Integration\ProductTraceabilitySiigoController;
 use App\Http\Controllers\Integration\MasivePurchaseOrderSiigoController;
+use App\Http\Controllers\Integration\PhotoProductSiigoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -41,6 +42,11 @@ Route::post('/siigo/product_traceability_download', [ProductTraceabilitySiigoCon
 Route::get('/siigo/masive_purchase_order', [MasivePurchaseOrderSiigoController::class, 'masive_purchase_order'])->name('siigo.masive_purchase_order');
 Route::post('/siigo/masive_purchase_order_upload', [MasivePurchaseOrderSiigoController::class, 'masive_purchase_order_upload'])->name('siigo.masive_purchase_order_upload');
 Route::post('/siigo/masive_purchase_order_format', [MasivePurchaseOrderSiigoController::class, 'masive_purchase_order_format'])->name('siigo.masive_purchase_order_format');
+
+Route::get('/siigo/product_photo', [PhotoProductSiigoController::class, 'product_photo'])->name('siigo.product_photo');
+Route::post('/siigo/product_photo_search', [PhotoProductSiigoController::class, 'product_photo_search'])->name('siigo.product_photo_search');
+Route::post('/siigo/product_photo_upload', [PhotoProductSiigoController::class, 'product_photo_upload'])->name('siigo.product_photo_upload');
+Route::post('/siigo/product_photo_delete', [PhotoProductSiigoController::class, 'product_photo_delete'])->name('siigo.product_photo_delete');
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);

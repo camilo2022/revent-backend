@@ -1,11 +1,11 @@
-<!-- resources/views/email/mass_transfer_result.blade.php -->
+<!-- resources/views/email/masive-purchase-order-siigo.blade.php -->
 <!DOCTYPE html>
 <html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>Resultado de traslados masivos</title>
+<title>Resultado de órdenes de compra</title>
 <!--[if mso]>
 <noscript>
 <xml>
@@ -47,7 +47,7 @@
                                             {{ count($errors) }} error(es) de validación
                                         </p>
                                         <p style="margin:0; font-size:13px; color:#991b1b; font-family:Segoe UI, Arial, sans-serif; line-height:1.4;">
-                                            No fue posible procesar el cargue. Corrige los siguientes errores y vuelve a intentarlo.
+                                            No fue posible generar la(s) orden(es) de compra. Corrige los siguientes errores y vuelve a intentarlo.
                                         </p>
                                     </td>
                                 </tr>
@@ -57,7 +57,7 @@
 
                     <tr><td style="height:16px; line-height:16px; font-size:0;">&nbsp;</td></tr>
 
-                    @foreach ($errors as $index => $error)
+                    @foreach ($errors as $error)
                     <!-- Tarjeta de error -->
                     <tr>
                         <td style="background-color:#ffffff; border:1px solid #fee2e2; border-radius:12px; padding:18px 20px;">
@@ -87,7 +87,7 @@
                                     </td>
                                 </tr>
 
-                                @if (isset($error['ProductCode']) || isset($error['Description']) || isset($error['WarehouseCode']) || isset($error['AvailableQuantity']) || isset($error['RequiredQuantity']))
+                                @if (isset($error['ProductCode']) || isset($error['WarehouseCode']))
                                 <tr><td style="height:10px; line-height:10px; font-size:0;">&nbsp;</td></tr>
                                 <tr>
                                     <td>
@@ -99,28 +99,10 @@
                                                     <p style="margin:0; font-size:12px; color:#374151; font-family:Segoe UI, Arial, sans-serif;">{{ $error['ProductCode'] }}</p>
                                                 </td>
                                                 @endif
-                                                @if (isset($error['Description']))
-                                                <td valign="top" style="padding-right:16px; padding-bottom:6px;">
-                                                    <p style="margin:0 0 2px 0; font-size:10px; font-weight:bold; color:#b91c1c; text-transform:uppercase; font-family:Segoe UI, Arial, sans-serif;">Descripción</p>
-                                                    <p style="margin:0; font-size:12px; color:#374151; font-family:Segoe UI, Arial, sans-serif;">{{ $error['Description'] }}</p>
-                                                </td>
-                                                @endif
                                                 @if (isset($error['WarehouseCode']))
-                                                <td valign="top" style="padding-right:16px; padding-bottom:6px;">
+                                                <td valign="top" style="padding-bottom:6px;">
                                                     <p style="margin:0 0 2px 0; font-size:10px; font-weight:bold; color:#b91c1c; text-transform:uppercase; font-family:Segoe UI, Arial, sans-serif;">Bodega</p>
                                                     <p style="margin:0; font-size:12px; color:#374151; font-family:Segoe UI, Arial, sans-serif;">{{ $error['WarehouseCode'] }}</p>
-                                                </td>
-                                                @endif
-                                                @if (isset($error['AvailableQuantity']))
-                                                <td valign="top" style="padding-right:16px; padding-bottom:6px;">
-                                                    <p style="margin:0 0 2px 0; font-size:10px; font-weight:bold; color:#b91c1c; text-transform:uppercase; font-family:Segoe UI, Arial, sans-serif;">Disponible</p>
-                                                    <p style="margin:0; font-size:12px; color:#374151; font-family:Segoe UI, Arial, sans-serif;">{{ $error['AvailableQuantity'] ?? 0 }}</p>
-                                                </td>
-                                                @endif
-                                                @if (isset($error['RequiredQuantity']))
-                                                <td valign="top" style="padding-bottom:6px;">
-                                                    <p style="margin:0 0 2px 0; font-size:10px; font-weight:bold; color:#b91c1c; text-transform:uppercase; font-family:Segoe UI, Arial, sans-serif;">Requerido</p>
-                                                    <p style="margin:0; font-size:12px; color:#374151; font-family:Segoe UI, Arial, sans-serif;">{{ $error['RequiredQuantity'] ?? 0 }}</p>
                                                 </td>
                                                 @endif
                                             </tr>
@@ -151,7 +133,7 @@
 
                 @endif
 
-                @if (isset($traslados) && count($traslados) > 0)
+                @if (!empty($ordenes_compra))
 
                     {{-- ================= BLOQUE DE ÉXITO ================= --}}
 
@@ -171,10 +153,10 @@
                                     </td>
                                     <td valign="middle">
                                         <p style="margin:0 0 4px 0; font-size:15px; font-weight:bold; color:#14532d; font-family:Segoe UI, Arial, sans-serif;">
-                                            {{ count($traslados) }} traslado(s) generado(s) correctamente
+                                            {{ count($ordenes_compra) }} orden(es) de compra generada(s) correctamente
                                         </p>
                                         <p style="margin:0; font-size:13px; color:#166534; font-family:Segoe UI, Arial, sans-serif; line-height:1.4;">
-                                            Los traslados en tránsito requieren descargar el archivo de aprobación, cargarlo de nuevo y confirmarlo.
+                                            Puedes ver el detalle de cada orden en Siigo desde el botón "Ver orden".
                                         </p>
                                     </td>
                                 </tr>
@@ -184,111 +166,66 @@
 
                     <tr><td style="height:16px; line-height:16px; font-size:0;">&nbsp;</td></tr>
 
-                    @foreach ($traslados as $index => $traslado)
-                    <!-- Tarjeta de traslado -->
+                    @foreach ($ordenes_compra as $index => $orden)
+                    <!-- Tarjeta de orden de compra -->
                     <tr>
-                        <td style="background-color:#ffffff; border:1px solid #eef0f2; border-radius:12px; padding:20px;">
+                        <td style="background-color:#ffffff; border:1px solid #eef0f2; border-radius:16px; padding:20px 22px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 
-                                <!-- Header: numero + titulo + badge -->
+                                {{-- ================= HEADER ================= --}}
                                 <tr>
-                                    <td valign="top">
-                                        <p style="margin:0 0 2px 0; font-size:11px; font-weight:bold; color:#9ca3af; letter-spacing:0.5px; font-family:Segoe UI, Arial, sans-serif; text-transform:uppercase;">
-                                            Traslado #{{ $index + 1 }}
-                                        </p>
-                                        <p style="margin:0; font-size:16px; font-weight:bold; color:#1f2937; font-family:Segoe UI, Arial, sans-serif;">
-                                            {{ $traslado['data']['document'] }}
-                                        </p>
-                                    </td>
-                                    <td valign="top" align="right">
-                                        @if (!is_null($traslado['approved']))
-                                            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                                                <tr>
-                                                    <td style="background-color:#fef3c7; color:#b45309; font-size:11px; font-weight:bold; font-family:Segoe UI, Arial, sans-serif; padding:5px 10px; border-radius:999px; white-space:nowrap;">
-                                                        En tránsito
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        @else
-                                            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                                                <tr>
-                                                    <td style="background-color:#dcfce7; color:#15803d; font-size:11px; font-weight:bold; font-family:Segoe UI, Arial, sans-serif; padding:5px 10px; border-radius:999px; white-space:nowrap;">
-                                                        Directo
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        @endif
-                                    </td>
-                                </tr>
-
-                                <tr><td colspan="2" style="height:12px; line-height:12px; font-size:0;">&nbsp;</td></tr>
-
-                                <!-- Meta info -->
-                                <tr>
-                                    <td colspan="2" style="border-top:1px solid #f1f3f5; border-bottom:1px solid #f1f3f5; padding:12px 0;">
+                                    <td>
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                             <tr>
-                                                <td width="25%" valign="top">
-                                                    <p style="margin:0 0 2px 0; font-size:10px; font-weight:bold; color:#9ca3af; text-transform:uppercase; font-family:Segoe UI, Arial, sans-serif;">Usuario</p>
-                                                    <p style="margin:0; font-size:12px; color:#374151; font-family:Segoe UI, Arial, sans-serif;">{{ $traslado['data']['user'] }}</p>
+                                                <td valign="top">
+                                                    <p style="margin:0 0 2px 0; font-size:11px; font-weight:bold; color:#9ca3af; text-transform:uppercase; letter-spacing:0.03em; font-family:Segoe UI, Arial, sans-serif;">
+                                                        Orden de compra #{{ $index + 1 }}
+                                                    </p>
+                                                    <p style="margin:0; font-size:16px; font-weight:bold; color:#111827; font-family:Segoe UI, Arial, sans-serif;">
+                                                        {{ $orden['documento'] ?? 'Sin número' }}
+                                                    </p>
                                                 </td>
-                                                <td width="25%" valign="top">
-                                                    <p style="margin:0 0 2px 0; font-size:10px; font-weight:bold; color:#9ca3af; text-transform:uppercase; font-family:Segoe UI, Arial, sans-serif;">Creado</p>
-                                                    <p style="margin:0; font-size:12px; color:#374151; font-family:Segoe UI, Arial, sans-serif;">{{ $traslado['data']['created_at'] }}</p>
-                                                </td>
-                                                <td width="25%" valign="top">
-                                                    <p style="margin:0 0 2px 0; font-size:10px; font-weight:bold; color:#9ca3af; text-transform:uppercase; font-family:Segoe UI, Arial, sans-serif;">Fecha traslado</p>
-                                                    <p style="margin:0; font-size:12px; color:#374151; font-family:Segoe UI, Arial, sans-serif;">{{ \Carbon\Carbon::parse($traslado['data']['date'])->format('d/m/Y') }}</p>
-                                                </td>
-                                                <td width="25%" valign="top">
-                                                    <p style="margin:0 0 2px 0; font-size:10px; font-weight:bold; color:#9ca3af; text-transform:uppercase; font-family:Segoe UI, Arial, sans-serif;">ID</p>
-                                                    <p style="margin:0; font-size:12px; color:#374151; font-family:Segoe UI, Arial, sans-serif;">{{ $traslado['data']['id'] }}</p>
+                                                <td align="right" valign="top">
+                                                    @if (($orden['tipo'] ?? null) === 'REMISION')
+                                                        <span style="display:inline-block; padding:4px 11px; border-radius:999px; font-size:11px; font-weight:bold; font-family:Segoe UI, Arial, sans-serif; background-color:#e0e7ff; color:#3730a3; white-space:nowrap;">
+                                                            REMISIÓN
+                                                        </span>
+                                                    @else
+                                                        <span style="display:inline-block; padding:4px 11px; border-radius:999px; font-size:11px; font-weight:bold; font-family:Segoe UI, Arial, sans-serif; background-color:#dcfce7; color:#166534; white-space:nowrap;">
+                                                            IVA
+                                                        </span>
+                                                    @endif
                                                 </td>
                                             </tr>
                                         </table>
                                     </td>
                                 </tr>
 
-                                <tr><td colspan="2" style="height:14px; line-height:14px; font-size:0;">&nbsp;</td></tr>
+                                <tr><td style="height:14px; line-height:14px; font-size:0;">&nbsp;</td></tr>
 
-                                <!-- Botones -->
+                                {{-- ================= DETALLES ================= --}}
                                 <tr>
-                                    <td colspan="2">
+                                    <td style="border-top:1px solid #f1f3f5; padding-top:14px;">
+                                        <p style="margin:0 0 2px 0; font-size:11px; font-weight:bold; color:#9ca3af; text-transform:uppercase; letter-spacing:0.03em; font-family:Segoe UI, Arial, sans-serif;">
+                                            Bodega
+                                        </p>
+                                        <p style="margin:0; font-size:13px; font-weight:500; color:#374151; font-family:Segoe UI, Arial, sans-serif;">
+                                            {{ $orden['bodega']['id'] ?? '-' }} - {{ $orden['bodega']['name'] ?? 'Sin bodega' }}
+                                        </p>
+                                    </td>
+                                </tr>
+
+                                @if (!empty($orden['url']))
+                                <tr><td style="height:16px; line-height:16px; font-size:0;">&nbsp;</td></tr>
+
+                                {{-- ================= FOOTER ================= --}}
+                                <tr>
+                                    <td>
                                         <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                             <tr>
                                                 <td style="border-radius:8px; background-color:#eff6ff;">
                                                     <a href="{{ $traslado['preview'] }}" target="_blank" style="display:inline-block; padding:9px 16px; font-size:13px; font-weight:600; color:#1d4ed8; text-decoration:none; font-family:Segoe UI, Arial, sans-serif;">
                                                         &#128065; Ver traslado
-                                                    </a>
-                                                </td>
-                                                <td width="10" style="font-size:0; line-height:0;">&nbsp;</td>
-                                                <td style="border-radius:8px; background-color:#f9fafb; border:1px solid #e5e7eb;">
-                                                    <a href="{{ $traslado['preview_download'] }}" target="_blank" style="display:inline-block; padding:9px 16px; font-size:13px; font-weight:600; color:#374151; text-decoration:none; font-family:Segoe UI, Arial, sans-serif;">
-                                                        &#8681; Descargar traslado
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-
-                                @if (!is_null($traslado['approved']))
-                                <tr><td colspan="2" style="height:14px; line-height:14px; font-size:0;">&nbsp;</td></tr>
-
-                                <!-- Caja de tránsito -->
-                                <tr>
-                                    <td colspan="2" style="background-color:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:14px 16px;">
-                                        <p style="margin:0 0 4px 0; font-size:13px; font-weight:bold; color:#92400e; font-family:Segoe UI, Arial, sans-serif;">
-                                            Traslado en tránsito
-                                        </p>
-                                        <p style="margin:0 0 12px 0; font-size:12px; color:#a16207; line-height:1.4; font-family:Segoe UI, Arial, sans-serif;">
-                                            Este traslado quedó en tránsito. Cuando la mercancía llegue físicamente a la bodega de destino, descarga este archivo y vuelve a cargarlo para confirmarlo en Siigo.
-                                        </p>
-                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                                            <tr>
-                                                <td style="border-radius:8px; background-color:#d97706;">
-                                                    <a href="{{ $traslado['approved']['download_url'] }}" style="display:inline-block; padding:10px 16px; font-size:13px; font-weight:600; color:#ffffff; text-decoration:none; font-family:Segoe UI, Arial, sans-serif;">
-                                                        &#8681; {{ $traslado['approved']['name'] }}
                                                     </a>
                                                 </td>
                                             </tr>
