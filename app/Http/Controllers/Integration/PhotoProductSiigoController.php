@@ -108,8 +108,6 @@ class PhotoProductSiigoController extends Controller
 
     private function sanitize_referencia(string $referencia): string
     {
-        $referencia = trim($referencia);
-
-        return preg_replace('/[^A-Za-z0-9\-_]/', '-', $referencia);
+        return strtoupper(preg_replace('/[^A-Za-z0-9\-_]/', '-', trim($referencia)));
     }
 }
