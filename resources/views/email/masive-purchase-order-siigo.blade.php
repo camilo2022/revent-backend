@@ -224,8 +224,8 @@
                                         <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                             <tr>
                                                 <td style="border-radius:8px; background-color:#eff6ff;">
-                                                    <a href="{{ $traslado['preview'] }}" target="_blank" style="display:inline-block; padding:9px 16px; font-size:13px; font-weight:600; color:#1d4ed8; text-decoration:none; font-family:Segoe UI, Arial, sans-serif;">
-                                                        &#128065; Ver traslado
+                                                    <a href="{{ $orden['url'] }}" target="_blank" style="display:inline-block; padding:9px 16px; font-size:13px; font-weight:600; color:#1d4ed8; text-decoration:none; font-family:Segoe UI, Arial, sans-serif;">
+                                                        &#128065; Ver orden de compra
                                                     </a>
                                                 </td>
                                             </tr>
