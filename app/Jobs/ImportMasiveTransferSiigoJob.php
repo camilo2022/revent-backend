@@ -256,7 +256,8 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
             $items[] = [
                 "ProductCode" => $producto['ProductID'],
-                "Description" => $producto['Code'],
+                "Code" => $producto['Code'],
+                "Description" => $producto['Description'],
                 "LongDescription" => $producto['Description'],
                 "ProductSubType" => $producto['ProductType'],
                 "ProductUnitMeasurement" => $producto['MeasurementUnit'],
@@ -654,7 +655,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             });
 
             $traslado_detalles[] = [
-                'codigo' => $detalle['Description'],
+                'codigo' => $detalle['Code'],
                 'descripcion' => $detalle['LongDescription'],
                 'bodega_salida' => $bodega_salida,
                 'bodega_entrada' => $bodega_entrada,
