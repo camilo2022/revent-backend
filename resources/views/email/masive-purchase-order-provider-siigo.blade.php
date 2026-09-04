@@ -63,12 +63,12 @@
                         @if(!empty($files) && count($files))
 
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 16px;">
-                            @foreach($files->chunk(4) as $fila)
+                            @foreach($files->chunk(2) as $fila)
                                 <tr>
                                     @foreach($fila as $foto)
                                         <td style="padding:4px;">
-                                            <img src="{{ $foto['url'] }}" alt="{{ $referencia }}" width="130" height="130"
-                                                style="display:block;width:130px;height:130px;object-fit:contain;border:1px solid #eef0f2;border-radius:8px;"
+                                            <img src="{{ $foto['url'] }}" alt="{{ $referencia }}" width="280" height="280"
+                                                style="display:block;width:280px;height:280px;object-fit:contain;border:1px solid #eef0f2;border-radius:8px;"
                                             >
                                         </td>
                                     @endforeach
