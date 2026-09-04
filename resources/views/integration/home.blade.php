@@ -307,7 +307,7 @@
             </div>
             <div class="report-body">
                 <div class="report-title">Carga Fotos de Productos</div>
-                <div class="report-desc">Sube fotos JPG o PNG por referencia, para envío a proveedores y filtro de tiendas.</div>
+                <div class="report-desc">Sube archivos JPG, PNG.</div>
             </div>
             <div class="report-footer">
                 <span class="report-action">
