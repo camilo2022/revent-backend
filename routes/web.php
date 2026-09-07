@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Integration\AccountPayableSiigoController;
 use App\Http\Controllers\Integration\InventorySiigoController;
 use App\Http\Controllers\Integration\Invoice360SiigoController;
 use App\Http\Controllers\Integration\InvoiceSiigoController;
@@ -47,6 +48,8 @@ Route::get('/siigo/product_photo', [PhotoProductSiigoController::class, 'product
 Route::post('/siigo/product_photo_search', [PhotoProductSiigoController::class, 'product_photo_search'])->name('siigo.product_photo_search');
 Route::post('/siigo/product_photo_upload', [PhotoProductSiigoController::class, 'product_photo_upload'])->name('siigo.product_photo_upload');
 Route::post('/siigo/product_photo_delete', [PhotoProductSiigoController::class, 'product_photo_delete'])->name('siigo.product_photo_delete');
+
+Route::get('/siigo/account_payable', [AccountPayableSiigoController::class, 'account_payable'])->name('siigo.account_payable');
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);
