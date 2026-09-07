@@ -42,7 +42,6 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
     public function handle(): void
     {
-        $hora_inicio = Carbon::now()->format('Y-m-d H:i:s');
         $ordenes_compra = [];
         $errors = [];
 
@@ -358,6 +357,10 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $data = $this->parse_siigo_response($response->body());
 
         if (empty($data['success']) || $data['success'] !== true) {
+            Log::info('orden_compra_failed', [
+                'data' => $data,
+                'response' => $response
+            ]);
             $validate = [
                 [
                     'Row'   => "ADVERTENCIA SIIGO - ORDEN DE COMPRA: {$warehouse['id']} - {$warehouse['name']} {$tipo}",
@@ -384,9 +387,9 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
     private function separar_ordenes_compra(array $config, array $user, object $purchase_order_type, array $rete_iva, array $rete_ica, array $provider, array $cost_center, string $doc_date, Collection $detalles, array $warehouse, string $tipo)
     {
-        $total_base = $detalles->sum('BaseValue');
-        $vat_total_value = $detalles->sum('TaxAdd_Value');
-        $tax_disc_total_value = $detalles->sum('TaxDiscount_Value');
+        $total_base = round($detalles->sum('BaseValue'), 2);
+        $vat_total_value = round($detalles->sum('TaxAdd_Value'), 2);
+        $tax_disc_total_value = round($detalles->sum('TaxDiscount_Value'), 2);
 
         $erp_document_total = collect();
 
@@ -399,8 +402,8 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             ->each(function ($items, $tax_id) use ($erp_document_total) {
                 $erp_document_total->push([
                     'Id' => (int) $tax_id,
-                    'Value' => $items->sum('TaxAdd_Value'),
-                    'TotalBase' => $items->sum('BaseValue'),
+                    'Value' => round($items->sum('TaxAdd_Value'), 2),
+                    'TotalBase' => round($items->sum('BaseValue'), 2),
                 ]);
             });
 
@@ -414,8 +417,8 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
                 $erp_document_total->push([
                     'Id' => (int) $tax_id,
-                    'Value' => $items->sum('TaxDiscount_Value'),
-                    'TotalBase' => $items->sum('BaseValue'),
+                    'Value' => round($items->sum('TaxDiscount_Value'), 2),
+                    'TotalBase' => round($items->sum('BaseValue'), 2),
                 ]);
             });
 
@@ -453,7 +456,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             }
         }
 
-        $total_value = $total_base + $vat_total_value - $tax_disc_total_value - $ret_ica_total_value - $ret_vat_total_value;
+        $total_value = round($total_base + $vat_total_value - $tax_disc_total_value - $ret_ica_total_value - $ret_vat_total_value, 2);
 
         $observaciones = "DIRIGIDO A: {$warehouse['id']} - {$warehouse['name']}. TIPO: {$tipo}. " . ($config['observaciones'] ?? '');
 
@@ -892,14 +895,14 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             $TaxAdd = $imp_cargo[$detalle['imp_cargo']] ?? [];
             $TaxDisc = $imp_retencion[$detalle['imp_retencion']] ?? [];
 
-            $grossValue = $detalle['valor_unitario'] * $detalle['cantidad'];
-            $baseValue = $grossValue - ($detalle['descuento'] ?: 0);
+            $grossValue = round($detalle['valor_unitario'] * $detalle['cantidad'], 2);
+            $baseValue = round($grossValue - ($detalle['descuento'] ?: 0), 2);
 
             $add = $this->calculate_tax_add($detalle['valor_unitario'], $detalle['cantidad'], $detalle['descuento'], $TaxAdd);
             $disc = $this->calculate_tax_discount($detalle['valor_unitario'], $detalle['cantidad'], $detalle['descuento'], $TaxDisc);
 
-            $totalValue = $baseValue - $disc['TaxDiscount_Value'] + $add['TaxAdd_Value'];
-            $valueWithChargeTaxes = $baseValue + $add['TaxAdd_Value'];
+            $totalValue = round($baseValue - $disc['TaxDiscount_Value'] + $add['TaxAdd_Value'], 2);
+            $valueWithChargeTaxes = round($baseValue + $add['TaxAdd_Value'], 2);
 
             $pWarehouseList = json_decode($product['pWarehouseList']);
 
@@ -965,14 +968,14 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
                 "TaxAdd_Value" => 0,
                 "TaxAdd_Percentage" => 0,
                 "TaxAdd2_Value" => 0,
-                "Value" => $value * $quantity,
+                "Value" => round($value * $quantity, 2),
             ];
         }
 
         $gross = $value * $quantity;
         $baseValue = $gross - $discount;
         $percentage = $tax['Value'];
-        $taxValue = $baseValue * ($percentage / 100);
+        $taxValue = round($baseValue * ($percentage / 100), 2);
 
         return [
             "TaxAdd_Name" => $tax['Name'],
@@ -981,7 +984,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             "TaxAdd_Value" => $taxValue,
             "TaxAdd_Percentage" => $percentage,
             "TaxAdd2_Value" => 0,
-            "Value" => $baseValue + $taxValue,
+            "Value" => round($baseValue, 2) + $taxValue,
         ];
     }
 
@@ -1003,7 +1006,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         return [
             "TaxDiscount_Name" => $tax['Name'],
             "TaxDiscount_Id" => $tax['Id'],
-            "TaxDiscount_Value" => $baseValue * ($percentage / 100),
+            "TaxDiscount_Value" => round($baseValue * ($percentage / 100), 2),
             "TaxDiscount_Percentage" => $percentage,
         ];
     }
