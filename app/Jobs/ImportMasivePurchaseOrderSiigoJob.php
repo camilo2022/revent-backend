@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Symfony\Component\DomCrawler\Crawler;
+use Illuminate\Support\Facades\Log;
 
 class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 {
@@ -344,6 +345,10 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             );
 
         if (!$response->successful()) {
+            Log::error('ImportMasivePurchaseOrderSiigoJob falló', [
+                'error' => $response,
+            ]);
+
             $validate = [
                 [
                     'Row'   => "ERROR SIIGO - ORDEN DE COMPRA: {$warehouse['id']} - {$warehouse['name']} {$tipo}",
