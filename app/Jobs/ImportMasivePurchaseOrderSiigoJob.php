@@ -247,7 +247,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
                     'url' => $info['url'],
                 ];
 
-                sleep(30);
+                sleep(45);
             }
         }
 
@@ -362,6 +362,10 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $data = $this->parse_siigo_response($response->body());
 
         if (empty($data['success']) || $data['success'] !== true) {
+            Log::error('ImportMasivePurchaseOrderSiigoJob falló', [
+                'error' => $response,
+            ]);
+            
             $validate = [
                 [
                     'Row'   => "ADVERTENCIA SIIGO - ORDEN DE COMPRA: {$warehouse['id']} - {$warehouse['name']} {$tipo}",
