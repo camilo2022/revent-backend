@@ -41,6 +41,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
     public function handle(): void
     {
+        ini_set('serialize_precision', '-1');
         $ordenes_compra = [];
         $errors = [];
 
