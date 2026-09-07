@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -30,7 +31,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
      * El proceso hace varias llamadas HTTP a Siigo + sleep(30) entre
      * órdenes, así que le damos bastante margen.
      */
-    public int $timeout = 3600;
+    public int $timeout = 7200;
     public int $tries = 1;
 
     public function __construct(
@@ -41,6 +42,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
     public function handle(): void
     {
+        $hora_inicio = Carbon::now()->format('Y-m-d H:i:s');
         $ordenes_compra = [];
         $errors = [];
 
@@ -250,7 +252,9 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         }
 
         $this->notificarResultado($errors, $ordenes_compra);
-        Mail::to($this->email)->cc('operaciones@revent.com.co')->send(new MasivePurchaseOrderProviderSiigo($ordenes_compra, $files, $this->referencia, $provider));
+        if(count($ordenes_compra) > 0) {
+            Mail::to([$this->email, 'operaciones@revent.com.co'])->send(new MasivePurchaseOrderProviderSiigo($ordenes_compra, $files, $this->referencia, $provider));
+        }
     }
 
     private function notificarResultado(array $errors, array $ordenes_compra = []): void
@@ -279,7 +283,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
-            ->timeout(600)
+            ->timeout(120)
             ->withoutRedirecting()
             ->get('https://monolithprod.siigo.com/REVENTCALZADOSAS/Default.aspx', [
                 'TabID' => 1671,
@@ -322,7 +326,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
-            ->timeout(600)
+            ->timeout(120)
             ->withoutRedirecting()
             ->asMultipart()
             ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Components/ERP/Business/ERPDocHandler.ashx', [
@@ -694,6 +698,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
     {
         $validate = [];
         $detalles = [];
+        $productCache = [];
 
         $imp_cargo = collect($imp_cargo)->keyBy('Id')->all();
         $imp_retencion = collect($imp_retencion)->keyBy('Id')->all();
@@ -726,18 +731,28 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
                 ];
             }
 
-            $search_product = $this->search_products($token, $cookie, $detalle['item']);
             $product = [];
 
-            if (empty($search_product)) {
-                $validate[] = [
-                    'Row' => $row + 1,
-                    'ProductCode' => $detalle['item'],
-                    'WarehouseCode' => $detalle['bodega'] . ' - ' . ($warehouse['name'] ?? '#N/A'),
-                    'Error' => 'El item no es valido',
-                ];
-            } else {
-                $product = $this->search_product($token, $cookie, $search_product['ID'], $date);
+            if (!empty($detalle['item'])) {
+                if (array_key_exists($detalle['item'], $productCache)) {
+                    // Ya se buscó este item en una fila anterior, se reutiliza
+                    $product = $productCache[$detalle['item']];
+                } else {
+                    $search_product = $this->search_products($token, $cookie, $detalle['item']);
+
+                    if (empty($search_product)) {
+                        $validate[] = [
+                            'Row' => $row + 1,
+                            'ProductCode' => $detalle['item'],
+                            'WarehouseCode' => $detalle['bodega'] . ' - ' . ($warehouse['name'] ?? '#N/A'),
+                            'Error' => 'El item no es valido',
+                        ];
+                    } else {
+                        $product = $this->search_product($token, $cookie, $search_product['ID'], $date);
+                    }
+
+                    $productCache[$detalle['item']] = $product;
+                }
             }
 
             if (empty($product)) {
@@ -933,7 +948,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
                 "ConsumptionValue" => 0,
                 "ValueWithChargeTaxes" => $valueWithChargeTaxes,
                 "ItemType" => $detalle['tipo_detalle'],
-                "pWarehouseList" => json_encode($pWarehouseList)
+                "pWarehouseList" => json_encode([]/*$pWarehouseList*/)
             ];
         }
 
@@ -998,7 +1013,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
-            ->timeout(600)
+            ->timeout(90)
             ->withoutRedirecting()
             ->asMultipart()
             ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Framework/Controls/AutoComplete.ashx', [
@@ -1020,7 +1035,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
-            ->timeout(600)
+            ->timeout(90)
             ->withoutRedirecting()
             ->asMultipart()
             ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Components/ERP/InvoiceHandler.ashx', [
@@ -1041,7 +1056,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
-            ->timeout(600)
+            ->timeout(90)
             ->withoutRedirecting()
             ->asMultipart()
             ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Framework/Controls/AutoComplete.ashx', [
@@ -1065,7 +1080,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
-            ->timeout(600)
+            ->timeout(90)
             ->withoutRedirecting()
             ->asMultipart()
             ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Components/ERP/Business/ERPDocHandler.ashx', [
@@ -1086,7 +1101,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
-            ->timeout(600)
+            ->timeout(90)
             ->withoutRedirecting()
             ->asMultipart()
             ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Components/ERP/Business/ERPDocHandler.ashx', [
@@ -1105,7 +1120,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
-            ->timeout(600)
+            ->timeout(90)
             ->withoutRedirecting()
             ->asMultipart()
             ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Components/ERP/Business/ERPDocHandler.ashx', [
