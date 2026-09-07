@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -282,7 +281,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
-            ->timeout(120)
+            ->timeout(600)
             ->withoutRedirecting()
             ->get('https://monolithprod.siigo.com/REVENTCALZADOSAS/Default.aspx', [
                 'TabID' => 1671,
@@ -357,10 +356,6 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $data = $this->parse_siigo_response($response->body());
 
         if (empty($data['success']) || $data['success'] !== true) {
-            Log::info('orden_compra_failed', [
-                'data' => $data,
-                'response' => $response
-            ]);
             $validate = [
                 [
                     'Row'   => "ADVERTENCIA SIIGO - ORDEN DE COMPRA: {$warehouse['id']} - {$warehouse['name']} {$tipo}",
@@ -387,9 +382,9 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
     private function separar_ordenes_compra(array $config, array $user, object $purchase_order_type, array $rete_iva, array $rete_ica, array $provider, array $cost_center, string $doc_date, Collection $detalles, array $warehouse, string $tipo)
     {
-        $total_base = round($detalles->sum('BaseValue'), 2);
-        $vat_total_value = round($detalles->sum('TaxAdd_Value'), 2);
-        $tax_disc_total_value = round($detalles->sum('TaxDiscount_Value'), 2);
+        $total_base = (float) $this->bcSumMoney($detalles, 'BaseValue');
+        $vat_total_value = (float) $this->bcSumMoney($detalles, 'TaxAdd_Value');
+        $tax_disc_total_value = (float) $this->bcSumMoney($detalles, 'TaxDiscount_Value');
 
         $erp_document_total = collect();
 
@@ -402,8 +397,8 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             ->each(function ($items, $tax_id) use ($erp_document_total) {
                 $erp_document_total->push([
                     'Id' => (int) $tax_id,
-                    'Value' => round($items->sum('TaxAdd_Value'), 2),
-                    'TotalBase' => round($items->sum('BaseValue'), 2),
+                    'Value' => (float) $this->bcSumMoney($items, 'TaxAdd_Value'),
+                    'TotalBase' => (float) $this->bcSumMoney($items, 'BaseValue'),
                 ]);
             });
 
@@ -417,8 +412,8 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
                 $erp_document_total->push([
                     'Id' => (int) $tax_id,
-                    'Value' => round($items->sum('TaxDiscount_Value'), 2),
-                    'TotalBase' => round($items->sum('BaseValue'), 2),
+                    'Value' => (float) $this->bcSumMoney($items, 'TaxDiscount_Value'),
+                    'TotalBase' => (float) $this->bcSumMoney($items, 'BaseValue'),
                 ]);
             });
 
@@ -456,6 +451,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             }
         }
 
+        $total_value = (float) bcsub(bcsub(bcadd(number_format($total_base, 2, '.', ''), number_format($vat_total_value, 2, '.', ''), 2), number_format($tax_disc_total_value, 2, '.', ''),2), bcadd(number_format($ret_ica_total_value, 2, '.', ''), number_format($ret_vat_total_value, 2, '.', ''), 2), 2);
         $total_value = round($total_base + $vat_total_value - $tax_disc_total_value - $ret_ica_total_value - $ret_vat_total_value, 2);
 
         $observaciones = "DIRIGIDO A: {$warehouse['id']} - {$warehouse['name']}. TIPO: {$tipo}. " . ($config['observaciones'] ?? '');
@@ -1239,5 +1235,13 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
     private function sanitize_referencia(string $referencia): string
     {
         return strtoupper(preg_replace('/[^A-Za-z0-9\-_]/', '-', trim($referencia)));
+    }
+
+    private function bcSumMoney(Collection $items, string $field): string
+    {
+        return $items->reduce(function (string $carry, $item) use ($field) {
+            $value = number_format((float) ($item[$field] ?? 0), 2, '.', '');
+            return bcadd($carry, $value, 2);
+        }, '0.00');
     }
 }
