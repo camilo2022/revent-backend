@@ -36,6 +36,7 @@ Route::get('/siigo/sync_unico', [SiigoController::class, 'sync'])->name('siigo.s
 
 Route::get('/siigo/masive_transfer', [MasiveTransferSiigoController::class, 'masive_transfer'])->name('siigo.masive_transfer');
 Route::post('/siigo/masive_transfer_upload', [MasiveTransferSiigoController::class, 'masive_transfer_upload'])->name('siigo.masive_transfer_upload');
+Route::post('/siigo/masive_transfer_format', [MasiveTransferSiigoController::class, 'masive_transfer_format'])->name('siigo.masive_transfer_format');
 
 Route::get('/siigo/product_traceability', [ProductTraceabilitySiigoController::class, 'product_traceability'])->name('siigo.product_traceability');
 Route::post('/siigo/product_traceability_download', [ProductTraceabilitySiigoController::class, 'product_traceability_download'])->name('siigo.product_traceability_download');
@@ -50,6 +51,7 @@ Route::post('/siigo/product_photo_upload', [PhotoProductSiigoController::class, 
 Route::post('/siigo/product_photo_delete', [PhotoProductSiigoController::class, 'product_photo_delete'])->name('siigo.product_photo_delete');
 
 Route::get('/siigo/account_payable', [AccountPayableSiigoController::class, 'account_payable'])->name('siigo.account_payable');
+Route::get('/siigo/account-payable/{accountId}/documents', [AccountPayableSiigoController::class, 'account_payable_documents'])->name('siigo.account_payable.documents');
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);

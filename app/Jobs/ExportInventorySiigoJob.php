@@ -1,5 +1,4 @@
 <?php
-// app/Jobs/ExportInventorySiigoJob.php
 
 namespace App\Jobs;
 
@@ -21,10 +20,10 @@ class ExportInventorySiigoJob implements ShouldQueue
     public int $timeout = 3600;
     public int $tries = 1;
 
-    public function __construct(
-        private array $filters,
-        private string|array $notifyEmail
-    ) {}
+    public function __construct(private array $filters, private string|array $notifyEmail)
+    {
+        $this->onQueue('reports');
+    }
 
     public function handle(): void
     {

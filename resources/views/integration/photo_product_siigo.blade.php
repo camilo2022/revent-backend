@@ -398,6 +398,16 @@
             </div>
 
             <div class="excel-field-group">
+                <label for="tokenInput" class="excel-field-label">
+                    Token <span class="required-mark">*</span>
+                </label>
+                <div class="search-row">
+                    <input type="text" id="tokenInput" class="excel-field-input">
+                </div>
+                <div class="excel-field-hint">Necesario para validar tus permisos.</div>
+            </div>
+
+            <div class="excel-field-group">
                 <label for="referenciaInput" class="excel-field-label">
                     Referencia <span class="required-mark">*</span>
                 </label>
@@ -467,6 +477,7 @@
     (function () {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
+        const tokenInput = document.getElementById('tokenInput');
         const referenciaInput = document.getElementById('referenciaInput');
         const searchBtn = document.getElementById('searchBtn');
         const searchError = document.getElementById('searchError');
@@ -566,6 +577,13 @@
         async function eliminarFoto(filename, itemEl) {
             if (!confirm('¿Eliminar esta foto?')) return;
 
+            const token = tokenInput.value.trim();
+
+            if (!token) {
+                alert('Ingresa tu token antes de eliminar una foto.');
+                return;
+            }
+
             try {
                 const res = await fetch("{{ route('siigo.product_photo_delete') }}", {
                     method: 'POST',
@@ -574,12 +592,14 @@
                         'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json',
                     },
-                    body: JSON.stringify({ referencia: currentReferencia, filename }),
+                    body: JSON.stringify({ token, referencia: currentReferencia, filename }),
                 });
 
                 const data = await res.json();
 
-                if (!res.ok || !data.success) throw new Error('delete_failed');
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'No se pudo eliminar la foto.');
+                }
 
                 itemEl.remove();
 
@@ -587,7 +607,7 @@
                     existingEmptyHint.style.display = 'block';
                 }
             } catch (err) {
-                alert('No se pudo eliminar la foto. Intenta de nuevo.');
+                alert(err.message || 'No se pudo eliminar la foto. Intenta de nuevo.');
             }
         }
 
@@ -683,6 +703,13 @@
         uploadBtn.addEventListener('click', async () => {
             if (!currentReferencia || !selectedFiles.length) return;
 
+            const token = tokenInput.value.trim();
+
+            if (!token) {
+                showError(uploadError, 'Ingresa tu token antes de subir fotos.');
+                return;
+            }
+
             uploadError.classList.remove('show');
             uploadSuccess.classList.remove('show');
             uploadBtn.disabled = true;
@@ -690,6 +717,7 @@
             uploadBtnText.textContent = 'Subiendo...';
 
             const formData = new FormData();
+            formData.append('token', token);
             formData.append('referencia', currentReferencia);
             selectedFiles.forEach((file) => formData.append('photos[]', file));
 
@@ -705,7 +733,9 @@
 
                 const data = await res.json();
 
-                if (!res.ok || !data.success) throw new Error('upload_failed');
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'No se pudieron subir las fotos.');
+                }
 
                 data.uploaded.forEach((photo) => {
                     existingEmptyHint.style.display = 'none';
@@ -722,7 +752,7 @@
                 showSuccess(uploadSuccess, `${data.uploaded.length} foto(s) subida(s) correctamente.`);
                 resetUploadState();
             } catch (err) {
-                showError(uploadError, 'No se pudieron subir las fotos. Intenta de nuevo.');
+                showError(uploadError, err.message || 'No se pudieron subir las fotos. Intenta de nuevo.');
             } finally {
                 uploadBtn.classList.remove('is-loading');
                 uploadBtnText.textContent = 'Subir fotos';

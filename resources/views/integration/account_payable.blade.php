@@ -151,6 +151,29 @@
         text-align: center;
     }
 
+    /* ---- Toggle "información completa" ---- */
+    .all-data-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.2rem;
+        font-size: 0.82rem;
+        color: #374151;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .all-data-toggle input {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .all-data-toggle .hint {
+        color: #9ca3af;
+        font-size: 0.75rem;
+    }
+
     /* ---- Leyenda de clasificación ---- */
     .legend {
         display: none;
@@ -219,6 +242,35 @@
     .summary-porvencer { background: #f59e0b; }
     .summary-documents { background: #0bdaf5; }
 
+    /* ---- Loading de documentos ---- */
+    .loading-state {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.9rem;
+        padding: 3.5rem 0;
+    }
+
+    .loading-state.show { display: flex; }
+
+    .spinner {
+        width: 34px;
+        height: 34px;
+        border: 3px solid #e5e7eb;
+        border-top-color: #16a34a;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+        font-size: 0.85rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
     /* ---- Tabla de documentos ---- */
     .docs-wrap { display: none; }
     .docs-wrap.show { display: block; }
@@ -261,12 +313,102 @@
     .docs-table tbody tr.selectable { cursor: pointer; }
     .docs-table tbody tr.selectable:hover { filter: brightness(0.98); }
 
-    .row-nov1 { background: #fecaca; }
-    .row-nov2 { background: #bbf7d0; }
-    .row-nov3 { background: #bfdbfe; }
-    .row-nov4 { background: #fed7aa; }
-    .row-nov5 { background: #fef08a; }
-    .row-des1 { background: #e9d5ff; }
+    /* Columnas que solo existen cuando se pide "información completa" */
+    .docs-table th.col-extra,
+    .docs-table td.col-extra {
+        display: none;
+    }
+
+    .docs-table.show-extra th.col-extra,
+    .docs-table.show-extra td.col-extra {
+        display: table-cell;
+    }
+
+    .obs-text {
+        white-space: pre-line;
+        font-size: 0.78rem;
+        color: #6b7280;
+    }
+
+    /* S/C - Anulados */
+    .row-sc {
+        background: #fee2e2;
+    }
+
+    .row-sc .prefix-tag {
+        background: #fca5a5;
+        color: #991b1b;
+    }
+
+    /* NOV1 - Faltantes */
+    .row-nov1 {
+        background: #ffedd5;
+    }
+
+    .row-nov1 .prefix-tag {
+        background: #fdba74;
+        color: #9a3412;
+    }
+
+    /* NOV2 - Sobrantes */
+    .row-nov2 {
+        background: #dcfce7;
+    }
+
+    .row-nov2 .prefix-tag {
+        background: #86efac;
+        color: #166534;
+    }
+
+    /* NOV3 - Trocados */
+    .row-nov3 {
+        background: #dbeafe;
+    }
+
+    .row-nov3 .prefix-tag {
+        background: #93c5fd;
+        color: #1e40af;
+    }
+
+    /* NOV4 - Corrección de factura */
+    .row-nov4 {
+        background: #f3e8ff;
+    }
+
+    .row-nov4 .prefix-tag {
+        background: #d8b4fe;
+        color: #6b21a8;
+    }
+
+    /* NOV5 - Mercancía en mal estado */
+    .row-nov5 {
+        background: #fef9c3;
+    }
+
+    .row-nov5 .prefix-tag {
+        background: #fde047;
+        color: #854d0e;
+    }
+
+    /* DES1 - Descuento */
+    .row-des1 {
+        background: #ccfbf1;
+    }
+
+    .row-des1 .prefix-tag {
+        background: #5eead4;
+        color: #115e59;
+    }
+
+    /* RP - Recibo de pago */
+    .row-rp {
+        background: #f3f4f6;
+    }
+
+    .row-rp .prefix-tag {
+        background: #d1d5db;
+        color: #374151;
+    }
 
     .prefix-tag {
         display: inline-flex;
@@ -278,12 +420,6 @@
         color: #374151;
         white-space: nowrap;
     }
-    .row-nov1 .prefix-tag { background: #fca5a5; color: #7f1d1d; }
-    .row-nov2 .prefix-tag { background: #86efac; color: #14532d; }
-    .row-nov3 .prefix-tag { background: #93c5fd; color: #1e3a8a; }
-    .row-nov4 .prefix-tag { background: #fdba74; color: #7c2d12; }
-    .row-nov5 .prefix-tag { background: #fde047; color: #713f12; }
-    .row-des1 .prefix-tag { background: #d8b4fe; color: #581c87; }
 
     .badge {
         display: inline-flex;
@@ -346,6 +482,13 @@
         padding: 2.75rem 0;
     }
 
+    .error-state {
+        text-align: center;
+        color: #dc2626;
+        font-size: 0.85rem;
+        padding: 2.75rem 0;
+    }
+
     .back-link {
         display: inline-flex;
         align-items: center;
@@ -373,7 +516,6 @@
 
         .field-group { max-width: 100%; }
 
-        /* 5 tarjetas → 2 columnas, se acomodan en filas */
         .summary-grid {
             grid-template-columns: repeat(2, 1fr);
             border-radius: 10px;
@@ -391,7 +533,6 @@
         .legend-item { font-size: 0.68rem; }
         .legend-dot { width: 12px; height: 12px; }
 
-        /* La tabla sigue con scroll horizontal (ya lo tenías con .docs-scroll) */
         .docs-table { min-width: 640px; font-size: 0.8rem; }
 
         .docs-table thead th {
@@ -401,7 +542,6 @@
 
         .docs-table td { padding: 0.55rem 0.6rem; }
 
-        /* Barra de totales apilada, ocupa todo el ancho */
         .totals-bar {
             flex-direction: column;
             align-items: flex-start;
@@ -417,7 +557,6 @@
     @media (max-width: 480px) {
         body { padding: 1rem 0.6rem; }
 
-        /* En pantallas muy chicas, 1 columna por tarjeta */
         .summary-grid { grid-template-columns: repeat(2, 1fr); }
 
         .summary-card .amount { font-size: 0.95rem; }
@@ -452,13 +591,21 @@
             </div>
         </div>
 
+        <label class="all-data-toggle">
+            <input type="checkbox" id="allDataCheck">
+            Cargar información completa (orden de compra, bodegas, observaciones)
+            <span class="hint">— consulta más lenta</span>
+        </label>
+
         <div class="legend" id="legend">
-            <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>NOV1 · Faltantes</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>S/C · Anulados</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span>NOV1 · Faltantes</span>
             <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span>NOV2 · Sobrantes</span>
             <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>NOV3 · Trocados</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span>NOV4 · Corrección de factura</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#9333ea"></span>NOV4 · Corrección de factura</span>
             <span class="legend-item"><span class="legend-dot" style="background:#eab308"></span>NOV5 · Mcia. mal estado</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#a855f7"></span>DES1 · Descuento</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#0d9488"></span>DES1 · Descuento</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#9ca3af"></span>RP · Recibo de pago</span>
         </div>
 
         <div class="summary-grid" id="summaryGrid">
@@ -489,13 +636,25 @@
         </div>
 
         <div class="docs-wrap" id="docsWrap">
-            <div class="docs-scroll">
-                <table class="docs-table">
+
+            <div class="loading-state" id="loadingState">
+                <div class="spinner"></div>
+                <div class="loading-text">Espera un momento, cargando los documentos del proveedor...</div>
+            </div>
+
+            <div class="docs-scroll" id="docsScroll" style="display:none;">
+                <table class="docs-table" id="docsTable">
                     <thead>
                         <tr>
                             <th style="width:34px;"><input type="checkbox" id="checkAll" class="row-check"></th>
                             <th>Tipo</th>
                             <th>Documento</th>
+                            <th>Factura</th>
+                            <th class="col-extra">Orden</th>
+                            <th class="col-extra">Observaciones</th>
+                            <th class="col-extra">Bodegas</th>
+                            <th class="col-extra">Cantidad</th>
+                            <th>Valor</th>
                             <th>Fecha vence</th>
                             <th>Estado</th>
                             <th style="text-align:right;">Deuda</th>
@@ -505,6 +664,7 @@
                     <tbody id="docsBody"></tbody>
                 </table>
             </div>
+
         </div>
 
         <div id="emptyState" class="empty-state">Selecciona un proveedor para ver sus cuentas.</div>
@@ -523,31 +683,40 @@
 
 <script>
 const PROVIDERS = @json(array_values($providers ?? []), JSON_UNESCAPED_UNICODE);
+const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['accountId' => '__ID__']) }}";
 
 (function () {
-    const providers    = PROVIDERS;
-    const searchInput  = document.getElementById('providerSearch');
-    const clearBtn     = document.getElementById('providerClear');
-    const listEl       = document.getElementById('providerList');
-    const legend       = document.getElementById('legend');
-    const summaryGrid  = document.getElementById('summaryGrid');
-    const docsWrap     = document.getElementById('docsWrap');
-    const docsBody     = document.getElementById('docsBody');
-    const emptyState   = document.getElementById('emptyState');
-    const totalsBar    = document.getElementById('totalsBar');
-    const checkAll     = document.getElementById('checkAll');
+    const providers      = PROVIDERS;
+    const searchInput    = document.getElementById('providerSearch');
+    const clearBtn       = document.getElementById('providerClear');
+    const listEl         = document.getElementById('providerList');
+    const allDataCheck   = document.getElementById('allDataCheck');
+    const legend         = document.getElementById('legend');
+    const summaryGrid    = document.getElementById('summaryGrid');
+    const docsWrap       = document.getElementById('docsWrap');
+    const loadingState   = document.getElementById('loadingState');
+    const docsScroll     = document.getElementById('docsScroll');
+    const docsTable      = document.getElementById('docsTable');
+    const docsBody       = document.getElementById('docsBody');
+    const emptyState     = document.getElementById('emptyState');
+    const totalsBar      = document.getElementById('totalsBar');
+    const checkAll       = document.getElementById('checkAll');
 
     let filtered = [];
     let activeIndex = -1;
+    let requestToken = 0; // evita que una respuesta vieja pise la selección actual
+    let currentProvider = null;
 
     // Prefijos que colorean la fila (clasificación de novedades)
     const ROW_CLASS_BY_PREFIX = {
-        NOV1: 'row-nov1',
-        NOV2: 'row-nov2',
-        NOV3: 'row-nov3',
-        NOV4: 'row-nov4',
-        NOV5: 'row-nov5',
-        DES1: 'row-des1',
+        'S/C': 'row-sc',
+        'NOV1': 'row-nov1',
+        'NOV2': 'row-nov2',
+        'NOV3': 'row-nov3',
+        'NOV4': 'row-nov4',
+        'NOV5': 'row-nov5',
+        'DES1': 'row-des1',
+        'RP': 'row-rp',
     };
 
     function escapeHtml(str) {
@@ -572,14 +741,28 @@ const PROVIDERS = @json(array_values($providers ?? []), JSON_UNESCAPED_UNICODE);
         return d.toLocaleDateString('es-CO');
     }
 
-    // Solo FC (facturas) y DES* (descuentos) pueden marcarse; las NOV* son informativas
-    function isSelectable(prefix) {
-        prefix = (prefix || '').toUpperCase();
-        return prefix === 'FC' || prefix.startsWith('DES');
+    function formatQuantity(value) {
+        const n = Number(value) || 0;
+        return n.toLocaleString('es-CO', { maximumFractionDigits: 2 });
     }
 
-    function rowClassFor(prefix) {
-        return ROW_CLASS_BY_PREFIX[(prefix || '').toUpperCase()] || '';
+    function isSelectable(doc) {
+        let prefix = (doc.DuePrefix || '').toUpperCase();
+        return (prefix === 'FC' || prefix.startsWith('DES')) && !doc.IsAnnulled;
+    }
+
+    function rowClassFor(doc) {
+        const prefix = (doc.DuePrefix || '').toUpperCase();
+
+        if (prefix.startsWith('RP')) {
+            return ROW_CLASS_BY_PREFIX['RP'] || '';
+        }
+
+        if (doc.IsAnnulled === true) {
+            return ROW_CLASS_BY_PREFIX['S/C'] || '';
+        }
+
+        return ROW_CLASS_BY_PREFIX[prefix] || '';
     }
 
     function estadoBadge(doc) {
@@ -668,7 +851,15 @@ const PROVIDERS = @json(array_values($providers ?? []), JSON_UNESCAPED_UNICODE);
         searchInput.value = '';
         clearBtn.classList.remove('show');
         listEl.classList.remove('show');
+        requestToken++; // invalida cualquier fetch en curso
+        currentProvider = null;
         resetView();
+    });
+
+    // Si el usuario cambia el checkbox y ya hay un proveedor cargado, se vuelve a consultar
+    allDataCheck.addEventListener('change', () => {
+        docsTable.classList.toggle('show-extra', allDataCheck.checked);
+        if (currentProvider) loadProvider(currentProvider);
     });
 
     function selectProvider(provider) {
@@ -676,22 +867,24 @@ const PROVIDERS = @json(array_values($providers ?? []), JSON_UNESCAPED_UNICODE);
         searchInput.value = provider.FullName;
         clearBtn.classList.add('show');
         listEl.classList.remove('show');
-        renderProvider(provider);
+        currentProvider = provider;
+        loadProvider(provider);
     }
 
-    // ---- Render del proveedor seleccionado ----
+    // ---- Reset ----
     function resetView() {
         summaryGrid.classList.remove('show');
         legend.classList.remove('show');
         docsWrap.classList.remove('show');
+        loadingState.classList.remove('show');
+        docsScroll.style.display = 'none';
         totalsBar.classList.remove('show');
         emptyState.style.display = 'block';
         docsBody.innerHTML = '';
     }
 
-    function renderProvider(provider) {
-        emptyState.style.display = 'none';
-
+    // ---- Pinta el resumen de inmediato (no depende de los documentos) ----
+    function renderSummary(provider) {
         const vencido = (Number(provider.Expired1to30) || 0)
             + (Number(provider.Expired31to60) || 0)
             + (Number(provider.Expired61to90) || 0)
@@ -699,31 +892,94 @@ const PROVIDERS = @json(array_values($providers ?? []), JSON_UNESCAPED_UNICODE);
 
         const saldo = (Number(provider.TotalBalance) || 0) - (Number(provider.BalanceInFavor) || 0);
 
-        document.getElementById('sumDeuda').textContent     = formatMoney(provider.TotalBalance);
-        document.getElementById('sumFavor').textContent     = formatMoney(provider.BalanceInFavor);
-        document.getElementById('sumSaldo').textContent     = formatMoney(saldo);
-        document.getElementById('sumVencido').textContent   = formatMoney(vencido);
-        document.getElementById('sumPorVencer').textContent = formatMoney(provider.BalanceToExpire);
-        document.getElementById('sumDocumentos').textContent = provider.Documents.length;
+        document.getElementById('sumDeuda').textContent      = formatMoney(provider.TotalBalance);
+        document.getElementById('sumFavor').textContent      = formatMoney(provider.BalanceInFavor);
+        document.getElementById('sumSaldo').textContent      = formatMoney(saldo);
+        document.getElementById('sumVencido').textContent    = formatMoney(vencido);
+        document.getElementById('sumPorVencer').textContent  = formatMoney(provider.BalanceToExpire);
+        document.getElementById('sumDocumentos').textContent = '…';
 
         summaryGrid.classList.add('show');
         legend.classList.add('show');
-        docsWrap.classList.add('show');
+    }
 
-        const docs = provider.Documents || [];
+    // ---- Trae los documentos del proveedor por AJAX y muestra loading mientras tanto ----
+    async function loadProvider(provider) {
+        const myToken = ++requestToken;
+        const allData = allDataCheck.checked;
+
+        emptyState.style.display = 'none';
+        renderSummary(provider);
+
+        docsWrap.classList.add('show');
+        loadingState.classList.add('show');
+        docsScroll.style.display = 'none';
+        totalsBar.classList.remove('show');
+        checkAll.checked = false;
+        docsBody.innerHTML = '';
+
+        let url = DOCUMENTS_URL_TEMPLATE.replace('__ID__', encodeURIComponent(provider.AccountID));
+        if (allData) url += (url.includes('?') ? '&' : '?') + 'all_data=1';
+
+        try {
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+            });
+
+            if (myToken !== requestToken) return; // el usuario ya seleccionó otro proveedor
+
+            if (!response.ok) throw new Error('request_failed');
+
+            const data = await response.json();
+            const docs = data.documents || [];
+
+            renderDocuments(docs, allData);
+            document.getElementById('sumDocumentos').textContent = docs.length;
+        } catch (err) {
+            if (myToken !== requestToken) return;
+
+            docsBody.innerHTML = '<tr><td colspan="12" class="error-state">No se pudieron cargar los documentos de este proveedor. Intenta de nuevo.</td></tr>';
+            docsScroll.style.display = 'block';
+            document.getElementById('sumDocumentos').textContent = '-';
+        } finally {
+            if (myToken === requestToken) {
+                loadingState.classList.remove('show');
+                docsScroll.style.display = 'block';
+            }
+        }
+    }
+
+    function renderDocuments(docs, allData) {
+        docsTable.classList.toggle('show-extra', allData);
 
         if (!docs.length) {
-            docsBody.innerHTML = '<tr><td colspan="7" class="empty-state">Este proveedor no tiene documentos.</td></tr>';
+            docsBody.innerHTML = '<tr><td colspan="12" class="empty-state">Este proveedor no tiene documentos.</td></tr>';
         } else {
             docsBody.innerHTML = docs.map((doc) => {
-                const selectable = isSelectable(doc.DuePrefix);
-                const rowClass = rowClassFor(doc.DuePrefix);
+                const selectable = isSelectable(doc);
+                const rowClass = rowClassFor(doc);
+
+                let extraCells = '';
+                if (allData) {
+                    const purchaseEntry = doc.PurchaseEntry || {};
+                    const detail = doc.PurchaseEntryDetail || {};
+
+                    extraCells = `
+                        <td>${escapeHtml(purchaseEntry.docName) || '-'}</td>
+                        <td>${detail.Observations ? `<div class="obs-text">${escapeHtml(detail.Observations)}</div>` : '-'}</td>
+                        <td>${detail.WarehouseCodes ? `<div>${escapeHtml(detail.WarehouseCodes)}</div>` : ''}</td>
+                        <td style="text-align:right;">${detail.Quantity ? formatQuantity(detail.Quantity) : '-'}</td>
+                    `;
+                }
 
                 return `
                     <tr class="${rowClass} ${selectable ? 'selectable' : ''}" data-saldo="${Number(doc.Saldo) || 0}">
                         <td><input type="checkbox" class="row-check doc-check" ${selectable ? '' : 'disabled'}></td>
                         <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                         <td>${escapeHtml(doc.DueName)}</td>
+                        <td>${escapeHtml(doc.DocName)}</td>
+                        ${extraCells}
+                        <td>${formatMoney(doc.TotalValue)}</td>
                         <td>${formatDate(doc.DueDate)}</td>
                         <td>${estadoBadge(doc)}</td>
                         <td style="text-align:right;">${formatMoney(doc.Deuda)}</td>
@@ -733,7 +989,6 @@ const PROVIDERS = @json(array_values($providers ?? []), JSON_UNESCAPED_UNICODE);
             }).join('');
         }
 
-        checkAll.checked = false;
         updateTotals();
     }
 

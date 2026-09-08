@@ -42,18 +42,7 @@ class ExportPurchaseSiigoJob implements ShouldQueue
 
         $filename = 'compras_' . now()->format('Y_m_d_His') . '.xlsx';
 
-        Excel::store(
-            new PurchaseSiigoExport(
-                $token,
-                $this->cost_centers,
-                $this->purchases,
-                $products,
-                $this->stores(),
-                $this->siigo_base_url
-            ),
-            "exports/{$filename}",
-            'public'
-        );
+        Excel::store(new PurchaseSiigoExport( $token, $this->cost_centers, $this->purchases, $products, $this->stores(), $this->siigo_base_url), "exports/{$filename}", 'public');
 
         $downloadUrl = route('exports.download', ['file' => $filename]);
 

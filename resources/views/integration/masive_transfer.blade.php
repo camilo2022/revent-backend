@@ -359,11 +359,16 @@
         <div class="excel-upload-card">
 
             <div class="excel-upload-title">Cargar archivo de traslados masivos</div>
+
             <div class="excel-upload-subtitle">
                 Sube la plantilla Excel (.xlsx o .xls) para procesar los traslados
-                <a href="{{ route('formats.download', 'formato_traslado.xlsx') }}" class="excel-download-btn" download>
-                    Descargar formato
-                </a>
+                <form action="{{ route('siigo.masive_transfer_format') }}" method="POST" id="downloadTypeForm">
+                    @csrf
+
+                    <button type="submit" class="excel-download-btn" id="downloadBtn">
+                        Descargar formato
+                    </button>
+                </form>
             </div>
 
             <form action="{{ route('siigo.masive_transfer_upload') }}" method="POST" enctype="multipart/form-data"

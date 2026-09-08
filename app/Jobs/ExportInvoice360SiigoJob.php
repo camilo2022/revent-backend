@@ -29,10 +29,10 @@ class ExportInvoice360SiigoJob implements ShouldQueue
     private array $credit_notes = [];
     private array $documents = [];
 
-    public function __construct(
-        public array $filters,
-        public array|string $notifyEmail
-    ) {}
+    public function __construct(public array $filters, public array|string $notifyEmail)
+    {
+        $this->onQueue('reports');
+    }
 
     public function handle(): void
     {

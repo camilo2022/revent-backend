@@ -15,20 +15,76 @@ class AccountPayableSiigoController extends Controller
         $token = $siigo->auth();
 
         $providers = $this->accounts_payable_providers($token);
-        $documents = $this->accounts_payable_documents($token);
-
-        $documentsByAccount = collect($documents)->groupBy('AccountID');
-
-        $providers = collect($providers)
-            ->map(function ($provider) use ($documentsByAccount) {
-                $provider['Documents'] = $documentsByAccount
-                    ->get($provider['AccountID'], collect())
-                    ->values()
-                    ->all();
-                return $provider;
-            })->all();
 
         return view('integration.account_payable', compact('providers'));
+    }
+
+    public function account_payable_documents(Request $request, int $accountId)
+    {
+        $siigo = new SiigoInventoryService();
+        $token = $siigo->auth();
+
+        $allData = $request->boolean('all_data');
+
+        $warehousesById = collect();
+        if ($allData) {
+            $warehouses = $this->warehouses($token);
+            $warehousesById = collect($warehouses)->keyBy('id');
+        }
+
+        $documents = $this->accounts_payable_documents($token, $accountId);
+        $purchases = $this->purchases_documents($token, $accountId);
+
+        $purchasesByExternalDocument = collect($purchases)->keyBy('ExternalDocumentNumber');
+
+        $documents = collect($documents)
+            ->map(function ($document) use ($purchasesByExternalDocument, $token, $accountId, $allData, $warehousesById) {
+                $purchase = $purchasesByExternalDocument->get($document['DueName']);
+
+                $document['IsAnnulled'] = $purchase['IsAnnulled'] ?? false;
+                $document['DocName'] = $purchase['DocName'] ?? null;
+                $document['TotalValue'] = $purchase['TotalValue'] ?? null;
+                $document['ACEntryID'] = $purchase['ACEntryID'] ?? null;
+
+                if ($allData) {
+                    if (!empty($document['ACEntryID'])) {
+                        $purchase_entry = $this->purchase_entry($token, $accountId, (int) $document['ACEntryID']);
+
+                        $purchase_entry_detail = $this->purchase_entry_detail($token, (int) $document['ACEntryID']);
+
+                        $document['PurchaseEntry'] = $purchase_entry;
+
+                        $document['PurchaseEntryDetail'] = [
+                            'Observations' => $purchase_entry_detail['Observations'],
+                            'WarehouseCodes' => collect($purchase_entry_detail['WarehouseCodes'])
+                                ->map(function ($warehouseCode) use ($warehousesById) {
+                                    $warehouse = $warehousesById->get($warehouseCode);
+                                    return $warehouseCode . '-' . ($warehouse['name'] ?? '');
+                                })
+                                ->implode(', '),
+                            'Quantity' => $purchase_entry_detail['Quantity'],
+                        ];
+                    } else {
+                        $document['PurchaseEntry'] = [
+                            'quotationID' => null,
+                            'docName' => null
+                        ];
+                        $document['PurchaseEntryDetail'] = [
+                            'Observations' => '',
+                            'WarehouseCodes' => '',
+                            'Quantity' => 0
+                        ];
+                    }
+                }
+
+                return $document;
+            })
+            ->values()
+            ->all();
+
+        return response()->json([
+            'documents' => $documents,
+        ]);
     }
 
     private function accounts_payable_providers(string $token)
@@ -83,7 +139,7 @@ class AccountPayableSiigoController extends Controller
         return $response->json('data.Value.Table');
     }
 
-    private function accounts_payable_documents(string $token)
+    private function accounts_payable_documents(string $token, int $accountId)
     {
         $take = 100;
         $skip = 0;
@@ -96,7 +152,7 @@ class AccountPayableSiigoController extends Controller
                     'Field' => '_vClientProv',
                     'FilterType' => 68,
                     'OperatorType' => 0,
-                    'Value' => [],
+                    'Value' => [$accountId],
                     'ValueUI' => '',
                     'Source' => 'Account',
                 ],
@@ -142,11 +198,11 @@ class AccountPayableSiigoController extends Controller
 
             if (!$response->successful()) {
                 throw new \Exception(
-                    'Error consultando cuentas por pagar a proveedores: ' . $response->body()
+                    'Error consultando documentos del proveedor: ' . $response->body()
                 );
             }
 
-            if ($total == null) {
+            if ($total === null) {
                 $total = (int) $response->json('totalCount');
             }
 
@@ -157,5 +213,228 @@ class AccountPayableSiigoController extends Controller
         } while ($skip < $total);
 
         return $rows;
+    }
+
+    private function purchases_documents(string $token, int $accountId)
+    {
+        $take = 100;
+        $skip = 0;
+        $total = null;
+        $rows = [];
+
+        $fechaInicio = now()->subYear(2);
+        $fechaFin = now();
+
+        $source = collect(range(2016, $fechaFin->year))
+            ->map(fn ($anio) => [
+                'id' => $anio,
+                'StartDate' => "{$anio}0101",
+                'EndDate' => "{$anio}1231",
+            ])
+            ->values()
+            ->toArray();
+
+        do {
+            $filterCriterias = [
+                [
+                    'Field' => '_vTypeTransaction',
+                    'FilterType' => 7,
+                    'OperatorType' => 0,
+                    'Value' => ['0'],
+                    'ValueUI' => 'Compra',
+                    'Source' => 'PurchasesTransactionEnum',
+                ],
+                [
+                    'Field' => '_vProvider',
+                    'FilterType' => 68,
+                    'OperatorType' => 0,
+                    'Value' => [$accountId, false, 'AccountID'],
+                    'ValueUI' => '',
+                    'Source' => 'Account',
+                ],
+                [
+                    'Field' => '_vDocDate',
+                    'FilterType' => 76,
+                    'OperatorType' => 0,
+                    'Value' => [
+                        $fechaInicio->format('Ymd'),
+                        $fechaFin->format('Ymd'),
+                    ],
+                    'ValueUI' => $fechaInicio->format('Y/m/d')
+                        . ' - '
+                        . $fechaFin->format('Y/m/d'),
+                    'Source' => $source,
+                ],
+                [
+                    'Field' => '_vUser',
+                    'FilterType' => 6,
+                    'OperatorType' => 0,
+                    'Value' => [],
+                    'ValueUI' => '',
+                    'Source' => '12',
+                ],
+                [
+                    'Field' => '_vProviderInvoice',
+                    'FilterType' => 6,
+                    'OperatorType' => 0,
+                    'Value' => [],
+                    'ValueUI' => '',
+                    'Source' => '64',
+                ],
+                [
+                    'Field' => '_vESiigoStatus',
+                    'FilterType' => 7,
+                    'OperatorType' => 0,
+                    'Value' => ['-1'],
+                    'ValueUI' => '',
+                    'Source' => 'DianStateFilterEnum',
+                ],
+            ];
+
+            $body = [
+                'Id' => 5451,
+                'Skip' => $skip,
+                'Take' => $take,
+                'Sort' => ' ',
+                'FilterCriterias' => json_encode($filterCriterias),
+                'Params' => json_encode([
+                    'TabID' => '1408',
+                ]),
+                'GetTotalCount' => $total === null,
+                'GridOrderCriteria' => null,
+                'AddOns' => [
+                    [
+                        'name' => 'POS Web',
+                        'state' => true,
+                        'tenantId' => '0x00000000000000000000000000605286',
+                        'type' => 1,
+                        'module' => 5,
+                        'dateActive' => '08/05/2026 10:02:54.011',
+                        'posActiveCashiers' => [
+                            'baseCashiers' => 1,
+                            'aditionalCashiers' => 27,
+                        ],
+                        'documentBase' => 0,
+                        'readOnly' => null,
+                        'subState' => 1,
+                        'updateType' => 1,
+                        'complements' => null,
+                        'payrollComplements' => null,
+                    ],
+                ],
+            ];
+
+            $response = Http::withToken($token)
+                ->acceptJson()
+                ->timeout(600)
+                ->post(
+                    'https://services.siigo.com/document/api/v1/reports/getreport',
+                    $body
+                );
+
+            if (!$response->successful()) {
+                throw new \Exception(
+                    'Error consultando documentos de compra: ' . $response->body()
+                );
+            }
+
+            if ($total === null) {
+                $total = (int) $response->json('totalCount');
+            }
+
+            $page = $response->json('data.Value.Table') ?? [];
+
+            $rows = array_merge($rows, $page);
+
+            $skip += $take;
+
+        } while ($skip < $total);
+
+        return $rows;
+    }
+
+    private function purchase_entry(string $token, int $accountId, int $acEntryId)
+    {
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->timeout(600)
+            ->get(
+                'https://services.siigo.com/document/api/v2/cards-view/CardsInfo',
+                [
+                    'ACEntryID' => $acEntryId,
+                    'AccountID' => $accountId,
+                ]
+            );
+
+        if (!$response->successful()) {
+            throw new \Exception(
+                'Error consultando detalle de compra '
+                . $acEntryId . ': '
+                . $response->body()
+            );
+        }
+
+        $data = $response->json();
+
+        $data = $data['accounts'];
+
+        return [
+            'quotationID' => $data['quotationID'] ?? null,
+            'docName' => $data['docName'] ?? null
+        ];
+    }
+
+    private function purchase_entry_detail(string $token, int $acEntryId)
+    {
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->timeout(600)
+            ->get(
+                'https://services.siigo.com/ACEntryApi/api/v2/Purchase/GetItem',
+                [
+                    'id' => $acEntryId,
+                ]
+            );
+
+        if (!$response->successful()) {
+            throw new \Exception(
+                'Error consultando detalle de compra '
+                . $acEntryId . ': '
+                . $response->body()
+            );
+        }
+
+        $data = $response->json();
+
+        $items = collect($data['Items'] ?? []);
+
+        return [
+            'Observations' => $data['Entry']['Observations'] ?? null,
+            'WarehouseCodes' => $items
+                ->pluck('WarehouseCode')
+                ->filter(fn ($warehouseCode) => $warehouseCode !== null)
+                ->unique()
+                ->values()
+                ->all(),
+            'Quantity' => $items
+                ->sum(fn ($item) => (float) ($item['Quantity'] ?? 0)),
+        ];
+    }
+
+    private function warehouses(string $token): array
+    {
+        $response = Http::retry(5, 10000)->withHeaders([
+            'Content-Type'  => 'application/json',
+            'Authorization' => $token,
+            'Partner-Id'    => 'consultadeFacturas',
+        ])->get("https://api.siigo.com/v1/warehouses");
+
+        if (! $response->successful()) {
+            throw new \Exception($response->body());
+        }
+
+        $data = $response->json();
+
+        return $data;
     }
 }

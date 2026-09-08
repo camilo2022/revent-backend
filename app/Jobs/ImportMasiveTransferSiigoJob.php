@@ -24,10 +24,10 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
     public int $tries = 1;
     public int $timeout = 3600;
 
-    public function __construct(
-        private Collection $transfer,
-        private string $email
-    ) {}
+    public function __construct(private Collection $transfer, private string $email)
+    {
+        $this->onQueue('masive-transfers');
+    }
 
     public function handle(): void
     {
@@ -681,7 +681,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         // 597 - ELI "reventcalzado@gmail.com"
         return [
             'DIRECTO' => [
-                -1 => ['name' => 'Sin asignar', 'transito' => null, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+                -1 => ['name' => 'SIN ASIGNAR', 'transito' => null, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
                 2  => ['name' => 'P R I N C I P A L', 'transito' => 67, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
                 3  => ['name' => 'ALEGRA', 'transito' => 70, 'users' => [597, 735, 742, 816, 823, 824, 873, 875, 878, 879, 880, 883, 884, 957, 972, 975, 979, 997, 1002, 1003, 1049, 1062, 1065, 1068, 1114, 1128, 1163, 1164, 1182, 1223, 1237, 1238, 1242, 1251, 1279, 1280, 1314, 1348, 1350, 1362, 11571, 11579, 11581, 11591], 'emails' => ['parquealegra@revent.com.co']],
                 4  => ['name' => 'PUNTO DE VENTA', 'transito' => null, 'users' => [597, 877], 'emails' => ['operaciones@revent.com.co']],
@@ -702,7 +702,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 35 => ['name' => 'Credito de Calzado', 'transito' => null, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
                 36 => ['name' => 'ECOMMERCE', 'transito' => null, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
                 37 => ['name' => 'CARNAVAL', 'transito' => 79, 'users' => [597, 810, 886, 1145, 1147, 1148, 1150, 1151, 1160, 1203, 1233, 1257, 1297, 1324, 1325, 1429, 1466, 1532, 11563, 11565], 'emails' => ['carnaval@revent.com.co']],
-                44 => ['name' => 'INSTAGRAM', 'transito' => null, 'users' => [597, 1547]],
+                44 => ['name' => 'INSTAGRAM', 'transito' => null, 'users' => [597, 1547], 'emails' => ['operaciones@revent.com.co']],
                 45 => ['name' => 'GARANTIAS', 'transito' => null, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
                 46 => ['name' => 'GUATAPURI', 'transito' => 80, 'users' => [597, 1037, 1060, 1166, 1170, 1178, 1255, 1271, 1292, 1304, 1329, 1330, 1356, 1384, 1439, 1445, 1473, 1474, 1475, 1504, 11580], 'emails' => ['guatapuri@revent.com.co']],
                 47 => ['name' => 'TEMPORADA 2025', 'transito' => null, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
@@ -713,10 +713,10 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 57 => ['name' => 'MAYORCA', 'transito' => 85, 'users' => [597, 1537, 1542, 1543, 1544, 1545, 1546, 1548, 1549, 1552, 1554, 1555, 11558, 11568, 11577, 11582], 'emails' => ['mayorca@revent.com.co']],
                 58 => ['name' => 'GRAN MANZANA', 'transito' => 86, 'users' => [597, 1498, 1500, 1501, 1502, 1503, 1513, 1531, 11584], 'emails' => ['granmanzana@revent.com.co']],
                 59 => ['name' => 'NUESTRO ATLANTICO', 'transito' => 87, 'users' => [597, 885, 11585, 11586, 11587, 11588, 11589, 11595], 'emails' => ['nuestroatlantico@revent.com.co']],
-                62 => ['name' => 'NUESTRO CARTAGO', 'transito' => 89, 'users' => [597], 'emails' => []],
-                63 => ['name' => 'NUESTRO URABÁ', 'transito' => 88, 'users' => [597], 'emails' => []],
-                66 => ['name' => 'GUACARI SINCELEJO', 'transito' => 90, 'users' => [597], 'emails' => []],
-                69 => ['name' => 'NUESTRO BOGOTÁ', 'transito' => 91, 'users' => [597], 'emails' => []],
+                62 => ['name' => 'NUESTRO URABÁ', 'transito' => 88, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+                63 => ['name' => 'NUESTRO CARTAGO', 'transito' => 89, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+                66 => ['name' => 'GUACARI SINCELEJO', 'transito' => 90, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+                69 => ['name' => 'NUESTRO BOGOTÁ', 'transito' => 91, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
             ],
             'TRANSITO' => [
                 67 => ['name' => 'TRANSITO P R I N C I P A L', 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
@@ -739,10 +739,10 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 85 => ['name' => 'TRANSITO MAYORCA', 'users' => [597, 1537, 1542, 1543, 1544, 1545, 1546, 1548, 1549, 1552, 1554, 1555, 11558, 11568, 11577, 11582], 'emails' => ['mayorca@revent.com.co']],
                 86 => ['name' => 'TRANSITO GRAN MANZANA', 'users' => [597, 1498, 1500, 1501, 1502, 1503, 1513, 1531, 11584], 'emails' => ['granmanzana@revent.com.co']],
                 87 => ['name' => 'TRANSITO NUESTRO ATLANTICO', 'users' => [597, 885, 11585, 11586, 11587, 11588, 11589, 11595], 'emails' => ['nuestroatlantico@revent.com.co']],
-                88 => ['name' => 'TRANSITO NUESTRO URABÁ', 'users' => [597], 'emails' => []],
-                89 => ['name' => 'TRANSITO NUESTRO CARTAGO', 'users' => [597], 'emails' => []],
-                90 => ['name' => 'TRANSITO GUACARI SINCELEJO', 'users' => [597], 'emails' => []],
-                91 => ['name' => 'TRANSITO NUESTRO BOGOTÁ', 'users' => [597], 'emails' => []],
+                88 => ['name' => 'TRANSITO NUESTRO URABÁ', 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+                89 => ['name' => 'TRANSITO NUESTRO CARTAGO', 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+                90 => ['name' => 'TRANSITO GUACARI SINCELEJO', 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+                91 => ['name' => 'TRANSITO NUESTRO BOGOTÁ', 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
             ]
         ];
     }

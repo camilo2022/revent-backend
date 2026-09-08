@@ -38,9 +38,10 @@ class SyncUnicoSiigoJob implements ShouldQueue
         'detalle_rechazadas' => [],
     ];
 
-    public function __construct(
-        public array $params
-    ) {}
+    public function __construct(public array $params)
+    {
+        $this->onQueue('sync-unico');
+    }
 
     public function handle(): void
     {

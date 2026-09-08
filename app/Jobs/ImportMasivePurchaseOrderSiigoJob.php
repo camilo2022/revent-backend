@@ -34,11 +34,10 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
     public int $timeout = 7200;
     public int $tries = 1;
 
-    public function __construct(
-        public Collection $order,
-        public string $email,
-        public string $referencia,
-    ) {}
+    public function __construct(public Collection $order, public string $email, public string $referencia)
+    {
+        $this->onQueue('masive-purchase-orders');
+    }
 
     public function handle(): void
     {
@@ -253,13 +252,13 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
         $this->notificarResultado($errors, $ordenes_compra);
         if(count($ordenes_compra) > 0) {
-            Mail::to([$this->email, 'operaciones@revent.com.co'])->send(new MasivePurchaseOrderProviderSiigo($ordenes_compra, $files, $this->referencia, $provider));
+            Mail::to([$this->email, 'tecnologia@revent.com.co'])->send(new MasivePurchaseOrderProviderSiigo($ordenes_compra, $files, $this->referencia, $provider));
         }
     }
 
     private function notificarResultado(array $errors, array $ordenes_compra = []): void
     {
-        Mail::to(['operaciones@revent.com.co'])->send(new MasivePurchaseOrderSiigo($ordenes_compra, $errors));
+        Mail::to(['tecnologia@revent.com.co'])->send(new MasivePurchaseOrderSiigo($ordenes_compra, $errors));
     }
 
     private function obtener_archivos(string $referencia): Collection
@@ -321,8 +320,11 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         ];
     }
 
-    private function orden_compra(string $token, string $cookie, array $body, array $warehouse, string $tipo)
+    private function orden_compra(string $token, string $cookie, array $body, array $warehouse, string $tipo, int $intento = 1)
     {
+        $maxIntentos = 3;
+        $segundosEspera = 45;
+
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
@@ -347,6 +349,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         if (!$response->successful()) {
             Log::error('ImportMasivePurchaseOrderSiigoJob falló', [
                 'error' => $response,
+                'intento' => $intento,
             ]);
 
             $validate = [
@@ -364,12 +367,31 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         if (empty($data['success']) || $data['success'] !== true) {
             Log::error('ImportMasivePurchaseOrderSiigoJob falló', [
                 'error' => $response,
+                'intento' => $intento,
             ]);
-            
+
+            $esErrorDuplicidad = isset($data['msg']) && str_contains($data['msg'], 'duplicidad');
+
+            if ($esErrorDuplicidad && $intento < $maxIntentos) {
+                Log::warning('ImportMasivePurchaseOrderSiigoJob reintentando por posible duplicidad', [
+                    'warehouse' => $warehouse,
+                    'tipo' => $tipo,
+                    'intento' => $intento,
+                ]);
+
+                sleep($segundosEspera);
+
+                return $this->orden_compra($token, $cookie, $body, $warehouse, $tipo, $intento + 1);
+            }
+
+            $intentosTexto = $intento > 1
+                ? "Se intentó {$intento} veces (con espera de 45 segundos entre cada intento) y la advertencia persistió."
+                : "Se intentó 1 vez.";
+
             $validate = [
                 [
                     'Row'   => "ADVERTENCIA SIIGO - ORDEN DE COMPRA: {$warehouse['id']} - {$warehouse['name']} {$tipo}",
-                    'Error' => "Es posible que la orden de compra se haya creado correctamente en Siigo, pero la respuesta recibida no fue la esperada. Verifique directamente en Siigo si el documento fue creado antes de intentar realizar nuevamente la carga. Respuesta de Siigo: " . ($data['msg'] ?? 'Error desconocido al crear la orden de compra'),
+                    'Error' => "La respuesta recibida de Siigo no fue la esperada. {$intentosTexto} Verifique directamente en Siigo si el documento fue creado antes de intentar realizar nuevamente la carga. Respuesta de Siigo: " . ($data['msg'] ?? 'Error desconocido al crear la orden de compra'),
                 ]
             ];
 
@@ -1200,7 +1222,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             ->values()
             ->all();
 
-        $data = [['id' => '-1', 'name' => 'Sin asignar'], ...$data];
+        $data = [['id' => '-1', 'name' => 'SIN ASIGNAR'], ...$data];
         return $data;
     }
 

@@ -167,7 +167,7 @@ class MasivePurchaseOrderSiigoController extends Controller
             ->values()
             ->all();
 
-        $data = [['id' => '-1', 'name' => 'Sin asignar'], ...$data];
+        $data = [['id' => '-1', 'name' => 'SIN ASIGNAR'], ...$data];
         return $data;
     }
 
