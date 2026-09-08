@@ -295,7 +295,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             ])
             ->values();
     }
-
+    
 
     private function consultar_orden_compra(string $token, string $cookie, int|string $erp_document_id): array
     {
