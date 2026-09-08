@@ -252,13 +252,13 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
         $this->notificarResultado($errors, $ordenes_compra);
         if(count($ordenes_compra) > 0) {
-            Mail::to([$this->email, 'tecnologia@revent.com.co'])->send(new MasivePurchaseOrderProviderSiigo($ordenes_compra, $files, $this->referencia, $provider));
+            Mail::to([$this->email, 'operaciones@revent.com.co'])->send(new MasivePurchaseOrderProviderSiigo($ordenes_compra, $files, $this->referencia, $provider));
         }
     }
 
     private function notificarResultado(array $errors, array $ordenes_compra = []): void
     {
-        Mail::to(['tecnologia@revent.com.co'])->send(new MasivePurchaseOrderSiigo($ordenes_compra, $errors));
+        Mail::to(['operaciones@revent.com.co'])->send(new MasivePurchaseOrderSiigo($ordenes_compra, $errors));
     }
 
     private function obtener_archivos(string $referencia): Collection

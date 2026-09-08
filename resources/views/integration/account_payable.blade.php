@@ -17,7 +17,6 @@
     }
 
     .wrapper {
-        max-width: 1280px;
         margin: 0 auto;
     }
 
@@ -235,12 +234,12 @@
         margin-top: 0.2rem;
     }
 
-    .summary-deuda     { background: #0d9488; }
-    .summary-favor     { background: #84cc16; }
-    .summary-saldo     { background: #16a34a; }
-    .summary-vencido   { background: #dc2626; }
-    .summary-porvencer { background: #f59e0b; }
-    .summary-documents { background: #0bdaf5; }
+    .summary-deuda     { background: #283593; }
+    .summary-favor     { background: #303F9F; }
+    .summary-saldo     { background: #3F51B5; }
+    .summary-vencido   { background: #5C6BC0; }
+    .summary-porvencer { background: #7986CB; }
+    .summary-documents { background: #9FA8DA; }
 
     /* ---- Loading de documentos ---- */
     .loading-state {
@@ -326,28 +325,18 @@
 
     .obs-text {
         white-space: pre-line;
-        font-size: 0.78rem;
+        font-size: 0.7rem;
         color: #6b7280;
-    }
-
-    /* S/C - Anulados */
-    .row-sc {
-        background: #fee2e2;
-    }
-
-    .row-sc .prefix-tag {
-        background: #fca5a5;
-        color: #991b1b;
     }
 
     /* NOV1 - Faltantes */
     .row-nov1 {
-        background: #ffedd5;
+        background: #fee2e2;
     }
 
     .row-nov1 .prefix-tag {
-        background: #fdba74;
-        color: #9a3412;
+        background: #fca5a5;
+        color: #991b1b;
     }
 
     /* NOV2 - Sobrantes */
@@ -372,15 +361,15 @@
 
     /* NOV4 - Corrección de factura */
     .row-nov4 {
-        background: #f3e8ff;
+        background: #ffedd5;
     }
 
     .row-nov4 .prefix-tag {
-        background: #d8b4fe;
-        color: #6b21a8;
+        background: #fdba74;
+        color: #9a3412;
     }
 
-    /* NOV5 - Mercancía en mal estado */
+    /* NOV5 - Mcia. mal estado / Material o accesorios */
     .row-nov5 {
         background: #fef9c3;
     }
@@ -392,12 +381,12 @@
 
     /* DES1 - Descuento */
     .row-des1 {
-        background: #ccfbf1;
+        background: #f3e8ff;
     }
 
     .row-des1 .prefix-tag {
-        background: #5eead4;
-        color: #115e59;
+        background: #d8b4fe;
+        color: #6b21a8;
     }
 
     /* RP - Recibo de pago */
@@ -598,14 +587,13 @@
         </label>
 
         <div class="legend" id="legend">
-            <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>S/C · Anulados</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span>NOV1 · Faltantes</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span>NOV2 · Sobrantes</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>NOV3 · Trocados</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#9333ea"></span>NOV4 · Corrección de factura</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#eab308"></span>NOV5 · Mcia. mal estado</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#0d9488"></span>DES1 · Descuento</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#9ca3af"></span>RP · Recibo de pago</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#fca5a5"></span>NOV1 · Faltantes</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#86efac"></span>NOV2 · Sobrantes</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#93c5fd"></span>NOV3 · Trocados</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#fdba74"></span>NOV4 · Corrección de factura</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#fde047"></span>NOV5 · Mercancia mal estado</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#d8b4fe"></span>DES1 · Descuento</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#d1d5db"></span>RP · Recibo de pago</span>
         </div>
 
         <div class="summary-grid" id="summaryGrid">
@@ -709,7 +697,6 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
     // Prefijos que colorean la fila (clasificación de novedades)
     const ROW_CLASS_BY_PREFIX = {
-        'S/C': 'row-sc',
         'NOV1': 'row-nov1',
         'NOV2': 'row-nov2',
         'NOV3': 'row-nov3',
@@ -766,6 +753,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     }
 
     function estadoBadge(doc) {
+        if (doc.IsAnnulled)                  return '<span class="badge badge-v5">Anulado</span>';
         if (Number(doc.VencidoMasDe90) > 0)  return '<span class="badge badge-v4">Vencido +90</span>';
         if (Number(doc.VencidoDe61a90) > 0)  return '<span class="badge badge-v3">Vencido 61-90</span>';
         if (Number(doc.VencidoDe31a60) > 0)  return '<span class="badge badge-v2">Vencido 31-60</span>';
