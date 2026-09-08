@@ -261,6 +261,24 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         Mail::to(['operaciones@revent.com.co'])->send(new MasivePurchaseOrderSiigo($ordenes_compra, $errors));
     }
 
+    public function failed(\Throwable $exception): void
+    {
+        Log::error('ImportMasiveTransferSiigoJob falló', [
+            'email' => $this->email,
+            'error' => $exception->getMessage(),
+        ]);
+
+        Mail::to(['operaciones@revent.com.co'])->send(new MasivePurchaseOrderSiigo(
+            ordenes_compra: [],
+            errors: [
+                [
+                    'Row'   => 'ERROR DESCONOCIDO',
+                    'Error' => 'Ocurrió un error inesperado procesando la orden de compra: ' . $exception->getMessage(),
+                ],
+            ]
+        ));
+    }
+
     private function obtener_archivos(string $referencia): Collection
     {
         $path = self::BASE_PATH . "/{$referencia}";
