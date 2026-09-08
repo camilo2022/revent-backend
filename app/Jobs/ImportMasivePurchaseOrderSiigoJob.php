@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
@@ -33,6 +34,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
      */
     public int $timeout = 7200;
     public int $tries = 1;
+    private array $ordenes_compra = [];
 
     public function __construct(public Collection $order, public string $email, public string $referencia)
     {
@@ -42,7 +44,6 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
     public function handle(): void
     {
         ini_set('serialize_precision', '-1');
-        $ordenes_compra = [];
         $errors = [];
 
         $this->referencia = $this->sanitize_referencia($this->referencia);
@@ -239,7 +240,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
                 $info = $this->consultar_orden_compra($token, $cookie, $orden_compra['documento_id']);
 
-                $ordenes_compra[] = [
+                $this->ordenes_compra[] = [
                     'bodega' => $warehouse,
                     'tipo' => $tipo,
                     'documento' => $info['documento'],
@@ -250,9 +251,9 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             }
         }
 
-        $this->notificarResultado($errors, $ordenes_compra);
-        if(count($ordenes_compra) > 0) {
-            Mail::to([$this->email, 'operaciones@revent.com.co'])->send(new MasivePurchaseOrderProviderSiigo($ordenes_compra, $files, $this->referencia, $provider));
+        $this->notificarResultado($errors, $this->ordenes_compra);
+        if(count($this->ordenes_compra) > 0) {
+            Mail::to([$this->email, 'operaciones@revent.com.co'])->send(new MasivePurchaseOrderProviderSiigo($this->ordenes_compra, $files, $this->referencia, $provider));
         }
     }
 
@@ -269,11 +270,11 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         ]);
 
         Mail::to(['operaciones@revent.com.co'])->send(new MasivePurchaseOrderSiigo(
-            ordenes_compra: [],
+            ordenes_compra: $this->ordenes_compra,
             errors: [
                 [
                     'Row'   => 'ERROR DESCONOCIDO',
-                    'Error' => 'Ocurrió un error inesperado procesando la orden de compra: ' . $exception->getMessage(),
+                    'Error' => 'Ocurrió un error inesperado procesando la orden de compra: ' . $exception->getMessage() . '. Revisar hasta que bodega se creo.',
                 ],
             ]
         ));
@@ -295,47 +296,77 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             ->values();
     }
 
+
     private function consultar_orden_compra(string $token, string $cookie, int|string $erp_document_id): array
     {
-        $response = Http::withToken($token)->withHeaders([
-                'Cookie' => $cookie,
-            ])
-            ->timeout(600)
-            ->withoutRedirecting()
-            ->get('https://monolithprod.siigo.com/REVENTCALZADOSAS/Default.aspx', [
-                'TabID' => 1671,
-                'ERPDocumentID' => $erp_document_id,
-                'pTabID' => 1408,
+        try {
+            $response = Http::withToken($token)
+                ->withHeaders([
+                    'Cookie' => $cookie,
+                ])
+                ->connectTimeout(30)
+                ->timeout(600)
+                ->retry(3, 2000,
+                    function ($exception) {
+                        return $exception instanceof ConnectionException;
+                    }
+                )
+                ->withoutRedirecting()
+                ->get('https://monolithprod.siigo.com/REVENTCALZADOSAS/Default.aspx', [
+                    'TabID' => 1671,
+                    'ERPDocumentID' => $erp_document_id,
+                    'pTabID' => 1408,
+                ]);
+
+            if (!$response->successful()) {
+                return [
+                    'documento' => null,
+                    'url' => null,
+                ];
+            }
+
+            $crawler = new Crawler($response->body());
+
+            $documento = null;
+
+            $titleSpan = $crawler->filter('#Default_ucControlPane0_ContainerTitle');
+
+            if ($titleSpan->count()) {
+                $documento = trim(Str::after($titleSpan->text(), ':'));
+            }
+
+            $url = null;
+
+            $btnCopyUrl = $crawler->filter('#Default_ucControlPane0_ctl00_btnCopyUrl');
+
+            if ($btnCopyUrl->count()) {
+                $onclick = $btnCopyUrl->attr('onclick');
+
+                if ($onclick) {
+                    preg_match('/setClipboardText\(["\'](.*?)["\']\)/', $onclick, $matches);
+
+                    if (isset($matches[1])) {
+                        $url = html_entity_decode($matches[1]);
+                    }
+                }
+            }
+
+            return [
+                'documento' => $documento,
+                'url' => $url,
+            ];
+
+        } catch (ConnectionException $e) {
+            Log::error('Error de conexión consultando orden de compra Siigo', [
+                'erp_document_id' => $erp_document_id,
+                'error' => $e->getMessage(),
             ]);
 
-        if (!$response->successful()) {
-            return ['documento' => null, 'url' => null];
+            return [
+                'documento' => null,
+                'url' => null,
+            ];
         }
-
-        $crawler = new Crawler($response->body());
-
-        $documento = null;
-        $titleSpan = $crawler->filter('#Default_ucControlPane0_ContainerTitle');
-        if ($titleSpan->count()) {
-            $documento = trim(Str::after($titleSpan->text(), ':'));
-        }
-
-        $url = null;
-        $btnCopyUrl = $crawler->filter('#Default_ucControlPane0_ctl00_btnCopyUrl');
-        if ($btnCopyUrl->count()) {
-            $onclick = $btnCopyUrl->attr('onclick');
-
-            preg_match('/setClipboardText\(["\'](.*?)["\']\)/', $onclick, $matches);
-
-            if (isset($matches[1])) {
-                $url = html_entity_decode($matches[1]);
-            }
-        }
-
-        return [
-            'documento' => $documento,
-            'url' => $url,
-        ];
     }
 
     private function orden_compra(string $token, string $cookie, array $body, array $warehouse, string $tipo, int $intento = 1)
@@ -346,7 +377,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $response = Http::withToken($token)->withHeaders([
                 'Cookie' => $cookie,
             ])
-            ->timeout(120)
+            ->timeout(600)
             ->withoutRedirecting()
             ->asMultipart()
             ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Components/ERP/Business/ERPDocHandler.ashx', [
