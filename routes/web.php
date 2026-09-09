@@ -51,7 +51,7 @@ Route::post('/siigo/product_photo_upload', [PhotoProductSiigoController::class, 
 Route::post('/siigo/product_photo_delete', [PhotoProductSiigoController::class, 'product_photo_delete'])->name('siigo.product_photo_delete');
 
 Route::get('/siigo/account_payable', [AccountPayableSiigoController::class, 'account_payable'])->name('siigo.account_payable');
-Route::get('/siigo/account-payable/{accountId}/documents', [AccountPayableSiigoController::class, 'account_payable_documents'])->name('siigo.account_payable.documents');
+Route::get('/siigo/account_payable/{accountId}/documents', [AccountPayableSiigoController::class, 'account_payable_documents'])->name('siigo.account_payable.documents');
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);
