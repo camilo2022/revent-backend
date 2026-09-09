@@ -17,6 +17,7 @@
     }
 
     .wrapper {
+        max-width: 1500px;
         margin: 0 auto;
     }
 
@@ -69,6 +70,11 @@
         border: 1px solid #d1d5db;
         border-radius: 10px;
         transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    select.combo-input {
+        padding: 0.65rem 0.85rem;
+        cursor: pointer;
     }
 
     .combo-input::placeholder { color: #9ca3af; }
@@ -176,25 +182,27 @@
     /* ---- Leyenda de clasificación ---- */
     .legend {
         display: none;
-        flex-wrap: wrap;
-        gap: 0.55rem 1rem;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.6rem;
         margin-bottom: 1.1rem;
-        padding: 0.75rem 1rem;
+        padding: 0.85rem 1rem;
         background: #f9fafb;
         border: 1px solid #f1f3f5;
         border-radius: 10px;
     }
 
-    .legend.show { display: flex; }
+    .legend.show { display: grid; }
 
     .legend-item {
-        display: inline-flex;
+        display: flex;
         align-items: center;
+        justify-content: center;
         gap: 0.4rem;
         font-size: 0.72rem;
         color: #374151;
         white-space: nowrap;
         font-weight: bold;
+        text-align: center;
     }
 
     .legend-dot {
@@ -329,75 +337,43 @@
         color: #6b7280;
     }
 
-    /* NOV1 - Faltantes */
-    .row-nov1 {
-        background: #fee2e2;
+    .document-link {
+        color: #2563eb;
+        text-decoration: underline;
+        cursor: pointer;
     }
 
-    .row-nov1 .prefix-tag {
-        background: #fca5a5;
-        color: #991b1b;
+    .document-link:hover {
+        color: #1d4ed8;
     }
+
+    /* NOV1 - Faltantes */
+    .row-nov1 { background: #fee2e2; }
+    .row-nov1 .prefix-tag { background: #fca5a5; color: #991b1b; }
 
     /* NOV2 - Sobrantes */
-    .row-nov2 {
-        background: #dcfce7;
-    }
-
-    .row-nov2 .prefix-tag {
-        background: #86efac;
-        color: #166534;
-    }
+    .row-nov2 { background: #dcfce7; }
+    .row-nov2 .prefix-tag { background: #86efac; color: #166534; }
 
     /* NOV3 - Trocados */
-    .row-nov3 {
-        background: #dbeafe;
-    }
-
-    .row-nov3 .prefix-tag {
-        background: #93c5fd;
-        color: #1e40af;
-    }
+    .row-nov3 { background: #dbeafe; }
+    .row-nov3 .prefix-tag { background: #93c5fd; color: #1e40af; }
 
     /* NOV4 - Corrección de factura */
-    .row-nov4 {
-        background: #ffedd5;
-    }
-
-    .row-nov4 .prefix-tag {
-        background: #fdba74;
-        color: #9a3412;
-    }
+    .row-nov4 { background: #ffedd5; }
+    .row-nov4 .prefix-tag { background: #fdba74; color: #9a3412; }
 
     /* NOV5 - Mcia. mal estado / Material o accesorios */
-    .row-nov5 {
-        background: #fef9c3;
-    }
-
-    .row-nov5 .prefix-tag {
-        background: #fde047;
-        color: #854d0e;
-    }
+    .row-nov5 { background: #fef9c3; }
+    .row-nov5 .prefix-tag { background: #fde047; color: #854d0e; }
 
     /* DES1 - Descuento */
-    .row-des1 {
-        background: #f3e8ff;
-    }
-
-    .row-des1 .prefix-tag {
-        background: #d8b4fe;
-        color: #6b21a8;
-    }
+    .row-des1 { background: #f3e8ff; }
+    .row-des1 .prefix-tag { background: #d8b4fe; color: #6b21a8; }
 
     /* RP - Recibo de pago */
-    .row-rp {
-        background: #f3f4f6;
-    }
-
-    .row-rp .prefix-tag {
-        background: #d1d5db;
-        color: #374151;
-    }
+    .row-rp { background: #f3f4f6; }
+    .row-rp .prefix-tag { background: #d1d5db; color: #374151; }
 
     .prefix-tag {
         display: inline-flex;
@@ -425,6 +401,7 @@
     .badge-v2        { background: #ffedd5; color: #9a3412; }
     .badge-v3        { background: #fee2e2; color: #991b1b; }
     .badge-v4        { background: #fecaca; color: #7f1d1d; }
+    .badge-v5        { background: #e5e7eb; color: #374151; }
 
     input.row-check {
         width: 16px;
@@ -449,10 +426,18 @@
         padding: 0.95rem 1.4rem;
         align-items: center;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.8rem;
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
     }
 
     .totals-bar.show { display: flex; }
+
+    .totals-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
 
     .totals-bar .count {
         font-size: 0.8rem;
@@ -463,6 +448,21 @@
         font-size: 1.15rem;
         font-weight: 700;
     }
+
+    .btn-payment {
+        background: #16a34a;
+        color: #fff;
+        border: none;
+        padding: 0.65rem 1.2rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .btn-payment:hover { background: #15803d; }
 
     .empty-state {
         text-align: center;
@@ -492,6 +492,294 @@
     .back-link:hover { text-decoration: underline; }
     .back-link svg { width: 15px; height: 15px; }
 
+    /* ---- Modal de recibo de pago ---- */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 24, 39, 0.55);
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        z-index: 100;
+    }
+
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+        background: #ffffff;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 920px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.2rem 1.5rem;
+        border-bottom: 1px solid #f1f3f5;
+        flex-shrink: 0;
+    }
+
+    .modal-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.4rem;
+        color: #9ca3af;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0.2rem;
+    }
+
+    .modal-close:hover { color: #ef4444; }
+
+    .modal-body {
+        padding: 1.4rem 1.5rem;
+        overflow-y: auto;
+    }
+
+    .modal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.4rem;
+    }
+
+    .modal-grid .field-group {
+        margin-bottom: 0;
+        max-width: none;
+    }
+
+    .modal-table-wrap {
+        border: 1px solid #f1f3f5;
+        border-radius: 10px;
+        overflow: auto;
+        max-height: 260px;
+        margin-bottom: 1rem;
+    }
+
+    .modal-table-wrap table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+    }
+
+    .modal-table-wrap th {
+        text-align: left;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        padding: 0.6rem 0.7rem;
+        background: #f9fafb;
+        position: sticky;
+        top: 0;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .modal-table-wrap td {
+        padding: 0.55rem 0.7rem;
+        border-bottom: 1px solid #f1f3f5;
+        color: #374151;
+    }
+
+    .modal-table-wrap tbody tr:last-child td { border-bottom: none; }
+
+    .modal-total {
+        display: flex;
+        justify-content: flex-end;
+        align-items: baseline;
+        gap: 0.5rem;
+        font-size: 1rem;
+        color: #1f2937;
+    }
+
+    .modal-total span { font-weight: 700; font-size: 1.15rem; }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.7rem;
+        padding: 1.1rem 1.5rem;
+        border-top: 1px solid #f1f3f5;
+        flex-shrink: 0;
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        padding: 0.65rem 1.2rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-secondary:hover { background: #e5e7eb; }
+
+    .btn-primary {
+        background: #16a34a;
+        color: #fff;
+        border: none;
+        padding: 0.65rem 1.2rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover { background: #15803d; }
+
+    .modal-field-group {
+        margin-bottom: 1.4rem;
+    }
+
+    .modal-field-group textarea.combo-input {
+        width: 100%;
+        resize: vertical;
+        min-height: 70px;
+        font-family: inherit;
+        padding: 0.65rem 0.85rem;
+    }
+
+    /* ---- Dropzone de comprobante ---- */
+    .payment-dropzone {
+        position: relative;
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #f9fafb;
+    }
+
+    .payment-dropzone:hover {
+        border-color: #16a34a;
+        background: #f0fdf4;
+    }
+
+    .payment-dropzone.dragover {
+        border-color: #16a34a;
+        background: #ecfdf5;
+    }
+
+    .payment-dropzone.hidden { display: none; }
+
+    .payment-dropzone-icon {
+        width: 42px;
+        height: 42px;
+        margin: 0 auto 0.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #dcfce7;
+        border-radius: 50%;
+    }
+
+    .payment-dropzone-icon svg {
+        width: 22px;
+        height: 22px;
+        stroke: #16a34a;
+    }
+
+    .payment-dropzone-text {
+        font-size: 0.85rem;
+        color: #374151;
+        font-weight: 500;
+    }
+
+    .payment-dropzone-text span {
+        color: #16a34a;
+        text-decoration: underline;
+    }
+
+    .payment-dropzone-hint {
+        font-size: 0.72rem;
+        color: #9ca3af;
+        margin-top: 0.2rem;
+    }
+
+    .payment-file-input { display: none; }
+
+    .payment-file-preview {
+        display: none;
+        align-items: center;
+        gap: 0.85rem;
+        margin-top: 0.7rem;
+        padding: 0.65rem 0.85rem;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 10px;
+    }
+
+    .payment-file-preview.show { display: flex; }
+
+    .payment-file-preview img {
+        width: 46px;
+        height: 46px;
+        object-fit: cover;
+        border-radius: 8px;
+        flex-shrink: 0;
+        border: 1px solid #d1fae5;
+    }
+
+    .payment-file-info { flex: 1; min-width: 0; }
+
+    .payment-file-name {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #1f2937;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .payment-file-size {
+        font-size: 0.72rem;
+        color: #6b7280;
+    }
+
+    .payment-file-remove {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #ef4444;
+        font-size: 1.1rem;
+        line-height: 1;
+        padding: 0.2rem;
+        border-radius: 6px;
+        flex-shrink: 0;
+    }
+
+    .payment-file-remove:hover { background: #fee2e2; }
+
+    .payment-file-error {
+        display: none;
+        margin-top: 0.5rem;
+        font-size: 0.78rem;
+        color: #dc2626;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        padding: 0.45rem 0.7rem;
+        border-radius: 8px;
+    }
+
+    .payment-file-error.show { display: block; }
+
     @media (max-width: 768px) {
         .wrapper { padding: 0; }
 
@@ -515,11 +803,12 @@
         .summary-card .label { font-size: 0.7rem; }
 
         .legend {
-            gap: 0.45rem 0.7rem;
-            padding: 0.65rem 0.8rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            padding: 0.7rem 0.8rem;
         }
 
-        .legend-item { font-size: 0.68rem; }
+        .legend-item { font-size: 0.66rem; }
         .legend-dot { width: 12px; height: 12px; }
 
         .docs-table { min-width: 640px; font-size: 0.8rem; }
@@ -533,26 +822,35 @@
 
         .totals-bar {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 0.35rem;
+            align-items: stretch;
+            gap: 0.7rem;
             bottom: 0.5rem;
             border-radius: 10px;
             padding: 0.8rem 1.1rem;
         }
 
         .totals-bar .amount { font-size: 1.05rem; }
+        .btn-payment { width: 100%; }
+
+        .modal-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
     @media (max-width: 480px) {
         body { padding: 1rem 0.6rem; }
 
         .summary-grid { grid-template-columns: repeat(2, 1fr); }
-
         .summary-card .amount { font-size: 0.95rem; }
 
         .combo-input { font-size: 0.85rem; }
 
         .docs-table { min-width: 560px; }
+
+        .legend { grid-template-columns: repeat(2, 1fr); }
+
+        .modal-grid { grid-template-columns: 1fr; }
+        .modal-body { padding: 1.1rem 1.1rem; }
+        .modal-footer { padding: 1rem 1.1rem; flex-direction: column-reverse; }
+        .btn-primary, .btn-secondary { width: 100%; }
     }
 </style>
 </head>
@@ -637,13 +935,13 @@
                             <th style="width:34px;"><input type="checkbox" id="checkAll" class="row-check"></th>
                             <th>Tipo</th>
                             <th>Documento</th>
-                            <th>Factura</th>
-                            <th class="col-extra">Orden</th>
+                            <th style="min-width: 110px;">Factura</th>
+                            <th style="min-width: 110px;" class="col-extra">Orden</th>
                             <th class="col-extra">Observaciones</th>
-                            <th class="col-extra">Bodegas</th>
+                            <th style="min-width: 150px;" class="col-extra">Bodegas</th>
                             <th class="col-extra">Cantidad</th>
                             <th>Valor</th>
-                            <th>Fecha vence</th>
+                            <th style="min-width: 110px;">Fecha vence</th>
                             <th>Estado</th>
                             <th style="text-align:right;">Deuda</th>
                             <th style="text-align:right;">Saldo</th>
@@ -659,14 +957,127 @@
     </div>
 
     <div class="totals-bar" id="totalsBar">
-        <div class="count"><span id="selCount">0</span> documento(s) seleccionado(s)</div>
-        <div class="amount">Total a pagar: <span id="selTotal">$0</span></div>
+        <div class="totals-info">
+            <div class="count"><span id="selCount">0</span> documento(s) seleccionado(s)</div>
+            <div class="amount">Total a pagar: <span id="selTotal">$0</span></div>
+        </div>
+        <button type="button" class="btn-payment" id="btnPayment">Realizar recibo de pago</button>
     </div>
 
     <a href="{{ route('home') }}" class="back-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         Volver a acciones disponibles
     </a>
+</div>
+
+<!-- ---- Modal: Realizar recibo de pago ---- -->
+<div class="modal-overlay" id="paymentModalOverlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Realizar recibo de pago</div>
+            <button type="button" class="modal-close" id="modalClose">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="field-group">
+                    <label class="field-label" for="paymentTipo">Tipo</label>
+                    <select class="combo-input" id="paymentTipo">
+                        <option value="">Selecciona...</option>
+                        @if ($type_payment_receipts)
+                            <option value="{{ $type_payment_receipts['ERPDocumentTypeId'] }}">
+                                {{ $type_payment_receipts['DocClass'] }}-{{ $type_payment_receipts['Code'] }} · {{ $type_payment_receipts['Title'] }}
+                            </option>
+                        @endif
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="paymentAction">Realizar un</label>
+                    <select class="combo-input" id="paymentAction">
+                        <option value="">Selecciona...</option>
+                        @foreach ($types as $value => $text)
+                            <option value="{{ $value }}">{{ $text }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="paymentSource">De donde sale el dinero</label>
+                    <select class="combo-input" id="paymentSource">
+                        <option value="">Selecciona...</option>
+                        @foreach ($bank_accounts as $bank_account)
+                            <option value="{{ $bank_account['ACPaymentMeanID'] }}">{{ $bank_account['PaymentMeanAccount'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="paymentDate">Fecha de elaboración</label>
+                    <input type="date" class="combo-input" id="paymentDate">
+                </div>
+
+                <div class="modal-field-group">
+                    <label class="field-label" for="paymentObservations">Observaciones</label>
+                    <textarea class="combo-input" id="paymentObservations" rows="5" placeholder="Escribe cualquier observación sobre este recibo de pago..."></textarea>
+                </div>
+
+                <div class="modal-field-group">
+                    <label class="field-label">Comprobante</label>
+
+                    <div class="payment-dropzone" id="paymentDropzone">
+                        <div class="payment-dropzone-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                        </div>
+                        <div class="payment-dropzone-text">
+                            Arrastra una imagen aquí o <span>selecciónala</span>
+                        </div>
+                        <div class="payment-dropzone-hint">JPG o PNG (máx. 8 MB)</div>
+                        <input type="file" id="paymentFileInput" class="payment-file-input" accept=".jpg,.jpeg,.png">
+                    </div>
+
+                    <div class="payment-file-preview" id="paymentFilePreview">
+                        <img id="paymentFileImg" alt="Vista previa">
+                        <div class="payment-file-info">
+                            <div class="payment-file-name" id="paymentFileName"></div>
+                            <div class="payment-file-size" id="paymentFileSize"></div>
+                        </div>
+                        <button type="button" class="payment-file-remove" id="paymentFileRemove">&times;</button>
+                    </div>
+
+                    <div class="payment-file-error" id="paymentFileError"></div>
+                </div>
+            </div>
+
+            <div class="modal-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th style="min-width: 110px;">Documento</th>
+                            <th style="min-width: 110px;">Factura</th>
+                            <th style="min-width: 110px;">Fecha vence</th>
+                            <th style="text-align:right;">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalDocsBody"></tbody>
+                </table>
+            </div>
+
+            <div class="modal-total">
+                Total a pagar: <span id="modalTotal">$0</span>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="modalCancel">Cancelar</button>
+            <button type="button" class="btn-primary" id="modalConfirm">Confirmar recibo de pago</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -689,11 +1100,112 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     const emptyState     = document.getElementById('emptyState');
     const totalsBar      = document.getElementById('totalsBar');
     const checkAll       = document.getElementById('checkAll');
+    const btnPayment     = document.getElementById('btnPayment');
+
+    // Modal
+    const modalOverlay   = document.getElementById('paymentModalOverlay');
+    const modalClose     = document.getElementById('modalClose');
+    const modalCancel    = document.getElementById('modalCancel');
+    const modalConfirm   = document.getElementById('modalConfirm');
+    const modalDocsBody  = document.getElementById('modalDocsBody');
+    const modalTotalEl   = document.getElementById('modalTotal');
+    const paymentTipo    = document.getElementById('paymentTipo');
+    const paymentAction  = document.getElementById('paymentAction');
+    const paymentSource  = document.getElementById('paymentSource');
+    const paymentDate    = document.getElementById('paymentDate');
+
+    const paymentObservations = document.getElementById('paymentObservations');
+    const paymentDropzone     = document.getElementById('paymentDropzone');
+    const paymentFileInput    = document.getElementById('paymentFileInput');
+    const paymentFilePreview  = document.getElementById('paymentFilePreview');
+    const paymentFileImg      = document.getElementById('paymentFileImg');
+    const paymentFileName     = document.getElementById('paymentFileName');
+    const paymentFileSize     = document.getElementById('paymentFileSize');
+    const paymentFileRemove   = document.getElementById('paymentFileRemove');
+    const paymentFileError    = document.getElementById('paymentFileError');
+
+    let paymentFile = null;
+
+    const ALLOWED_IMAGE_EXT = ['jpg', 'jpeg', 'png'];
+    const MAX_IMAGE_MB = 8;
+
+    paymentDropzone.addEventListener('click', () => paymentFileInput.click());
+
+    ['dragover', 'dragenter'].forEach((evt) => {
+        paymentDropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            paymentDropzone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'dragend'].forEach((evt) => {
+        paymentDropzone.addEventListener(evt, () => paymentDropzone.classList.remove('dragover'));
+    });
+
+    paymentDropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        paymentDropzone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handlePaymentFile(e.dataTransfer.files[0]);
+    });
+
+    paymentFileInput.addEventListener('change', () => {
+        if (paymentFileInput.files.length) handlePaymentFile(paymentFileInput.files[0]);
+    });
+
+    paymentFileRemove.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetPaymentFile();
+    });
+
+    function handlePaymentFile(file) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        paymentFileError.classList.remove('show');
+
+        if (!ALLOWED_IMAGE_EXT.includes(ext)) {
+            showPaymentFileError('Solo se permiten imágenes JPG o PNG');
+            resetPaymentFile();
+            return;
+        }
+
+        if (file.size / (1024 * 1024) > MAX_IMAGE_MB) {
+            showPaymentFileError(`La imagen supera el tamaño máximo de ${MAX_IMAGE_MB} MB`);
+            resetPaymentFile();
+            return;
+        }
+
+        paymentFile = file;
+        paymentFileName.textContent = file.name;
+        paymentFileSize.textContent = formatFileSize(file.size);
+        paymentFileImg.src = URL.createObjectURL(file);
+
+        paymentFilePreview.classList.add('show');
+        paymentDropzone.classList.add('hidden');
+    }
+
+    function resetPaymentFile() {
+        paymentFile = null;
+        paymentFileInput.value = '';
+        paymentFilePreview.classList.remove('show');
+        paymentDropzone.classList.remove('hidden');
+    }
+
+    function showPaymentFileError(msg) {
+        paymentFileError.textContent = msg;
+        paymentFileError.classList.add('show');
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
 
     let filtered = [];
     let activeIndex = -1;
     let requestToken = 0; // evita que una respuesta vieja pise la selección actual
     let currentProvider = null;
+    let currentDocs = [];   // documentos actualmente renderizados en la tabla principal
+    let selectedDocs = [];  // documentos elegidos al abrir el modal
 
     // Prefijos que colorean la fila (clasificación de novedades)
     const ROW_CLASS_BY_PREFIX = {
@@ -743,10 +1255,6 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
         if (prefix.startsWith('RP')) {
             return ROW_CLASS_BY_PREFIX['RP'] || '';
-        }
-
-        if (doc.IsAnnulled === true) {
-            return ROW_CLASS_BY_PREFIX['S/C'] || '';
         }
 
         return ROW_CLASS_BY_PREFIX[prefix] || '';
@@ -869,6 +1377,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         totalsBar.classList.remove('show');
         emptyState.style.display = 'block';
         docsBody.innerHTML = '';
+        currentDocs = [];
     }
 
     // ---- Pinta el resumen de inmediato (no depende de los documentos) ----
@@ -939,11 +1448,12 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
     function renderDocuments(docs, allData) {
         docsTable.classList.toggle('show-extra', allData);
+        currentDocs = docs;
 
         if (!docs.length) {
             docsBody.innerHTML = '<tr><td colspan="12" class="empty-state">Este proveedor no tiene documentos.</td></tr>';
         } else {
-            docsBody.innerHTML = docs.map((doc) => {
+            docsBody.innerHTML = docs.map((doc, i) => {
                 const selectable = isSelectable(doc);
                 const rowClass = rowClassFor(doc);
 
@@ -953,7 +1463,12 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
                     const detail = doc.PurchaseEntryDetail || {};
 
                     extraCells = `
-                        <td>${escapeHtml(purchaseEntry.docName) || '-'}</td>
+                        <td>${doc.Links?.PurchaseOrder
+                            ? `<a href="${escapeHtml(doc.Links.PurchaseOrder)}" target="_blank" rel="noopener noreferrer" class="document-link">
+                                    ${escapeHtml(purchaseEntry.docName)}
+                                </a>`
+                            : (escapeHtml(purchaseEntry.docName) || '-')
+                        }</td>
                         <td>${detail.Observations ? `<div class="obs-text">${escapeHtml(detail.Observations)}</div>` : '-'}</td>
                         <td>${detail.WarehouseCodes ? `<div>${escapeHtml(detail.WarehouseCodes)}</div>` : ''}</td>
                         <td style="text-align:right;">${detail.Quantity ? formatQuantity(detail.Quantity) : '-'}</td>
@@ -961,11 +1476,16 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
                 }
 
                 return `
-                    <tr class="${rowClass} ${selectable ? 'selectable' : ''}" data-saldo="${Number(doc.Saldo) || 0}">
+                    <tr class="${rowClass} ${selectable ? 'selectable' : ''}" data-saldo="${Number(doc.Saldo) || 0}" data-doc-index="${i}">
                         <td><input type="checkbox" class="row-check doc-check" ${selectable ? '' : 'disabled'}></td>
                         <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                         <td>${escapeHtml(doc.DueName)}</td>
-                        <td>${escapeHtml(doc.DocName)}</td>
+                        <td>${doc.Links?.PurchaseInvoice
+                            ? `<a href="${escapeHtml(doc.Links.PurchaseInvoice)}" target="_blank" rel="noopener noreferrer" class="document-link">
+                                    ${escapeHtml(doc.DocName)}
+                                </a>`
+                            : (escapeHtml(doc.DocName) || '-')
+                        }</td>
                         ${extraCells}
                         <td>${formatMoney(doc.TotalValue)}</td>
                         <td>${formatDate(doc.DueDate)}</td>
@@ -1016,6 +1536,85 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         document.getElementById('selTotal').textContent = formatMoney(total);
         totalsBar.classList.toggle('show', checked.length > 0);
     }
+
+    // ---- Modal: Realizar recibo de pago ----
+    function getSelectedDocs() {
+        const checked = docsBody.querySelectorAll('.doc-check:checked');
+
+        return Array.from(checked)
+            .map((cb) => currentDocs[Number(cb.closest('tr').dataset.docIndex)])
+            .filter(Boolean);
+    }
+
+    function openPaymentModal() {
+        selectedDocs = getSelectedDocs();
+        if (!selectedDocs.length) return;
+
+        let total = 0;
+
+        modalDocsBody.innerHTML = selectedDocs.map((doc) => {
+            total += Number(doc.Saldo) || 0;
+
+            return `
+                <tr>
+                    <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
+                    <td>${escapeHtml(doc.DueName)}</td>
+                    <td>${escapeHtml(doc.DocName)}</td>
+                    <td>${formatDate(doc.DueDate)}</td>
+                    <td style="text-align:right;">${formatMoney(doc.Saldo)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        modalTotalEl.textContent = formatMoney(total);
+
+        paymentTipo.value = '';
+        paymentAction.value = '';
+        paymentSource.value = '';
+        paymentDate.value = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
+        paymentObservations.value = '';
+        resetPaymentFile(); // limpia foto de una carga anterior
+
+        modalOverlay.classList.add('show');
+    }
+
+    function closePaymentModal() {
+        modalOverlay.classList.remove('show');
+    }
+
+    btnPayment.addEventListener('click', openPaymentModal);
+    modalClose.addEventListener('click', closePaymentModal);
+    modalCancel.addEventListener('click', closePaymentModal);
+
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closePaymentModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalOverlay.classList.contains('show')) closePaymentModal();
+    });
+
+    modalConfirm.addEventListener('click', () => {
+        if (!paymentTipo.value || !paymentAction.value || !paymentSource.value || !paymentDate.value || !paymentFile) {
+            alert('Completa todos los campos antes de confirmar.');
+            return;
+        }
+
+        // TODO: enviar al backend el recibo de pago con estos datos:
+       const formData = new FormData();
+        formData.append('proveedor_id', currentProvider.AccountID);
+        formData.append('tipo', paymentTipo.value);
+        formData.append('accion', paymentAction.value);
+        formData.append('origen', paymentSource.value);
+        formData.append('fecha', paymentDate.value);
+        formData.append('observaciones', paymentObservations.value);
+        //formData.append('documentos', JSON.stringify(selectedDocs.map(d => d.DocName)));
+        if (paymentFile) formData.append('comprobante', paymentFile);
+
+        console.log('Recibo de pago a confirmar', Object.fromEntries(formData));
+
+        closePaymentModal();
+    });
 
     resetView();
 })();

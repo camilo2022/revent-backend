@@ -13,10 +13,16 @@ class AccountPayableSiigoController extends Controller
     {
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
-
+        $type_payment_receipts = $this->type_payment_receipts($token);
+        $types = [
+            0 => "Abono a deuda",
+            1 => "Anticipo",
+            2 => "Avanzado (Impuestos, descuentos y ajustes)",
+        ];
+        $bank_accounts = $this->bank_accounts($token);
         $providers = $this->accounts_payable_providers($token);
 
-        return view('integration.account_payable', compact('providers'));
+        return view('integration.account_payable', compact('providers', 'type_payment_receipts', 'types', 'bank_accounts'));
     }
 
     public function account_payable_documents(Request $request, int $accountId)
@@ -75,6 +81,16 @@ class AccountPayableSiigoController extends Controller
                             'Quantity' => 0
                         ];
                     }
+                }
+
+                $document['Links'] = [];
+                if($document['ACEntryID'] ?? null) {
+                    $document['Links']['PurchaseInvoice'] = "https://siigonube.siigo.com/#/purchase/1008/{$document['ACEntryID']}";
+                }
+
+                if($document['PurchaseEntry']['quotationID'] ?? null) {
+                    $encodedUrl = base64_encode("Default.aspx?TabID=1671&ERPDocumentID={$document['PurchaseEntry']['quotationID']}");
+                    $document['Links']['PurchaseOrder'] = "https://siigonube.siigo.com/#/asp/{$encodedUrl}?TabID=1671";
                 }
 
                 return $document;
@@ -327,10 +343,7 @@ class AccountPayableSiigoController extends Controller
             $response = Http::withToken($token)
                 ->acceptJson()
                 ->timeout(600)
-                ->post(
-                    'https://services.siigo.com/document/api/v1/reports/getreport',
-                    $body
-                );
+                ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
 
             if (!$response->successful()) {
                 throw new \Exception(
@@ -358,20 +371,13 @@ class AccountPayableSiigoController extends Controller
         $response = Http::withToken($token)
             ->acceptJson()
             ->timeout(600)
-            ->get(
-                'https://services.siigo.com/document/api/v2/cards-view/CardsInfo',
-                [
-                    'ACEntryID' => $acEntryId,
-                    'AccountID' => $accountId,
-                ]
-            );
+            ->get('https://services.siigo.com/document/api/v2/cards-view/CardsInfo', [
+                'ACEntryID' => $acEntryId,
+                'AccountID' => $accountId,
+            ]);
 
         if (!$response->successful()) {
-            throw new \Exception(
-                'Error consultando detalle de compra '
-                . $acEntryId . ': '
-                . $response->body()
-            );
+            throw new \Exception('Error consultando detalle de compra '. $acEntryId . ': '. $response->body());
         }
 
         $data = $response->json();
@@ -389,19 +395,12 @@ class AccountPayableSiigoController extends Controller
         $response = Http::withToken($token)
             ->acceptJson()
             ->timeout(600)
-            ->get(
-                'https://services.siigo.com/ACEntryApi/api/v2/Purchase/GetItem',
-                [
-                    'id' => $acEntryId,
-                ]
-            );
+            ->get('https://services.siigo.com/ACEntryApi/api/v2/Purchase/GetItem', [
+                'id' => $acEntryId,
+            ]);
 
         if (!$response->successful()) {
-            throw new \Exception(
-                'Error consultando detalle de compra '
-                . $acEntryId . ': '
-                . $response->body()
-            );
+            throw new \Exception('Error consultando detalle de compra '. $acEntryId . ': '. $response->body());
         }
 
         $data = $response->json();
@@ -436,5 +435,72 @@ class AccountPayableSiigoController extends Controller
         $data = $response->json();
 
         return $data;
+    }
+
+    private function type_payment_receipts(string $token)
+    {
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->timeout(600)
+            ->get('https://services.siigo.com/ACGeneralApi/api/v1/JournalEntryType/GetById', [
+                'ERPDocumentTypeId' => '23202',
+            ]);
+
+        if (!$response->successful()) {
+            throw new \Exception(
+                'Error consultando tipos de recibo de pago: ' . $response->body()
+            );
+        }
+
+        $data = $response->json();
+
+        return $data;
+    }
+
+    private function bank_accounts(string $token)
+    {
+        $numRecordView = 0;
+        $resultados = [];
+
+        do {
+            $body = [
+                'type' => 1,
+                'browserID' => '11',
+                'query' => '',
+                'filter' => 'IsActive = 1 AND IsTransactional = 1 AND InUse = 1 AND
+                    AcAccountType IN(14)
+                    AND IsSystem = 0
+                    AND (DueType IS NULL OR DueType = 0)
+                    AND Type <> 0',
+                'tags' => (object) [],
+                'viewAll' => true,
+                'numRecordView' => $numRecordView,
+            ];
+
+            $response = Http::retry(3, 3000)
+                ->withToken($token)
+                ->asJson()
+                ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
+
+            if (!$response->successful()) {
+                throw new \Exception(
+                    'Error consultando cuentas: ' . $response->body()
+                );
+            }
+
+            $data = $response->json();
+
+            if (is_string($data)) {
+                if ($data === '') break;
+                $data = json_decode($data, true);
+            }
+
+            if (empty($data)) break;
+            $resultados = array_merge($resultados, $data);
+            $numRecordView += 10;
+
+        } while (true);
+
+        return $resultados;
     }
 }
