@@ -294,6 +294,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             ];
 
             $response = Http::retry(3, 3000)->withToken($token)
+                ->timeout(120)
                 ->asJson()
                 ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
 
@@ -357,6 +358,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             ];
 
             $response = Http::retry(3, 3000)->withToken($token)
+                ->timeout(120)
                 ->asJson()
                 ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
 
@@ -433,6 +435,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             ];
 
             $response = Http::retry(3, 3000)->withToken($token)
+                ->timeout(120)
                 ->asJson()
                 ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', $body);
 
