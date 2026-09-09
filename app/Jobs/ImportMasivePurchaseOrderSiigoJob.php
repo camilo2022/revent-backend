@@ -295,78 +295,50 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             ])
             ->values();
     }
-    
+
 
     private function consultar_orden_compra(string $token, string $cookie, int|string $erp_document_id): array
     {
-        try {
-            $response = Http::withToken($token)
-                ->withHeaders([
-                    'Cookie' => $cookie,
-                ])
-                ->connectTimeout(30)
-                ->timeout(600)
-                ->retry(3, 2000,
-                    function ($exception) {
-                        return $exception instanceof ConnectionException;
-                    }
-                )
-                ->withoutRedirecting()
-                ->get('https://monolithprod.siigo.com/REVENTCALZADOSAS/Default.aspx', [
-                    'TabID' => 1671,
-                    'ERPDocumentID' => $erp_document_id,
-                    'pTabID' => 1408,
-                ]);
-
-            if (!$response->successful()) {
-                return [
-                    'documento' => null,
-                    'url' => null,
-                ];
-            }
-
-            $crawler = new Crawler($response->body());
-
-            $documento = null;
-
-            $titleSpan = $crawler->filter('#Default_ucControlPane0_ContainerTitle');
-
-            if ($titleSpan->count()) {
-                $documento = trim(Str::after($titleSpan->text(), ':'));
-            }
-
-            $url = null;
-
-            $btnCopyUrl = $crawler->filter('#Default_ucControlPane0_ctl00_btnCopyUrl');
-
-            if ($btnCopyUrl->count()) {
-                $onclick = $btnCopyUrl->attr('onclick');
-
-                if ($onclick) {
-                    preg_match('/setClipboardText\(["\'](.*?)["\']\)/', $onclick, $matches);
-
-                    if (isset($matches[1])) {
-                        $url = html_entity_decode($matches[1]);
-                    }
-                }
-            }
-
-            return [
-                'documento' => $documento,
-                'url' => $url,
-            ];
-
-        } catch (ConnectionException $e) {
-            Log::error('Error de conexión consultando orden de compra Siigo', [
-                'erp_document_id' => $erp_document_id,
-                'error' => $e->getMessage(),
+        $response = Http::withToken($token)
+            ->withHeaders([
+                'Cookie' => $cookie,
+            ])
+            ->connectTimeout(30)
+            ->timeout(600)
+            ->retry(3, 2000)
+            ->withoutRedirecting()
+            ->get('https://monolithprod.siigo.com/REVENTCALZADOSAS/Default.aspx', [
+                'TabID' => 1671,
+                'ERPDocumentID' => $erp_document_id,
+                'pTabID' => 1408,
             ]);
-
+        if (!$response->successful()) {
             return [
                 'documento' => null,
                 'url' => null,
             ];
         }
+        $crawler = new Crawler($response->body());
+        $documento = null;
+        $titleSpan = $crawler->filter('#Default_ucControlPane0_ContainerTitle');
+        if ($titleSpan->count()) {
+            $documento = trim(Str::after($titleSpan->text(), ':'));
+        }
+        $url = null;
+        $btnCopyUrl = $crawler->filter('#Default_ucControlPane0_ctl00_btnCopyUrl');
+        if ($btnCopyUrl->count()) {
+            $onclick = $btnCopyUrl->attr('onclick');
+            if ($onclick) {
+                preg_match('/setClipboardText\(["\'](.*?)["\']\)/', $onclick, $matches);
+                if (isset($matches[1])) {
+                    $url = html_entity_decode($matches[1]);
+                }
+            }
+        }
+        return [
+            'documento' => $documento,
+            'url' => $url,
+        ];
     }
 
     private function orden_compra(string $token, string $cookie, array $body, array $warehouse, string $tipo, int $intento = 1)

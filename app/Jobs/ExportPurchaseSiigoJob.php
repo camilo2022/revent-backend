@@ -25,10 +25,10 @@ class ExportPurchaseSiigoJob implements ShouldQueue
     private array $cost_centers = [];
     private array $purchases = [];
 
-    public function __construct(
-        public array $filters,
-        public array|string $notifyEmail
-    ) {}
+    public function __construct(public array $filters, public array|string $notifyEmail)
+    {
+        $this->onQueue('reports');
+    }
 
     public function handle(): void
     {
