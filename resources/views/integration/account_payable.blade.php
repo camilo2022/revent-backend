@@ -196,13 +196,14 @@
     .legend-item {
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
         gap: 0.4rem;
         font-size: 0.72rem;
         color: #374151;
-        white-space: nowrap;
+        white-space: normal;
         font-weight: bold;
-        text-align: center;
+        text-align: left;
+        min-width: 0;
     }
 
     .legend-dot {
@@ -851,6 +852,24 @@
         .modal-body { padding: 1.1rem 1.1rem; }
         .modal-footer { padding: 1rem 1.1rem; flex-direction: column-reverse; }
         .btn-primary, .btn-secondary { width: 100%; }
+
+        .legend {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem;
+            padding: 0.7rem 0.8rem;
+        }
+
+        .legend-item {
+            font-size: 0.66rem;
+            min-width: 0;
+            overflow-wrap: break-word;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+        }
     }
 </style>
 </head>
@@ -1080,6 +1099,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 const PROVIDERS = @json(array_values($providers ?? []), JSON_UNESCAPED_UNICODE);
 const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['accountId' => '__ID__']) }}";
@@ -1476,7 +1496,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
                 }
 
                 return `
-                    <tr class="${rowClass} ${selectable ? 'selectable' : ''}" data-saldo="${Number(doc.Saldo) || 0}" data-doc-index="${i}">
+                    <tr class="${rowClass} ${selectable ? 'selectable' : ''}" data-saldo="${Number(doc.Saldo) || 0}" data-documento="${escapeHtml(doc.DueName)}" data-doc-index="${i}">
                         <td><input type="checkbox" class="row-check doc-check" ${selectable ? '' : 'disabled'}></td>
                         <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                         <td>${escapeHtml(doc.DueName)}</td>
@@ -1556,7 +1576,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             total += Number(doc.Saldo) || 0;
 
             return `
-                <tr>
+                <tr data-saldo="${Number(doc.Saldo) || 0}" data-documento="${escapeHtml(doc.DueName)}">
                     <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                     <td>${escapeHtml(doc.DueName)}</td>
                     <td>${escapeHtml(doc.DocName)}</td>
@@ -1594,26 +1614,91 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         if (e.key === 'Escape' && modalOverlay.classList.contains('show')) closePaymentModal();
     });
 
-    modalConfirm.addEventListener('click', () => {
+    modalConfirm.addEventListener('click', async () => {
         if (!paymentTipo.value || !paymentAction.value || !paymentSource.value || !paymentDate.value || !paymentFile) {
-            alert('Completa todos los campos antes de confirmar.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos incompletos',
+                text: 'Completa todos los campos antes de confirmar.',
+                confirmButtonColor: '#3085d6'
+            });
             return;
         }
 
-        // TODO: enviar al backend el recibo de pago con estos datos:
-       const formData = new FormData();
+        const documentos = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => tr.dataset.documento);
+        const valor = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => Number(tr.dataset.saldo) || 0).reduce((sum, v) => sum + v, 0);
+
+        const formData = new FormData();
         formData.append('proveedor_id', currentProvider.AccountID);
         formData.append('tipo', paymentTipo.value);
         formData.append('accion', paymentAction.value);
         formData.append('origen', paymentSource.value);
         formData.append('fecha', paymentDate.value);
         formData.append('observaciones', paymentObservations.value);
-        //formData.append('documentos', JSON.stringify(selectedDocs.map(d => d.DocName)));
+        formData.append('valor', valor);
+        formData.append('documentos', JSON.stringify(documentos));
         if (paymentFile) formData.append('comprobante', paymentFile);
 
-        console.log('Recibo de pago a confirmar', Object.fromEntries(formData));
+        // Guardamos el contenido original del boton para poder restaurarlo despues
+        const originalConfirmHTML = modalConfirm.innerHTML;
 
-        closePaymentModal();
+        modalConfirm.disabled = true;
+        modalConfirm.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Procesando...`;
+
+        Swal.fire({
+            title: 'Procesando recibo de pago',
+            text: 'Por favor espera, no cierres esta ventana...',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        try {
+            const response = await fetch('{{ route("siigo.accounts_payment") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                throw new Error('El servidor respondio de forma inesperada. Intenta nuevamente.');
+            }
+
+            if (!response.ok || !data.success) {
+                if (data.errors) {
+                    const primerError = Object.values(data.errors)[0][0];
+                    throw new Error(primerError);
+                }
+                throw new Error(data.message || 'Ocurrio un error procesando el recibo de pago.');
+            }
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'Listo',
+                text: data.message || 'Recibo de pago procesado correctamente.',
+                confirmButtonColor: '#3085d6'
+            });
+            closePaymentModal();
+            window.location.reload();
+
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo procesar el pago',
+                text: error.message || 'Ocurrio un error inesperado.',
+                confirmButtonColor: '#d33'
+            });
+        } finally {
+            modalConfirm.disabled = false;
+            modalConfirm.innerHTML = originalConfirmHTML;
+        }
     });
 
     resetView();

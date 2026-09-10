@@ -473,6 +473,7 @@
 
 </body>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     (function () {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
@@ -580,7 +581,12 @@
             const token = tokenInput.value.trim();
 
             if (!token) {
-                alert('Ingresa tu token antes de eliminar una foto.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Token requerido',
+                    text: 'Ingresa tu token antes de eliminar una foto.',
+                    confirmButtonColor: '#3085d6'
+                });
                 return;
             }
 
@@ -607,7 +613,12 @@
                     existingEmptyHint.style.display = 'block';
                 }
             } catch (err) {
-                alert(err.message || 'No se pudo eliminar la foto. Intenta de nuevo.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo eliminar la foto. Intenta de nuevo.',
+                    confirmButtonColor: '#3085d6'
+                });
             }
         }
 
