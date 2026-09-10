@@ -79,7 +79,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
         $totalPages = null;
 
         do {
-            $response = Http::retry(5, 10000)->withHeaders([
+            $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
                 'Content-Type' => 'application/json',
                 'Authorization' => $token,
                 'Partner-Id' => 'consultadeFacturas',
@@ -120,7 +120,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
 
     private function cost_centers_siigo(string $token): void
     {
-        $response = Http::retry(5, 10000)->withHeaders([
+        $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
             'Content-Type'  => 'application/json',
             'Authorization' => $token,
             'Partner-Id'    => 'consultadeFacturas',
@@ -147,7 +147,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
         $url = "{$this->siigo_base_url}/v1/invoices?" . http_build_query($queryParams);
 
         do {
-            $response = Http::retry(5, 10000)->withHeaders([
+            $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
                 'Content-Type'  => 'application/json',
                 'Authorization' => $token,
                 'Partner-Id'    => 'consultadeFacturas',
@@ -190,7 +190,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
         $url = "{$this->siigo_base_url}/v1/credit-notes?" . http_build_query($queryParams);
 
         do {
-            $response = Http::retry(5, 10000)->withHeaders([
+            $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
                 'Content-Type'  => 'application/json',
                 'Authorization' => $token,
                 'Partner-Id'    => 'consultadeFacturas',

@@ -56,7 +56,7 @@ class ExportPurchaseSiigoJob implements ShouldQueue
 
     private function cost_centers_siigo(string $token): void
     {
-        $response = Http::retry(5, 10000)->withHeaders([
+        $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
             'Content-Type'  => 'application/json',
             'Authorization' => $token,
             'Partner-Id'    => 'consultadeFacturas',
@@ -86,7 +86,7 @@ class ExportPurchaseSiigoJob implements ShouldQueue
         $url = "{$this->siigo_base_url}/v1/purchases?" . http_build_query($queryParams);
 
         do {
-            $response = Http::retry(5, 10000)->withHeaders([
+            $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
                 'Content-Type'  => 'application/json',
                 'Authorization' => $token,
                 'Partner-Id'    => 'consultadeFacturas',

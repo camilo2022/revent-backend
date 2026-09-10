@@ -86,7 +86,7 @@ class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, 
         $url = "{$this->baseUrl}/v1/products?" . http_build_query($queryParams);
 
         do {
-            $response = Http::retry(5, 10000)->withHeaders([
+            $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
                 'Content-Type' => 'application/json',
                 'Authorization' => $this->token,
                 'Partner-Id' => 'consultadeFacturas',
