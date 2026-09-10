@@ -18,7 +18,7 @@ class ExportInvoiceSiigoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $timeout = 3600;
+    public int $timeout = 7200;
     public int $tries = 1;
 
     private string $siigo_base_url = 'https://api.siigo.com';
