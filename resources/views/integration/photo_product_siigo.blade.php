@@ -576,7 +576,18 @@
         }
 
         async function eliminarFoto(filename, itemEl) {
-            if (!confirm('¿Eliminar esta foto?')) return;
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: '¿Eliminar esta foto?',
+                text: 'Esta acción no se puede deshacer.',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6'
+            });
+
+            if (!result.isConfirmed) return;
 
             const token = tokenInput.value.trim();
 

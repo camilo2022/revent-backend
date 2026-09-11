@@ -3,28 +3,101 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AccountPayableAccessLink;
+use App\Mail\AccountPayableProviderSiigo;
 use App\Services\SiigoInventoryService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 class AccountPayableSiigoController extends Controller
 {
+    private const DISK = 'public';
+    private const BASE_PATH = 'vouchers';
+    private const ACCOUNT_PAYABLE_ALLOWED_EMAILS = [
+        'contabilidad@revent.com.co',
+        'tecnologia@revent.com.co',
+    ];
+
+    public function account_payable_access()
+    {
+        return view('integration.account_payable_access');
+    }
+
+    public function account_payable_send_access_link(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $email = strtolower(trim($request->input('email')));
+
+        if (!in_array($email, self::ACCOUNT_PAYABLE_ALLOWED_EMAILS, true)) {
+            return back()
+                ->withErrors(['email' => 'Este correo no tiene autorización para acceder a cuentas por pagar.'])
+                ->withInput();
+        }
+
+        try {
+            $url = URL::temporarySignedRoute('siigo.account_payable', now()->addHours(24));
+
+            Mail::to($email)->send(new AccountPayableAccessLink($url));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()
+                ->withErrors(['email' => 'No fue posible enviar el enlace de acceso. Intenta nuevamente en unos minutos.'])
+                ->withInput();
+        }
+
+        return back()->with('status', 'Te enviamos el enlace de acceso a ' . $email . '. Revisa tu bandeja de entrada (y spam).');
+    }
+
     public function account_payable()
     {
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
+
         $type_payment_receipts = $this->type_payment_receipts($token);
+
         $types = [
             0 => "Abono a deuda",
-            /*1 => "Anticipo",
-            2 => "Avanzado (Impuestos, descuentos y ajustes)",*/
         ];
+
         $bank_accounts = $this->bank_accounts($token);
+
         $providers = $this->accounts_payable_providers($token);
 
-        return view('integration.account_payable', compact('providers', 'type_payment_receipts', 'types', 'bank_accounts'));
+        /*foreach ($providers as &$provider) {
+            $uuid = $provider['MsThirdPartyID'] ?? null;
+
+            if (!$uuid) {
+                $provider['CompanyName'] = null;
+                continue;
+            }
+
+            $cacheKey = 'siigo_provider_company_name_' . $uuid;
+            $companyName = Cache::get($cacheKey);
+            if ($companyName === null) {
+                $data = $this->provider($token, $uuid);
+                $companyName = data_get($data, 'BasicData.CompanyName');
+
+                if ($companyName !== null) {
+                    Cache::put($cacheKey, $companyName, now()->addDays(7));
+                }
+            }
+
+            $provider['CompanyName'] = $companyName;
+        }
+
+        unset($provider);*/
+
+        return view('integration.account_payable', compact( 'providers', 'type_payment_receipts', 'types', 'bank_accounts'));
     }
 
     public function account_payable_documents(Request $request, int $accountId)
@@ -109,7 +182,7 @@ class AccountPayableSiigoController extends Controller
     {
         try {
             $request->validate([
-                'proveedor_id' => 'required|integer',
+                'proveedor' => 'required',
                 'tipo' => 'required|integer',
                 'accion' => 'required|string',
                 'origen' => 'required|integer',
@@ -125,8 +198,9 @@ class AccountPayableSiigoController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         }
-
+        $proveedor = json_decode($request->proveedor, true);
         $documentos = json_decode($request->input('documentos'), true);
+        $recibos = json_decode($request->input('json'), true);
 
         if (!is_array($documentos) || empty($documentos)) {
             return response()->json([
@@ -134,48 +208,38 @@ class AccountPayableSiigoController extends Controller
             ], 422);
         }
 
-        try {
-            $siigo = new SiigoInventoryService();
-            $token = $siigo->auth();
-        } catch (\Throwable $e) {
-            report($e);
-            return response()->json([
-                'message' => 'No fue posible autenticar con Siigo. Intenta nuevamente en unos minutos.',
-            ], 502);
-        }
+        $siigo = new SiigoInventoryService();
+        $token = $siigo->auth();
 
-        try {
-            $type_payment_receipts = $this->type_payment_receipts($token);
+        $warehouses = $this->warehouses($token);
+        $warehousesById = collect($warehouses)->keyBy('id');
 
-            $EntryType = [
-                "ERPDocumentTypeID" => $type_payment_receipts['ERPDocumentTypeId'],
-                "Name" => $type_payment_receipts['Title'],
-                "Class" => $type_payment_receipts['DocClass'],
-                "Code" => $type_payment_receipts['Code'],
-                "ACAccountCode" => -1,
-                "CostCenterDefault" => $type_payment_receipts['CostCenterDefault'],
-                "CostCenterMandatory" => $type_payment_receipts['CostCenterMandatory'],
-                "InternalDescription" => $type_payment_receipts['InternalDescription'],
-                "IsAutomaticEnum" => $type_payment_receipts['IsAutomaticEnum'],
-                "TemplateName" => $type_payment_receipts['TemplateName'],
-                "UseCostCenter" => $type_payment_receipts['UseCostCenter']
-            ];
-        } catch (\Throwable $e) {
-            report($e);
-            return response()->json([
-                'message' => 'No fue posible consultar el tipo de comprobante de pago en Siigo.',
-            ], 502);
-        }
+        $type_payment_receipts = $this->type_payment_receipts($token);
+        $EntryType = [
+            "ERPDocumentTypeID" => $type_payment_receipts['ERPDocumentTypeId'],
+            "Name" => $type_payment_receipts['Title'],
+            "Class" => $type_payment_receipts['DocClass'],
+            "Code" => $type_payment_receipts['Code'],
+            "ACAccountCode" => -1,
+            "CostCenterDefault" => $type_payment_receipts['CostCenterDefault'],
+            "CostCenterMandatory" => $type_payment_receipts['CostCenterMandatory'],
+            "InternalDescription" => $type_payment_receipts['InternalDescription'],
+            "IsAutomaticEnum" => $type_payment_receipts['IsAutomaticEnum'],
+            "TemplateName" => $type_payment_receipts['TemplateName'],
+            "UseCostCenter" => $type_payment_receipts['UseCostCenter']
+        ];
 
+        $accountId = $proveedor['AccountID'];
+        $observaciones = $request->input('observaciones');
         $Entry = [
             "ACEntryID" => -1,
             "DocNumber" => -1,
             "DocName" => "",
-            "Observations" => $request->input('observaciones'),
+            "Observations" => $observaciones,
             "DocDate" => Carbon::parse($request->input('fecha'))->format('Ymd'),
             "ACEntryCode" => -1,
             "ACPaymentMeanCode" => $request->integer('origen'),
-            "AccountCode" => $request->integer('proveedor_id'),
+            "AccountCode" => $proveedor['AccountID'],
             "AttachmentsFSItemsGUID" => "",
             "ExchangePersonalized" => false,
             "ExchangeValue" => 0,
@@ -189,15 +253,7 @@ class AccountPayableSiigoController extends Controller
             "VoucherType" => $request->input('accion')
         ];
 
-        try {
-            $accoutId = $request->integer('proveedor_id');
-            $Items = $this->accounts_provider($token, $accoutId, $documentos);
-        } catch (\Throwable $e) {
-            report($e);
-            return response()->json([
-                'message' => 'No fue posible consultar las cuentas por pagar del proveedor en Siigo.',
-            ], 502);
-        }
+        $Items = $this->accounts_provider($token, $accountId, $documentos);
 
         if (empty($Items)) {
             return response()->json([
@@ -212,80 +268,107 @@ class AccountPayableSiigoController extends Controller
         }
 
         $AttachFiles = [];
-
+        $url = null;
         if ($request->hasFile('comprobante')) {
-            try {
-                $parentPathGuid = (string) Str::uuid();
+            $parentPathGuid = (string) Str::uuid();
 
-                $uploaded = $this->upload_attachment($token, $parentPathGuid, $request->file('comprobante'));
+            $photo = $request->file('comprobante');
+            $filename = $parentPathGuid . '.' . $photo->getClientOriginalExtension();
+            $path = self::BASE_PATH;
+            Storage::disk(self::DISK)->putFileAs($path, $photo, $filename);
+            $url = Storage::disk(self::DISK)->url("{$path}/{$filename}");
 
-                $AttachFiles[] = [
-                    "Name" => $uploaded['Name'] ?? $request->file('comprobante')->getClientOriginalName(),
-                    "GUID" => $uploaded['GUID'] ?? null,
-                    "Extension" => $uploaded['Extension'] ?? ('.' . $request->file('comprobante')->getClientOriginalExtension()),
-                    "Type" => $uploaded['Type'] ?? '-image',
-                    "shortName" => Str::limit($uploaded['Name'] ?? '', 20, '...'),
-                ];
-            } catch (\Throwable $e) {
-                report($e);
-                return response()->json([
-                    'message' => 'No fue posible subir el comprobante adjunto. Verifica el archivo e intenta de nuevo.',
-                ], 502);
-            }
-
-            try {
-                $this->update_attach_files_references($token, $AttachFiles);
-            } catch (\Throwable $e) {
-                report($e);
-                return response()->json([
-                    'message' => 'El comprobante se subió, pero no fue posible asociarlo al recibo de pago.',
-                ], 502);
-            }
-        }
-
-        try {
-            $this->validate_entry($token, $Entry['DocDate'], $request->integer('tipo'), -1, -1);
-        } catch (\Throwable $e) {
-            report($e);
-            return response()->json([
-                'message' => 'El recibo de pago no pudo validarse: ' . $e->getMessage(),
-            ], 422);
-        }
-
-        try {
-            $payload = [
-                "AttachFiles" => $AttachFiles,
-                "Entry" => $Entry,
-                "EntryType" => $EntryType,
-                "Items" => $Items,
-                "ModelType" => 4,
-                "TreasuryPayment" => null,
+            $uploaded = $this->upload_attachment($token, $parentPathGuid, $request->file('comprobante'));
+            $AttachFiles[] = [
+                "Name" => $uploaded['Name'] ?? $request->file('comprobante')->getClientOriginalName(),
+                "GUID" => $uploaded['GUID'] ?? null,
+                "Extension" => $uploaded['Extension'] ?? ('.' . $request->file('comprobante')->getClientOriginalExtension()),
+                "Type" => $uploaded['Type'] ?? '-image',
+                "shortName" => Str::limit($uploaded['Name'] ?? '', 20, '...'),
             ];
 
-            $result = $this->save_voucher($token, $payload);
-        } catch (\Throwable $e) {
-            report($e);
-            return response()->json([
-                'message' => 'No fue posible guardar el recibo de pago en Siigo. Intenta nuevamente.',
-            ], 502);
+            $this->update_attach_files_references($token, $AttachFiles);
         }
 
-        $voucher = $this->search_voucher($token, $result);
+        $this->validate_entry($token, $Entry['DocDate'], $request->integer('tipo'), -1, -1);
+
+        $payload = [
+            "AttachFiles" => $AttachFiles,
+            "Entry" => $Entry,
+            "EntryType" => $EntryType,
+            "Items" => $Items,
+            "ModelType" => 4,
+            "TreasuryPayment" => null,
+        ];
+
+        foreach($recibos as &$item) {
+            $purchase_entry = $this->purchase_entry($token, $accountId, (int) $item['ACEntryID']);
+            $purchase_entry_detail = $this->purchase_entry_detail($token, (int) $item['ACEntryID']);
+            $item['PurchaseEntry'] = $purchase_entry;
+            $item['PurchaseEntryDetail'] = [
+                'DocDate' => $purchase_entry_detail['DocDate'],
+                'Observations' => $purchase_entry_detail['Observations'],
+                'WarehouseCodes' => collect($purchase_entry_detail['WarehouseCodes'])
+                    ->map(function ($warehouseCode) use ($warehousesById) {
+                        $warehouse = $warehousesById->get($warehouseCode);
+                        return $warehouseCode . '-' . ($warehouse['name'] ?? '');
+                    })
+                    ->implode(', '),
+                'Quantity' => $purchase_entry_detail['Quantity'],
+            ];
+        }
+
+        $provider = $this->provider($token, $proveedor['MsThirdPartyID']);
+
+        $voucher_id = $this->save_voucher($token, $payload);
+
+        $voucher = $this->search_voucher($token, $voucher_id);
+
+        $firma =  [
+            'nombre' => 'Ninoska Fontalvo',
+            'cargo' => 'Auxiliar administrativo',
+            'departamento' => 'Departamento de Cartera',
+            'empresa' => 'Revent Calzado SAS',
+            'celular' => '3222792893',
+        ];
+        //$emails = collect($provider['Contacts'])->pluck('Email')->filter()->values()->toArray();
+        Mail::to(['camiloacacio16@gmail.com'])->send(new AccountPayableProviderSiigo($provider, $voucher, $recibos, $firma, $observaciones, $voucher_id, $url));
 
         return response()->json([
             'success' => true,
             'message' => 'Recibo de pago registrado correctamente.',
+            'voucher_id' => $voucher_id,
             'voucher' => $voucher,
         ]);
     }
 
-    private function accounts_provider(string $token, int $accoutId, array $documentos)
+    private function provider(string $token, string $uuid)
     {
         $response = Http::withToken($token)
             ->acceptJson()
+            ->connectTimeout(30)
+            ->timeout(600)
+            ->get("https://services.siigo.com/catalog/api/third-party/account/{$uuid}");
+
+        if (!$response->successful()) {
+            throw new \Exception(
+                'Error consultando balance proveedor: ' . $response->body()
+            );
+        }
+
+        $data = $response->json('AccountDto');
+
+        return $data;
+    }
+
+    private function accounts_provider(string $token, int $accountId, array $documentos)
+    {
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->connectTimeout(30)
             ->timeout(600)
             ->get('https://services.siigo.com/ACEntryApi/api/v1/Voucher/GetDuesClient', [
-                'id' => $accoutId,
+                'id' => $accountId,
                 'moneyid' => '',
                 'voucherType' => 0,
                 'modeltype' => 4
@@ -327,6 +410,7 @@ class AccountPayableSiigoController extends Controller
 
         $response = Http::withToken($token)
             ->timeout(600)
+            ->connectTimeout(30)
             ->attach('file', file_get_contents($file->getRealPath()), $file->getClientOriginalName())
             ->post($url, [
                 'ACEntryCode' => $acEntryCode,
@@ -359,6 +443,7 @@ class AccountPayableSiigoController extends Controller
         $response = Http::withToken($token)
             ->acceptJson()
             ->timeout(600)
+            ->connectTimeout(30)
             ->post('https://services.siigo.com/ACEntryApi/api/v2/Invoice/UpdateReferecesAttachFiles', $body);
 
         if (!$response->successful()) {
@@ -375,6 +460,7 @@ class AccountPayableSiigoController extends Controller
         $response = Http::withToken($token)
             ->acceptJson()
             ->timeout(600)
+            ->connectTimeout(30)
             ->get('https://services.siigo.com/ACEntryApi/api/v1/ACEntryValidator/IsValid', [
                 'Date' => $date,
                 'ERPDocumentTypeID' => $erpDocumentTypeId,
@@ -406,6 +492,7 @@ class AccountPayableSiigoController extends Controller
         $response = Http::withToken($token)
             ->acceptJson()
             ->timeout(600)
+            ->connectTimeout(30)
             ->post('https://services.siigo.com/ACEntryApi/api/v1/Voucher/Save/', $payload);
 
         if (!$response->successful()) {
@@ -422,6 +509,7 @@ class AccountPayableSiigoController extends Controller
         $response = Http::withToken($token)
             ->acceptJson()
             ->timeout(600)
+            ->connectTimeout(30)
             ->get('https://services.siigo.com/ACEntryApi/api/v1/Invoice/GetDataView', [
                 'id' => $id,
             ]);
@@ -476,6 +564,7 @@ class AccountPayableSiigoController extends Controller
         $response = Http::withToken($token)
             ->acceptJson()
             ->timeout(600)
+            ->connectTimeout(30)
             ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
 
         if (!$response->successful()) {
@@ -542,6 +631,7 @@ class AccountPayableSiigoController extends Controller
             $response = Http::withToken($token)
                 ->acceptJson()
                 ->timeout(600)
+                ->connectTimeout(30)
                 ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
 
             if (!$response->successful()) {
@@ -675,6 +765,7 @@ class AccountPayableSiigoController extends Controller
             $response = Http::withToken($token)
                 ->acceptJson()
                 ->timeout(600)
+                ->connectTimeout(30)
                 ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
 
             if (!$response->successful()) {
@@ -718,7 +809,7 @@ class AccountPayableSiigoController extends Controller
 
         return [
             'quotationID' => $data['quotationID'] ?? null,
-            'docName' => $data['docName'] ?? null
+            'docName' => $data['docName'] ?? '',
         ];
     }
 
@@ -740,7 +831,8 @@ class AccountPayableSiigoController extends Controller
         $items = collect($data['Items'] ?? []);
 
         return [
-            'Observations' => $data['Entry']['Observations'] ?? null,
+            'DocDate' => isset($data['Entry']['DocDate']) ? Carbon::createFromFormat('Ymd', $data['Entry']['DocDate'])->format('d/m/Y') : null,
+            'Observations' => $data['Entry']['Observations'] ?? '',
             'WarehouseCodes' => $items
                 ->pluck('WarehouseCode')
                 ->filter(fn ($warehouseCode) => $warehouseCode !== null)

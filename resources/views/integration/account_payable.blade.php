@@ -46,7 +46,7 @@
     .field-group {
         margin-bottom: 1.4rem;
         position: relative;
-        max-width: 460px;
+        max-width: 650px;
     }
 
     .field-label {
@@ -336,6 +336,28 @@
         white-space: pre-line;
         font-size: 0.7rem;
         color: #6b7280;
+
+        width: 220px;
+        max-width: 220px;
+        max-height: 120px;
+
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        padding-right: 6px;
+    }
+
+    .obs-text::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .obs-text::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .obs-text::-webkit-scrollbar-track {
+        background: transparent;
     }
 
     .document-link {
@@ -1293,11 +1315,13 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     // ---- Combobox ----
     function openList() {
         const q = searchInput.value.trim().toLowerCase();
+
         const items = q
             ? providers.filter((p) =>
                 (p.FullName || '').toLowerCase().includes(q) ||
+                (p.CompanyName || '').toLowerCase().includes(q) ||
                 String(p.Identification || '').toLowerCase().includes(q)
-              )
+            )
             : providers;
 
         renderList(items.slice(0, 50));
@@ -1315,7 +1339,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
         listEl.innerHTML = items.map((p, i) => `
             <div class="combo-option" data-index="${i}">
-                <span class="combo-option-name">${escapeHtml(p.FullName)}</span>
+                <span class="combo-option-name">${escapeHtml(p.FullName)} ${p.CompanyName ? ('(' + escapeHtml(p.CompanyName) + ')') : ''}</span>
                 <span class="combo-option-id">${escapeHtml(p.Identification)}</span>
             </div>
         `).join('');
@@ -1380,7 +1404,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
     function selectProvider(provider) {
         if (!provider) return;
-        searchInput.value = provider.FullName;
+        searchInput.value = `${provider.FullName} ${provider.CompanyName ? ('(' + provider.CompanyName + ')') : ''}`;
         clearBtn.classList.add('show');
         listEl.classList.remove('show');
         currentProvider = provider;
@@ -1576,7 +1600,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             total += Number(doc.Saldo) || 0;
 
             return `
-                <tr data-saldo="${Number(doc.Saldo) || 0}" data-documento="${escapeHtml(doc.DueName)}">
+                <tr data-saldo="${Number(doc.Saldo) || 0}" data-documento="${escapeHtml(doc.DueName)}" data-json='${JSON.stringify(doc)}'>
                     <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                     <td>${escapeHtml(doc.DueName)}</td>
                     <td>${escapeHtml(doc.DocName)}</td>
@@ -1615,7 +1639,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     });
 
     modalConfirm.addEventListener('click', async () => {
-        if (!paymentTipo.value || !paymentAction.value || !paymentSource.value || !paymentDate.value || !paymentFile) {
+        if (!paymentTipo.value || !paymentAction.value || !paymentSource.value || !paymentDate.value || !paymentFile || !paymentObservations.value) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Campos incompletos',
@@ -1625,11 +1649,24 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             return;
         }
 
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: '¿Realizar pago?',
+            text: 'Esta acción no se puede deshacer.',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, realizar pago',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6'
+        });
+        if (!result.isConfirmed) return;
+
+        const json = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => JSON.parse(tr.dataset.json));
         const documentos = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => tr.dataset.documento);
         const valor = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => Number(tr.dataset.saldo) || 0).reduce((sum, v) => sum + v, 0);
 
         const formData = new FormData();
-        formData.append('proveedor_id', currentProvider.AccountID);
+        formData.append('proveedor', JSON.stringify(currentProvider));
         formData.append('tipo', paymentTipo.value);
         formData.append('accion', paymentAction.value);
         formData.append('origen', paymentSource.value);
@@ -1637,6 +1674,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         formData.append('observaciones', paymentObservations.value);
         formData.append('valor', valor);
         formData.append('documentos', JSON.stringify(documentos));
+        formData.append('json', JSON.stringify(json));
         if (paymentFile) formData.append('comprobante', paymentFile);
 
         // Guardamos el contenido original del boton para poder restaurarlo despues

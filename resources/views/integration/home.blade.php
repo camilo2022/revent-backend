@@ -17,7 +17,7 @@
         }
 
         .wrapper {
-            max-width: 900px;
+            max-width: 90%;
             margin: 0 auto;
         }
 
@@ -88,6 +88,7 @@
         .icon-trazabilidad { background: #0891b2; }
         .icon-orden-compra { background: #db2777; }
         .icon-fotos { background: #1f2937; }
+        .icon-cuentas-pagar { background: #059669; }
 
         .report-body {
             flex: 1;
@@ -132,6 +133,7 @@
         .report-card:has(.icon-trazabilidad) .report-action { color: #0891b2; }
         .report-card:has(.icon-orden-compra) .report-action { color: #db2777; }
         .report-card:has(.icon-fotos) .report-action { color: #1f2937; }
+        .report-card:has(.icon-cuentas-pagar) .report-action { color: #059669; }
 
         .report-action svg {
             width: 14px;
@@ -317,6 +319,25 @@
             </div>
         </a>
 
+        <a href="{{ route('siigo.account_payable_access') }}" class="report-card">
+            <div class="report-icon icon-cuentas-pagar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2"/>
+                    <line x1="2" y1="10" x2="22" y2="10"/>
+                    <line x1="6" y1="15" x2="10" y2="15"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Cuentas por Pagar</div>
+                <div class="report-desc">Consulta el saldo de proveedores y registra recibos de pago en Siigo.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Ir a cuentas por pagar
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
     </div>
 
 </div>

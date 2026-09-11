@@ -50,7 +50,9 @@ Route::post('/siigo/product_photo_search', [PhotoProductSiigoController::class, 
 Route::post('/siigo/product_photo_upload', [PhotoProductSiigoController::class, 'product_photo_upload'])->name('siigo.product_photo_upload');
 Route::post('/siigo/product_photo_delete', [PhotoProductSiigoController::class, 'product_photo_delete'])->name('siigo.product_photo_delete');
 
-Route::get('/siigo/account_payable', [AccountPayableSiigoController::class, 'account_payable'])->name('siigo.account_payable');
+Route::get('/siigo/account_payable/access', [AccountPayableSiigoController::class, 'account_payable_access'])->name('siigo.account_payable_access');
+Route::post('/siigo/account_payable/access', [AccountPayableSiigoController::class, 'account_payable_send_access_link'])->middleware('throttle:5,1')->name('siigo.account_payable_send_access_link');
+Route::get('/siigo/account_payable', [AccountPayableSiigoController::class, 'account_payable'])->middleware('signed')->name('siigo.account_payable');
 Route::get('/siigo/account_payable/{accountId}/documents', [AccountPayableSiigoController::class, 'account_payable_documents'])->name('siigo.account_payable.documents');
 Route::post('/siigo/accounts_payment', [AccountPayableSiigoController::class, 'accounts_payment'])->name('siigo.accounts_payment');
 
