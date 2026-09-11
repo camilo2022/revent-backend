@@ -803,6 +803,32 @@
 
     .payment-file-error.show { display: block; }
 
+    .favor-alert {
+        display: none;
+        align-items: flex-start;
+        gap: 0.7rem;
+        margin-bottom: 1.3rem;
+        padding: 0.85rem 1.1rem;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        color: #92400e;
+        font-size: 0.82rem;
+        line-height: 1.4;
+    }
+
+    .favor-alert.show { display: flex; }
+
+    .favor-alert svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+        stroke: #d97706;
+    }
+
+    .favor-alert strong { font-weight: 700; }
+
     @media (max-width: 768px) {
         .wrapper { padding: 0; }
 
@@ -959,6 +985,17 @@
             <div class="summary-card summary-documents">
                 <div class="amount" id="sumDocumentos">0</div>
                 <div class="label">Documentos</div>
+            </div>
+        </div>
+
+        <div class="favor-alert" id="favorAlert">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+                Este proveedor tiene un saldo a favor de <strong id="favorAlertAmount">$0</strong>. Si vas a realizar el pago, puedes hacerlo normalmente; en caso de que quiera usar este saldo a favor, notifica a contabilidad para que haga el respectivo descuento a esas facturas.
             </div>
         </div>
 
@@ -1431,14 +1468,23 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             + (Number(provider.Expired61to90) || 0)
             + (Number(provider.ExpiredMoreTo91) || 0);
 
-        const saldo = (Number(provider.TotalBalance) || 0) - (Number(provider.BalanceInFavor) || 0);
 
-        document.getElementById('sumDeuda').textContent      = formatMoney(provider.TotalBalance);
+        document.getElementById('sumDeuda').textContent      = formatMoney(provider.BalanceToExpire + vencido);
         document.getElementById('sumFavor').textContent      = formatMoney(provider.BalanceInFavor);
-        document.getElementById('sumSaldo').textContent      = formatMoney(saldo);
+        document.getElementById('sumSaldo').textContent      = formatMoney(provider.TotalBalance);
         document.getElementById('sumVencido').textContent    = formatMoney(vencido);
         document.getElementById('sumPorVencer').textContent  = formatMoney(provider.BalanceToExpire);
         document.getElementById('sumDocumentos').textContent = '…';
+
+        const favorAlert = document.getElementById('favorAlert');
+        const balanceInFavor = Number(provider.BalanceInFavor) || 0;
+
+        if (balanceInFavor > 0) {
+            document.getElementById('favorAlertAmount').textContent = formatMoney(balanceInFavor);
+            favorAlert.classList.add('show');
+        } else {
+            favorAlert.classList.remove('show');
+        }
 
         summaryGrid.classList.add('show');
         legend.classList.add('show');
