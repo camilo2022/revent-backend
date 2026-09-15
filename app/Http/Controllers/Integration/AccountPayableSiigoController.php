@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Mail\AccountPayableAccessLink;
-use App\Mail\AccountPayableProviderSiigo;
+use App\Mail\AccountPayableAdvanceProviderSiigo;
+use App\Mail\AccountPayablePaymentProviderSiigo;
 use App\Services\SiigoInventoryService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -65,7 +66,7 @@ class AccountPayableSiigoController extends Controller
 
         $type_payment_receipts = $this->type_payment_receipts($token, '23202');
 
-        $types = [
+        /*$types = [
             0 => [
                 "nombre" => "Abono a deuda",
                 "visible" => true,
@@ -74,7 +75,7 @@ class AccountPayableSiigoController extends Controller
                 "nombre" => "Anticipo",
                 "visible" => false,
             ]
-        ];
+        ];*/
 
         $bank_accounts = $this->bank_accounts($token);
 
@@ -106,7 +107,7 @@ class AccountPayableSiigoController extends Controller
 
         unset($provider);*/
 
-        return view('integration.account_payable', compact( 'providers', 'type_payment_receipts', 'types', 'bank_accounts', 'type_documents'));
+        return view('integration.account_payable', compact( 'providers', 'type_payment_receipts', 'bank_accounts', 'type_documents'));
     }
 
     public function account_payable_documents(Request $request, int $accountId)
@@ -340,12 +341,136 @@ class AccountPayableSiigoController extends Controller
             'empresa' => 'Revent Calzado SAS',
             'celular' => '3222792893',
         ];
-        //$emails = collect($provider['Contacts'])->pluck('Email')->filter()->values()->toArray();
-        Mail::to(['contabilidad@revent.com.co'])->send(new AccountPayableProviderSiigo($provider, $voucher, $recibos, $firma, $observaciones, $voucher_id, $url));
+
+        $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
+        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $recibos, $firma, $observaciones, $voucher_id, $url));
 
         return response()->json([
             'success' => true,
             'message' => 'Recibo de pago registrado correctamente.',
+            'voucher_id' => $voucher_id,
+            'voucher' => $voucher,
+        ]);
+    }
+
+    public function accounts_advance(Request $request)
+    {
+        try {
+            $request->validate([
+                'proveedor' => 'required',
+                'tipo' => 'required|integer',
+                'accion' => 'required|string',
+                'origen' => 'required|integer',
+                'fecha' => 'required|date',
+                'observaciones' => 'nullable|string',
+                'valor' => 'required|numeric|min:0.01',
+                'comprobante' => 'nullable|file|max:10240',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => collect($e->errors())->flatten()->first() ?? 'Datos inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+        $proveedor = json_decode($request->proveedor, true);
+
+        $siigo = new SiigoInventoryService();
+        $token = $siigo->auth();
+
+        $type_payment_receipts = $this->type_payment_receipts($token, '23202');
+        $EntryType = [
+            "ERPDocumentTypeID" => $type_payment_receipts['ERPDocumentTypeId'],
+            "Name" => $type_payment_receipts['Title'],
+            "Class" => $type_payment_receipts['DocClass'],
+            "Code" => $type_payment_receipts['Code'],
+            "ACAccountCode" => -1,
+            "CostCenterDefault" => $type_payment_receipts['CostCenterDefault'],
+            "CostCenterMandatory" => $type_payment_receipts['CostCenterMandatory'],
+            "InternalDescription" => $type_payment_receipts['InternalDescription'],
+            "IsAutomaticEnum" => $type_payment_receipts['IsAutomaticEnum'],
+            "TemplateName" => $type_payment_receipts['TemplateName'],
+            "UseCostCenter" => $type_payment_receipts['UseCostCenter']
+        ];
+
+        $observaciones = $request->input('observaciones');
+        $Entry = [
+            "ACEntryID" => -1,
+            "DocNumber" => -1,
+            "DocName" => "",
+            "Observations" => $observaciones,
+            "DocDate" => Carbon::parse($request->input('fecha'))->format('Ymd'),
+            "ACEntryCode" => -1,
+            "ACPaymentMeanCode" => $request->integer('origen'),
+            "AccountCode" => $proveedor['AccountID'],
+            "AttachmentsFSItemsGUID" => "",
+            "ExchangePersonalized" => false,
+            "ExchangeValue" => 0,
+            "ExtendsFields" => "",
+            "ForeignMoneyCode" => "",
+            "IsClosePeriod" => false,
+            "PaymentMethod" => null,
+            "PaymentMethodCFDI" => null,
+            "SourceType" => 0,
+            "TotalValue" => (float) $request->input('valor'),
+            "VoucherType" => $request->input('accion')
+        ];
+
+        $Items = [];
+
+        $AttachFiles = [];
+        $url = null;
+        if ($request->hasFile('comprobante')) {
+            $parentPathGuid = (string) Str::uuid();
+
+            $photo = $request->file('comprobante');
+            $filename = $parentPathGuid . '.' . $photo->getClientOriginalExtension();
+            $path = self::BASE_PATH;
+            Storage::disk(self::DISK)->putFileAs($path, $photo, $filename);
+            $url = Storage::disk(self::DISK)->url("{$path}/{$filename}");
+
+            $uploaded = $this->upload_attachment($token, $parentPathGuid, $request->file('comprobante'));
+            $AttachFiles[] = [
+                "Name" => $uploaded['Name'] ?? $request->file('comprobante')->getClientOriginalName(),
+                "GUID" => $uploaded['GUID'] ?? null,
+                "Extension" => $uploaded['Extension'] ?? ('.' . $request->file('comprobante')->getClientOriginalExtension()),
+                "Type" => $uploaded['Type'] ?? '-image',
+                "shortName" => Str::limit($uploaded['Name'] ?? '', 20, '...'),
+            ];
+
+            $this->update_attach_files_references($token, $AttachFiles);
+        }
+
+        $this->validate_entry($token, $Entry['DocDate'], $request->integer('tipo'), -1, -1);
+
+        $payload = [
+            "AttachFiles" => $AttachFiles,
+            "Entry" => $Entry,
+            "EntryType" => $EntryType,
+            "Items" => $Items,
+            "ModelType" => 4,
+            "TreasuryPayment" => null,
+        ];
+
+        $provider = $this->provider($token, $proveedor['MsThirdPartyID']);
+
+        $voucher_id = $this->save_voucher($token, $payload);
+
+        $voucher = $this->search_voucher($token, $voucher_id);
+
+        $firma =  [
+            'nombre' => 'Ninoska Fontalvo',
+            'cargo' => 'Auxiliar administrativo',
+            'departamento' => 'Departamento de Cartera',
+            'empresa' => 'Revent Calzado SAS',
+            'celular' => '3222792893',
+        ];
+
+        $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
+        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayableAdvanceProviderSiigo($provider, $voucher, $firma, $observaciones, $voucher_id, $url));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Recibo de anticipo registrado correctamente.',
             'voucher_id' => $voucher_id,
             'voucher' => $voucher,
         ]);

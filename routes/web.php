@@ -56,6 +56,7 @@ Route::post('/siigo/account_payable/access', [AccountPayableSiigoController::cla
 Route::get('/siigo/account_payable', [AccountPayableSiigoController::class, 'account_payable'])->middleware('signed')->name('siigo.account_payable');
 Route::get('/siigo/account_payable/{accountId}/documents', [AccountPayableSiigoController::class, 'account_payable_documents'])->name('siigo.account_payable.documents');
 Route::post('/siigo/accounts_payment', [AccountPayableSiigoController::class, 'accounts_payment'])->name('siigo.accounts_payment');
+Route::post('/siigo/accounts_advance', [AccountPayableSiigoController::class, 'accounts_advance'])->name('siigo.accounts_advance');
 
 Route::get('/siigo/inventory_filter', [InventoryFilterSiigoController::class, 'inventory_filter'])->name('siigo.inventory_filter');
 Route::post('/siigo/inventory_filter_search', [InventoryFilterSiigoController::class, 'inventory_filter_search'])->name('siigo.inventory_filter_search');

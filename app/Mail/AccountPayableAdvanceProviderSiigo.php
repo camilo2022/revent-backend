@@ -5,14 +5,13 @@ namespace App\Mail;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class AccountPayableProviderSiigo extends Mailable
+class AccountPayableAdvanceProviderSiigo extends Mailable
 {
     use SerializesModels;
 
     public function __construct(
         public array $provider,
         public array $voucher,
-        public array $recibos,
         public array $firma,
         public string|null $observaciones,
         public int|string $voucher_id,
@@ -22,7 +21,7 @@ class AccountPayableProviderSiigo extends Mailable
     public function build()
     {
         return $this
-            ->subject('Comprobante de pago REVENT CALZADO S.A.S.')
-            ->view('email.account-payable-provider-siigo');
+            ->subject('Comprobante de anticipo REVENT CALZADO S.A.S.')
+            ->view('email.account-payable-advance-provider-siigo');
     }
 }

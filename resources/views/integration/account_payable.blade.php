@@ -487,6 +487,20 @@
 
     .btn-payment:hover { background: #15803d; }
 
+    /* ---- Botón anticipo (naranja) ---- */
+    .btn-advance-wrap {
+        display: none;
+        margin-bottom: 1.3rem;
+    }
+
+    .btn-advance-wrap.show { display: block; }
+
+    .btn-advance {
+        background: #f97316;
+    }
+
+    .btn-advance:hover { background: #ea580c; }
+
     .empty-state {
         text-align: center;
         color: #9ca3af;
@@ -515,7 +529,7 @@
     .back-link:hover { text-decoration: underline; }
     .back-link svg { width: 15px; height: 15px; }
 
-    /* ---- Modal de recibo de pago ---- */
+    /* ---- Modal de recibo de pago / anticipo ---- */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -665,6 +679,13 @@
     }
 
     .btn-primary:hover { background: #15803d; }
+
+    /* Botón primario del modal de anticipo, en naranja para diferenciarlo */
+    .btn-primary-advance {
+        background: #f97316;
+    }
+
+    .btn-primary-advance:hover { background: #ea580c; }
 
     .modal-field-group {
         margin-bottom: 1.4rem;
@@ -999,6 +1020,10 @@
             </div>
         </div>
 
+        <div class="btn-advance-wrap" id="btnAdvanceWrap">
+            <button type="button" class="btn-payment btn-advance" id="btnAdvance">Realizar anticipo</button>
+        </div>
+
         <div class="docs-wrap" id="docsWrap">
 
             <div class="loading-state" id="loadingState">
@@ -1074,23 +1099,7 @@
                     <label class="field-label" for="paymentAction">Realizar un</label>
                     <select class="combo-input" id="paymentAction">
                         <option value="">Selecciona...</option>
-                        @foreach ($types as $value => $option)
-                            <option value="{{ $value }}" style="display: {{ $option['visible'] ? 'block' : 'none' }};">
-                                {{ $option['nombre'] }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="field-group" id="paymentDocumentTypeGroup" class="classDocumentTypeGroup" style="display: none;">
-                    <label class="field-label" for="paymentDocumentType">Tipo de documento</label>
-                    <select class="combo-input" id="paymentDocumentType">
-                        <option value="">Selecciona...</option>
-                        @foreach ($type_documents as $type_document)
-                            <option value="{{ $type_document['ERPDocumentTypeID'] }}">
-                                {{ "{$type_document['ERPDocClass']}-{$type_document['ERPDocCode']}-{$type_document['Name']}" }}
-                            </option>
-                        @endforeach
+                        <option value="0" selected>Abono a deuda</option>
                     </select>
                 </div>
 
@@ -1107,10 +1116,6 @@
                 <div class="field-group">
                     <label class="field-label" for="paymentDate">Fecha de elaboración</label>
                     <input type="date" class="combo-input" id="paymentDate">
-                </div>
-
-                <div class="field-group classDocumentTypeGroup" style="display: none;">
-
                 </div>
 
                 <div class="modal-field-group">
@@ -1171,7 +1176,108 @@
 
         <div class="modal-footer">
             <button type="button" class="btn-secondary" id="modalCancel">Cancelar</button>
-            <button type="button" class="btn-primary" id="modalConfirm">Confirmar recibo de pago</button>
+            <button type="button" class="btn-primary" id="modalPaymentConfirm">Confirmar recibo de pago</button>
+        </div>
+    </div>
+</div>
+
+<!-- ---- Modal: Realizar anticipo ---- -->
+<div class="modal-overlay" id="advanceModalOverlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Realizar anticipo</div>
+            <button type="button" class="modal-close" id="advanceModalClose">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-grid">
+
+                <div class="field-group">
+                    <label class="field-label" for="advanceTipo">Tipo</label>
+                    <select class="combo-input" id="advanceTipo">
+                        <option value="">Selecciona...</option>
+                        @if ($type_payment_receipts)
+                            <option value="{{ $type_payment_receipts['ERPDocumentTypeId'] }}">
+                                {{ $type_payment_receipts['DocClass'] }}-{{ $type_payment_receipts['Code'] }} · {{ $type_payment_receipts['Title'] }}
+                            </option>
+                        @endif
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="advanceAction">Realizar un</label>
+                    <select class="combo-input" id="advanceAction">
+                        <option value="">Selecciona...</option>
+                        <option value="1" selected>Anticipo</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="advanceSource">De donde sale el dinero</label>
+                    <select class="combo-input" id="advanceSource">
+                        <option value="">Selecciona...</option>
+                        @foreach ($bank_accounts as $bank_account)
+                            <option value="{{ $bank_account['ACPaymentMeanID'] }}">{{ $bank_account['PaymentMeanAccount'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="advanceDate">Fecha de elaboración</label>
+                    <input type="date" class="combo-input" id="advanceDate">
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="advanceValue">Valor pagado</label>
+                    <input type="number" class="combo-input" id="advanceValue" min="0" step="0.01" placeholder="0">
+                </div>
+
+                <div class="field-group"></div>
+
+                <div class="modal-field-group">
+                    <label class="field-label" for="advanceObservations">Observaciones</label>
+                    <textarea class="combo-input" id="advanceObservations" rows="5" placeholder="Escribe cualquier observación sobre este anticipo..."></textarea>
+                </div>
+
+                <div class="modal-field-group">
+                    <label class="field-label">Comprobante</label>
+
+                    <div class="payment-dropzone" id="advanceDropzone">
+                        <div class="payment-dropzone-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                        </div>
+                        <div class="payment-dropzone-text">
+                            Arrastra una imagen aquí o <span>selecciónala</span>
+                        </div>
+                        <div class="payment-dropzone-hint">JPG o PNG (máx. 8 MB)</div>
+                        <input type="file" id="advanceFileInput" class="payment-file-input" accept=".jpg,.jpeg,.png">
+                    </div>
+
+                    <div class="payment-file-preview" id="advanceFilePreview">
+                        <img id="advanceFileImg" alt="Vista previa">
+                        <div class="payment-file-info">
+                            <div class="payment-file-name" id="advanceFileName"></div>
+                            <div class="payment-file-size" id="advanceFileSize"></div>
+                        </div>
+                        <button type="button" class="payment-file-remove" id="advanceFileRemove">&times;</button>
+                    </div>
+
+                    <div class="payment-file-error" id="advanceFileError"></div>
+                </div>
+            </div>
+
+            <div class="modal-total">
+                Total a anticipar: <span id="advanceModalTotal">$0</span>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="advanceModalCancel">Cancelar</button>
+            <button type="button" class="btn-primary btn-primary-advance" id="advanceModalConfirm">Confirmar anticipo</button>
         </div>
     </div>
 </div>
@@ -1198,19 +1304,17 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     const totalsBar                = document.getElementById('totalsBar');
     const checkAll                 = document.getElementById('checkAll');
     const btnPayment               = document.getElementById('btnPayment');
+    const btnAdvanceWrap           = document.getElementById('btnAdvanceWrap');
 
-    // Modal
+    // Modal recibo de pago
     const modalOverlay             = document.getElementById('paymentModalOverlay');
     const modalClose               = document.getElementById('modalClose');
     const modalCancel              = document.getElementById('modalCancel');
-    const modalConfirm             = document.getElementById('modalConfirm');
+    const modalPaymentConfirm      = document.getElementById('modalPaymentConfirm');
     const modalDocsBody            = document.getElementById('modalDocsBody');
     const modalTotalEl             = document.getElementById('modalTotal');
     const paymentTipo              = document.getElementById('paymentTipo');
     const paymentAction            = document.getElementById('paymentAction');
-    const paymentDocumentTypeGroup = document.getElementById('paymentDocumentTypeGroup');
-    const classDocumentTypeGroup   = document.getElementsByClassName('classDocumentTypeGroup');
-    const paymentDocumentType      = document.getElementById('paymentDocumentType');
     const paymentSource            = document.getElementById('paymentSource');
     const paymentDate              = document.getElementById('paymentDate');
 
@@ -1228,15 +1332,6 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
     const ALLOWED_IMAGE_EXT = ['jpg', 'jpeg', 'png'];
     const MAX_IMAGE_MB = 8;
-
-    paymentAction.addEventListener('change', () => {
-        const mostrar = paymentAction.value == '1';
-        paymentDocumentTypeGroup.style.display = mostrar ? 'block' : 'none';
-        Array.from(classDocumentTypeGroup).forEach(element => {
-            element.style.display = mostrar ? 'block' : 'none';
-        });
-        if (!mostrar) paymentDocumentType.value = '';
-    });
 
     paymentDropzone.addEventListener('click', () => paymentFileInput.click());
 
@@ -1314,7 +1409,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     let requestToken = 0; // evita que una respuesta vieja pise la selección actual
     let currentProvider = null;
     let currentDocs = [];   // documentos actualmente renderizados en la tabla principal
-    let selectedDocs = [];  // documentos elegidos al abrir el modal
+    let selectedDocs = [];  // documentos elegidos al abrir el modal de pago
 
     // Prefijos que colorean la fila (clasificación de novedades)
     const ROW_CLASS_BY_PREFIX = {
@@ -1482,6 +1577,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     function resetView() {
         summaryGrid.classList.remove('show');
         legend.classList.remove('show');
+        btnAdvanceWrap.classList.remove('show');
         docsWrap.classList.remove('show');
         loadingState.classList.remove('show');
         docsScroll.style.display = 'none';
@@ -1513,26 +1609,13 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         if (balanceInFavor > 0) {
             document.getElementById('favorAlertAmount').textContent = formatMoney(balanceInFavor);
             favorAlert.classList.add('show');
-
-            if (opcionUno) opcionUno.style.display = 'block';
         } else {
             favorAlert.classList.remove('show');
-
-            if (opcionUno) {
-                opcionUno.style.display = 'none';
-                if (paymentAction.value == '1') {
-                    paymentAction.value = '';
-                    paymentDocumentTypeGroup.style.display = 'none';
-                    Array.from(classDocumentTypeGroup).forEach(element => {
-                        element.style.display = 'none';
-                    });
-                    paymentDocumentType.value = '';
-                }
-            }
         }
 
         summaryGrid.classList.add('show');
         legend.classList.add('show');
+        btnAdvanceWrap.classList.add('show');
     }
 
     // ---- Trae los documentos del proveedor por AJAX y muestra loading mientras tanto ----
@@ -1705,11 +1788,6 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
         paymentTipo.value = '';
         paymentAction.value = '';
-        paymentDocumentType.value = '';
-        paymentDocumentTypeGroup.style.display = 'none';
-        Array.from(classDocumentTypeGroup).forEach(element => {
-            element.style.display = 'none';
-        });
         paymentSource.value = '';
         paymentDate.value = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
         paymentObservations.value = '';
@@ -1732,14 +1810,15 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modalOverlay.classList.contains('show')) closePaymentModal();
+        if (e.key === 'Escape' && advanceModalOverlay.classList.contains('show')) closeAdvanceModal();
     });
 
-    modalConfirm.addEventListener('click', async () => {
+    modalPaymentConfirm.addEventListener('click', async () => {
         const json = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => JSON.parse(tr.dataset.json));
         const documentos = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => tr.dataset.documento);
         const valor = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => Number(tr.dataset.saldo) || 0).reduce((sum, v) => sum + v, 0);
 
-        if(!paymentTipo.value || !paymentAction.value || !paymentDate.value) {
+        if(!paymentTipo.value || !paymentAction.value || !paymentDate.value || !paymentSource.value || !paymentFile || !paymentObservations.value) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Campos incompletos',
@@ -1748,41 +1827,6 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             });
 
             return;
-        }
-
-        if(paymentAction.value == '0') {
-            if (!paymentSource.value || !paymentFile || !paymentObservations.value) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Campos incompletos',
-                    text: 'Completa todos los campos antes de confirmar.',
-                    confirmButtonColor: '#3085d6'
-                });
-
-                return;
-            }
-        } else if(paymentAction.value == '1' && json.length > 0) {
-            if (!paymentDocumentType.value) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Campos incompletos',
-                    text: 'Completa todos los campos antes de confirmar.',
-                    confirmButtonColor: '#3085d6'
-                });
-
-                return;
-            }
-        } else if(paymentAction.value == '1' && json.length == 0) {
-            if (!paymentSource.value || !paymentFile || !paymentObservations.value) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Campos incompletos',
-                    text: 'Completa todos los campos antes de confirmar.',
-                    confirmButtonColor: '#3085d6'
-                });
-
-                return;
-            }
         }
 
         const result = await Swal.fire({
@@ -1801,9 +1845,6 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         formData.append('proveedor', JSON.stringify(currentProvider));
         formData.append('tipo', paymentTipo.value);
         formData.append('accion', paymentAction.value);
-        if (paymentAction.value == '1') {
-            formData.append('tipo_documento', paymentDocumentType.value);
-        }
         formData.append('origen', paymentSource.value);
         formData.append('fecha', paymentDate.value);
         formData.append('observaciones', paymentObservations.value);
@@ -1813,10 +1854,10 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         if (paymentFile) formData.append('comprobante', paymentFile);
 
         // Guardamos el contenido original del boton para poder restaurarlo despues
-        const originalConfirmHTML = modalConfirm.innerHTML;
+        const originalConfirmHTML = modalPaymentConfirm.innerHTML;
 
-        modalConfirm.disabled = true;
-        modalConfirm.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Procesando...`;
+        modalPaymentConfirm.disabled = true;
+        modalPaymentConfirm.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Procesando...`;
 
         Swal.fire({
             title: 'Procesando recibo de pago',
@@ -1869,8 +1910,224 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
                 confirmButtonColor: '#d33'
             });
         } finally {
-            modalConfirm.disabled = false;
-            modalConfirm.innerHTML = originalConfirmHTML;
+            modalPaymentConfirm.disabled = false;
+            modalPaymentConfirm.innerHTML = originalConfirmHTML;
+        }
+    });
+
+    // ---- Modal: Realizar anticipo ----
+    const advanceModalOverlay  = document.getElementById('advanceModalOverlay');
+    const advanceModalClose    = document.getElementById('advanceModalClose');
+    const advanceModalCancel   = document.getElementById('advanceModalCancel');
+    const advanceModalConfirm  = document.getElementById('advanceModalConfirm');
+    const advanceValue         = document.getElementById('advanceValue');
+    const advanceModalTotalEl  = document.getElementById('advanceModalTotal');
+    const advanceTipo          = document.getElementById('advanceTipo');
+    const advanceAction        = document.getElementById('advanceAction');
+    const advanceSource        = document.getElementById('advanceSource');
+    const advanceDate          = document.getElementById('advanceDate');
+    const advanceObservations  = document.getElementById('advanceObservations');
+    const advanceDropzone      = document.getElementById('advanceDropzone');
+    const advanceFileInput     = document.getElementById('advanceFileInput');
+    const advanceFilePreview   = document.getElementById('advanceFilePreview');
+    const advanceFileImg       = document.getElementById('advanceFileImg');
+    const advanceFileName      = document.getElementById('advanceFileName');
+    const advanceFileSize      = document.getElementById('advanceFileSize');
+    const advanceFileRemove    = document.getElementById('advanceFileRemove');
+    const advanceFileError     = document.getElementById('advanceFileError');
+    const btnAdvance           = document.getElementById('btnAdvance');
+
+    let advanceFile = null;
+
+    advanceDropzone.addEventListener('click', () => advanceFileInput.click());
+
+    ['dragover', 'dragenter'].forEach((evt) => {
+        advanceDropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            advanceDropzone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'dragend'].forEach((evt) => {
+        advanceDropzone.addEventListener(evt, () => advanceDropzone.classList.remove('dragover'));
+    });
+
+    advanceDropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        advanceDropzone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handleAdvanceFile(e.dataTransfer.files[0]);
+    });
+
+    advanceFileInput.addEventListener('change', () => {
+        if (advanceFileInput.files.length) handleAdvanceFile(advanceFileInput.files[0]);
+    });
+
+    advanceFileRemove.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetAdvanceFile();
+    });
+
+    function handleAdvanceFile(file) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        advanceFileError.classList.remove('show');
+
+        if (!ALLOWED_IMAGE_EXT.includes(ext)) {
+            showAdvanceFileError('Solo se permiten imágenes JPG o PNG');
+            resetAdvanceFile();
+            return;
+        }
+
+        if (file.size / (1024 * 1024) > MAX_IMAGE_MB) {
+            showAdvanceFileError(`La imagen supera el tamaño máximo de ${MAX_IMAGE_MB} MB`);
+            resetAdvanceFile();
+            return;
+        }
+
+        advanceFile = file;
+        advanceFileName.textContent = file.name;
+        advanceFileSize.textContent = formatFileSize(file.size);
+        advanceFileImg.src = URL.createObjectURL(file);
+
+        advanceFilePreview.classList.add('show');
+        advanceDropzone.classList.add('hidden');
+    }
+
+    function resetAdvanceFile() {
+        advanceFile = null;
+        advanceFileInput.value = '';
+        advanceFilePreview.classList.remove('show');
+        advanceDropzone.classList.remove('hidden');
+    }
+
+    function showAdvanceFileError(msg) {
+        advanceFileError.textContent = msg;
+        advanceFileError.classList.add('show');
+    }
+
+    // El anticipo ya no depende de documentos seleccionados: solo se escribe el valor pagado.
+    function openAdvanceModal() {
+        advanceValue.value = '';
+        advanceModalTotalEl.textContent = formatMoney(0);
+
+        advanceTipo.value = '';
+        advanceSource.value = '';
+        advanceDate.value = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
+        advanceObservations.value = '';
+        resetAdvanceFile();
+
+        advanceModalOverlay.classList.add('show');
+    }
+
+    function closeAdvanceModal() {
+        advanceModalOverlay.classList.remove('show');
+    }
+
+    function updateAdvanceTotal() {
+        advanceModalTotalEl.textContent = formatMoney(Number(advanceValue.value) || 0);
+    }
+
+    advanceValue.addEventListener('input', updateAdvanceTotal);
+
+    btnAdvance.addEventListener('click', openAdvanceModal);
+    advanceModalClose.addEventListener('click', closeAdvanceModal);
+    advanceModalCancel.addEventListener('click', closeAdvanceModal);
+
+    advanceModalOverlay.addEventListener('click', (e) => {
+        if (e.target === advanceModalOverlay) closeAdvanceModal();
+    });
+
+    advanceModalConfirm.addEventListener('click', async () => {
+        const valor = Number(advanceValue.value) || 0;
+
+        if (!advanceTipo.value || !advanceDate.value || !advanceAction.value || !advanceSource.value || !advanceFile || !advanceObservations.value || valor <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos incompletos',
+                text: 'Completa todos los campos y define un valor a anticipar mayor a cero.',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: '¿Realizar anticipo?',
+            text: 'Esta acción no se puede deshacer.',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, realizar anticipo',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6'
+        });
+        if (!result.isConfirmed) return;
+
+        const formData = new FormData();
+        formData.append('proveedor', JSON.stringify(currentProvider));
+        formData.append('tipo', advanceTipo.value);
+        formData.append('accion', advanceAction.value);
+        formData.append('origen', advanceSource.value);
+        formData.append('fecha', advanceDate.value);
+        formData.append('observaciones', advanceObservations.value);
+        formData.append('valor', valor);
+        if (advanceFile) formData.append('comprobante', advanceFile);
+
+        const originalConfirmHTML = advanceModalConfirm.innerHTML;
+
+        advanceModalConfirm.disabled = true;
+        advanceModalConfirm.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Procesando...`;
+
+        Swal.fire({
+            title: 'Procesando anticipo',
+            text: 'Por favor espera, no cierres esta ventana...',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const response = await fetch('{{ route("siigo.accounts_advance") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                throw new Error('El servidor respondio de forma inesperada. Intenta nuevamente.');
+            }
+
+            if (!response.ok || !data.success) {
+                if (data.errors) {
+                    const primerError = Object.values(data.errors)[0][0];
+                    throw new Error(primerError);
+                }
+                throw new Error(data.message || 'Ocurrio un error procesando el anticipo.');
+            }
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'Listo',
+                text: data.message || 'Anticipo procesado correctamente.',
+                confirmButtonColor: '#3085d6'
+            });
+            closeAdvanceModal();
+            window.location.reload();
+
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo procesar el anticipo',
+                text: error.message || 'Ocurrio un error inesperado.',
+                confirmButtonColor: '#d33'
+            });
+        } finally {
+            advanceModalConfirm.disabled = false;
+            advanceModalConfirm.innerHTML = originalConfirmHTML;
         }
     });
 
