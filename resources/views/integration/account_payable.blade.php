@@ -1074,8 +1074,22 @@
                     <label class="field-label" for="paymentAction">Realizar un</label>
                     <select class="combo-input" id="paymentAction">
                         <option value="">Selecciona...</option>
-                        @foreach ($types as $value => $text)
-                            <option value="{{ $value }}">{{ $text }}</option>
+                        @foreach ($types as $value => $option)
+                            <option value="{{ $value }}" style="display: {{ $option['visible'] ? 'block' : 'none' }};">
+                                {{ $option['nombre'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="field-group" id="paymentDocumentTypeGroup" class="classDocumentTypeGroup" style="display: none;">
+                    <label class="field-label" for="paymentDocumentType">Tipo de documento</label>
+                    <select class="combo-input" id="paymentDocumentType">
+                        <option value="">Selecciona...</option>
+                        @foreach ($type_documents as $type_document)
+                            <option value="{{ $type_document['ERPDocumentTypeID'] }}">
+                                {{ "{$type_document['ERPDocClass']}-{$type_document['ERPDocCode']}-{$type_document['Name']}" }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -1093,6 +1107,10 @@
                 <div class="field-group">
                     <label class="field-label" for="paymentDate">Fecha de elaboración</label>
                     <input type="date" class="combo-input" id="paymentDate">
+                </div>
+
+                <div class="field-group classDocumentTypeGroup" style="display: none;">
+
                 </div>
 
                 <div class="modal-field-group">
@@ -1164,49 +1182,61 @@ const PROVIDERS = @json(array_values($providers ?? []), JSON_UNESCAPED_UNICODE);
 const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['accountId' => '__ID__']) }}";
 
 (function () {
-    const providers      = PROVIDERS;
-    const searchInput    = document.getElementById('providerSearch');
-    const clearBtn       = document.getElementById('providerClear');
-    const listEl         = document.getElementById('providerList');
-    const allDataCheck   = document.getElementById('allDataCheck');
-    const legend         = document.getElementById('legend');
-    const summaryGrid    = document.getElementById('summaryGrid');
-    const docsWrap       = document.getElementById('docsWrap');
-    const loadingState   = document.getElementById('loadingState');
-    const docsScroll     = document.getElementById('docsScroll');
-    const docsTable      = document.getElementById('docsTable');
-    const docsBody       = document.getElementById('docsBody');
-    const emptyState     = document.getElementById('emptyState');
-    const totalsBar      = document.getElementById('totalsBar');
-    const checkAll       = document.getElementById('checkAll');
-    const btnPayment     = document.getElementById('btnPayment');
+    const providers                = PROVIDERS;
+    const searchInput              = document.getElementById('providerSearch');
+    const clearBtn                 = document.getElementById('providerClear');
+    const listEl                   = document.getElementById('providerList');
+    const allDataCheck             = document.getElementById('allDataCheck');
+    const legend                   = document.getElementById('legend');
+    const summaryGrid              = document.getElementById('summaryGrid');
+    const docsWrap                 = document.getElementById('docsWrap');
+    const loadingState             = document.getElementById('loadingState');
+    const docsScroll               = document.getElementById('docsScroll');
+    const docsTable                = document.getElementById('docsTable');
+    const docsBody                 = document.getElementById('docsBody');
+    const emptyState               = document.getElementById('emptyState');
+    const totalsBar                = document.getElementById('totalsBar');
+    const checkAll                 = document.getElementById('checkAll');
+    const btnPayment               = document.getElementById('btnPayment');
 
     // Modal
-    const modalOverlay   = document.getElementById('paymentModalOverlay');
-    const modalClose     = document.getElementById('modalClose');
-    const modalCancel    = document.getElementById('modalCancel');
-    const modalConfirm   = document.getElementById('modalConfirm');
-    const modalDocsBody  = document.getElementById('modalDocsBody');
-    const modalTotalEl   = document.getElementById('modalTotal');
-    const paymentTipo    = document.getElementById('paymentTipo');
-    const paymentAction  = document.getElementById('paymentAction');
-    const paymentSource  = document.getElementById('paymentSource');
-    const paymentDate    = document.getElementById('paymentDate');
+    const modalOverlay             = document.getElementById('paymentModalOverlay');
+    const modalClose               = document.getElementById('modalClose');
+    const modalCancel              = document.getElementById('modalCancel');
+    const modalConfirm             = document.getElementById('modalConfirm');
+    const modalDocsBody            = document.getElementById('modalDocsBody');
+    const modalTotalEl             = document.getElementById('modalTotal');
+    const paymentTipo              = document.getElementById('paymentTipo');
+    const paymentAction            = document.getElementById('paymentAction');
+    const paymentDocumentTypeGroup = document.getElementById('paymentDocumentTypeGroup');
+    const classDocumentTypeGroup   = document.getElementsByClassName('classDocumentTypeGroup');
+    const paymentDocumentType      = document.getElementById('paymentDocumentType');
+    const paymentSource            = document.getElementById('paymentSource');
+    const paymentDate              = document.getElementById('paymentDate');
 
-    const paymentObservations = document.getElementById('paymentObservations');
-    const paymentDropzone     = document.getElementById('paymentDropzone');
-    const paymentFileInput    = document.getElementById('paymentFileInput');
-    const paymentFilePreview  = document.getElementById('paymentFilePreview');
-    const paymentFileImg      = document.getElementById('paymentFileImg');
-    const paymentFileName     = document.getElementById('paymentFileName');
-    const paymentFileSize     = document.getElementById('paymentFileSize');
-    const paymentFileRemove   = document.getElementById('paymentFileRemove');
-    const paymentFileError    = document.getElementById('paymentFileError');
+    const paymentObservations      = document.getElementById('paymentObservations');
+    const paymentDropzone          = document.getElementById('paymentDropzone');
+    const paymentFileInput         = document.getElementById('paymentFileInput');
+    const paymentFilePreview       = document.getElementById('paymentFilePreview');
+    const paymentFileImg           = document.getElementById('paymentFileImg');
+    const paymentFileName          = document.getElementById('paymentFileName');
+    const paymentFileSize          = document.getElementById('paymentFileSize');
+    const paymentFileRemove        = document.getElementById('paymentFileRemove');
+    const paymentFileError         = document.getElementById('paymentFileError');
 
     let paymentFile = null;
 
     const ALLOWED_IMAGE_EXT = ['jpg', 'jpeg', 'png'];
     const MAX_IMAGE_MB = 8;
+
+    paymentAction.addEventListener('change', () => {
+        const mostrar = paymentAction.value == '1';
+        paymentDocumentTypeGroup.style.display = mostrar ? 'block' : 'none';
+        Array.from(classDocumentTypeGroup).forEach(element => {
+            element.style.display = mostrar ? 'block' : 'none';
+        });
+        if (!mostrar) paymentDocumentType.value = '';
+    });
 
     paymentDropzone.addEventListener('click', () => paymentFileInput.click());
 
@@ -1478,12 +1508,27 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
         const favorAlert = document.getElementById('favorAlert');
         const balanceInFavor = Number(provider.BalanceInFavor) || 0;
+        const opcionUno = paymentAction.querySelector('option[value="1"]');
 
         if (balanceInFavor > 0) {
             document.getElementById('favorAlertAmount').textContent = formatMoney(balanceInFavor);
             favorAlert.classList.add('show');
+
+            if (opcionUno) opcionUno.style.display = 'block';
         } else {
             favorAlert.classList.remove('show');
+
+            if (opcionUno) {
+                opcionUno.style.display = 'none';
+                if (paymentAction.value == '1') {
+                    paymentAction.value = '';
+                    paymentDocumentTypeGroup.style.display = 'none';
+                    Array.from(classDocumentTypeGroup).forEach(element => {
+                        element.style.display = 'none';
+                    });
+                    paymentDocumentType.value = '';
+                }
+            }
         }
 
         summaryGrid.classList.add('show');
@@ -1660,10 +1705,15 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
         paymentTipo.value = '';
         paymentAction.value = '';
+        paymentDocumentType.value = '';
+        paymentDocumentTypeGroup.style.display = 'none';
+        Array.from(classDocumentTypeGroup).forEach(element => {
+            element.style.display = 'none';
+        });
         paymentSource.value = '';
         paymentDate.value = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
         paymentObservations.value = '';
-        resetPaymentFile(); // limpia foto de una carga anterior
+        resetPaymentFile();
 
         modalOverlay.classList.add('show');
     }
@@ -1685,14 +1735,54 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     });
 
     modalConfirm.addEventListener('click', async () => {
-        if (!paymentTipo.value || !paymentAction.value || !paymentSource.value || !paymentDate.value || !paymentFile || !paymentObservations.value) {
+        const json = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => JSON.parse(tr.dataset.json));
+        const documentos = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => tr.dataset.documento);
+        const valor = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => Number(tr.dataset.saldo) || 0).reduce((sum, v) => sum + v, 0);
+
+        if(!paymentTipo.value || !paymentAction.value || !paymentDate.value) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Campos incompletos',
                 text: 'Completa todos los campos antes de confirmar.',
                 confirmButtonColor: '#3085d6'
             });
+
             return;
+        }
+
+        if(paymentAction.value == '0') {
+            if (!paymentSource.value || !paymentFile || !paymentObservations.value) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos incompletos',
+                    text: 'Completa todos los campos antes de confirmar.',
+                    confirmButtonColor: '#3085d6'
+                });
+
+                return;
+            }
+        } else if(paymentAction.value == '1' && json.length > 0) {
+            if (!paymentDocumentType.value) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos incompletos',
+                    text: 'Completa todos los campos antes de confirmar.',
+                    confirmButtonColor: '#3085d6'
+                });
+
+                return;
+            }
+        } else if(paymentAction.value == '1' && json.length == 0) {
+            if (!paymentSource.value || !paymentFile || !paymentObservations.value) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos incompletos',
+                    text: 'Completa todos los campos antes de confirmar.',
+                    confirmButtonColor: '#3085d6'
+                });
+
+                return;
+            }
         }
 
         const result = await Swal.fire({
@@ -1707,14 +1797,13 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         });
         if (!result.isConfirmed) return;
 
-        const json = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => JSON.parse(tr.dataset.json));
-        const documentos = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => tr.dataset.documento);
-        const valor = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => Number(tr.dataset.saldo) || 0).reduce((sum, v) => sum + v, 0);
-
         const formData = new FormData();
         formData.append('proveedor', JSON.stringify(currentProvider));
         formData.append('tipo', paymentTipo.value);
         formData.append('accion', paymentAction.value);
+        if (paymentAction.value == '1') {
+            formData.append('tipo_documento', paymentDocumentType.value);
+        }
         formData.append('origen', paymentSource.value);
         formData.append('fecha', paymentDate.value);
         formData.append('observaciones', paymentObservations.value);

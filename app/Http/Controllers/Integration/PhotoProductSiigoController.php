@@ -16,7 +16,7 @@ class PhotoProductSiigoController extends Controller
 
     public function product_photo()
     {
-        return view('integration.photo_product_siigo');
+        return view('integration.photo_product');
     }
 
     public function product_photo_search(Request $request)

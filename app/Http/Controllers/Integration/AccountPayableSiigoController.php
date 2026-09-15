@@ -63,15 +63,24 @@ class AccountPayableSiigoController extends Controller
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
 
-        $type_payment_receipts = $this->type_payment_receipts($token);
+        $type_payment_receipts = $this->type_payment_receipts($token, '23202');
 
         $types = [
-            0 => "Abono a deuda",
+            0 => [
+                "nombre" => "Abono a deuda",
+                "visible" => true,
+            ],
+            1 => [
+                "nombre" => "Anticipo",
+                "visible" => false,
+            ]
         ];
 
         $bank_accounts = $this->bank_accounts($token);
 
         $providers = $this->accounts_payable_providers($token);
+
+        $type_documents = $this->type_documents($token);
 
         /*foreach ($providers as &$provider) {
             $uuid = $provider['MsThirdPartyID'] ?? null;
@@ -97,7 +106,7 @@ class AccountPayableSiigoController extends Controller
 
         unset($provider);*/
 
-        return view('integration.account_payable', compact( 'providers', 'type_payment_receipts', 'types', 'bank_accounts'));
+        return view('integration.account_payable', compact( 'providers', 'type_payment_receipts', 'types', 'bank_accounts', 'type_documents'));
     }
 
     public function account_payable_documents(Request $request, int $accountId)
@@ -214,7 +223,7 @@ class AccountPayableSiigoController extends Controller
         $warehouses = $this->warehouses($token);
         $warehousesById = collect($warehouses)->keyBy('id');
 
-        $type_payment_receipts = $this->type_payment_receipts($token);
+        $type_payment_receipts = $this->type_payment_receipts($token, '23202');
         $EntryType = [
             "ERPDocumentTypeID" => $type_payment_receipts['ERPDocumentTypeId'],
             "Name" => $type_payment_receipts['Title'],
@@ -861,13 +870,13 @@ class AccountPayableSiigoController extends Controller
         return $data;
     }
 
-    private function type_payment_receipts(string $token)
+    private function type_payment_receipts(string $token, string|int $erpDocumentTypeId)
     {
         $response = Http::withToken($token)
             ->acceptJson()
             ->timeout(600)
             ->get('https://services.siigo.com/ACGeneralApi/api/v1/JournalEntryType/GetById', [
-                'ERPDocumentTypeId' => '23202',
+                'ERPDocumentTypeId' => $erpDocumentTypeId,
             ]);
 
         if (!$response->successful()) {
@@ -926,5 +935,23 @@ class AccountPayableSiigoController extends Controller
         } while (true);
 
         return $resultados;
+    }
+
+    private function type_documents(string $token)
+    {
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->timeout(600)
+            ->get('https://services.siigo.com/ACGeneralApi/api/v1/JournalEntryType/GetActiveJournalEntryAutomaticEnumTypes');
+
+        if (!$response->successful()) {
+            throw new \Exception(
+                'Error consultando tipos de documentos: ' . $response->body()
+            );
+        }
+
+        $data = json_decode($response->json(), true );
+
+        return $data;
     }
 }
