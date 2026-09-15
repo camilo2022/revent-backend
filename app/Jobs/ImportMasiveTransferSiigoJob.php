@@ -121,6 +121,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             foreach ($detalles as $detalle) {
                 [$traslado, $validate] = $this->traslado($token, $detalle, $config, $bodegas);
                 $errors = array_merge($errors, $validate);
+                if(!empty($validate)) continue;
                 $traslados[] = $traslado;
 
                 if ($traslado['data']['bodega_salida_data'] && !empty($traslado['data']['bodega_salida_data']['emails'] ?? [])) {
