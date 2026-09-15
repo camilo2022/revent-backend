@@ -20,368 +20,6 @@ class InventoryFilterSiigoController extends Controller
         $token = $siigo->auth();
         $warehouses = $this->warehouses($token);
 
-        $productos = [
-            [
-                'id' => 1,
-                'referencia' => 'RUN-001',
-                'nombre' => 'Tenis Running Air',
-                'categoria' => 'Tenis',
-                'genero' => 'Hombre',
-                'imagen' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80',
-
-                'colores' => [
-                    [
-                        'nombre' => 'Negro',
-                        'hex' => '#171717',
-                        'tallas' => [
-                            '36' => 2,
-                            '37' => 5,
-                            '38' => 8,
-                            '39' => 6,
-                            '40' => 4,
-                            '41' => 1,
-                            '42' => 0,
-                        ],
-                    ],
-                    [
-                        'nombre' => 'Blanco',
-                        'hex' => '#f5f5f5',
-                        'tallas' => [
-                            '36' => 0,
-                            '37' => 4,
-                            '38' => 3,
-                            '39' => 7,
-                            '40' => 5,
-                            '41' => 2,
-                            '42' => 1,
-                        ],
-                    ],
-                    [
-                        'nombre' => 'Azul',
-                        'hex' => '#315a85',
-                        'tallas' => [
-                            '36' => 1,
-                            '37' => 0,
-                            '38' => 4,
-                            '39' => 0,
-                            '40' => 3,
-                            '41' => 2,
-                            '42' => 1,
-                        ],
-                    ],
-                ],
-
-                'tiendas' => [
-                    'Centro' => 12,
-                    'Unicentro' => 8,
-                    'Ventura' => 5,
-                    'Norte' => 2,
-                ],
-            ],
-
-            [
-                'id' => 2,
-                'referencia' => 'RUN-002',
-                'nombre' => 'Tenis Runner Pro',
-                'categoria' => 'Tenis',
-                'genero' => 'Mujer',
-                'imagen' => 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=500&q=80',
-
-                'colores' => [
-                    [
-                        'nombre' => 'Negro',
-                        'hex' => '#171717',
-                        'tallas' => [
-                            '36' => 3,
-                            '37' => 5,
-                            '38' => 2,
-                            '39' => 0,
-                            '40' => 4,
-                            '41' => 1,
-                            '42' => 0,
-                        ],
-                    ],
-                    [
-                        'nombre' => 'Rosa',
-                        'hex' => '#dca7b5',
-                        'tallas' => [
-                            '36' => 4,
-                            '37' => 6,
-                            '38' => 5,
-                            '39' => 3,
-                            '40' => 1,
-                            '41' => 0,
-                            '42' => 0,
-                        ],
-                    ],
-                ],
-
-                'tiendas' => [
-                    'Centro' => 4,
-                    'Unicentro' => 10,
-                    'Ventura' => 3,
-                    'Norte' => 0,
-                ],
-            ],
-
-            [
-                'id' => 3,
-                'referencia' => 'CAS-001',
-                'nombre' => 'Zapato Casual Classic',
-                'categoria' => 'Casual',
-                'genero' => 'Hombre',
-                'imagen' => 'https://images.unsplash.com/photo-1614252235316-8c857d1a9c5c?auto=format&fit=crop&w=500&q=80',
-
-                'colores' => [
-                    [
-                        'nombre' => 'Negro',
-                        'hex' => '#151515',
-                        'tallas' => [
-                            '36' => 0,
-                            '37' => 2,
-                            '38' => 5,
-                            '39' => 8,
-                            '40' => 7,
-                            '41' => 3,
-                            '42' => 1,
-                        ],
-                    ],
-                    [
-                        'nombre' => 'Café',
-                        'hex' => '#76523c',
-                        'tallas' => [
-                            '36' => 1,
-                            '37' => 2,
-                            '38' => 3,
-                            '39' => 0,
-                            '40' => 2,
-                            '41' => 1,
-                            '42' => 0,
-                        ],
-                    ],
-                ],
-
-                'tiendas' => [
-                    'Centro' => 14,
-                    'Unicentro' => 4,
-                    'Ventura' => 2,
-                    'Norte' => 6,
-                ],
-            ],
-
-            [
-                'id' => 4,
-                'referencia' => 'CAS-002',
-                'nombre' => 'Zapato Oxford Premium',
-                'categoria' => 'Casual',
-                'genero' => 'Hombre',
-                'imagen' => 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?auto=format&fit=crop&w=500&q=80',
-
-                'colores' => [
-                    [
-                        'nombre' => 'Negro',
-                        'hex' => '#111111',
-                        'tallas' => [
-                            '36' => 0,
-                            '37' => 0,
-                            '38' => 1,
-                            '39' => 0,
-                            '40' => 2,
-                            '41' => 0,
-                            '42' => 0,
-                        ],
-                    ],
-                ],
-
-                'tiendas' => [
-                    'Centro' => 0,
-                    'Unicentro' => 1,
-                    'Ventura' => 0,
-                    'Norte' => 0,
-                ],
-            ],
-
-            [
-                'id' => 5,
-                'referencia' => 'SAN-001',
-                'nombre' => 'Sandalia Comfort',
-                'categoria' => 'Sandalias',
-                'genero' => 'Mujer',
-                'imagen' => 'https://images.unsplash.com/photo-1603487742131-4160ec999306?auto=format&fit=crop&w=500&q=80',
-
-                'colores' => [
-                    [
-                        'nombre' => 'Beige',
-                        'hex' => '#d8c4a8',
-                        'tallas' => [
-                            '35' => 4,
-                            '36' => 7,
-                            '37' => 8,
-                            '38' => 5,
-                            '39' => 3,
-                            '40' => 1,
-                            '41' => 0,
-                        ],
-                    ],
-                    [
-                        'nombre' => 'Negro',
-                        'hex' => '#161616',
-                        'tallas' => [
-                            '35' => 2,
-                            '36' => 5,
-                            '37' => 3,
-                            '38' => 0,
-                            '39' => 4,
-                            '40' => 2,
-                            '41' => 1,
-                        ],
-                    ],
-                ],
-
-                'tiendas' => [
-                    'Centro' => 8,
-                    'Unicentro' => 7,
-                    'Ventura' => 4,
-                    'Norte' => 3,
-                ],
-            ],
-
-            [
-                'id' => 6,
-                'referencia' => 'SAN-002',
-                'nombre' => 'Sandalia Urban',
-                'categoria' => 'Sandalias',
-                'genero' => 'Mujer',
-                'imagen' => 'https://images.unsplash.com/photo-1562273138-f46be4ebdf33?auto=format&fit=crop&w=500&q=80',
-
-                'colores' => [
-                    [
-                        'nombre' => 'Negro',
-                        'hex' => '#121212',
-                        'tallas' => [
-                            '35' => 0,
-                            '36' => 0,
-                            '37' => 2,
-                            '38' => 4,
-                            '39' => 0,
-                            '40' => 3,
-                            '41' => 1,
-                        ],
-                    ],
-                    [
-                        'nombre' => 'Rojo',
-                        'hex' => '#a63b32',
-                        'tallas' => [
-                            '35' => 1,
-                            '36' => 2,
-                            '37' => 3,
-                            '38' => 5,
-                            '39' => 2,
-                            '40' => 1,
-                            '41' => 0,
-                        ],
-                    ],
-                ],
-
-                'tiendas' => [
-                    'Centro' => 3,
-                    'Unicentro' => 4,
-                    'Ventura' => 5,
-                    'Norte' => 0,
-                ],
-            ],
-
-            [
-                'id' => 7,
-                'referencia' => 'BOT-001',
-                'nombre' => 'Bota Classic Leather',
-                'categoria' => 'Botas',
-                'genero' => 'Mujer',
-                'imagen' => 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?auto=format&fit=crop&w=500&q=80',
-
-                'colores' => [
-                    [
-                        'nombre' => 'Café',
-                        'hex' => '#70452e',
-                        'tallas' => [
-                            '35' => 1,
-                            '36' => 3,
-                            '37' => 5,
-                            '38' => 4,
-                            '39' => 2,
-                            '40' => 0,
-                            '41' => 0,
-                        ],
-                    ],
-                    [
-                        'nombre' => 'Negro',
-                        'hex' => '#171717',
-                        'tallas' => [
-                            '35' => 0,
-                            '36' => 2,
-                            '37' => 4,
-                            '38' => 5,
-                            '39' => 0,
-                            '40' => 1,
-                            '41' => 0,
-                        ],
-                    ],
-                ],
-
-                'tiendas' => [
-                    'Centro' => 4,
-                    'Unicentro' => 6,
-                    'Ventura' => 2,
-                    'Norte' => 1,
-                ],
-            ],
-
-            [
-                'id' => 8,
-                'referencia' => 'DEP-001',
-                'nombre' => 'Tenis Deportivo Max',
-                'categoria' => 'Deportivo',
-                'genero' => 'Unisex',
-                'imagen' => 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=500&q=80',
-
-                'colores' => [
-                    [
-                        'nombre' => 'Negro',
-                        'hex' => '#151515',
-                        'tallas' => [
-                            '36' => 5,
-                            '37' => 7,
-                            '38' => 9,
-                            '39' => 6,
-                            '40' => 8,
-                            '41' => 4,
-                            '42' => 2,
-                        ],
-                    ],
-                    [
-                        'nombre' => 'Azul',
-                        'hex' => '#345c88',
-                        'tallas' => [
-                            '36' => 3,
-                            '37' => 4,
-                            '38' => 5,
-                            '39' => 2,
-                            '40' => 3,
-                            '41' => 1,
-                            '42' => 0,
-                        ],
-                    ],
-                ],
-
-                'tiendas' => [
-                    'Centro' => 15,
-                    'Unicentro' => 12,
-                    'Ventura' => 8,
-                    'Norte' => 5,
-                ],
-            ],
-        ];
-
         return view('integration.inventory', compact('warehouses'));
     }
 
@@ -463,11 +101,13 @@ class InventoryFilterSiigoController extends Controller
     private function map_products(array $filas): array
     {
         $agrupado = [];
-
         foreach ($filas as $fila) {
             $description = $fila['Description'] ?? '';
             $partes = explode('-', $description);
-            if (count($partes) < 5) continue;
+
+            if (count($partes) < 5) {
+                continue;
+            }
 
             $referencia = $partes[0];
             $color      = $partes[1];
@@ -488,16 +128,22 @@ class InventoryFilterSiigoController extends Controller
             }
 
             if (!isset($agrupado[$referencia]['colores'][$color])) {
+
                 $colorLimpio = $this->clean_text($color);
+
+                $colorInfo = $this->obtener_color($colorLimpio);
+
                 $agrupado[$referencia]['colores'][$color] = [
                     'nombre' => ucfirst(strtolower($colorLimpio)),
-                    'hex'    => $this->hex_color($colorLimpio),
+                    'codigo' => $colorInfo['codigo'],
+                    'hex'    => $colorInfo['hex'],
                     'tallas' => [],
                 ];
             }
 
             $agrupado[$referencia]['colores'][$color]['tallas'][$talla] =
-                ($agrupado[$referencia]['colores'][$color]['tallas'][$talla] ?? 0) + $cantidad;
+                ($agrupado[$referencia]['colores'][$color]['tallas'][$talla] ?? 0)
+                + $cantidad;
         }
 
         $productos = [];
@@ -531,39 +177,239 @@ class InventoryFilterSiigoController extends Controller
         return array_values($productos);
     }
 
-    private function hex_color(string $color): string
+    private function obtener_color(string $nombre): array
     {
-        $mapa = [
-            'NEGRO'    => '#171717',
-            'BLANCO'   => '#f5f5f5',
-            'AZUL'     => '#315a85',
-            'ROJO'     => '#a63b32',
-            'ROSA'     => '#dca7b5',
-            'CAFE'     => '#76523c',
-            'BEIGE'    => '#d8c4a8',
-            'YUTE'     => '#c9a876',
-            'VERDE'    => '#2f6b3f',
-            'GRIS'     => '#9ca3af',
-            'AMARILLO' => '#e0b93c',
-            'VINO'     => '#5c1a2b',
-            'PERLA'    => '#e8e4de',
-            'PLATA'    => '#c0c0c0',
-            'ORO'      => '#d4af37',
-            'TALCO'    => '#f1ede4',
-        ];
+        $nombreBuscado = $this->normalizar_color($nombre);
 
-        return $mapa[strtoupper($color)] ?? '#9ca3af';
+        foreach ($this->colores() as $color) {
+            $nombreColor = $this->normalizar_color($color['nombre']);
+
+            if ($nombreBuscado == $nombreColor) {
+                return $color;
+            }
+        }
+
+        // Color no encontrado
+        return [
+            'nombre' => $nombre,
+            'codigo' => null,
+            'hex'    => '#000000',
+        ];
+    }
+
+    private function colores(): array
+    {
+        return [
+            [
+                'nombre' => 'BLANCO',
+                'codigo' => 10,
+                'hex' => '#FFFFFF',
+            ],
+            [
+                'nombre' => 'TRANSPARENTE',
+                'codigo' => 13,
+                'hex' => '#F2F2F2',
+            ],
+            [
+                'nombre' => 'TIZA',
+                'codigo' => 16,
+                'hex' => '#F5F5F0',
+            ],
+            [
+                'nombre' => 'BEIGE',
+                'codigo' => 17,
+                'hex' => '#EDE9E3',
+            ],
+            [
+                'nombre' => 'CREMA',
+                'codigo' => 18,
+                'hex' => '#E8DCC3',
+            ],
+            [
+                'nombre' => 'PERLA',
+                'codigo' => 19,
+                'hex' => '#EDE9E3',
+            ],
+            [
+                'nombre' => 'CHAMPAÑA',
+                'codigo' => 21,
+                'hex' => '#F0DFC4',
+            ],
+            [
+                'nombre' => 'CRUDO',
+                'codigo' => 24,
+                'hex' => '#E8DCC3',
+            ],
+            [
+                'nombre' => 'VAINILLA',
+                'codigo' => 27,
+                'hex' => '#EED9AE',
+            ],
+            [
+                'nombre' => 'NUDE',
+                'codigo' => 30,
+                'hex' => '#E3C9A6',
+            ],
+            [
+                'nombre' => 'ARENA',
+                'codigo' => 33,
+                'hex' => '#D9C199',
+            ],
+            [
+                'nombre' => 'PLATA',
+                'codigo' => 36,
+                'hex' => '#C0C0C0',
+            ],
+            [
+                'nombre' => 'ORO ROSA',
+                'codigo' => 39,
+                'hex' => '#E0BFB8',
+            ],
+            [
+                'nombre' => 'DORADO',
+                'codigo' => 42,
+                'hex' => '#D4AF37',
+            ],
+            [
+                'nombre' => 'MIEL',
+                'codigo' => 44,
+                'hex' => '#C68E42',
+            ],
+            [
+                'nombre' => 'AREQUIPE',
+                'codigo' => 45,
+                'hex' => '#B08D57',
+            ],
+            [
+                'nombre' => 'CAMEL',
+                'codigo' => 47,
+                'hex' => '#C19A6B',
+            ],
+            [
+                'nombre' => 'KHAKI',
+                'codigo' => 50,
+                'hex' => '#C3B091',
+            ],
+            [
+                'nombre' => 'AMARETO',
+                'codigo' => 53,
+                'hex' => '#B4802F',
+            ],
+            [
+                'nombre' => 'YUTE',
+                'codigo' => 56,
+                'hex' => '#B08D57',
+            ],
+            [
+                'nombre' => 'CARAMELO',
+                'codigo' => 59,
+                'hex' => '#A9682B',
+            ],
+            [
+                'nombre' => 'ANIMAL CARAMELO',
+                'codigo' => 62,
+                'hex' => '#9C6B3E',
+            ],
+            [
+                'nombre' => 'ANIMAL PRINT',
+                'codigo' => 65,
+                'hex' => '#8B6B4A',
+            ],
+            [
+                'nombre' => 'VAQUITA',
+                'codigo' => 67,
+                'hex' => '#5A5250',
+            ],
+            [
+                'nombre' => 'OCRE',
+                'codigo' => 70,
+                'hex' => '#9C7A26',
+            ],
+            [
+                'nombre' => 'TAUPE',
+                'codigo' => 73,
+                'hex' => '#7A6A5D',
+            ],
+            [
+                'nombre' => 'BROWN',
+                'codigo' => 76,
+                'hex' => '#6B4423',
+            ],
+            [
+                'nombre' => 'CAFE',
+                'codigo' => 79,
+                'hex' => '#4B3621',
+            ],
+            [
+                'nombre' => 'BISTRO',
+                'codigo' => 82,
+                'hex' => '#4A3B2A',
+            ],
+            [
+                'nombre' => 'MOKA',
+                'codigo' => 85,
+                'hex' => '#3B2A1E',
+            ],
+            [
+                'nombre' => 'ROJO',
+                'codigo' => 88,
+                'hex' => '#B22222',
+            ],
+            [
+                'nombre' => 'VINO',
+                'codigo' => 90,
+                'hex' => '#5B1A1A',
+            ],
+            [
+                'nombre' => 'GRIS',
+                'codigo' => 92,
+                'hex' => '#666666',
+            ],
+            [
+                'nombre' => 'ANIMAL NEGRO',
+                'codigo' => 93,
+                'hex' => '#2B2523',
+            ],
+            [
+                'nombre' => 'OSCURO',
+                'codigo' => 96,
+                'hex' => '#2E2E2E',
+            ],
+            [
+                'nombre' => 'NEGRO',
+                'codigo' => 99,
+                'hex' => '#000000',
+            ],
+        ];
     }
 
     private function name_category(string $categoria): string
     {
         $mapa = [
             'PL' => 'PLANA',
-            'BA' => 'BALETAS',
-            'BO' => 'BOLSO'
+            'BA' => 'BALETA',
+            'TE' => 'TENIS',
+            'BO' => 'BOLSO',
+            'TC' => 'TACON',
+            'NI' => 'NIÑA',
+            'PT' => 'PLATAFORMA',
+            'MO' => 'MOCASIN',
+            'MC' => 'MOCASIN CHAROL',
+            'ST' => 'STILETTO',
+            'KH' => 'KITTEN',
+            'CH' => 'CHUNKY',
+            'CA' => 'CANOA',
+            'CF' => 'CONFORT',
+            'BB' => 'BABUCHA',
+            'BT' => 'BOTA',
+            'BN' => 'BOTIN',
+            'ES' => 'ESPADRILA',
+            'SE' => 'SENA',
         ];
 
-        return $mapa[strtoupper($categoria)] ?? $categoria;
+        $categoria = strtoupper(trim($categoria));
+
+        return $mapa[$categoria] ?? $categoria;
     }
 
     private function images(string $referencia)
@@ -644,5 +490,24 @@ class InventoryFilterSiigoController extends Controller
         $texto = preg_replace('/[^A-Za-z0-9 ]/', '', $texto);
 
         return trim($texto);
+    }
+
+    private function normalizar_color(string $color): string
+    {
+        $color = strtoupper(trim($color));
+
+        $color = strtr($color, [
+            'Á' => 'A',
+            'É' => 'E',
+            'Í' => 'I',
+            'Ó' => 'O',
+            'Ú' => 'U',
+            'Ü' => 'U',
+            'Ñ' => 'N',
+        ]);
+
+        $color = preg_replace('/[^A-Z0-9]/', '', $color);
+
+        return $color;
     }
 }
