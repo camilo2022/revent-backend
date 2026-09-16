@@ -64,18 +64,7 @@ class AccountPayableSiigoController extends Controller
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
 
-        $type_payment_receipts = $this->type_payment_receipts($token, '23202');
-
-        /*$types = [
-            0 => [
-                "nombre" => "Abono a deuda",
-                "visible" => true,
-            ],
-            1 => [
-                "nombre" => "Anticipo",
-                "visible" => false,
-            ]
-        ];*/
+        $type_receipt = $this->type_receipt($token, '23202');
 
         $bank_accounts = $this->bank_accounts($token);
 
@@ -107,7 +96,7 @@ class AccountPayableSiigoController extends Controller
 
         unset($provider);*/
 
-        return view('integration.account_payable', compact( 'providers', 'type_payment_receipts', 'bank_accounts', 'type_documents'));
+        return view('integration.account_payable', compact( 'providers', 'type_receipt', 'bank_accounts', 'type_documents'));
     }
 
     public function account_payable_documents(Request $request, int $accountId)
@@ -224,19 +213,19 @@ class AccountPayableSiigoController extends Controller
         $warehouses = $this->warehouses($token);
         $warehousesById = collect($warehouses)->keyBy('id');
 
-        $type_payment_receipts = $this->type_payment_receipts($token, '23202');
+        $type_receipt = $this->type_receipt($token, '23202');
         $EntryType = [
-            "ERPDocumentTypeID" => $type_payment_receipts['ERPDocumentTypeId'],
-            "Name" => $type_payment_receipts['Title'],
-            "Class" => $type_payment_receipts['DocClass'],
-            "Code" => $type_payment_receipts['Code'],
+            "ERPDocumentTypeID" => $type_receipt['ERPDocumentTypeId'],
+            "Name" => $type_receipt['Title'],
+            "Class" => $type_receipt['DocClass'],
+            "Code" => $type_receipt['Code'],
             "ACAccountCode" => -1,
-            "CostCenterDefault" => $type_payment_receipts['CostCenterDefault'],
-            "CostCenterMandatory" => $type_payment_receipts['CostCenterMandatory'],
-            "InternalDescription" => $type_payment_receipts['InternalDescription'],
-            "IsAutomaticEnum" => $type_payment_receipts['IsAutomaticEnum'],
-            "TemplateName" => $type_payment_receipts['TemplateName'],
-            "UseCostCenter" => $type_payment_receipts['UseCostCenter']
+            "CostCenterDefault" => $type_receipt['CostCenterDefault'],
+            "CostCenterMandatory" => $type_receipt['CostCenterMandatory'],
+            "InternalDescription" => $type_receipt['InternalDescription'],
+            "IsAutomaticEnum" => $type_receipt['IsAutomaticEnum'],
+            "TemplateName" => $type_receipt['TemplateName'],
+            "UseCostCenter" => $type_receipt['UseCostCenter']
         ];
 
         $accountId = $proveedor['AccountID'];
@@ -343,7 +332,7 @@ class AccountPayableSiigoController extends Controller
         ];
 
         $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
-        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $recibos, $firma, $observaciones, $voucher_id, $url));
+        Mail::to(['camiloacacio16@gmail.com', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $recibos, $firma, $observaciones, $voucher_id, $url));
 
         return response()->json([
             'success' => true,
@@ -377,19 +366,19 @@ class AccountPayableSiigoController extends Controller
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
 
-        $type_payment_receipts = $this->type_payment_receipts($token, '23202');
+        $type_receipt = $this->type_receipt($token, '23202');
         $EntryType = [
-            "ERPDocumentTypeID" => $type_payment_receipts['ERPDocumentTypeId'],
-            "Name" => $type_payment_receipts['Title'],
-            "Class" => $type_payment_receipts['DocClass'],
-            "Code" => $type_payment_receipts['Code'],
+            "ERPDocumentTypeID" => $type_receipt['ERPDocumentTypeId'],
+            "Name" => $type_receipt['Title'],
+            "Class" => $type_receipt['DocClass'],
+            "Code" => $type_receipt['Code'],
             "ACAccountCode" => -1,
-            "CostCenterDefault" => $type_payment_receipts['CostCenterDefault'],
-            "CostCenterMandatory" => $type_payment_receipts['CostCenterMandatory'],
-            "InternalDescription" => $type_payment_receipts['InternalDescription'],
-            "IsAutomaticEnum" => $type_payment_receipts['IsAutomaticEnum'],
-            "TemplateName" => $type_payment_receipts['TemplateName'],
-            "UseCostCenter" => $type_payment_receipts['UseCostCenter']
+            "CostCenterDefault" => $type_receipt['CostCenterDefault'],
+            "CostCenterMandatory" => $type_receipt['CostCenterMandatory'],
+            "InternalDescription" => $type_receipt['InternalDescription'],
+            "IsAutomaticEnum" => $type_receipt['IsAutomaticEnum'],
+            "TemplateName" => $type_receipt['TemplateName'],
+            "UseCostCenter" => $type_receipt['UseCostCenter']
         ];
 
         $observaciones = $request->input('observaciones');
@@ -466,7 +455,7 @@ class AccountPayableSiigoController extends Controller
         ];
 
         $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
-        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayableAdvanceProviderSiigo($provider, $voucher, $firma, $observaciones, $voucher_id, $url));
+        Mail::to(['camiloacacio16@gmail.com', ...$emails])->send(new AccountPayableAdvanceProviderSiigo($provider, $voucher, $firma, $observaciones, $voucher_id, $url));
 
         return response()->json([
             'success' => true,
@@ -474,6 +463,182 @@ class AccountPayableSiigoController extends Controller
             'voucher_id' => $voucher_id,
             'voucher' => $voucher,
         ]);
+    }
+
+    public function accounts_conciliation(Request $request)
+    {
+        try {
+            $request->validate([
+                'proveedor' => 'required',
+                'tipo' => 'required|integer',
+                'fecha' => 'required|date',
+                'observaciones' => 'nullable|string',
+                'documentos' => 'required|string',
+                'recibos' => 'required|string'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => collect($e->errors())->flatten()->first() ?? 'Datos inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+        $proveedor = json_decode($request->proveedor, true);
+        $documentos = json_decode($request->documentos, true);
+        $recibos = json_decode($request->recibos, true);
+
+        $siigo = new SiigoInventoryService();
+        $token = $siigo->auth();
+
+        $type_receipt = $this->type_receipt($token, $request->input('tipo'));
+
+        $account_documentos = $this->search_account($token, '22050501');
+        $lista_documentos = $this->search_list($token, $account_documentos['ACAccountID'], $proveedor['AccountID'], collect($documentos)->pluck('doc.DueName')->toArray());
+
+        $account_recibos = $this->search_account($token, '13300501');
+        $lista_recibos = $this->search_list($token, $account_recibos['ACAccountID'], $proveedor['AccountID'], collect($recibos)->pluck('DueName')->toArray());
+
+        $EntryType = [
+            "ApplyAccountingBook" => $type_receipt['ApplyAccountingBook'],
+            "Class" => $type_receipt['DocClass'],
+            "Code" => $type_receipt['Code'],
+            "Consecutive" => $type_receipt['Consecutive'],
+            "CostCenterDefault" => $type_receipt['CostCenterDefault'],
+            "CostCenterDefaultCode" => $type_receipt['CostCenterDefault'],
+            "CostCenterMandatory" => $type_receipt['CostCenterMandatory'],
+            "DocNumber" => $type_receipt['Consecutive'],
+            "ERPDocumentTypeID" => $type_receipt['ERPDocumentTypeId'],
+            "Name" => $type_receipt['Title'],
+            "Prefix" => $type_receipt['Prefix'],
+            "PrintMsg" => $type_receipt['PrintMsg'],
+            "TemplateName" => $type_receipt['TemplateName'],
+            "UseCostCenter" => $type_receipt['UseCostCenter'],
+            "UseDocumentSupport" => $type_receipt['UseDocumentSupport']
+        ];
+
+        $observaciones = $request->input('observaciones');
+        $Entry = [
+            "ACEntryID" => -1,
+            "AttachmentsFSItemsGUID" => "",
+            "CashBookData" => null,
+            "DocDate" => Carbon::parse($request->input('fecha'))->format('Ymd'),
+            "DocName" => "",
+            "ExchangePersonalized" => false,
+            "ExchangeValue" => 0,
+            "ExemptBase" => 0,
+            "ExtendsFields" => "",
+            "ForeignMoneyCode" => "",
+            "Observations" => $observaciones,
+            "OriginSource" => 0,
+            "PayrollPeriodCode" => -1,
+            "PayrollVoucherType" => -1,
+            "PolicyType" => null,
+            "SourceType" => 0,
+            "TaxableBase" => 0,
+            "TotalValue" => (float) collect($documentos)->sum('covered'),
+        ];
+
+        $order = 1;
+        $Items = [];
+        foreach ($lista_documentos as $lista_documento) {
+            $Items[] = [
+                "ACAccountCode" => $lista_documento['ACAccountCode'],
+                "ACPaymentMean" => null,
+                "AccountCode" => $lista_documento['AccountCode'],
+                "BaseValue" => 0,
+                "ConsumptionValue" => 0,
+                "CostCenterCode" => $lista_documento['CostCenterCode'],
+                "DC" => 1,
+                "Description" => "{$lista_documento['DuePrefix']}-{$lista_documento['DueConsecutive']} Cuota: {$lista_documento['DueQuote']} Fecha: {$lista_documento['DueDate']}",
+                "DueConsecutive" => $lista_documento['DueConsecutive'],
+                "DueDate" => $lista_documento['DueDateFormat'],
+                "DuePrefix" => $lista_documento['DuePrefix'],
+                "DueQuote" => $lista_documento['DueQuote'],
+                "EntryItemType" => 0,
+                "FixedAssetCode" => null,
+                "LongDescription" => $account_documentos['Name'],
+                "Order" => $order,
+                "ProductCode" => null,
+                "Quantity" => 0,
+                "TaxAddCode" => null,
+                "TaxAddName" => "",
+                "TaxAddPercentage" => 0,
+                "TaxAddValue" => 0,
+                "TaxDiscCode" => null,
+                "TaxDiscName" => "",
+                "TaxDiscPercentage" => 0,
+                "TaxDiscValue" => 0,
+                "Value" => collect($documentos)->firstWhere('doc.DueName', $lista_documento['DuePrefix'].'-'.$lista_documento['DueConsecutive'])['covered'] ?? 0,
+            ];
+            $order++;
+        }
+        foreach ($lista_recibos as $lista_recibo) {
+            $Items[] = [
+                "ACAccountCode" => $lista_recibo['ACAccountCode'],
+                "ACPaymentMean" => null,
+                "AccountCode" => $lista_recibo['AccountCode'],
+                "BaseValue" => 0,
+                "ConsumptionValue" => 0,
+                "CostCenterCode" => $lista_recibo['CostCenterCode'],
+                "DC" => -1,
+                "Description" => "{$lista_recibo['DuePrefix']}-{$lista_recibo['DueConsecutive']} Cuota: {$lista_recibo['DueQuote']} Fecha: {$lista_recibo['DueDate']}",
+                "DueConsecutive" => $lista_recibo['DueConsecutive'],
+                "DueDate" => $lista_recibo['DueDateFormat'],
+                "DuePrefix" => $lista_recibo['DuePrefix'],
+                "DueQuote" => $lista_recibo['DueQuote'],
+                "EntryItemType" => 0,
+                "FixedAssetCode" => null,
+                "LongDescription" => $account_recibos['Name'],
+                "Order" => $order,
+                "ProductCode" => null,
+                "Quantity" => 0,
+                "TaxAddCode" => null,
+                "TaxAddName" => "",
+                "TaxAddPercentage" => 0,
+                "TaxAddValue" => 0,
+                "TaxDiscCode" => null,
+                "TaxDiscName" => "",
+                "TaxDiscPercentage" => 0,
+                "TaxDiscValue" => 0,
+                "Value" => collect($recibos)->firstWhere('DueName', $lista_recibo['DuePrefix'].'-'.$lista_recibo['DueConsecutive'])['BalanceInFavor'] ?? 0,
+            ];
+            $order++;
+        }
+
+        $AttachFiles = [];
+
+        $this->validate_entry($token, $Entry['DocDate'], $request->integer('tipo'), -1, -1);
+
+        $payload = [
+            "AttachFiles" => $AttachFiles,
+            "Entry" => $Entry,
+            "EntryType" => $EntryType,
+            "Items" => $Items,
+            "ModelType" => 21
+        ];
+
+        $provider = $this->provider($token, $proveedor['MsThirdPartyID']);
+
+        return $conciliation = $this->save_conciliation($token, $payload);
+
+        /*$voucher = $this->search_conciliation($token, $voucher_id);
+
+        $firma =  [
+            'nombre' => 'Ninoska Fontalvo',
+            'cargo' => 'Auxiliar administrativo',
+            'departamento' => 'Departamento de Cartera',
+            'empresa' => 'Revent Calzado SAS',
+            'celular' => '3222792893',
+        ];*/
+
+        $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
+        /*Mail::to(['camiloacacio16@gmail.com', ...$emails])->send(new AccountPayableAdvanceProviderSiigo($provider, $voucher, $firma, $observaciones, $voucher_id, $url));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Recibo de anticipo registrado correctamente.',
+            'voucher_id' => $voucher_id,
+            'voucher' => $voucher,
+        ]);*/
     }
 
     private function provider(string $token, string $uuid)
@@ -632,6 +797,23 @@ class AccountPayableSiigoController extends Controller
         if (!$response->successful()) {
             throw new \Exception(
                 'Error guardando el comprobante de pago: ' . $response->body()
+            );
+        }
+
+        return $response->json();
+    }
+
+    private function save_conciliation(string $token, array $payload)
+    {
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->timeout(600)
+            ->connectTimeout(30)
+            ->post('https://services.siigo.com/ACEntryApi/api/v1/JournalEntry/Save/', $payload);
+
+        if (!$response->successful()) {
+            throw new \Exception(
+                'Error guardando el comprobante de contable: ' . $response->body()
             );
         }
 
@@ -995,7 +1177,7 @@ class AccountPayableSiigoController extends Controller
         return $data;
     }
 
-    private function type_payment_receipts(string $token, string|int $erpDocumentTypeId)
+    private function type_receipt(string $token, string|int $erpDocumentTypeId)
     {
         $response = Http::withToken($token)
             ->acceptJson()
@@ -1077,6 +1259,88 @@ class AccountPayableSiigoController extends Controller
 
         $data = json_decode($response->json(), true );
 
-        return $data;
+        return collect($data)->whereIn('ERPDocCode', ['21'])->values();
+    }
+
+    private function search_account(string $token, string $query)
+    {
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->timeout(600)
+            ->connectTimeout(30)
+            ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', [
+                'browserID' => '3',
+                'filter' => '(IsTransactional = 1 AND IsActive = 1)',
+                'query' => $query,
+                'tags' => (object) [],
+                'type' => 1
+            ]);
+
+        if (!$response->successful()) {
+            throw new \Exception(
+                'Error consultando la cuenta contable: ' . $response->body()
+            );
+        }
+
+        $rawBody = trim($response->body());
+
+        if ($rawBody === '""' || $rawBody === '' || $rawBody === 'null') {
+            return null;
+        }
+
+        $data = $response->json();
+        $data = json_decode($data, true);
+
+        if (empty($data)) {
+            return null;
+        }
+
+        $data = json_decode($data, true);
+
+        return collect($data)->firstWhere('Code', $query);
+    }
+
+    private function search_list(string $token, string $ACAccountCode, string $AccountCode, array $docs)
+    {
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->timeout(600)
+            ->connectTimeout(30)
+            ->post('https://services.siigo.com/catalog/api/v1/Autocomplete/GetData', [
+                'browserID' => '9',
+                'filter' => "(Balance <> 0 or ForeignBalance <> 0) AND ACAccountCode = $ACAccountCode AND AccountCode = $AccountCode AND ISNULL(MoneyCode, '') = ''",
+                'query' => "",
+                'tags' => (object) [],
+                'type' => 1
+            ]);
+
+        if (!$response->successful()) {
+            throw new \Exception(
+                'Error consultando la cuenta contable: ' . $response->body()
+            );
+        }
+
+        $rawBody = trim($response->body());
+
+        if ($rawBody === '""' || $rawBody === '' || $rawBody === 'null') {
+            return null;
+        }
+
+        $data = $response->json();
+        $data = json_decode($data, true);
+
+        if (empty($data)) {
+            return null;
+        }
+
+        $data = json_decode($data, true);
+
+        return collect($data)
+            ->filter(function ($item) use ($docs) {
+                $documento = $item['DuePrefix'] . '-' . $item['DueConsecutive'];
+                return in_array($documento, $docs);
+            })
+            ->values()
+            ->toArray();
     }
 }

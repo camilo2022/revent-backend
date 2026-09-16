@@ -454,6 +454,13 @@
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
     }
 
+    .totals-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+    }
+
     .totals-bar.show { display: flex; }
 
     .totals-info {
@@ -471,6 +478,21 @@
         font-size: 1.15rem;
         font-weight: 700;
     }
+
+    .btn-conciliation {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        padding: 0.65rem 1.2rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .btn-conciliation:hover { background: #1d4ed8; }
 
     .btn-payment {
         background: #16a34a;
@@ -497,6 +519,15 @@
 
     .btn-advance {
         background: #f97316;
+        color: #fff;
+        border: none;
+        padding: 0.65rem 1.2rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        white-space: nowrap;
     }
 
     .btn-advance:hover { background: #ea580c; }
@@ -687,6 +718,12 @@
 
     .btn-primary-advance:hover { background: #ea580c; }
 
+    .btn-primary-conciliation {
+        background: #2563eb;
+    }
+
+    .btn-primary-conciliation:hover { background: #1d4ed8; }
+
     .modal-field-group {
         margin-bottom: 1.4rem;
     }
@@ -850,6 +887,29 @@
 
     .favor-alert strong { font-weight: 700; }
 
+    .cover-full { color: #16a34a !important; font-weight: 700; }
+    .cover-partial { color: #c2410c !important; font-weight: 700; }
+    .cover-none { color: #9ca3af !important; font-weight: 600; }
+
+    .conciliation-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        align-items: flex-end;
+        font-size: 0.88rem;
+        color: #374151;
+    }
+
+    .conciliation-summary .row {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .conciliation-summary .row strong {
+        font-size: 1rem;
+        color: #1f2937;
+    }
+
     @media (max-width: 768px) {
         .wrapper { padding: 0; }
 
@@ -901,6 +961,8 @@
 
         .totals-bar .amount { font-size: 1.05rem; }
         .btn-payment { width: 100%; }
+        .btn-advance { width: 100%; }
+        .btn-conciliation { width: 100%; }
 
         .modal-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -1021,7 +1083,7 @@
         </div>
 
         <div class="btn-advance-wrap" id="btnAdvanceWrap">
-            <button type="button" class="btn-payment btn-advance" id="btnAdvance">Realizar anticipo</button>
+            <button type="button" class="btn-advance" id="btnAdvance">Realizar anticipo</button>
         </div>
 
         <div class="docs-wrap" id="docsWrap">
@@ -1064,7 +1126,10 @@
             <div class="count"><span id="selCount">0</span> documento(s) seleccionado(s)</div>
             <div class="amount">Total a pagar: <span id="selTotal">$0</span></div>
         </div>
-        <button type="button" class="btn-payment" id="btnPayment">Realizar recibo de pago</button>
+        <div class="totals-actions">
+            <button type="button" class="btn-conciliation" id="btnConciliation">Realizar cruce contable</button>
+            <button type="button" class="btn-payment" id="btnPayment">Realizar recibo de pago</button>
+        </div>
     </div>
 
     <a href="{{ route('home') }}" class="back-link">
@@ -1087,9 +1152,9 @@
                     <label class="field-label" for="paymentTipo">Tipo</label>
                     <select class="combo-input" id="paymentTipo">
                         <option value="">Selecciona...</option>
-                        @if ($type_payment_receipts)
-                            <option value="{{ $type_payment_receipts['ERPDocumentTypeId'] }}">
-                                {{ $type_payment_receipts['DocClass'] }}-{{ $type_payment_receipts['Code'] }} · {{ $type_payment_receipts['Title'] }}
+                        @if ($type_receipt)
+                            <option value="{{ $type_receipt['ERPDocumentTypeId'] }}">
+                                {{ $type_receipt['DocClass'] }}-{{ $type_receipt['Code'] }} · {{ $type_receipt['Title'] }}
                             </option>
                         @endif
                     </select>
@@ -1196,9 +1261,9 @@
                     <label class="field-label" for="advanceTipo">Tipo</label>
                     <select class="combo-input" id="advanceTipo">
                         <option value="">Selecciona...</option>
-                        @if ($type_payment_receipts)
-                            <option value="{{ $type_payment_receipts['ERPDocumentTypeId'] }}">
-                                {{ $type_payment_receipts['DocClass'] }}-{{ $type_payment_receipts['Code'] }} · {{ $type_payment_receipts['Title'] }}
+                        @if ($type_receipt)
+                            <option value="{{ $type_receipt['ERPDocumentTypeId'] }}">
+                                {{ $type_receipt['DocClass'] }}-{{ $type_receipt['Code'] }} · {{ $type_receipt['Title'] }}
                             </option>
                         @endif
                     </select>
@@ -1278,6 +1343,74 @@
         <div class="modal-footer">
             <button type="button" class="btn-secondary" id="advanceModalCancel">Cancelar</button>
             <button type="button" class="btn-primary btn-primary-advance" id="advanceModalConfirm">Confirmar anticipo</button>
+        </div>
+    </div>
+</div>
+
+<!-- ---- Modal: Realizar cruce contable (conciliación) ---- -->
+<div class="modal-overlay" id="conciliationModalOverlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Realizar cruce contable</div>
+            <button type="button" class="modal-close" id="conciliationModalClose">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-grid">
+                <!-- Columna izquierda -->
+                <div class="modal-left">
+                    <div class="field-group">
+                        <label class="field-label" for="conciliationTipo">Tipo documento</label>
+                        <select class="combo-input" id="conciliationTipo">
+                            <option value="">Selecciona...</option>
+                            @foreach ($type_documents as $type_document)
+                                <option value="{{ $type_document['ERPDocumentTypeID'] }}">{{ "{$type_document['ERPDocClass']}-{$type_document['ERPDocCode']}-{$type_document['Name']}" }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="conciliationDate">Fecha de elaboración</label>
+                        <input type="date" class="combo-input" id="conciliationDate">
+                    </div>
+                </div>
+
+                <!-- Columna derecha -->
+                <div class="modal-field-group">
+                    <label class="field-label" for="conciliationObservations">
+                        Observaciones
+                    </label>
+
+                    <textarea class="combo-input" id="conciliationObservations" rows="5" placeholder="Escribe cualquier observación sobre este cruce..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th style="min-width: 110px;">Documento</th>
+                            <th style="min-width: 110px;">Factura</th>
+                            <th style="min-width: 110px;">Fecha vence</th>
+                            <th style="text-align:right;">Saldo</th>
+                            <th style="text-align:right;">Cubre</th>
+                        </tr>
+                    </thead>
+                    <tbody id="conciliationDocsBody"></tbody>
+                </table>
+            </div>
+
+            <div class="conciliation-summary">
+                <div class="row"><span>Saldo a favor disponible (RP):</span> <strong id="conciliationRpTotal">$0</strong></div>
+                <div class="row"><span>Total a conciliar:</span> <strong id="conciliationDebtTotal">$0</strong></div>
+                <div class="row"><span>Total cubierto:</span> <strong id="conciliationCoveredTotal">$0</strong></div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="conciliationModalCancel">Cancelar</button>
+            <button type="button" class="btn-primary btn-primary-conciliation" id="conciliationModalConfirm">Confirmar cruce contable</button>
         </div>
     </div>
 </div>
@@ -1811,6 +1944,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modalOverlay.classList.contains('show')) closePaymentModal();
         if (e.key === 'Escape' && advanceModalOverlay.classList.contains('show')) closeAdvanceModal();
+        if (e.key === 'Escape' && conciliationModalOverlay.classList.contains('show')) closeConciliationModal();
     });
 
     modalPaymentConfirm.addEventListener('click', async () => {
@@ -2128,6 +2262,236 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         } finally {
             advanceModalConfirm.disabled = false;
             advanceModalConfirm.innerHTML = originalConfirmHTML;
+        }
+    });
+
+    const btnConciliation = document.getElementById('btnConciliation');
+
+    // Modal cruce contable / conciliación
+    const conciliationModalOverlay   = document.getElementById('conciliationModalOverlay');
+    const conciliationModalClose     = document.getElementById('conciliationModalClose');
+    const conciliationModalCancel    = document.getElementById('conciliationModalCancel');
+    const conciliationModalConfirm   = document.getElementById('conciliationModalConfirm');
+    const conciliationDocsBody       = document.getElementById('conciliationDocsBody');
+    const conciliationTipo           = document.getElementById('conciliationTipo');
+    const conciliationDate           = document.getElementById('conciliationDate');
+    const conciliationObservations   = document.getElementById('conciliationObservations');
+    const conciliationRpTotalEl      = document.getElementById('conciliationRpTotal');
+    const conciliationDebtTotalEl    = document.getElementById('conciliationDebtTotal');
+    const conciliationCoveredTotalEl = document.getElementById('conciliationCoveredTotal');
+
+    let conciliationSelectedDebts = [];
+    let conciliationSelectedRPs   = [];
+
+    function getRPDocs() {
+        return currentDocs.filter((doc) =>
+            (doc.DuePrefix || '').toUpperCase().startsWith('RP') && !doc.IsAnnulled
+        );
+    }
+
+    function openConciliationModal() {
+        const selectedDebts = getSelectedDocs();
+
+        if (!selectedDebts.length) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Selecciona documentos',
+                text: 'Debes seleccionar al menos un documento para realizar el cruce contable.',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        const debtTotalNeeded = selectedDebts.reduce((sum, d) => sum + (Number(d.Saldo) || 0), 0);
+        const allRpDocs = getRPDocs();
+
+        // Solo tomamos los RP que realmente se necesitan para cubrir la deuda, en orden,
+        // deteniéndonos apenas la suma acumulada alcanza (o supera) el total a cubrir.
+        const usedRPs = [];
+        let rpAccumulated = 0;
+
+        for (const doc of allRpDocs) {
+            if (rpAccumulated >= debtTotalNeeded) break;
+            usedRPs.push(doc);
+            rpAccumulated += Math.abs(Number(doc.Saldo) || 0);
+        }
+
+        let remaining = rpAccumulated;
+        let debtTotal = 0;
+        let coveredTotal = 0;
+        let exceeded = false;
+
+        // Reparte el saldo de los RP usados en cascada, en el orden en que se seleccionaron
+        const debtsWithCoverage = selectedDebts.map((doc) => {
+            const saldo = Number(doc.Saldo) || 0;
+            const covered = Math.min(remaining, saldo);
+            remaining -= covered;
+            debtTotal += saldo;
+            coveredTotal += covered;
+
+            if (covered <= 0) exceeded = true; // este documento no queda totalmente cubierto
+
+            return { doc, saldo, covered };
+        });
+
+        if (exceeded) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Saldo insuficiente',
+                text: 'Los documentos seleccionados exceden el saldo a favor disponible en los recibos de pago. Quita alguno o selecciona menos documentos.',
+                confirmButtonColor: '#d33'
+            });
+            return;
+        }
+
+        conciliationSelectedDebts = debtsWithCoverage;
+        conciliationSelectedRPs   = usedRPs;
+
+        let rowsHtml = '';
+
+        usedRPs.forEach((doc) => {
+            rowsHtml += `
+                <tr data-json='${JSON.stringify(doc)}' data-tipo="rp">
+                    <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
+                    <td>${escapeHtml(doc.DueName)}</td>
+                    <td>${escapeHtml(doc.DocName) || '-'}</td>
+                    <td>${formatDate(doc.DueDate)}</td>
+                    <td style="text-align:right;">${formatMoney(Math.abs(Number(doc.Saldo) || 0))}</td>
+                    <td style="text-align:right;" class="cover-none">Disponible</td>
+                </tr>
+            `;
+        });
+
+        debtsWithCoverage.forEach(({ doc, saldo, covered }) => {
+            const coverClass = covered >= saldo ? 'cover-full' : 'cover-partial';
+
+            rowsHtml += `
+                <tr data-json='${JSON.stringify(doc)}' data-tipo="debt" data-saldo="${saldo}" data-cubre="${covered}">
+                    <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
+                    <td>${escapeHtml(doc.DueName)}</td>
+                    <td>${escapeHtml(doc.DocName) || '-'}</td>
+                    <td>${formatDate(doc.DueDate)}</td>
+                    <td style="text-align:right;">${formatMoney(saldo)}</td>
+                    <td style="text-align:right;" class="${coverClass}">${formatMoney(covered)}</td>
+                </tr>
+            `;
+        });
+
+        conciliationDocsBody.innerHTML = rowsHtml;
+
+        conciliationRpTotalEl.textContent      = formatMoney(rpAccumulated);
+        conciliationDebtTotalEl.textContent    = formatMoney(debtTotal);
+        conciliationCoveredTotalEl.textContent = formatMoney(coveredTotal);
+
+        conciliationTipo.value = '';
+        conciliationDate.value = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
+        conciliationObservations.value = '';
+
+        conciliationModalOverlay.classList.add('show');
+    }
+
+    function closeConciliationModal() {
+        conciliationModalOverlay.classList.remove('show');
+    }
+
+    btnConciliation.addEventListener('click', openConciliationModal);
+    conciliationModalClose.addEventListener('click', closeConciliationModal);
+    conciliationModalCancel.addEventListener('click', closeConciliationModal);
+
+    conciliationModalOverlay.addEventListener('click', (e) => {
+        if (e.target === conciliationModalOverlay) closeConciliationModal();
+    });
+
+    conciliationModalConfirm.addEventListener('click', async () => {
+
+        if (!conciliationTipo.value || !conciliationDate.value || !conciliationObservations.value) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos incompletos',
+                text: 'Completa el tipo de documento, la fecha de elaboración y las observaciones.',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: '¿Realizar cruce contable?',
+            text: 'Esta acción no se puede deshacer.',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, realizar cruce',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6'
+        });
+        if (!result.isConfirmed) return;
+
+        console.log(conciliationSelectedDebts, conciliationSelectedRPs, conciliationTipo.value, conciliationDate.value);
+
+        const originalConfirmHTML = conciliationModalConfirm.innerHTML;
+        conciliationModalConfirm.disabled = true;
+        conciliationModalConfirm.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Procesando...`;
+
+        Swal.fire({
+            title: 'Procesando cruce contable',
+            text: 'Por favor espera, no cierres esta ventana...',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const formData = new FormData();
+            formData.append('proveedor', JSON.stringify(currentProvider));
+            formData.append('tipo', conciliationTipo.value);
+            formData.append('fecha', conciliationDate.value);
+            formData.append('observaciones', conciliationObservations.value);
+            formData.append('documentos', JSON.stringify(conciliationSelectedDebts));
+            formData.append('recibos', JSON.stringify(conciliationSelectedRPs));
+
+            const response = await fetch('{{ route("siigo.accounts_conciliation") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseError) {
+                throw new Error('El servidor respondio de forma inesperada. Intenta nuevamente.');
+            }
+
+            if (!response.ok || !data.success) {
+                if (data.errors) {
+                    const primerError = Object.values(data.errors)[0][0];
+                    throw new Error(primerError);
+                }
+                throw new Error(data.message || 'Ocurrio un error procesando el cruce contable.');
+            }
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'Listo',
+                text: data.message || 'Cruce contable procesado correctamente.',
+                confirmButtonColor: '#3085d6'
+            });
+            closeConciliationModal();
+            window.location.reload();
+
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo procesar el cruce contable',
+                text: error.message || 'Ocurrio un error inesperado.',
+                confirmButtonColor: '#d33'
+            });
+        } finally {
+            conciliationModalConfirm.disabled = false;
+            conciliationModalConfirm.innerHTML = originalConfirmHTML;
         }
     });
 
