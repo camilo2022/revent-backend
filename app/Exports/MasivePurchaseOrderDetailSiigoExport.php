@@ -43,6 +43,7 @@ class MasivePurchaseOrderDetailSiigoExport implements FromGenerator, Responsable
         return [
             'tipo_detalle',
             'item',
+            'descripcion',
             'bodega',
             'cantidad',
             'valor_unitario',
@@ -62,6 +63,7 @@ class MasivePurchaseOrderDetailSiigoExport implements FromGenerator, Responsable
         yield [
             'tipo_detalle' => '',
             'item' => '',
+            'descripcion' => '',
             'bodega' => '',
             'cantidad' => '',
             'valor_unitario' => '',
