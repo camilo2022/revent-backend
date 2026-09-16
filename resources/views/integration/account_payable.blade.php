@@ -2344,20 +2344,32 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             return;
         }
 
+        let rpRemainingToConsume = coveredTotal;
+
+        const rpsWithUsage = usedRPs.map((doc) => {
+            const saldo = Math.abs(Number(doc.Saldo) || 0);
+            const used = Math.min(rpRemainingToConsume, saldo);
+            rpRemainingToConsume -= used;
+
+            return { doc, saldo, used };
+        });
+
         conciliationSelectedDebts = debtsWithCoverage;
-        conciliationSelectedRPs   = usedRPs;
+        conciliationSelectedRPs   = rpsWithUsage;
 
         let rowsHtml = '';
 
-        usedRPs.forEach((doc) => {
+        rpsWithUsage.forEach(({ doc, saldo, used }) => {
+            const coverClass = used >= saldo ? 'cover-full' : 'cover-partial';
+
             rowsHtml += `
-                <tr data-json='${JSON.stringify(doc)}' data-tipo="rp">
+                <tr data-json='${JSON.stringify(doc)}' data-tipo="rp" data-saldo="${saldo}" data-cubre="${used}">
                     <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                     <td>${escapeHtml(doc.DueName)}</td>
                     <td>${escapeHtml(doc.DocName) || '-'}</td>
                     <td>${formatDate(doc.DueDate)}</td>
-                    <td style="text-align:right;">${formatMoney(Math.abs(Number(doc.Saldo) || 0))}</td>
-                    <td style="text-align:right;" class="cover-none">Disponible</td>
+                    <td style="text-align:right;">${formatMoney(saldo)}</td>
+                    <td style="text-align:right;" class="${coverClass}">${formatMoney(used)}</td>
                 </tr>
             `;
         });

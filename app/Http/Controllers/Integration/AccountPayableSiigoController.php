@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Integration;
 use App\Http\Controllers\Controller;
 use App\Mail\AccountPayableAccessLink;
 use App\Mail\AccountPayableAdvanceProviderSiigo;
+use App\Mail\AccountPayableConciliationProviderSiigo;
 use App\Mail\AccountPayablePaymentProviderSiigo;
 use App\Services\SiigoInventoryService;
 use Carbon\Carbon;
@@ -332,7 +333,7 @@ class AccountPayableSiigoController extends Controller
         ];
 
         $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
-        Mail::to(['camiloacacio16@gmail.com', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $recibos, $firma, $observaciones, $voucher_id, $url));
+        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $recibos, $firma, $observaciones, $voucher_id, $url));
 
         return response()->json([
             'success' => true,
@@ -455,7 +456,7 @@ class AccountPayableSiigoController extends Controller
         ];
 
         $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
-        Mail::to(['camiloacacio16@gmail.com', ...$emails])->send(new AccountPayableAdvanceProviderSiigo($provider, $voucher, $firma, $observaciones, $voucher_id, $url));
+        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayableAdvanceProviderSiigo($provider, $voucher, $firma, $observaciones, $voucher_id, $url));
 
         return response()->json([
             'success' => true,
@@ -498,7 +499,7 @@ class AccountPayableSiigoController extends Controller
         $lista_documentos = $this->search_list($token, $account_documentos['ACAccountID'], $proveedor['AccountID'], collect($documentos)->pluck('doc.DueName')->toArray());
 
         $account_recibos = $this->search_account($token, '13300501');
-        $lista_recibos = $this->search_list($token, $account_recibos['ACAccountID'], $proveedor['AccountID'], collect($recibos)->pluck('DueName')->toArray());
+        $lista_recibos = $this->search_list($token, $account_recibos['ACAccountID'], $proveedor['AccountID'], collect($recibos)->pluck('doc.DueName')->toArray());
 
         $EntryType = [
             "ApplyAccountingBook" => $type_receipt['ApplyAccountingBook'],
@@ -603,7 +604,7 @@ class AccountPayableSiigoController extends Controller
                 "TaxDiscName" => "",
                 "TaxDiscPercentage" => 0,
                 "TaxDiscValue" => 0,
-                "Value" => collect($recibos)->firstWhere('DueName', $lista_recibo['DuePrefix'].'-'.$lista_recibo['DueConsecutive'])['BalanceInFavor'] ?? 0,
+                "Value" => collect($recibos)->firstWhere('doc.DueName', $lista_recibo['DuePrefix'].'-'.$lista_recibo['DueConsecutive'])['used'] ?? 0,
             ];
             $order++;
         }
@@ -621,11 +622,10 @@ class AccountPayableSiigoController extends Controller
         ];
 
         foreach($documentos as &$item) {
-            $item = $item['doc'];
-            $purchase_entry = $this->purchase_entry($token, $accountId, (int) $item['ACEntryID']);
-            $purchase_entry_detail = $this->purchase_entry_detail($token, (int) $item['ACEntryID']);
-            $item['PurchaseEntry'] = $purchase_entry;
-            $item['PurchaseEntryDetail'] = [
+            $purchase_entry = $this->purchase_entry($token, $accountId, (int) $item['doc']['ACEntryID']);
+            $purchase_entry_detail = $this->purchase_entry_detail($token, (int) $item['doc']['ACEntryID']);
+            $item['doc']['PurchaseEntry'] = $purchase_entry;
+            $item['doc']['PurchaseEntryDetail'] = [
                 'DocDate' => $purchase_entry_detail['DocDate'],
                 'Observations' => $purchase_entry_detail['Observations'],
                 'WarehouseCodes' => collect($purchase_entry_detail['WarehouseCodes'])
@@ -638,13 +638,11 @@ class AccountPayableSiigoController extends Controller
             ];
         }
 
-        return [$documentos, $recibos, $payload];
-
         $provider = $this->provider($token, $proveedor['MsThirdPartyID']);
 
-        return $conciliation = $this->save_conciliation($token, $payload);
+        $voucher = $this->save_conciliation($token, $payload);
 
-        /*$voucher = $this->search_conciliation($token, $voucher_id);
+        $voucher_id = $voucher['code'];
 
         $firma =  [
             'nombre' => 'Ninoska Fontalvo',
@@ -652,17 +650,17 @@ class AccountPayableSiigoController extends Controller
             'departamento' => 'Departamento de Cartera',
             'empresa' => 'Revent Calzado SAS',
             'celular' => '3222792893',
-        ];*/
+        ];
 
         $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
-        /*Mail::to(['camiloacacio16@gmail.com', ...$emails])->send(new AccountPayableAdvanceProviderSiigo($provider, $voucher, $firma, $observaciones, $voucher_id, $url));
+        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayableConciliationProviderSiigo($provider, $voucher, $documentos, $recibos, $firma, $observaciones, $voucher_id));
 
         return response()->json([
             'success' => true,
             'message' => 'Recibo de anticipo registrado correctamente.',
             'voucher_id' => $voucher_id,
             'voucher' => $voucher,
-        ]);*/
+        ]);
     }
 
     private function provider(string $token, string $uuid)
