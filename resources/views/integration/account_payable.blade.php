@@ -1584,7 +1584,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
     function isSelectable(doc) {
         let prefix = (doc.DuePrefix || '').toUpperCase();
-        return (prefix === 'FC' || prefix.startsWith('DES')) && !doc.IsAnnulled;
+        return (prefix === 'FC' || prefix === 'RM' || prefix.startsWith('DES')) && !doc.IsAnnulled;
     }
 
     function rowClassFor(doc) {

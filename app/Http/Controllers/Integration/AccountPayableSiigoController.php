@@ -24,6 +24,7 @@ class AccountPayableSiigoController extends Controller
     private const ACCOUNT_PAYABLE_ALLOWED_EMAILS = [
         'contabilidad@revent.com.co',
         'tecnologia@revent.com.co',
+        'reventcalzado@gmail.com'
     ];
 
     public function account_payable_access()
