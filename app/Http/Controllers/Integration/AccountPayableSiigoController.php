@@ -489,6 +489,9 @@ class AccountPayableSiigoController extends Controller
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
 
+        $warehouses = $this->warehouses($token);
+        $warehousesById = collect($warehouses)->keyBy('id');
+
         $type_receipt = $this->type_receipt($token, $request->input('tipo'));
 
         $account_documentos = $this->search_account($token, '22050501');
@@ -515,6 +518,7 @@ class AccountPayableSiigoController extends Controller
             "UseDocumentSupport" => $type_receipt['UseDocumentSupport']
         ];
 
+        $accountId = $proveedor['AccountID'];
         $observaciones = $request->input('observaciones');
         $Entry = [
             "ACEntryID" => -1,
@@ -615,6 +619,26 @@ class AccountPayableSiigoController extends Controller
             "Items" => $Items,
             "ModelType" => 21
         ];
+
+        foreach($documentos as &$item) {
+            $item = $item['doc'];
+            $purchase_entry = $this->purchase_entry($token, $accountId, (int) $item['ACEntryID']);
+            $purchase_entry_detail = $this->purchase_entry_detail($token, (int) $item['ACEntryID']);
+            $item['PurchaseEntry'] = $purchase_entry;
+            $item['PurchaseEntryDetail'] = [
+                'DocDate' => $purchase_entry_detail['DocDate'],
+                'Observations' => $purchase_entry_detail['Observations'],
+                'WarehouseCodes' => collect($purchase_entry_detail['WarehouseCodes'])
+                    ->map(function ($warehouseCode) use ($warehousesById) {
+                        $warehouse = $warehousesById->get($warehouseCode);
+                        return $warehouseCode . '-' . ($warehouse['name'] ?? '');
+                    })
+                    ->implode(', '),
+                'Quantity' => $purchase_entry_detail['Quantity'],
+            ];
+        }
+
+        return [$documentos, $recibos, $payload];
 
         $provider = $this->provider($token, $proveedor['MsThirdPartyID']);
 
