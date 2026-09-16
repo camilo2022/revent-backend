@@ -1686,6 +1686,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         searchInput.value = '';
         clearBtn.classList.remove('show');
         listEl.classList.remove('show');
+        favorAlert.classList.remove('show');
         requestToken++; // invalida cualquier fetch en curso
         currentProvider = null;
         resetView();
