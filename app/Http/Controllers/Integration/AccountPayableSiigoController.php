@@ -657,7 +657,7 @@ class AccountPayableSiigoController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Recibo de anticipo registrado correctamente.',
+            'message' => 'Cruce contable registrado correctamente.',
             'voucher_id' => $voucher_id,
             'voucher' => $voucher,
         ]);
