@@ -19,8 +19,9 @@ class InventoryFilterSiigoController extends Controller
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
         $warehouses = $this->warehouses($token);
+        $colorGroups = $this->color_groups();
 
-        return view('integration.inventory', compact('warehouses'));
+        return view('integration.inventory_filter', compact('warehouses', 'colorGroups'));
     }
 
     public function inventory_filter_search(Request $request)
@@ -121,7 +122,7 @@ class InventoryFilterSiigoController extends Controller
                     'id'         => $referencia,
                     'referencia' => $referencia,
                     'nombre'     => ucfirst(strtolower($referencia)),
-                    'categoria'  => ucfirst(strtolower($this->name_category($categoria))),
+                    'categoria'  => $this->name_category($categoria),
                     'genero'     => '',
                     'colores'    => [],
                 ];
@@ -134,10 +135,14 @@ class InventoryFilterSiigoController extends Controller
                 $colorInfo = $this->obtener_color($colorLimpio);
 
                 $agrupado[$referencia]['colores'][$color] = [
-                    'nombre' => ucfirst(strtolower($colorLimpio)),
-                    'codigo' => $colorInfo['codigo'],
-                    'hex'    => $colorInfo['hex'],
-                    'tallas' => [],
+                    'nombre'         => ucfirst(strtolower($colorLimpio)),
+                    'codigo'         => $colorInfo['codigo'],
+                    'hex'            => $colorInfo['hex'],
+                    // Familia/macrocategoría de color (p. ej. "NUDE / ARENA"),
+                    // usada por el frontend para agrupar colores parecidos
+                    // y para buscar alternativas cuando no hay stock exacto.
+                    'macrocategoria' => $colorInfo['macrocategoria'] ?? 'OTROS',
+                    'tallas'         => [],
                 ];
             }
 
@@ -189,198 +194,101 @@ class InventoryFilterSiigoController extends Controller
             }
         }
 
-        // Color no encontrado
+        // Color no encontrado en el catálogo
         return [
-            'nombre' => $nombre,
-            'codigo' => null,
-            'hex'    => '#000000',
+            'nombre'         => $nombre,
+            'codigo'         => null,
+            'hex'            => '#000000',
+            'macrocategoria' => 'OTROS',
         ];
     }
 
+    /**
+     * Catálogo de colores. Cada color pertenece a una "macrocategoria"
+     * (familia de color). Esto permite que el filtro del frontend agrupe
+     * colores similares y que las sugerencias de "sin stock" busquen
+     * primero dentro de la misma familia antes de mostrar cualquier color.
+     */
     private function colores(): array
     {
         return [
-            [
-                'nombre' => 'BLANCO',
-                'codigo' => 10,
-                'hex' => '#FFFFFF',
-            ],
-            [
-                'nombre' => 'TRANSPARENTE',
-                'codigo' => 13,
-                'hex' => '#F2F2F2',
-            ],
-            [
-                'nombre' => 'TIZA',
-                'codigo' => 16,
-                'hex' => '#F5F5F0',
-            ],
-            [
-                'nombre' => 'BEIGE',
-                'codigo' => 17,
-                'hex' => '#EDE9E3',
-            ],
-            [
-                'nombre' => 'CREMA',
-                'codigo' => 18,
-                'hex' => '#E8DCC3',
-            ],
-            [
-                'nombre' => 'PERLA',
-                'codigo' => 19,
-                'hex' => '#EDE9E3',
-            ],
-            [
-                'nombre' => 'CHAMPAÑA',
-                'codigo' => 21,
-                'hex' => '#F0DFC4',
-            ],
-            [
-                'nombre' => 'CRUDO',
-                'codigo' => 24,
-                'hex' => '#E8DCC3',
-            ],
-            [
-                'nombre' => 'VAINILLA',
-                'codigo' => 27,
-                'hex' => '#EED9AE',
-            ],
-            [
-                'nombre' => 'NUDE',
-                'codigo' => 30,
-                'hex' => '#E3C9A6',
-            ],
-            [
-                'nombre' => 'ARENA',
-                'codigo' => 33,
-                'hex' => '#D9C199',
-            ],
-            [
-                'nombre' => 'PLATA',
-                'codigo' => 36,
-                'hex' => '#C0C0C0',
-            ],
-            [
-                'nombre' => 'ORO ROSA',
-                'codigo' => 39,
-                'hex' => '#E0BFB8',
-            ],
-            [
-                'nombre' => 'DORADO',
-                'codigo' => 42,
-                'hex' => '#D4AF37',
-            ],
-            [
-                'nombre' => 'MIEL',
-                'codigo' => 44,
-                'hex' => '#C68E42',
-            ],
-            [
-                'nombre' => 'AREQUIPE',
-                'codigo' => 45,
-                'hex' => '#B08D57',
-            ],
-            [
-                'nombre' => 'CAMEL',
-                'codigo' => 47,
-                'hex' => '#C19A6B',
-            ],
-            [
-                'nombre' => 'KHAKI',
-                'codigo' => 50,
-                'hex' => '#C3B091',
-            ],
-            [
-                'nombre' => 'AMARETO',
-                'codigo' => 53,
-                'hex' => '#B4802F',
-            ],
-            [
-                'nombre' => 'YUTE',
-                'codigo' => 56,
-                'hex' => '#B08D57',
-            ],
-            [
-                'nombre' => 'CARAMELO',
-                'codigo' => 59,
-                'hex' => '#A9682B',
-            ],
-            [
-                'nombre' => 'ANIMAL CARAMELO',
-                'codigo' => 62,
-                'hex' => '#9C6B3E',
-            ],
-            [
-                'nombre' => 'ANIMAL PRINT',
-                'codigo' => 65,
-                'hex' => '#8B6B4A',
-            ],
-            [
-                'nombre' => 'VAQUITA',
-                'codigo' => 67,
-                'hex' => '#5A5250',
-            ],
-            [
-                'nombre' => 'OCRE',
-                'codigo' => 70,
-                'hex' => '#9C7A26',
-            ],
-            [
-                'nombre' => 'TAUPE',
-                'codigo' => 73,
-                'hex' => '#7A6A5D',
-            ],
-            [
-                'nombre' => 'BROWN',
-                'codigo' => 76,
-                'hex' => '#6B4423',
-            ],
-            [
-                'nombre' => 'CAFE',
-                'codigo' => 79,
-                'hex' => '#4B3621',
-            ],
-            [
-                'nombre' => 'BISTRO',
-                'codigo' => 82,
-                'hex' => '#4A3B2A',
-            ],
-            [
-                'nombre' => 'MOKA',
-                'codigo' => 85,
-                'hex' => '#3B2A1E',
-            ],
-            [
-                'nombre' => 'ROJO',
-                'codigo' => 88,
-                'hex' => '#B22222',
-            ],
-            [
-                'nombre' => 'VINO',
-                'codigo' => 90,
-                'hex' => '#5B1A1A',
-            ],
-            [
-                'nombre' => 'GRIS',
-                'codigo' => 92,
-                'hex' => '#666666',
-            ],
-            [
-                'nombre' => 'ANIMAL NEGRO',
-                'codigo' => 93,
-                'hex' => '#2B2523',
-            ],
-            [
-                'nombre' => 'OSCURO',
-                'codigo' => 96,
-                'hex' => '#2E2E2E',
-            ],
-            [
-                'nombre' => 'NEGRO',
-                'codigo' => 99,
-                'hex' => '#000000',
-            ],
+            // ANIMAL PRINT
+            ['nombre' => 'ANIMAL CARAMELO', 'codigo' => 62, 'hex' => '#9C6B3E', 'macrocategoria' => 'ANIMAL PRINT'],
+            ['nombre' => 'ANIMAL PRINT',    'codigo' => 65, 'hex' => '#8B6B4A', 'macrocategoria' => 'ANIMAL PRINT'],
+            ['nombre' => 'VAQUITA',         'codigo' => 67, 'hex' => '#5A5250', 'macrocategoria' => 'ANIMAL PRINT'],
+            ['nombre' => 'ANIMAL NEGRO',    'codigo' => 93, 'hex' => '#2B2523', 'macrocategoria' => 'ANIMAL PRINT'],
+
+            // BEIGE / CREMA
+            ['nombre' => 'BEIGE',         'codigo' => 17, 'hex' => '#EDE9E3', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'CREMA',         'codigo' => 18, 'hex' => '#E8DCC3', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'PERLA',         'codigo' => 19, 'hex' => '#EDE9E3', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'CRUDO',         'codigo' => 24, 'hex' => '#E8DCC3', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'BLANCO',        'codigo' => 10, 'hex' => '#FFFFFF', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'TRANSPARENTE',  'codigo' => 13, 'hex' => '#F2F2F2', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'TIZA',          'codigo' => 16, 'hex' => '#F5F5F0', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'PLATA',         'codigo' => 36, 'hex' => '#C0C0C0', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'GRIS',          'codigo' => 92, 'hex' => '#666666', 'macrocategoria' => 'BEIGE / CREMA'],
+
+            // CAFÉ / MARRÓN
+            ['nombre' => 'BROWN',  'codigo' => 76, 'hex' => '#6B4423', 'macrocategoria' => 'CAFÉ / MARRÓN'],
+            ['nombre' => 'CAFE',   'codigo' => 79, 'hex' => '#4B3621', 'macrocategoria' => 'CAFÉ / MARRÓN'],
+            ['nombre' => 'BISTRO', 'codigo' => 82, 'hex' => '#4A3B2A', 'macrocategoria' => 'CAFÉ / MARRÓN'],
+            ['nombre' => 'MOKA',   'codigo' => 85, 'hex' => '#3B2A1E', 'macrocategoria' => 'CAFÉ / MARRÓN'],
+
+            // CAMEL / CARAMELO
+            ['nombre' => 'MIEL',     'codigo' => 44, 'hex' => '#C68E42', 'macrocategoria' => 'CAMEL / CARAMELO'],
+            ['nombre' => 'AREQUIPE', 'codigo' => 45, 'hex' => '#B08D57', 'macrocategoria' => 'CAMEL / CARAMELO'],
+            ['nombre' => 'CAMEL',    'codigo' => 47, 'hex' => '#C19A6B', 'macrocategoria' => 'CAMEL / CARAMELO'],
+            ['nombre' => 'AMARETO',  'codigo' => 53, 'hex' => '#B4802F', 'macrocategoria' => 'CAMEL / CARAMELO'],
+            ['nombre' => 'YUTE',     'codigo' => 56, 'hex' => '#B08D57', 'macrocategoria' => 'CAMEL / CARAMELO'],
+            ['nombre' => 'CARAMELO', 'codigo' => 59, 'hex' => '#A9682B', 'macrocategoria' => 'CAMEL / CARAMELO'],
+            ['nombre' => 'TAUPE',    'codigo' => 73, 'hex' => '#7A6A5D', 'macrocategoria' => 'CAMEL / CARAMELO'],
+            ['nombre' => 'DORADO',   'codigo' => 42, 'hex' => '#D4AF37', 'macrocategoria' => 'CAMEL / CARAMELO'],
+            ['nombre' => 'OCRE',     'codigo' => 70, 'hex' => '#9C7A26', 'macrocategoria' => 'CAMEL / CARAMELO'],
+
+            // NEGRO / OSCUROS
+            ['nombre' => 'OSCURO', 'codigo' => 96, 'hex' => '#2E2E2E', 'macrocategoria' => 'NEGRO / OSCUROS'],
+            ['nombre' => 'NEGRO',  'codigo' => 99, 'hex' => '#000000', 'macrocategoria' => 'NEGRO / OSCUROS'],
+
+            // NUDE / ARENA
+            ['nombre' => 'CHAMPAÑA',  'codigo' => 21, 'hex' => '#F0DFC4', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'VAINILLA',  'codigo' => 27, 'hex' => '#EED9AE', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'NUDE',      'codigo' => 30, 'hex' => '#E3C9A6', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'ARENA',     'codigo' => 33, 'hex' => '#D9C199', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'KHAKI',     'codigo' => 50, 'hex' => '#C3B091', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'ORO ROSA',  'codigo' => 39, 'hex' => '#E0BFB8', 'macrocategoria' => 'NUDE / ARENA'],
+
+            ['nombre' => 'ROJO', 'codigo' => 88, 'hex' => '#B22222', 'macrocategoria' => 'ROJO / VINOTINTO'],
+            ['nombre' => 'VINO', 'codigo' => 90, 'hex' => '#5B1A1A', 'macrocategoria' => 'ROJO / VINOTINTO'],
         ];
+    }
+
+    /**
+     * Agrupa el catálogo de colores por macrocategoria, para poblar
+     * el filtro de color (familia -> colores) en el frontend.
+     */
+    private function color_groups(): array
+    {
+        $grupos = [];
+
+        foreach ($this->colores() as $color) {
+            $macro = $color['macrocategoria'];
+
+            if (!isset($grupos[$macro])) {
+                $grupos[$macro] = [
+                    'macrocategoria' => $macro,
+                    'colores'        => [],
+                ];
+            }
+
+            $grupos[$macro]['colores'][] = [
+                'nombre' => ucfirst(strtolower($color['nombre'])),
+                'codigo' => $color['codigo'],
+                'hex'    => $color['hex'],
+            ];
+        }
+
+        return array_values($grupos);
     }
 
     private function name_category(string $categoria): string

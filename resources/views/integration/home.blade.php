@@ -89,6 +89,7 @@
         .icon-orden-compra { background: #db2777; }
         .icon-fotos { background: #1f2937; }
         .icon-cuentas-pagar { background: #059669; }
+        .icon-tienda { background: #2563eb; }
 
         .report-body {
             flex: 1;
@@ -134,6 +135,7 @@
         .report-card:has(.icon-orden-compra) .report-action { color: #db2777; }
         .report-card:has(.icon-fotos) .report-action { color: #1f2937; }
         .report-card:has(.icon-cuentas-pagar) .report-action { color: #059669; }
+        .report-card:has(.icon-tienda) .report-action { color: #2563eb; }
 
         .report-action svg {
             width: 14px;
@@ -334,6 +336,27 @@
             <div class="report-footer">
                 <span class="report-action">
                     Ir a cuentas por pagar
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
+
+        <a href="{{ route('siigo.inventory_filter') }}" class="report-card">
+            <div class="report-icon icon-tienda">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l1-5h16l1 5"/>
+                    <path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/>
+                    <path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/>
+                    <path d="M9 21v-6h6v6"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Inventario por Tienda</div>
+                <div class="report-desc">Elige tu punto de venta y busca disponibilidad por referencia, color y talla en segundos.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Consultar inventario
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </span>
             </div>

@@ -304,6 +304,19 @@
             font-size: 1rem;
         }
 
+        .filtro-label {
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .3px;
+            text-transform: uppercase;
+            color: #9ca3af;
+            margin: 0 0 .4rem;
+        }
+
+        .filtro-bloque {
+            margin-bottom: 1rem;
+        }
+
         .chips {
             display: flex;
             gap: .5rem;
@@ -312,6 +325,9 @@
         }
 
         .chip {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
             padding: .4rem .9rem;
             border-radius: 999px;
             border: 1.5px solid #d1d5db;
@@ -326,6 +342,20 @@
             background: #16a34a;
             border-color: #16a34a;
             color: #fff;
+        }
+
+        .chip-color.activo {
+            background: #f0fdf4;
+            border-color: #16a34a;
+            color: #15803d;
+        }
+
+        .chip-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, .15);
+            flex-shrink: 0;
         }
 
         .contador {
@@ -429,6 +459,11 @@
             border-color: #16a34a;
             background: #f0fdf4;
             color: #15803d;
+        }
+
+        .color-tab.coincide {
+            border-color: #d97706;
+            box-shadow: 0 0 0 1px #d97706 inset;
         }
 
         .color-dot {
@@ -781,6 +816,7 @@
     <script>
         window.WAREHOUSES = @json($warehouses ?? []);
         window.PRODUCTOS_INICIALES = @json($productos ?? []);
+        window.COLOR_GROUPS = @json($colorGroups ?? []);
         window.INVENTORY_FILTER_URL = "{{ route('siigo.inventory_filter_search') }}";
     </script>
 
@@ -989,25 +1025,123 @@
                             </div>
 
 
-                            {{-- CATEGORÍAS --}}
+                            {{-- CATEGORÍAS DE PRODUCTO --}}
 
-                            <div class="chips">
+                            <div class="filtro-bloque">
 
-                                <template
-                                    x-for="c in categorias"
-                                    :key="c">
+                                <p class="filtro-label">
+                                    Tipo de producto
+                                </p>
 
-                                    <button
-                                        type="button"
-                                        class="chip"
-                                        :class="{ activo: c === categoria }"
-                                        @click="categoria = c"
-                                        x-text="c">
-                                    </button>
+                                <div class="chips">
 
-                                </template>
+                                    <template
+                                        x-for="c in categorias"
+                                        :key="c">
+
+                                        <button
+                                            type="button"
+                                            class="chip"
+                                            :class="{ activo: c === categoria }"
+                                            @click="categoria = c"
+                                            x-text="c">
+                                        </button>
+
+                                    </template>
+
+                                </div>
 
                             </div>
+
+
+                            {{-- FAMILIA DE COLOR --}}
+
+                            <template x-if="macroCategorias.length > 1">
+
+                                <div class="filtro-bloque">
+
+                                    <p class="filtro-label">
+                                        Familia de color
+                                    </p>
+
+                                    <div class="chips">
+
+                                        <template
+                                            x-for="m in macroCategorias"
+                                            :key="m">
+
+                                            <button
+                                                type="button"
+                                                class="chip"
+                                                :class="{ activo: m === macroColor }"
+                                                @click="seleccionarMacro(m)"
+                                                x-text="m">
+                                            </button>
+
+                                        </template>
+
+                                    </div>
+
+                                </div>
+
+                            </template>
+
+
+                            {{-- COLOR ESPECÍFICO (dentro de la familia elegida) --}}
+
+                            <template
+                                x-if="macroColor !== 'Todos' && coloresDelMacro.length > 0">
+
+                                <div class="filtro-bloque">
+
+                                    <p class="filtro-label">
+                                        Color
+                                    </p>
+
+                                    <div class="chips">
+
+                                        <button
+                                            type="button"
+                                            class="chip chip-color"
+                                            :class="{ activo: !colorEspecifico }"
+                                            @click="colorEspecifico = null">
+
+                                            Todos
+
+                                        </button>
+
+
+                                        <template
+                                            x-for="c in coloresDelMacro"
+                                            :key="c.nombre">
+
+                                            <button
+                                                type="button"
+                                                class="chip chip-color"
+                                                :class="{
+                                                    activo:
+                                                        colorEspecifico &&
+                                                        normalizarTexto(colorEspecifico) ===
+                                                            normalizarTexto(c.nombre)
+                                                }"
+                                                @click="seleccionarColorEspecifico(c.nombre)">
+
+                                                <span
+                                                    class="chip-swatch"
+                                                    :style="{ background: c.hex || '#9CA3AF' }">
+                                                </span>
+
+                                                <span x-text="c.nombre"></span>
+
+                                            </button>
+
+                                        </template>
+
+                                    </div>
+
+                                </div>
+
+                            </template>
 
 
                             {{-- CONTADOR --}}
@@ -1164,7 +1298,8 @@
                                                         class="color-tab"
                                                         :class="{
                                                             activo:
-                                                                (colorSeleccionado[p.id] ?? 0) === i
+                                                                (colorSeleccionado[p.id] ?? 0) === i,
+                                                            coincide: coincideFiltroColor(c)
                                                         }"
                                                         @click="
                                                             colorSeleccionado[p.id] = i
@@ -1558,6 +1693,8 @@
 
                 warehouses: window.WAREHOUSES || [],
 
+                colorGroups: window.COLOR_GROUPS || [],
+
                 csrfToken:
                     document.querySelector(
                         'meta[name="csrf-token"]'
@@ -1575,6 +1712,11 @@
                 query: '',
 
                 categoria: 'Todos',
+
+                // Filtro de color: familia (macrocategoria) + color específico opcional
+                macroColor: 'Todos',
+
+                colorEspecifico: null,
 
                 colorSeleccionado: {},
 
@@ -1605,6 +1747,133 @@
 
 
                 /* ======================================================
+                   INIT
+                   Cuando cambia el filtro de color, movemos la pestaña de
+                   color activa de cada tarjeta hacia el color que coincide
+                   con el filtro (si existe), para que se vea de inmediato.
+                ======================================================= */
+
+                init() {
+
+                    this.$watch(
+                        'macroColor',
+                        () => this.aplicarColorAFiltrados()
+                    );
+
+                    this.$watch(
+                        'colorEspecifico',
+                        () => this.aplicarColorAFiltrados()
+                    );
+
+                },
+
+
+                aplicarColorAFiltrados() {
+
+                    this.productos.forEach(p => {
+
+                        if (
+                            !p ||
+                            !Array.isArray(p.colores) ||
+                            p.colores.length === 0
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        if (this.macroColor === 'Todos') {
+
+                            return;
+
+                        }
+
+
+                        // Preferimos un color que coincida con el filtro y
+                        // que además tenga stock; si no hay con stock,
+                        // usamos el primero que coincida.
+
+                        let idx = p.colores.findIndex(
+                            c => this.coincideFiltroColor(c) &&
+                                this.totalColor(c) > 0
+                        );
+
+                        if (idx === -1) {
+
+                            idx = p.colores.findIndex(
+                                c => this.coincideFiltroColor(c)
+                            );
+
+                        }
+
+
+                        if (idx !== -1) {
+
+                            this.colorSeleccionado[p.id] = idx;
+
+                        }
+
+                    });
+
+                },
+
+
+                /* ======================================================
+                   NORMALIZAR TEXTO (para comparar colores sin tildes/caja)
+                ======================================================= */
+
+                normalizarTexto(t) {
+
+                    return String(t || '')
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .toUpperCase()
+                        .trim();
+
+                },
+
+
+                /* ======================================================
+                   ¿ESTE COLOR COINCIDE CON EL FILTRO ACTIVO?
+                ======================================================= */
+
+                coincideFiltroColor(c) {
+
+                    if (!c || this.macroColor === 'Todos') {
+
+                        return false;
+
+                    }
+
+
+                    const macroOk =
+                        this.normalizarTexto(c.macrocategoria) ===
+                        this.normalizarTexto(this.macroColor);
+
+                    if (!macroOk) {
+
+                        return false;
+
+                    }
+
+
+                    if (!this.colorEspecifico) {
+
+                        return true;
+
+                    }
+
+
+                    return (
+                        this.normalizarTexto(c.nombre) ===
+                        this.normalizarTexto(this.colorEspecifico)
+                    );
+
+                },
+
+
+                /* ======================================================
                    SELECCIONAR TIENDA
                 ======================================================= */
 
@@ -1621,6 +1890,10 @@
                     this.query = '';
 
                     this.categoria = 'Todos';
+
+                    this.macroColor = 'Todos';
+
+                    this.colorEspecifico = null;
 
                     this.colorSeleccionado = {};
 
@@ -1645,6 +1918,10 @@
 
                     this.categoria = 'Todos';
 
+                    this.macroColor = 'Todos';
+
+                    this.colorEspecifico = null;
+
                     this.colorSeleccionado = {};
 
                     this.error = null;
@@ -1664,6 +1941,74 @@
                         colorNombre: '',
 
                     };
+
+                },
+
+
+                /* ======================================================
+                   FILTRO DE COLOR: FAMILIAS Y COLORES DISPONIBLES
+                ======================================================= */
+
+                get macroCategorias() {
+
+                    const macros =
+                        [
+                            ...new Set(
+                                this.colorGroups
+                                    .map(g => g.macrocategoria)
+                                    .filter(Boolean)
+                            )
+                        ];
+
+
+                    return [
+                        'Todos',
+                        ...macros
+                    ];
+
+                },
+
+
+                get coloresDelMacro() {
+
+                    if (this.macroColor === 'Todos') {
+
+                        return [];
+
+                    }
+
+
+                    const grupo = this.colorGroups.find(
+                        g =>
+                            this.normalizarTexto(g.macrocategoria) ===
+                            this.normalizarTexto(this.macroColor)
+                    );
+
+
+                    return grupo?.colores || [];
+
+                },
+
+
+                seleccionarMacro(m) {
+
+                    this.macroColor = m;
+
+                    this.colorEspecifico = null;
+
+                },
+
+
+                seleccionarColorEspecifico(nombre) {
+
+                    this.colorEspecifico =
+                        (
+                            this.colorEspecifico &&
+                            this.normalizarTexto(this.colorEspecifico) ===
+                                this.normalizarTexto(nombre)
+                        )
+                            ? null
+                            : nombre;
 
                 },
 
@@ -1797,6 +2142,9 @@
 
                                 hex:
                                     c.hex || '#9CA3AF',
+
+                                macrocategoria:
+                                    c.macrocategoria || 'OTROS',
 
                                 tallas:
                                     c.tallas &&
@@ -1963,7 +2311,7 @@
 
 
                 /* ======================================================
-                   CATEGORÍAS
+                   CATEGORÍAS DE PRODUCTO
                 ======================================================= */
 
                 get categorias() {
@@ -1990,6 +2338,8 @@
 
                 /* ======================================================
                    RESULTADOS
+                   Aplica: categoría de producto, familia/color de color
+                   y texto de búsqueda libre.
                 ======================================================= */
 
                 get resultados() {
@@ -2008,6 +2358,28 @@
                         ) {
 
                             return false;
+
+                        }
+
+
+                        // Filtro por familia de color / color específico:
+                        // el producto debe tener AL MENOS un color que
+                        // coincida (no importa si está agotado, para que
+                        // el usuario vea igual el producto y las
+                        // sugerencias de alternativas).
+
+                        if (this.macroColor !== 'Todos') {
+
+                            const tieneColor =
+                                p.colores.some(
+                                    c => this.coincideFiltroColor(c)
+                                );
+
+                            if (!tieneColor) {
+
+                                return false;
+
+                            }
 
                         }
 
@@ -2048,6 +2420,14 @@
                             p.colores.some(c =>
                                 String(
                                     c.nombre || ''
+                                )
+                                .toLowerCase()
+                                .includes(q)
+
+                                ||
+
+                                String(
+                                    c.macrocategoria || ''
                                 )
                                 .toLowerCase()
                                 .includes(q)
@@ -2150,6 +2530,19 @@
 
                 /* ======================================================
                    SUGERENCIAS
+
+                   Orden de prioridad al buscar alternativas cuando el
+                   color elegido está sin stock:
+
+                   1. Mismo producto, otro color con stock.
+                   2. Misma categoría + EXACTAMENTE el mismo nombre de
+                      color, con stock.
+                   3. Misma categoría + MISMA FAMILIA de color
+                      (macrocategoria), con stock. Así, si buscan "Nude"
+                      y no hay, se sugiere "Vainilla" o "Arena" antes de
+                      mostrar cualquier cosa.
+                   4. Si aún no hay nada: misma categoría, cualquier
+                      color con stock.
                 ======================================================= */
 
                 sugerenciasPara(
@@ -2158,6 +2551,8 @@
                 ) {
 
                     const sugerencias = [];
+
+                    const vistos = new Set();
 
 
                     if (
@@ -2170,8 +2565,30 @@
                     }
 
 
+                    const agregar = (p, c, motivo) => {
+
+                        const clave =
+                            p.id + '|' + c.nombre;
+
+                        if (vistos.has(clave)) {
+
+                            return;
+
+                        }
+
+                        vistos.add(clave);
+
+                        sugerencias.push({
+                            producto: p,
+                            color: c,
+                            motivo,
+                        });
+
+                    };
+
+
                     /* -----------------------------------------------
-                       MISMO PRODUCTO / OTROS COLORES
+                       1. MISMO PRODUCTO / OTROS COLORES
                     ------------------------------------------------ */
 
                     if (
@@ -2187,16 +2604,11 @@
                                 this.totalColor(c) > 0
                             ) {
 
-                                sugerencias.push({
-
+                                agregar(
                                     producto,
-
-                                    color: c,
-
-                                    motivo:
-                                        `Mismo modelo en ${c.nombre}`
-
-                                });
+                                    c,
+                                    `Mismo modelo en ${c.nombre}`
+                                );
 
                             }
 
@@ -2206,36 +2618,15 @@
 
 
                     /* -----------------------------------------------
-                       MISMA CATEGORÍA / MISMO COLOR
+                       2. MISMA CATEGORÍA / MISMO COLOR EXACTO
                     ------------------------------------------------ */
 
                     this.productos.forEach(p => {
 
-                        if (!p) {
-                            return;
-                        }
-
-
                         if (
-                            p.id === producto.id
-                        ) {
-
-                            return;
-
-                        }
-
-
-                        if (
-                            p.categoria !==
-                            producto.categoria
-                        ) {
-
-                            return;
-
-                        }
-
-
-                        if (
+                            !p ||
+                            p.id === producto.id ||
+                            p.categoria !== producto.categoria ||
                             !Array.isArray(p.colores)
                         ) {
 
@@ -2252,30 +2643,20 @@
 
 
                             if (
-                                String(
-                                    c.nombre || ''
-                                )
-                                .toLowerCase() ===
-                                String(
-                                    colorSeleccionado.nombre || ''
-                                )
-                                .toLowerCase() &&
-
+                                this.normalizarTexto(c.nombre) ===
+                                    this.normalizarTexto(
+                                        colorSeleccionado.nombre
+                                    ) &&
                                 this.totalColor(c) > 0
                             ) {
 
-                                sugerencias.push({
-
-                                    producto: p,
-
-                                    color: c,
-
-                                    motivo:
-                                        `${c.nombre} en ${String(
-                                            p.categoria || ''
-                                        ).toLowerCase()}`
-
-                                });
+                                agregar(
+                                    p,
+                                    c,
+                                    `${c.nombre} en ${String(
+                                        p.categoria || ''
+                                    ).toLowerCase()}`
+                                );
 
                             }
 
@@ -2285,40 +2666,72 @@
 
 
                     /* -----------------------------------------------
-                       SI NO HAY SUGERENCIAS
+                       3. MISMA CATEGORÍA / MISMA FAMILIA DE COLOR
                     ------------------------------------------------ */
 
-                    if (
-                        sugerencias.length === 0
-                    ) {
+                    if (sugerencias.length < 4) {
+
+                        const familia =
+                            colorSeleccionado.macrocategoria || null;
+
+                        if (familia) {
+
+                            this.productos.forEach(p => {
+
+                                if (
+                                    !p ||
+                                    p.categoria !== producto.categoria ||
+                                    !Array.isArray(p.colores)
+                                ) {
+
+                                    return;
+
+                                }
+
+
+                                p.colores.forEach(c => {
+
+                                    if (
+                                        c &&
+                                        this.normalizarTexto(
+                                            c.macrocategoria
+                                        ) ===
+                                            this.normalizarTexto(familia) &&
+                                        this.totalColor(c) > 0
+                                    ) {
+
+                                        agregar(
+                                            p,
+                                            c,
+                                            `Mismo tono (${familia}) en ${String(
+                                                p.categoria || ''
+                                            ).toLowerCase()}`
+                                        );
+
+                                    }
+
+                                });
+
+                            });
+
+                        }
+
+                    }
+
+
+                    /* -----------------------------------------------
+                       4. SI SIGUE SIN HABER NADA: CUALQUIER COLOR
+                          DE LA MISMA CATEGORÍA CON STOCK
+                    ------------------------------------------------ */
+
+                    if (sugerencias.length === 0) {
 
                         this.productos.forEach(p => {
 
-                            if (!p) {
-                                return;
-                            }
-
-
                             if (
-                                p.id === producto.id
-                            ) {
-
-                                return;
-
-                            }
-
-
-                            if (
-                                p.categoria !==
-                                producto.categoria
-                            ) {
-
-                                return;
-
-                            }
-
-
-                            if (
+                                !p ||
+                                p.id === producto.id ||
+                                p.categoria !== producto.categoria ||
                                 !Array.isArray(p.colores)
                             ) {
 
@@ -2334,18 +2747,13 @@
                                     this.totalColor(c) > 0
                                 ) {
 
-                                    sugerencias.push({
-
-                                        producto: p,
-
-                                        color: c,
-
-                                        motivo:
-                                            `Otra opción en ${String(
-                                                p.categoria || ''
-                                            ).toLowerCase()}`
-
-                                    });
+                                    agregar(
+                                        p,
+                                        c,
+                                        `Otra opción en ${String(
+                                            p.categoria || ''
+                                        ).toLowerCase()}`
+                                    );
 
                                 }
 
