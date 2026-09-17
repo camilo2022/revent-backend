@@ -124,7 +124,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 if(!empty($validate)) continue;
                 $traslados[] = $traslado;
 
-                if ($traslado['data']['bodega_salida_data'] && !empty($traslado['data']['bodega_salida_data']['emails'] ?? [])) {
+                /*if ($traslado['data']['bodega_salida_data'] && !empty($traslado['data']['bodega_salida_data']['emails'] ?? [])) {
                     $emails = $traslado['data']['bodega_salida_data']['emails'] ?? [];
 
                     if (!empty($emails)) {
@@ -138,8 +138,34 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                     if (!empty($emails)) {
                         Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-entrance-siigo'));
                     }
-                }
+                }*/
             }
+        }
+
+        $trasladosPorSalida = collect($traslados)
+            ->groupBy(function ($traslado) {
+                return $traslado['data']['bodega_salida'];
+            });
+
+        foreach ($trasladosPorSalida as $trasladosSalida) {
+            $bodegaSalida = $trasladosSalida->first()['data']['bodega_salida_data'] ?? null;
+            if (!$bodegaSalida) continue;
+            $emails = $bodegaSalida['emails'] ?? [];
+            if (empty($emails)) continue;
+            Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $trasladosSalida->values()->all(), template_view: 'email.masive-transfer-exit-siigo'));
+        }
+
+        $trasladosPorEntrada = collect($traslados)
+            ->groupBy(function ($traslado) {
+                return $traslado['data']['bodega_ingreso'];
+            });
+
+        foreach ($trasladosPorEntrada as $trasladosEntrada) {
+            $bodegaEntrada = $trasladosEntrada->first()['data']['bodega_ingreso_data'] ?? null;
+            if (!$bodegaEntrada) continue;
+            $emails = $bodegaEntrada['emails'] ?? [];
+            if (empty($emails)) continue;
+            Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $trasladosEntrada->values()->all(), template_view: 'email.masive-transfer-entrance-siigo'));
         }
 
         $this->notificarResultado($traslados, $errors);
