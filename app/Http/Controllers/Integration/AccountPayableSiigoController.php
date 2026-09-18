@@ -70,35 +70,9 @@ class AccountPayableSiigoController extends Controller
 
         $bank_accounts = $this->bank_accounts($token);
 
-        $providers = $this->accounts_payable_providers($token);
-
         $type_documents = $this->type_documents($token);
 
-        /*foreach ($providers as &$provider) {
-            $uuid = $provider['MsThirdPartyID'] ?? null;
-
-            if (!$uuid) {
-                $provider['CompanyName'] = null;
-                continue;
-            }
-
-            $cacheKey = 'siigo_provider_company_name_' . $uuid;
-            $companyName = Cache::get($cacheKey);
-            if ($companyName === null) {
-                $data = $this->provider($token, $uuid);
-                $companyName = data_get($data, 'BasicData.CompanyName');
-
-                if ($companyName !== null) {
-                    Cache::put($cacheKey, $companyName, now()->addDays(7));
-                }
-            }
-
-            $provider['CompanyName'] = $companyName;
-        }
-
-        unset($provider);*/
-
-        return view('integration.account_payable', compact( 'providers', 'type_receipt', 'bank_accounts', 'type_documents'));
+        return view('integration.account_payable', compact('type_receipt', 'bank_accounts', 'type_documents'));
     }
 
     public function account_payable_documents(Request $request, int $accountId)
@@ -107,16 +81,32 @@ class AccountPayableSiigoController extends Controller
         $token = $siigo->auth();
 
         if($request->input('type') == 'payment') {
+            Carbon::setLocale('es');
 
             $payments = $this->payments_documents($token, $accountId);
+
             $payments = collect($payments)
                 ->map(function ($payment) use ($token) {
-                    $detail = $this->payment_entry($token, (int) $payment['ACEntryID']);
+                    //$detail = $this->payment_entry((int) $payment['ACEntryID']);
                     $payment['Link'] = "https://siigonube.siigo.com/#/paymentsv2/1016/view/{$payment['ACEntryID']}";
-                    $payment['Detail'] = $detail;
+                    //$payment['Detail'] = $detail;
 
                     return $payment;
-                })->values()->toArray();
+                })
+                ->groupBy(function ($payment) {
+                    return Carbon::parse($payment['DocDate'])->format('Y-m');
+                })
+                ->map(function ($payments, $periodo) {
+                    $fecha = Carbon::createFromFormat('Y-m', $periodo);
+
+                    return [
+                        'mes' => ucfirst($fecha->translatedFormat('F Y')),
+                        'total' => $payments->sum('TotalValue'),
+                        'detalles' => $payments->values()->toArray(),
+                    ];
+                })
+                ->values()
+                ->toArray();
 
             return response()->json([
                 'payments' => $payments,
@@ -350,7 +340,7 @@ class AccountPayableSiigoController extends Controller
         ];
 
         $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
-        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $documentos, $firma, $observaciones, $voucher_id, $url));
+        Mail::to(['camiloacacio16@gmail.com', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $documentos, $firma, $observaciones, $voucher_id, $url));
 
         return response()->json([
             'success' => true,
@@ -879,8 +869,11 @@ class AccountPayableSiigoController extends Controller
         return $response->json();
     }
 
-    private function accounts_payable_providers(string $token)
+    public function accounts_payable_providers()
     {
+        $siigo = new SiigoInventoryService();
+        $token = $siigo->auth();
+
         $filterCriterias = [
             [
                 'Field' => '_AccountID',
@@ -928,8 +921,9 @@ class AccountPayableSiigoController extends Controller
                 'Error consultando cuentas por pagar a proveedores: ' . $response->body()
             );
         }
-
-        return $response->json('data.Value.Table');
+        return response()->json([
+            'providers' => $response->json('data.Value.Table'),
+        ]);
     }
 
     private function accounts_payable_documents(string $token, int $accountId)
@@ -1152,7 +1146,7 @@ class AccountPayableSiigoController extends Controller
         $total = null;
         $rows = [];
 
-        $fechaInicio = now()->subMonths(2);
+        $fechaInicio = now()->startOfYear();
         $fechaFin = now();
 
         $source = collect(range(2015, $fechaFin->year))
@@ -1336,18 +1330,18 @@ class AccountPayableSiigoController extends Controller
         ];
     }
 
-    private function payment_entry(string $token, int $acEntryId): string
+    public function payment_html(int $acEntryId): string
     {
+        $siigo = new SiigoInventoryService();
+        $token = $siigo->auth();
+
         $response = Http::withToken($token)
             ->acceptJson()
             ->timeout(600)
-            ->get(
-                'https://services.siigo.com/document/api/v2/document-view/GetHtmlView',
-                [
-                    'ACEntryID' => $acEntryId,
-                    'IsBase64' => 'false',
-                ]
-            );
+            ->get('https://services.siigo.com/document/api/v2/document-view/GetHtmlView', [
+                'ACEntryID' => $acEntryId,
+                'IsBase64' => 'false',
+            ]);
 
         if (!$response->successful()) {
             throw new \Exception('Error consultando detalle de pago ' . $acEntryId . ': ' . $response->body());

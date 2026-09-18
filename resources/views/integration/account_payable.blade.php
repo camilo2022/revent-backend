@@ -30,7 +30,7 @@
     }
 
     .title {
-        font-size: 1.2rem;
+        font-size: 1.5rem;
         font-weight: 700;
         color: #1f2937;
         margin-bottom: 0.3rem;
@@ -42,7 +42,7 @@
         margin-bottom: 1.5rem;
     }
 
-    /* ---- Combobox proveedor ---- */
+    /* ---- Inputs ---- */
     .field-group {
         margin-bottom: 1.4rem;
         position: relative;
@@ -57,13 +57,9 @@
         margin-bottom: 0.4rem;
     }
 
-    .combo-input-wrap {
-        position: relative;
-    }
-
     .combo-input {
         width: 100%;
-        padding: 0.65rem 2.2rem 0.65rem 0.85rem;
+        padding: 0.65rem 0.85rem;
         font-size: 0.88rem;
         color: #1f2937;
         background: #f9fafb;
@@ -77,6 +73,39 @@
         cursor: pointer;
     }
 
+    .btn-expand-payment {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        margin: 0;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .btn-expand-payment:hover {
+        background: #f1f5f9;
+        color: #2563eb;
+    }
+
+    .btn-expand-payment:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .btn-expand-payment .expand-icon {
+        width: 20px;
+        height: 20px;
+        transition: transform 0.2s ease;
+    }
+
     .combo-input::placeholder { color: #9ca3af; }
 
     .combo-input:focus {
@@ -85,76 +114,68 @@
         background: #ffffff;
     }
 
-    .combo-clear {
-        position: absolute;
-        right: 0.6rem;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: #9ca3af;
-        cursor: pointer;
-        font-size: 1.1rem;
-        line-height: 1;
-        display: none;
-        padding: 0.15rem;
+    /* ---- Tabla de proveedores ---- */
+    .providers-toolbar {
+        display: flex;
+        gap: 0.8rem;
+        margin-bottom: 1.1rem;
+        align-items: center;
     }
 
-    .combo-clear.show { display: block; }
-    .combo-clear:hover { color: #ef4444; }
+    .providers-toolbar .combo-input { max-width: 480px; }
+    .providers-toolbar select.combo-input { max-width: 110px; }
 
-    .combo-list {
+    .provider-row { cursor: pointer; }
+    .provider-row:hover td { background: #f0fdf4; }
+    .provider-sub { font-size: 0.72rem; color: #9ca3af; margin-top: 0.1rem; }
+
+    .pagination {
         display: none;
-        position: absolute;
-        z-index: 30;
-        top: calc(100% + 6px);
-        left: 0;
-        right: 0;
-        max-height: 300px;
-        overflow-y: auto;
-        background: #ffffff;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        margin-top: 1rem;
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+
+    .pagination-buttons { display: flex; gap: 0.3rem; align-items: center; }
+
+    .page-btn {
+        min-width: 34px;
+        height: 34px;
+        padding: 0 0.5rem;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        cursor: pointer;
+    }
+
+    .page-btn:hover:not(:disabled) { background: #f0fdf4; border-color: #16a34a; }
+    .page-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-dots { padding: 0 0.3rem; color: #9ca3af; }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #f3f4f6;
         border: 1px solid #e5e7eb;
         border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .combo-list.show { display: block; }
-
-    .combo-option {
-        padding: 0.6rem 0.85rem;
-        font-size: 0.85rem;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.6rem;
-        border-bottom: 1px solid #f6f7f8;
-    }
-
-    .combo-option:last-child { border-bottom: none; }
-    .combo-option:hover, .combo-option.active { background: #f0fdf4; }
-
-    .combo-option-name {
-        color: #1f2937;
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .combo-option-id {
-        color: #9ca3af;
-        font-size: 0.75rem;
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
-
-    .combo-empty {
-        padding: 0.85rem;
+        padding: 0.5rem 0.9rem;
         font-size: 0.82rem;
-        color: #9ca3af;
-        text-align: center;
+        font-weight: 600;
+        color: #374151;
+        cursor: pointer;
+        margin-bottom: 1.2rem;
     }
+
+    .btn-back:hover { background: #e5e7eb; }
 
     /* ---- Toggle "información completa" ---- */
     .all-data-toggle {
@@ -281,7 +302,7 @@
     .tab-panel { display: none; }
     .tab-panel.show { display: block; }
 
-    /* ---- Loading de documentos / pagos ---- */
+    /* ---- Loading ---- */
     .loading-state {
         display: none;
         flex-direction: column;
@@ -310,7 +331,7 @@
         font-weight: 500;
     }
 
-    /* ---- Tabla de documentos ---- */
+    /* ---- Tablas ---- */
     .docs-wrap { display: none; }
     .docs-wrap.show { display: block; }
 
@@ -612,7 +633,7 @@
     .back-link:hover { text-decoration: underline; }
     .back-link svg { width: 15px; height: 15px; }
 
-    /* ---- Modal de recibo de pago / anticipo ---- */
+    /* ---- Modales ---- */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -944,6 +965,7 @@
 
     .cover-full { color: #16a34a !important; font-weight: 700; }
     .cover-partial { color: #c2410c !important; font-weight: 700; }
+    .cover-expired { color: #c20c0c !important; font-weight: 700; }
     .cover-none { color: #9ca3af !important; font-weight: 600; }
 
     .conciliation-summary {
@@ -973,7 +995,7 @@
             border-radius: 12px;
         }
 
-        .title { font-size: 1.05rem; }
+        .title { font-size: 1.5rem; }
         .subtitle { font-size: 0.8rem; margin-bottom: 1.2rem; }
 
         .field-group { max-width: 100%; }
@@ -1059,6 +1081,10 @@
 
         .tabs-bar { gap: 0.2rem; }
         .tab-btn { padding: 0.55rem 0.8rem; font-size: 0.8rem; }
+
+        .providers-toolbar { flex-direction: column; align-items: stretch; }
+        .providers-toolbar .combo-input,
+        .providers-toolbar select.combo-input { max-width: 100%; }
     }
 </style>
 </head>
@@ -1066,153 +1092,192 @@
 
 <div class="wrapper">
     <div class="card">
-        <div class="title">Cuentas por pagar</div>
-        <div class="subtitle">
-            Busca un proveedor para ver su saldo general y el detalle de facturas, novedades y descuentos.
-        </div>
 
-        <div class="field-group">
-            <label class="field-label" for="providerSearch">Proveedor</label>
-            <div class="combo-input-wrap">
+        <!-- ===== VISTA 1: listado de proveedores ===== -->
+        <div id="providersView">
+            <div class="title">Cuentas por pagar</div>
+            <div class="subtitle">Selecciona un proveedor para gestionar sus documentos y pagos.</div>
+
+            <div class="providers-toolbar">
                 <input
                     type="text"
                     id="providerSearch"
                     class="combo-input"
-                    placeholder="Busca por nombre o identificación..."
+                    placeholder="Filtrar por nombre o identificación..."
                     autocomplete="off"
                 >
-                <button type="button" class="combo-clear" id="providerClear">&times;</button>
-                <div class="combo-list" id="providerList"></div>
+                <select id="providerPageSize" class="combo-input">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+
+            <div class="loading-state" id="providersLoading">
+                <div class="spinner"></div>
+                <div class="loading-text">Cargando proveedores...</div>
+            </div>
+
+            <div class="error-state" id="providersError" style="display:none;">
+                No se pudieron cargar los proveedores.
+                <button type="button" class="btn-secondary" id="providersRetry" style="margin-left:.6rem;">Reintentar</button>
+            </div>
+
+            <div class="docs-scroll" id="providersScroll" style="display:none;">
+                <table class="docs-table" style="min-width: 820px;">
+                    <thead>
+                        <tr>
+                            <th>Proveedor</th>
+                            <th>Identificación</th>
+                            <th style="text-align:right;">Por vencer</th>
+                            <th style="text-align:right;">Vencido</th>
+                            <th style="text-align:right;">A favor</th>
+                            <th style="text-align:right;">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="providersBody"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="providersPagination">
+                <span id="providersInfo"></span>
+                <div class="pagination-buttons" id="providersPages"></div>
             </div>
         </div>
 
-        <label class="all-data-toggle">
-            <input type="checkbox" id="allDataCheck">
-            Cargar información completa (orden de compra, bodegas, observaciones)
-            <span class="hint">— consulta más lenta</span>
-        </label>
+        <!-- ===== VISTA 2: detalle del proveedor ===== -->
+        <div id="detailView" style="display:none;">
+            <button type="button" class="btn-back" id="btnBackToProviders">← Volver a proveedores</button>
 
-        <div class="legend" id="legend">
-            <span class="legend-item"><span class="legend-dot" style="background:#fca5a5"></span>NOV1 · Faltantes</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#86efac"></span>NOV2 · Sobrantes</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#93c5fd"></span>NOV3 · Trocados</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#fdba74"></span>NOV4 · Corrección de factura</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#fde047"></span>NOV5 · Mercancia mal estado</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#d8b4fe"></span>DES1 · Descuento</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#d1d5db"></span>RP · Recibo de pago</span>
-        </div>
+            <div class="title" id="detailProviderName"></div>
+            <div class="subtitle" id="detailProviderId"></div>
 
-        <div class="summary-grid" id="summaryGrid">
-            <div class="summary-card summary-deuda">
-                <div class="amount" id="sumDeuda">$0</div>
-                <div class="label">Deuda por pagar</div>
-            </div>
-            <div class="summary-card summary-favor">
-                <div class="amount" id="sumFavor">$0</div>
-                <div class="label">Valor a favor</div>
-            </div>
-            <div class="summary-card summary-saldo">
-                <div class="amount" id="sumSaldo">$0</div>
-                <div class="label">Saldo proveedor</div>
-            </div>
-            <div class="summary-card summary-vencido">
-                <div class="amount" id="sumVencido">$0</div>
-                <div class="label">Vencido</div>
-            </div>
-            <div class="summary-card summary-porvencer">
-                <div class="amount" id="sumPorVencer">$0</div>
-                <div class="label">Por vencer</div>
-            </div>
-            <div class="summary-card summary-documents">
-                <div class="amount" id="sumDocumentos">0</div>
-                <div class="label">Documentos</div>
-            </div>
-        </div>
+            <label class="all-data-toggle">
+                <input type="checkbox" id="allDataCheck">
+                Cargar información completa (orden de compra, bodegas, observaciones)
+                <span class="hint">— consulta más lenta</span>
+            </label>
 
-        <div class="favor-alert" id="favorAlert">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-            <div>
-                Este proveedor tiene un saldo a favor de <strong id="favorAlertAmount">$0</strong>. Si deseas realizar el pago, puedes hacerlo normalmente. Si prefieres utilizar este saldo a favor, puedes generar directamente desde el sistema el comprobante contable para aplicarlo a las facturas correspondientes.
-            </div>
-        </div>
-
-        <div class="btn-advance-wrap" id="btnAdvanceWrap">
-            <button type="button" class="btn-advance" id="btnAdvance">Realizar anticipo</button>
-        </div>
-
-        <div class="docs-wrap" id="docsWrap">
-
-            <div class="tabs-bar" id="tabsBar">
-                <button type="button" class="tab-btn active" id="tabDocumentos">Documentos</button>
-                <button type="button" class="tab-btn" id="tabPagos">Pagos</button>
+            <div class="legend" id="legend">
+                <span class="legend-item"><span class="legend-dot" style="background:#fca5a5"></span>NOV1 · Faltantes</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#86efac"></span>NOV2 · Sobrantes</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#93c5fd"></span>NOV3 · Trocados</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#fdba74"></span>NOV4 · Corrección de factura</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#fde047"></span>NOV5 · Mercancia mal estado</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#d8b4fe"></span>DES1 · Descuento</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#d1d5db"></span>RP · Recibo de pago</span>
             </div>
 
-            <!-- ---- Panel: Documentos ---- -->
-            <div class="tab-panel show" id="panelDocumentos">
+            <div class="summary-grid" id="summaryGrid">
+                <div class="summary-card summary-deuda">
+                    <div class="amount" id="sumDeuda">$0</div>
+                    <div class="label">Deuda por pagar</div>
+                </div>
+                <div class="summary-card summary-favor">
+                    <div class="amount" id="sumFavor">$0</div>
+                    <div class="label">Valor a favor</div>
+                </div>
+                <div class="summary-card summary-saldo">
+                    <div class="amount" id="sumSaldo">$0</div>
+                    <div class="label">Saldo proveedor</div>
+                </div>
+                <div class="summary-card summary-vencido">
+                    <div class="amount" id="sumVencido">$0</div>
+                    <div class="label">Vencido</div>
+                </div>
+                <div class="summary-card summary-porvencer">
+                    <div class="amount" id="sumPorVencer">$0</div>
+                    <div class="label">Por vencer</div>
+                </div>
+                <div class="summary-card summary-documents">
+                    <div class="amount" id="sumDocumentos">0</div>
+                    <div class="label">Documentos</div>
+                </div>
+            </div>
 
-                <div class="loading-state" id="loadingState">
-                    <div class="spinner"></div>
-                    <div class="loading-text">Espera un momento, cargando los documentos del proveedor...</div>
+            <div class="favor-alert" id="favorAlert">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div>
+                    Este proveedor tiene un saldo a favor de <strong id="favorAlertAmount">$0</strong>. Si deseas realizar el pago, puedes hacerlo normalmente. Si prefieres utilizar este saldo a favor, puedes generar directamente desde el sistema el comprobante contable para aplicarlo a las facturas correspondientes.
+                </div>
+            </div>
+
+            <div class="btn-advance-wrap" id="btnAdvanceWrap">
+                <button type="button" class="btn-advance" id="btnAdvance">Realizar anticipo</button>
+            </div>
+
+            <div class="docs-wrap" id="docsWrap">
+
+                <div class="tabs-bar" id="tabsBar">
+                    <button type="button" class="tab-btn active" id="tabDocumentos">Documentos</button>
+                    <button type="button" class="tab-btn" id="tabPagos">Pagos</button>
                 </div>
 
-                <div class="docs-scroll" id="docsScroll" style="display:none;">
-                    <table class="docs-table" id="docsTable">
-                        <thead>
-                            <tr>
-                                <th style="width:34px;"><input type="checkbox" id="checkAll" class="row-check"></th>
-                                <th>Tipo</th>
-                                <th>Documento</th>
-                                <th style="min-width: 110px;">Factura</th>
-                                <th style="min-width: 110px;" class="col-extra">Orden</th>
-                                <th class="col-extra">Observaciones</th>
-                                <th style="min-width: 150px;" class="col-extra">Bodegas</th>
-                                <th class="col-extra">Cantidad</th>
-                                <th>Valor</th>
-                                <th style="min-width: 110px;">Fecha vence</th>
-                                <th>Estado</th>
-                                <th style="text-align:right;">Deuda</th>
-                                <th style="text-align:right;">Saldo</th>
-                            </tr>
-                        </thead>
-                        <tbody id="docsBody"></tbody>
-                    </table>
+                <!-- ---- Panel: Documentos ---- -->
+                <div class="tab-panel show" id="panelDocumentos">
+
+                    <div class="loading-state" id="loadingState">
+                        <div class="spinner"></div>
+                        <div class="loading-text">Espera un momento, cargando los documentos del proveedor...</div>
+                    </div>
+
+                    <div class="docs-scroll" id="docsScroll" style="display:none;">
+                        <table class="docs-table" id="docsTable">
+                            <thead>
+                                <tr>
+                                    <th style="width:34px;"><input type="checkbox" id="checkAll" class="row-check"></th>
+                                    <th>Tipo</th>
+                                    <th>Documento</th>
+                                    <th style="min-width: 110px;">Factura</th>
+                                    <th style="min-width: 110px;" class="col-extra">Orden</th>
+                                    <th class="col-extra">Observaciones</th>
+                                    <th style="min-width: 150px;" class="col-extra">Bodegas</th>
+                                    <th class="col-extra">Cantidad</th>
+                                    <th>Valor</th>
+                                    <th style="min-width: 110px;">Fecha vence</th>
+                                    <th>Estado</th>
+                                    <th style="text-align:right;">Deuda</th>
+                                    <th style="text-align:right;">Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="docsBody"></tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                <!-- ---- Panel: Pagos ---- -->
+                <div class="tab-panel" id="panelPagos">
+
+                    <div class="loading-state" id="paymentsLoadingState">
+                        <div class="spinner"></div>
+                        <div class="loading-text">Espera un momento, cargando los pagos del proveedor...</div>
+                    </div>
+
+                    <div class="docs-scroll" id="paymentsScroll" style="display:none;">
+                        <table class="docs-table" id="paymentsTable">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Mes</th>
+                                    <th>Pagos</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsBody"></tbody>
+                        </table>
+                    </div>
+
                 </div>
 
             </div>
-
-            <!-- ---- Panel: Pagos ---- -->
-            <div class="tab-panel" id="panelPagos">
-
-                <div class="loading-state" id="paymentsLoadingState">
-                    <div class="spinner"></div>
-                    <div class="loading-text">Espera un momento, cargando los pagos del proveedor...</div>
-                </div>
-
-                <div class="docs-scroll" id="paymentsScroll" style="display:none;">
-                    <table class="docs-table" id="paymentsTable">
-                        <thead>
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Documento</th>
-                                <th style="min-width: 110px;">Fecha</th>
-                                <th style="text-align:right;">Valor</th>
-                                <th>Estado</th>
-                                <th style="width:60px; text-align:center;">Ver</th>
-                            </tr>
-                        </thead>
-                        <tbody id="paymentsBody"></tbody>
-                    </table>
-                </div>
-
-            </div>
-
         </div>
 
-        <div id="emptyState" class="empty-state">Selecciona un proveedor para ver sus cuentas.</div>
     </div>
 
     <div class="totals-bar" id="totalsBar">
@@ -1534,23 +1599,41 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-const PROVIDERS = @json(array_values($providers ?? []), JSON_UNESCAPED_UNICODE);
+const PROVIDERS_URL = "{{ route('siigo.accounts_payable_providers') }}";
 const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['accountId' => '__ID__']) }}";
+const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }}";
+
+
 
 (function () {
-    const providers                = PROVIDERS;
+    // ---- Proveedores (lista) ----
+    let providers                  = [];
     const searchInput              = document.getElementById('providerSearch');
-    const clearBtn                 = document.getElementById('providerClear');
-    const listEl                   = document.getElementById('providerList');
+    const pageSizeSelect           = document.getElementById('providerPageSize');
+    const providersView            = document.getElementById('providersView');
+    const detailView               = document.getElementById('detailView');
+    const providersLoading         = document.getElementById('providersLoading');
+    const providersError           = document.getElementById('providersError');
+    const providersRetry           = document.getElementById('providersRetry');
+    const providersScroll          = document.getElementById('providersScroll');
+    const providersBody            = document.getElementById('providersBody');
+    const providersPagination      = document.getElementById('providersPagination');
+    const providersInfo            = document.getElementById('providersInfo');
+    const providersPages           = document.getElementById('providersPages');
+    const btnBackToProviders       = document.getElementById('btnBackToProviders');
+    const detailProviderName       = document.getElementById('detailProviderName');
+    const detailProviderId         = document.getElementById('detailProviderId');
+
+    // ---- Detalle ----
     const allDataCheck             = document.getElementById('allDataCheck');
     const legend                   = document.getElementById('legend');
     const summaryGrid              = document.getElementById('summaryGrid');
+    const favorAlert               = document.getElementById('favorAlert');
     const docsWrap                 = document.getElementById('docsWrap');
     const loadingState             = document.getElementById('loadingState');
     const docsScroll               = document.getElementById('docsScroll');
     const docsTable                = document.getElementById('docsTable');
     const docsBody                 = document.getElementById('docsBody');
-    const emptyState               = document.getElementById('emptyState');
     const totalsBar                = document.getElementById('totalsBar');
     const checkAll                 = document.getElementById('checkAll');
     const btnPayment               = document.getElementById('btnPayment');
@@ -1671,10 +1754,11 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
-    let filtered = [];
-    let activeIndex = -1;
-    let requestToken = 0; // evita que una respuesta vieja pise la selección actual (documentos)
-    let paymentsRequestToken = 0; // idem, pero para la pestaña de pagos
+    let providerPage = 1;
+    let pageSize = 10;
+    let providersRequestToken = 0; // evita que una respuesta vieja pise la lista de proveedores
+    let requestToken = 0;          // idem, para documentos
+    let paymentsRequestToken = 0;  // idem, para la pestaña de pagos
     let currentProvider = null;
     let currentDocs = [];    // documentos actualmente renderizados en la tabla principal
     let selectedDocs = [];   // documentos elegidos al abrir el modal de pago
@@ -1749,123 +1833,181 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         return '<span class="badge badge-ok">Al día</span>';
     }
 
-    // ---- Combobox ----
-    function openList() {
-        const q = searchInput.value.trim().toLowerCase();
-
-        const items = q
-            ? providers.filter((p) =>
-                (p.FullName || '').toLowerCase().includes(q) ||
-                (p.CompanyName || '').toLowerCase().includes(q) ||
-                String(p.Identification || '').toLowerCase().includes(q)
-            )
-            : providers;
-
-        renderList(items.slice(0, 50));
+    // =====================================================================
+    // Tabla de proveedores (paginada, se carga por endpoint)
+    // =====================================================================
+    function providerVencido(p) {
+        return (Number(p.Expired1to30) || 0)
+            + (Number(p.Expired31to60) || 0)
+            + (Number(p.Expired61to90) || 0)
+            + (Number(p.ExpiredMoreTo91) || 0);
     }
 
-    function renderList(items) {
-        filtered = items;
-        activeIndex = -1;
+    function getFilteredProviders() {
+        const q = searchInput.value.trim().toLowerCase();
+        if (!q) return providers;
 
-        if (!items.length) {
-            listEl.innerHTML = '<div class="combo-empty">Sin resultados</div>';
-            listEl.classList.add('show');
-            return;
+        return providers.filter((p) =>
+            (p.FullName || '').toLowerCase().includes(q) ||
+            (p.CompanyName || '').toLowerCase().includes(q) ||
+            String(p.Identification || '').toLowerCase().includes(q)
+        );
+    }
+
+    function renderProviders() {
+        const list = getFilteredProviders();
+        const totalPages = Math.max(1, Math.ceil(list.length / pageSize));
+        if (providerPage > totalPages) providerPage = totalPages;
+
+        const start = (providerPage - 1) * pageSize;
+        const items = list.slice(start, start + pageSize);
+
+        providersBody.innerHTML = items.length
+            ? items.map((p) => `
+                <tr style="font-weight: 700;" class="provider-row" data-account-id="${escapeHtml(p.AccountID)}">
+                    <td>
+                        ${escapeHtml(p.FullName)}
+                        ${p.CompanyName ? `<div class="provider-sub">${escapeHtml(p.CompanyName)}</div>` : ''}
+                    </td>
+                    <td style="font-weight: 700;" class="provider-row">${escapeHtml(p.Identification)}</td>
+                    <td style="text-align:right;" class="cover-partial">${formatMoney(p.BalanceToExpire)}</td>
+                    <td style="text-align:right;" class="cover-expired">${formatMoney(providerVencido(p))}</td>
+                    <td style="text-align:right;" class="cover-full">${formatMoney(p.BalanceInFavor)}</td>
+                    <td style="text-align:right;" class="cover-none">${formatMoney(p.TotalBalance)}</td>
+                </tr>
+            `).join('')
+            : '<tr><td colspan="6" class="empty-state">Sin resultados.</td></tr>';
+
+        providersInfo.textContent = list.length
+            ? `Mostrando ${start + 1}-${start + items.length} de ${list.length}`
+            : '0 resultados';
+
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        const pages = [];
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || Math.abs(i - providerPage) <= 2) pages.push(i);
+            else if (pages[pages.length - 1] !== '…') pages.push('…');
         }
 
-        listEl.innerHTML = items.map((p, i) => `
-            <div class="combo-option" data-index="${i}">
-                <span class="combo-option-name">${escapeHtml(p.FullName)} ${p.CompanyName ? ('(' + escapeHtml(p.CompanyName) + ')') : ''}</span>
-                <span class="combo-option-id">${escapeHtml(p.Identification)}</span>
-            </div>
-        `).join('');
-
-        listEl.classList.add('show');
+        providersPages.innerHTML =
+            `<button type="button" class="page-btn" data-page="${providerPage - 1}" ${providerPage === 1 ? 'disabled' : ''}>‹</button>` +
+            pages.map((p) => p === '…'
+                ? '<span class="page-dots">…</span>'
+                : `<button type="button" class="page-btn ${p === providerPage ? 'active' : ''}" data-page="${p}">${p}</button>`
+            ).join('') +
+            `<button type="button" class="page-btn" data-page="${providerPage + 1}" ${providerPage === totalPages ? 'disabled' : ''}>›</button>`;
     }
 
-    function highlight() {
-        const options = listEl.querySelectorAll('.combo-option');
-        options.forEach((o, i) => o.classList.toggle('active', i === activeIndex));
-        if (options[activeIndex]) options[activeIndex].scrollIntoView({ block: 'nearest' });
-    }
+    // silent = true: no muestra loading ni errores (se usa para refrescar en segundo plano)
+    async function loadProviders({ silent = false } = {}) {
+        const myToken = ++providersRequestToken;
 
-    searchInput.addEventListener('focus', openList);
+        if (!silent) {
+            providersLoading.classList.add('show');
+            providersScroll.style.display = 'none';
+            providersPagination.style.display = 'none';
+            providersError.style.display = 'none';
+        }
+
+        try {
+            const response = await fetch(PROVIDERS_URL, { headers: { 'Accept': 'application/json' } });
+            if (myToken !== providersRequestToken) return;
+            if (!response.ok) throw new Error('request_failed');
+
+            const data = await response.json();
+            providers = Object.values(data.providers || []);
+
+            providersError.style.display = 'none';
+            providersScroll.style.display = 'block';
+            providersPagination.style.display = 'flex';
+            renderProviders();
+        } catch (err) {
+            if (myToken !== providersRequestToken) return;
+            if (!silent) providersError.style.display = 'block';
+        } finally {
+            if (myToken === providersRequestToken) providersLoading.classList.remove('show');
+        }
+    }
 
     searchInput.addEventListener('input', () => {
-        clearBtn.classList.toggle('show', searchInput.value.length > 0);
-        openList();
+        providerPage = 1;
+        renderProviders();
     });
 
-    searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            activeIndex = Math.min(activeIndex + 1, filtered.length - 1);
-            highlight();
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            activeIndex = Math.max(activeIndex - 1, 0);
-            highlight();
-        } else if (e.key === 'Enter') {
-            e.preventDefault();
-            if (activeIndex >= 0 && filtered[activeIndex]) selectProvider(filtered[activeIndex]);
-        } else if (e.key === 'Escape') {
-            listEl.classList.remove('show');
-        }
+    pageSizeSelect.addEventListener('change', () => {
+        pageSize = Number(pageSizeSelect.value) || 10;
+        providerPage = 1;
+        renderProviders();
     });
 
-    listEl.addEventListener('click', (e) => {
-        const opt = e.target.closest('.combo-option');
-        if (!opt) return;
-        selectProvider(filtered[Number(opt.dataset.index)]);
+    providersPages.addEventListener('click', (e) => {
+        const btn = e.target.closest('.page-btn');
+        if (!btn || btn.disabled) return;
+        providerPage = Number(btn.dataset.page);
+        renderProviders();
     });
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.field-group')) listEl.classList.remove('show');
+    providersRetry.addEventListener('click', () => loadProviders());
+
+    providersBody.addEventListener('click', (e) => {
+        const row = e.target.closest('.provider-row');
+        if (!row) return;
+
+        const provider = providers.find((p) => String(p.AccountID) === row.dataset.accountId);
+        if (provider) showDetailView(provider);
     });
 
-    clearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearBtn.classList.remove('show');
-        listEl.classList.remove('show');
-        favorAlert.classList.remove('show');
-        requestToken++; // invalida cualquier fetch en curso
+    // =====================================================================
+    // Navegación lista <-> detalle
+    // =====================================================================
+    function showDetailView(provider) {
+        currentProvider = provider;
+        paymentsData = null;
+
+        detailProviderName.textContent = provider.FullName || '';
+        detailProviderId.textContent = [provider.CompanyName, provider.Identification].filter(Boolean).join(' · ');
+
+        providersView.style.display = 'none';
+        detailView.style.display = 'block';
+
+        switchTab('documentos');
+        loadProvider(provider);
+    }
+
+    function showProvidersView() {
+        requestToken++;          // invalida fetches en curso
         paymentsRequestToken++;
         currentProvider = null;
         paymentsData = null;
-        resetView();
-    });
 
-    // Si el usuario cambia el checkbox y ya hay un proveedor cargado, se vuelve a consultar
+        resetView();
+        detailView.style.display = 'none';
+        providersView.style.display = 'block';
+
+        loadProviders({ silent: true }); // refresca los saldos de la tabla
+    }
+
+    btnBackToProviders.addEventListener('click', showProvidersView);
+
+    // Si el usuario cambia el checkbox y ya hay un proveedor abierto, se vuelve a consultar
     allDataCheck.addEventListener('change', () => {
         docsTable.classList.toggle('show-extra', allDataCheck.checked);
         if (currentProvider) loadProvider(currentProvider);
     });
 
-    function selectProvider(provider) {
-        if (!provider) return;
-        searchInput.value = `${provider.FullName} ${provider.CompanyName ? ('(' + provider.CompanyName + ')') : ''}`;
-        clearBtn.classList.add('show');
-        listEl.classList.remove('show');
-        currentProvider = provider;
-
-        // Nuevo proveedor: se descarta el cache de pagos y se vuelve a la pestaña de documentos
-        paymentsData = null;
-        switchTab('documentos');
-
-        loadProvider(provider);
-    }
-
-    // ---- Reset ----
+    // ---- Reset del detalle ----
     function resetView() {
         summaryGrid.classList.remove('show');
         legend.classList.remove('show');
+        favorAlert.classList.remove('show');
         btnAdvanceWrap.classList.remove('show');
         docsWrap.classList.remove('show');
         loadingState.classList.remove('show');
         docsScroll.style.display = 'none';
         totalsBar.classList.remove('show');
-        emptyState.style.display = 'block';
         docsBody.innerHTML = '';
         currentDocs = [];
 
@@ -1894,7 +2036,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     tabDocumentos.addEventListener('click', () => switchTab('documentos'));
     tabPagos.addEventListener('click', () => switchTab('pagos'));
 
-    // ---- Pinta el resumen de inmediato (no depende de los documentos) ----
+    // ---- Resumen ----
     function calcularResumenDesdeDocumentos(docs) {
         return docs.reduce((acc, doc) => {
             if (!isValid(doc)) return acc; // ignora los que no son válidos
@@ -1905,7 +2047,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             acc.Expired31to60     += Number(doc.VencidoDe31a60) || 0;
             acc.Expired61to90     += Number(doc.VencidoDe61a90) || 0;
             acc.ExpiredMoreTo91   += Number(doc.VencidoMasDe90) || 0;
-            acc.BalanceInFavor    += Number(doc.BalanceInFavor);
+            acc.BalanceInFavor    += Number(doc.BalanceInFavor) || 0;
 
             return acc;
         }, {
@@ -1920,21 +2062,16 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     }
 
     function renderSummary(provider) {
-        const vencido = (Number(provider.Expired1to30) || 0)
-            + (Number(provider.Expired31to60) || 0)
-            + (Number(provider.Expired61to90) || 0)
-            + (Number(provider.ExpiredMoreTo91) || 0);
+        const vencido = providerVencido(provider);
+        const balanceToExpire = Number(provider.BalanceToExpire) || 0;
+        const balanceInFavor  = Number(provider.BalanceInFavor) || 0;
 
-        document.getElementById('sumDeuda').textContent      = formatMoney(provider.BalanceToExpire + vencido);
-        document.getElementById('sumFavor').textContent      = formatMoney(provider.BalanceInFavor);
+        document.getElementById('sumDeuda').textContent      = formatMoney(balanceToExpire + vencido);
+        document.getElementById('sumFavor').textContent      = formatMoney(balanceInFavor);
         document.getElementById('sumSaldo').textContent      = formatMoney(provider.TotalBalance);
         document.getElementById('sumVencido').textContent    = formatMoney(vencido);
-        document.getElementById('sumPorVencer').textContent  = formatMoney(provider.BalanceToExpire);
+        document.getElementById('sumPorVencer').textContent  = formatMoney(balanceToExpire);
         document.getElementById('sumDocumentos').textContent = '…';
-
-        const favorAlert = document.getElementById('favorAlert');
-        const balanceInFavor = Number(provider.BalanceInFavor) || 0;
-        const opcionUno = paymentAction.querySelector('option[value="1"]');
 
         if (balanceInFavor > 0) {
             document.getElementById('favorAlertAmount').textContent = formatMoney(balanceInFavor);
@@ -1953,7 +2090,6 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         const myToken = ++requestToken;
         const allData = allDataCheck.checked;
 
-        emptyState.style.display = 'none';
         renderSummary(provider); // valores iniciales/rápidos mientras carga
 
         docsWrap.classList.add('show');
@@ -1987,7 +2123,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         } catch (err) {
             if (myToken !== requestToken) return;
 
-            docsBody.innerHTML = '<tr><td colspan="12" class="error-state">No se pudieron cargar los documentos de este proveedor. Intenta de nuevo.</td></tr>';
+            docsBody.innerHTML = '<tr><td colspan="13" class="error-state">No se pudieron cargar los documentos de este proveedor. Intenta de nuevo.</td></tr>';
             docsScroll.style.display = 'block';
             document.getElementById('sumDocumentos').textContent = '-';
         } finally {
@@ -2026,7 +2162,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             if (myToken !== paymentsRequestToken) return;
 
             paymentsData = null; // permite reintentar al volver a entrar a la pestaña
-            paymentsBody.innerHTML = '<tr><td colspan="6" class="error-state">No se pudieron cargar los pagos de este proveedor. Intenta de nuevo.</td></tr>';
+            paymentsBody.innerHTML = '<tr><td colspan="4" class="error-state">No se pudieron cargar los pagos de este proveedor. Intenta de nuevo.</td></tr>';
             paymentsScroll.style.display = 'block';
         } finally {
             if (myToken === paymentsRequestToken) {
@@ -2038,44 +2174,141 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
     function renderPayments(payments) {
         if (!payments.length) {
-            paymentsBody.innerHTML = '<tr><td colspan="6" class="empty-state">Este proveedor no tiene pagos registrados.</td></tr>';
+            paymentsBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        Este proveedor no tiene pagos registrados.
+                    </td>
+                </tr>
+            `;
+
             return;
         }
 
-        paymentsBody.innerHTML = payments.map((payment, i) => `
-            <tr class="${payment.IsAnnulled ? 'row-nov1' : ''}">
-                <td><span class="prefix-tag">${escapeHtml(payment.DocClass)}</span></td>
-                <td>${payment.Link
-                    ? `<a href="${escapeHtml(payment.Link)}" target="_blank" rel="noopener noreferrer" class="document-link">
-                            ${escapeHtml(payment.DocName)}
-                        </a>`
-                    : (escapeHtml(payment.DocName) || '-')
-                }</td>
-                <td>${formatDate(payment.DocDate)}</td>
-                <td style="text-align:right;">${formatMoney(payment.TotalValue)}</td>
-                <td>${payment.IsAnnulled ? '<span class="badge badge-v5">Anulado</span>' : '<span class="badge badge-ok">Activo</span>'}</td>
-                <td style="text-align:center;">
-                    <button type="button" class="btn-icon-eye" data-index="${i}" title="Ver detalle">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
+        paymentsBody.innerHTML = payments.map((periodo, index) => `
+            <tr class="payment-month-row">
+                <td>
+                    <button type="button" class="btn-expand-payment" data-month="${index}" title="Mostrar pagos" aria-label="Mostrar pagos">
+                        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 5l7 7-7 7"/>
                         </svg>
                     </button>
+                </td>
+                <td class="font-black">${escapeHtml(periodo.mes)}</td>
+                <td class="font-black">${periodo.detalles.length}</td>
+                <td class="font-black">${formatMoney(periodo.total)}</td>
+            </tr>
+
+            <tr id="payment-details-${index}" class="payment-details-row" style="display:none;">
+                <td colspan="4">
+                    <table class="docs-table payment-documents-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Documento</th>
+                                <th style="min-width:110px;">Fecha</th>
+                                <th>Valor</th>
+                                <th>Estado</th>
+                                <th style="width:60px;text-align:center;">
+                                    Ver
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            ${periodo.detalles.map((payment, i) => `
+                                <tr class="${payment.IsAnnulled ? 'row-nov1' : ''}">
+                                    <td><span class="prefix-tag">${escapeHtml(payment.DocClass || '')}</span></td>
+                                    <td>${payment.Link
+                                        ? `<a href="${escapeHtml(payment.Link)}" target="_blank" rel="noopener noreferrer" class="document-link">
+                                                ${escapeHtml(payment.DocName || '-')}
+                                            </a>`
+                                        : (escapeHtml(payment.DocName) || '-')}
+                                    </td>
+                                    <td>${formatDate(payment.DocDate)}</td>
+                                    <td style="text-align:right;">${formatMoney(payment.TotalValue)}</td>
+                                    <td>${payment.IsAnnulled
+                                        ? '<span class="badge badge-v5">Anulado</span>'
+                                        : '<span class="badge badge-ok">Activo</span>'
+                                    }</td>
+                                    <td style="text-align:center;">
+                                        <button type="button" class="btn-icon-eye" data-period-index="${index}" data-payment-index="${i}" title="Ver detalle">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 </td>
             </tr>
         `).join('');
     }
 
     paymentsBody.addEventListener('click', (e) => {
+        const expandBtn = e.target.closest('.btn-expand-payment');
+        if (!expandBtn) return;
+
+        const index = Number(expandBtn.dataset.month);
+        const detailsRow = document.getElementById(`payment-details-${index}`);
+
+        if (!detailsRow) return;
+
+        const icon = expandBtn.querySelector('.expand-icon');
+        const isHidden = detailsRow.style.display === 'none';
+
+        detailsRow.style.display = isHidden ? 'table-row' : 'none';
+
+        if (icon) {
+            if (isHidden) {
+                icon.style.transform = 'rotate(90deg)';
+            } else {
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+    });
+
+    paymentsBody.addEventListener('click', async (e) => {
+
         const btn = e.target.closest('.btn-icon-eye');
+
         if (!btn || !paymentsData) return;
 
-        const payment = paymentsData[Number(btn.dataset.index)];
+        const periodIndex = Number(btn.dataset.periodIndex);
+        const paymentIndex = Number(btn.dataset.paymentIndex);
+        const periodo = paymentsData[periodIndex];
+
+        if (!periodo || !periodo.detalles) return;
+
+        const payment = periodo.detalles[paymentIndex];
+
         if (!payment) return;
 
         paymentDetailModalTitle.textContent = `Detalle · ${payment.DocName || ''}`;
-        paymentDetailIframe.srcdoc = payment.Detail || '<p style="font-family:sans-serif;padding:1rem;color:#6b7280;">Sin detalle disponible.</p>';
         paymentDetailModalOverlay.classList.add('show');
+        paymentDetailIframe.srcdoc = `<p style=" font-family:sans-serif; padding:1rem; color:#6b7280; text-align:center; ">Cargando detalle...</p>`;
+
+        try {
+            let url = PAYMENT_URL.replace('__ID__', encodeURIComponent(payment.ACEntryID));
+
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error('No fue posible obtener el detalle del pago.');
+            }
+
+            const html = await response.text();
+
+            paymentDetailIframe.srcdoc = html || `<p style="font-family:sans-serif; padding:1rem; color:#6b7280;">Sin detalle disponible.</p>`;
+
+        } catch (error) {
+            paymentDetailIframe.srcdoc = `<p style=" font-family:sans-serif; padding:1rem; color:#dc2626;">Error al cargar el detalle del documento.</p>`;
+        }
     });
 
     paymentDetailModalClose.addEventListener('click', () => paymentDetailModalOverlay.classList.remove('show'));
@@ -2089,7 +2322,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         currentDocs = docs;
 
         if (!docs.length) {
-            docsBody.innerHTML = '<tr><td colspan="12" class="empty-state">Este proveedor no tiene documentos.</td></tr>';
+            docsBody.innerHTML = '<tr><td colspan="13" class="empty-state">Este proveedor no tiene documentos.</td></tr>';
         } else {
             docsBody.innerHTML = docs.map((doc, i) => {
                 const selectable = isSelectable(doc);
@@ -2175,6 +2408,36 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         totalsBar.classList.toggle('show', checked.length > 0);
     }
 
+    // =====================================================================
+    // Refresco tras pago / anticipo / cruce contable (sin recargar la página)
+    // =====================================================================
+    async function refreshAfterAction() {
+        if (!currentProvider) return;
+
+        const accountId = String(currentProvider.AccountID);
+        const provider = currentProvider;
+        paymentsData = null; // fuerza a reconsultar los pagos
+
+        // Refresca la lista de proveedores en segundo plano y actualiza el proveedor abierto
+        const providersPromise = loadProviders({ silent: true }).then(() => {
+            const fresh = providers.find((p) => String(p.AccountID) === accountId);
+            if (fresh && currentProvider && String(currentProvider.AccountID) === accountId) {
+                currentProvider = fresh;
+            }
+        });
+
+        // Recarga documentos + tarjetas resumen
+        const docsPromise = loadProvider(provider);
+
+        // Si el usuario está viendo la pestaña de pagos, también se recarga
+        if (activeTab === 'pagos') {
+            paymentsData = [];
+            loadPayments(provider);
+        }
+
+        await Promise.all([providersPromise, docsPromise]);
+    }
+
     // ---- Modal: Realizar recibo de pago ----
     function getSelectedDocs() {
         const checked = docsBody.querySelectorAll('.doc-check:checked');
@@ -2253,10 +2516,12 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     });
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modalOverlay.classList.contains('show')) closePaymentModal();
-        if (e.key === 'Escape' && advanceModalOverlay.classList.contains('show')) closeAdvanceModal();
-        if (e.key === 'Escape' && conciliationModalOverlay.classList.contains('show')) closeConciliationModal();
-        if (e.key === 'Escape' && paymentDetailModalOverlay.classList.contains('show')) paymentDetailModalOverlay.classList.remove('show');
+        if (e.key !== 'Escape') return;
+
+        if (modalOverlay.classList.contains('show')) closePaymentModal();
+        if (advanceModalOverlay.classList.contains('show')) closeAdvanceModal();
+        if (conciliationModalOverlay.classList.contains('show')) closeConciliationModal();
+        if (paymentDetailModalOverlay.classList.contains('show')) paymentDetailModalOverlay.classList.remove('show');
     });
 
     modalPaymentConfirm.addEventListener('click', async () => {
@@ -2356,14 +2621,16 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
                 throw new Error(data.message || 'Ocurrio un error procesando el recibo de pago.');
             }
 
+            // Cierra el modal y refresca tabla/resumen sin recargar la página
+            closePaymentModal();
+            refreshAfterAction();
+
             await Swal.fire({
                 icon: 'success',
                 title: 'Listo',
                 text: data.message || 'Recibo de pago procesado correctamente.',
                 confirmButtonColor: '#3085d6'
             });
-            closePaymentModal();
-            window.location.reload();
 
         } catch (error) {
             Swal.fire({
@@ -2572,14 +2839,16 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
                 throw new Error(data.message || 'Ocurrio un error procesando el anticipo.');
             }
 
+            // Cierra el modal y refresca tabla/resumen sin recargar la página
+            closeAdvanceModal();
+            refreshAfterAction();
+
             await Swal.fire({
                 icon: 'success',
                 title: 'Listo',
                 text: data.message || 'Anticipo procesado correctamente.',
                 confirmButtonColor: '#3085d6'
             });
-            closeAdvanceModal();
-            window.location.reload();
 
         } catch (error) {
             Swal.fire({
@@ -2812,14 +3081,16 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
                 throw new Error(data.message || 'Ocurrio un error procesando el cruce contable.');
             }
 
+            // Cierra el modal y refresca tabla/resumen sin recargar la página
+            closeConciliationModal();
+            refreshAfterAction();
+
             await Swal.fire({
                 icon: 'success',
                 title: 'Listo',
                 text: data.message || 'Cruce contable procesado correctamente.',
                 confirmButtonColor: '#3085d6'
             });
-            closeConciliationModal();
-            window.location.reload();
 
         } catch (error) {
             Swal.fire({
@@ -2834,7 +3105,9 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         }
     });
 
+    // ---- Inicio: se consulta el listado de proveedores al endpoint ----
     resetView();
+    loadProviders();
 })();
 </script>
 
