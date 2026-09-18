@@ -12,7 +12,7 @@ class AccountPayablePaymentProviderSiigo extends Mailable
     public function __construct(
         public array $provider,
         public array $voucher,
-        public array $recibos,
+        public array $documentos,
         public array $firma,
         public string|null $observaciones,
         public int|string $voucher_id,

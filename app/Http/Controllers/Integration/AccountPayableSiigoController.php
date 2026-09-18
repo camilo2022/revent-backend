@@ -106,6 +106,23 @@ class AccountPayableSiigoController extends Controller
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
 
+        if($request->input('type') == 'payment') {
+
+            $payments = $this->payments_documents($token, $accountId);
+            $payments = collect($payments)
+                ->map(function ($payment) use ($token) {
+                    $detail = $this->payment_entry($token, (int) $payment['ACEntryID']);
+                    $payment['Link'] = "https://siigonube.siigo.com/#/paymentsv2/1016/view/{$payment['ACEntryID']}";
+                    $payment['Detail'] = $detail;
+
+                    return $payment;
+                })->values()->toArray();
+
+            return response()->json([
+                'payments' => $payments,
+            ]);
+        }
+
         $allData = $request->boolean('all_data');
 
         $warehousesById = collect();
@@ -201,7 +218,6 @@ class AccountPayableSiigoController extends Controller
         }
         $proveedor = json_decode($request->proveedor, true);
         $documentos = json_decode($request->input('documentos'), true);
-        $recibos = json_decode($request->input('json'), true);
 
         if (!is_array($documentos) || empty($documentos)) {
             return response()->json([
@@ -262,7 +278,7 @@ class AccountPayableSiigoController extends Controller
             ], 404);
         }
 
-        if (round((float) collect($Items)->sum('Value'), 2) !== round((float) $request->input('valor'), 2)) {
+        if (round((float) $request->input('valor'), 2) > round((float) collect($Items)->sum('Value'), 2)) {
             return response()->json([
                 'message' => 'El valor total de los documentos seleccionados no coincide con el valor a pagar.',
             ], 400);
@@ -302,11 +318,11 @@ class AccountPayableSiigoController extends Controller
             "TreasuryPayment" => null,
         ];
 
-        foreach($recibos as &$item) {
-            $purchase_entry = $this->purchase_entry($token, $accountId, (int) $item['ACEntryID']);
-            $purchase_entry_detail = $this->purchase_entry_detail($token, (int) $item['ACEntryID']);
-            $item['PurchaseEntry'] = $purchase_entry;
-            $item['PurchaseEntryDetail'] = [
+        foreach($documentos as &$item) {
+            $purchase_entry = $this->purchase_entry($token, $accountId, (int) $item['doc']['ACEntryID']);
+            $purchase_entry_detail = $this->purchase_entry_detail($token, (int) $item['doc']['ACEntryID']);
+            $item['doc']['PurchaseEntry'] = $purchase_entry;
+            $item['doc']['PurchaseEntryDetail'] = [
                 'DocDate' => $purchase_entry_detail['DocDate'],
                 'Observations' => $purchase_entry_detail['Observations'],
                 'WarehouseCodes' => collect($purchase_entry_detail['WarehouseCodes'])
@@ -334,7 +350,7 @@ class AccountPayableSiigoController extends Controller
         ];
 
         $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
-        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $recibos, $firma, $observaciones, $voucher_id, $url));
+        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $documentos, $firma, $observaciones, $voucher_id, $url));
 
         return response()->json([
             'success' => true,
@@ -685,6 +701,7 @@ class AccountPayableSiigoController extends Controller
 
     private function accounts_provider(string $token, int $accountId, array $documentos)
     {
+
         $response = Http::withToken($token)
             ->acceptJson()
             ->connectTimeout(30)
@@ -712,10 +729,10 @@ class AccountPayableSiigoController extends Controller
             ->filter(function ($item) use ($documentos) {
                 $documento = ($item['DuePrefix'] ?? '') . '-' . ($item['DueConsecutive'] ?? '');
 
-                return in_array($documento, $documentos);
+                return in_array($documento, collect($documentos)->pluck('doc.DueName')->toArray());
             })
-            ->map(function ($item) {
-                $item['Value'] = (float) ($item['DueBalance'] ?? 0);
+            ->map(function ($item) use ($documentos){
+                $item['Value'] = collect($documentos)->firstWhere('doc.DueName', $item['DuePrefix'].'-'.$item['DueConsecutive'])['covered'] ?? 0;
                 return $item;
             })
             ->values()
@@ -1128,6 +1145,142 @@ class AccountPayableSiigoController extends Controller
         return $rows;
     }
 
+    private function payments_documents(string $token, int $accountId)
+    {
+        $take = 100;
+        $skip = 0;
+        $total = null;
+        $rows = [];
+
+        $fechaInicio = now()->subMonths(2);
+        $fechaFin = now();
+
+        $source = collect(range(2015, $fechaFin->year))
+            ->map(fn ($anio) => [
+                'id' => $anio,
+                'StartDate' => "{$anio}0101",
+                'EndDate' => "{$anio}1231",
+            ])
+            ->values()
+            ->toArray();
+
+        do {
+            $filterCriterias = [
+                [
+                    'Field' => '_vTypeTransaction',
+                    'FilterType' => 7,
+                    'OperatorType' => 0,
+                    'Value' => ['1'],
+                    'ValueUI' => 'Pagos',
+                    'Source' => 'PurchasesTransactionEnum',
+                ],
+                [
+                    'Field' => '_vProvider',
+                    'FilterType' => 68,
+                    'OperatorType' => 0,
+                    'Value' => [$accountId, false, 'AccountID'],
+                    'ValueUI' => '',
+                    'Source' => 'Account',
+                ],
+                [
+                    'Field' => '_vDocDate',
+                    'FilterType' => 76,
+                    'OperatorType' => 0,
+                    'Value' => [
+                        $fechaInicio->format('Ymd'),
+                        $fechaFin->format('Ymd'),
+                    ],
+                    'ValueUI' => $fechaInicio->format('Y/m/d')
+                        . ' - '
+                        . $fechaFin->format('Y/m/d'),
+                    'Source' => $source,
+                ],
+                [
+                    'Field' => '_vUser',
+                    'FilterType' => 6,
+                    'OperatorType' => 0,
+                    'Value' => [],
+                    'ValueUI' => '',
+                    'Source' => '12',
+                ],
+                [
+                    'Field' => '_vProviderInvoice',
+                    'FilterType' => 6,
+                    'OperatorType' => 0,
+                    'Value' => [],
+                    'ValueUI' => '',
+                    'Source' => '64',
+                ],
+                [
+                    'Field' => '_vESiigoStatus',
+                    'FilterType' => 7,
+                    'OperatorType' => 0,
+                    'Value' => ['-1'],
+                    'ValueUI' => '',
+                    'Source' => 'DianStateFilterEnum',
+                ],
+            ];
+
+            $body = [
+                'Id' => 5451,
+                'Skip' => $skip,
+                'Take' => $take,
+                'Sort' => ' ',
+                'FilterCriterias' => json_encode($filterCriterias),
+                'Params' => json_encode([
+                    'TabID' => '1408',
+                ]),
+                'GetTotalCount' => $total === null,
+                'GridOrderCriteria' => null,
+                'AddOns' => [
+                    [
+                        'name' => 'POS Web',
+                        'state' => true,
+                        'tenantId' => '0x00000000000000000000000000605286',
+                        'type' => 1,
+                        'module' => 5,
+                        'dateActive' => '08/05/2026 10:02:54.011',
+                        'posActiveCashiers' => [
+                            'baseCashiers' => 1,
+                            'aditionalCashiers' => 27,
+                        ],
+                        'documentBase' => 0,
+                        'readOnly' => null,
+                        'subState' => 1,
+                        'updateType' => 1,
+                        'complements' => null,
+                        'payrollComplements' => null,
+                    ],
+                ],
+            ];
+
+            $response = Http::withToken($token)
+                ->acceptJson()
+                ->timeout(600)
+                ->connectTimeout(30)
+                ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
+
+            if (!$response->successful()) {
+                throw new \Exception(
+                    'Error consultando pagos: ' . $response->body()
+                );
+            }
+
+            if ($total === null) {
+                $total = (int) $response->json('totalCount');
+            }
+
+            $page = $response->json('data.Value.Table') ?? [];
+
+            $rows = array_merge($rows, $page);
+
+            $skip += $take;
+
+        } while ($skip < $total);
+
+        return $rows;
+    }
+
     private function purchase_entry(string $token, int $accountId, int $acEntryId)
     {
         $response = Http::withToken($token)
@@ -1181,6 +1334,28 @@ class AccountPayableSiigoController extends Controller
             'Quantity' => $items
                 ->sum(fn ($item) => (float) ($item['Quantity'] ?? 0)),
         ];
+    }
+
+    private function payment_entry(string $token, int $acEntryId): string
+    {
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->timeout(600)
+            ->get(
+                'https://services.siigo.com/document/api/v2/document-view/GetHtmlView',
+                [
+                    'ACEntryID' => $acEntryId,
+                    'IsBase64' => 'false',
+                ]
+            );
+
+        if (!$response->successful()) {
+            throw new \Exception('Error consultando detalle de pago ' . $acEntryId . ': ' . $response->body());
+        }
+
+        $data = $response->json();
+
+        return $data['strHTML'] ?? '';
     }
 
     private function warehouses(string $token): array

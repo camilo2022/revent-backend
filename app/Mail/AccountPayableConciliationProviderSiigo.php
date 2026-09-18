@@ -22,7 +22,7 @@ class AccountPayableConciliationProviderSiigo extends Mailable
     public function build()
     {
         return $this
-            ->subject('Comprobante de cruce de saldos REVENT CALZADO S.A.S.')
+            ->subject('Comprobante de cruce contable REVENT CALZADO S.A.S.')
             ->view('email.account-payable-conciliation-provider-siigo');
     }
 }

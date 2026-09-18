@@ -108,19 +108,31 @@
 
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 
-                            @foreach ($recibos as $recibo)
+                            @php $totalAplicadoDocs = 0; @endphp
+
+                            @foreach ($documentos as $item)
                             @php
-                                // OJO: aqui asumo que la "fecha recibo" es $recibo['DueDate'].
+                                $doc = $item['doc'] ?? [];
+                                $saldo = $item['saldo'] ?? ($doc['Saldo'] ?? 0);
+                                $aplicado = $item['covered'] ?? 0;
+                                $pendiente = max($saldo - $aplicado, 0);
+                                $totalAplicadoDocs += $aplicado;
+
+                                // OJO: aqui asumo que la "fecha recibo" es $doc['DueDate'].
                                 // Si el campo real es otro, solo cambia esta linea.
-                                $fechareciboRaw = $recibo['DueDate'] ?? null;
+                                $fechareciboRaw = $doc['DueDate'] ?? null;
                                 $fechareciboCorta = $fechareciboRaw ? \Carbon\Carbon::parse($fechareciboRaw)->format('d/m/y') : '-';
 
-                                $ordenCompra = $recibo['PurchaseEntry']['docName'] ?? null;
+                                $ordenCompra = $doc['PurchaseEntry']['docName'] ?? null;
                                 $ordenCompra = !empty($ordenCompra) ? $ordenCompra : '-';
 
-                                $pares = $recibo['PurchaseEntryDetail']['Quantity'] ?? 0;
-                                $bodega = $recibo['PurchaseEntryDetail']['WarehouseCodes'] ?? '';
-                                $reciboDoc = $recibo['DocName'] ?? '-';
+                                $pares = $doc['PurchaseEntryDetail']['Quantity'] ?? 0;
+                                $bodega = $doc['PurchaseEntryDetail']['WarehouseCodes'] ?? '';
+                                $documentoDoc = $doc['DocName'] ?? '-';
+
+                                $cubiertoCompleto = $pendiente <= 0;
+                                $badgeBg = $cubiertoCompleto ? '#dcfce7' : '#ffedd5';
+                                $badgeColor = $cubiertoCompleto ? '#166534' : '#9a3412';
                             @endphp
                             <tr>
                                 <td style="padding:11px 0; border-bottom:1px solid #f1f3f5;">
@@ -128,16 +140,26 @@
                                         <tr>
                                             <td valign="middle" style="font-family:Segoe UI, Arial, sans-serif;">
                                                 <span style="font-size:13px; font-weight:bold; color:#111827;">
-                                                    {{ $recibo['DueName'] ?? '' }} - {{ $bodega }} - ({{ $reciboDoc }})
+                                                    {{ $doc['DueName'] ?? '' }} - {{ $bodega }} - ({{ $documentoDoc }})
                                                 </span>
                                                 <div style="font-size:11px; color:#9ca3af; margin-top:2px;">
                                                     {{ $fechareciboCorta }} &middot; O.C.: {{ $ordenCompra }} &middot; Pares: {{ $pares }}
                                                 </div>
                                             </td>
                                             <td align="right" valign="middle" style="white-space:nowrap; padding-left:12px;">
-                                                <span style="display:inline-block; background-color:#dcfce7; color:#166534; font-size:12px; font-weight:bold; font-family:Segoe UI, Arial, sans-serif; padding:5px 10px; border-radius:999px; white-space:nowrap;">
-                                                    ${{ number_format($recibo['Saldo'] ?? 0, 0, ',', '.') }}
+                                                <span style="display:inline-block; background-color:{{ $badgeBg }}; color:{{ $badgeColor }}; font-size:12px; font-weight:bold; font-family:Segoe UI, Arial, sans-serif; padding:5px 10px; border-radius:999px; white-space:nowrap;">
+                                                    ${{ number_format($aplicado, 0, ',', '.') }}
                                                 </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" style="padding-top:4px; font-family:Segoe UI, Arial, sans-serif; font-size:11px; color:#6b7280;">
+                                                Valor factura: <strong style="color:#374151;">${{ number_format($saldo, 0, ',', '.') }}</strong>
+                                                &middot; Aplicado: <strong style="color:#166534;">${{ number_format($aplicado, 0, ',', '.') }}</strong>
+                                                &middot; Pendiente:
+                                                <strong style="color: {{ $pendiente > 0 ? '#b91c1c' : '#166534' }};">
+                                                    ${{ number_format($pendiente, 0, ',', '.') }}
+                                                </strong>
                                             </td>
                                         </tr>
                                     </table>
@@ -154,7 +176,7 @@
                                                 {{ $voucher['CreatedByDate'] ?? '' }}
                                             </td>
                                             <td align="right" valign="middle" style="font-family:Segoe UI, Arial, sans-serif; font-size:13px; color:#111827; font-weight:bold; white-space:nowrap; padding-left:12px;">
-                                                ${{ number_format(collect($recibos)->sum('Saldo'), 0, ',', '.') }}
+                                                ${{ number_format($totalAplicadoDocs, 0, ',', '.') }}
                                             </td>
                                         </tr>
                                     </table>

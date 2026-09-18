@@ -250,7 +250,38 @@
     .summary-porvencer { background: #7986CB; }
     .summary-documents { background: #9FA8DA; }
 
-    /* ---- Loading de documentos ---- */
+    /* ---- Tabs Documentos / Pagos ---- */
+    .tabs-bar {
+        display: flex;
+        gap: 0.4rem;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 1.1rem;
+    }
+
+    .tab-btn {
+        background: none;
+        border: none;
+        padding: 0.6rem 1.1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .tab-btn:hover { color: #1f2937; }
+
+    .tab-btn.active {
+        color: #16a34a;
+        border-bottom-color: #16a34a;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.show { display: block; }
+
+    /* ---- Loading de documentos / pagos ---- */
     .loading-state {
         display: none;
         flex-direction: column;
@@ -368,6 +399,27 @@
 
     .document-link:hover {
         color: #1d4ed8;
+    }
+
+    /* Botón de "ver detalle" (ojito) en la tabla de pagos */
+    .btn-icon-eye {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #6b7280;
+        padding: 0.3rem;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.15s ease, background 0.15s ease;
+    }
+
+    .btn-icon-eye svg { width: 17px; height: 17px; }
+
+    .btn-icon-eye:hover {
+        color: #16a34a;
+        background: #f0fdf4;
     }
 
     /* NOV1 - Faltantes */
@@ -578,11 +630,14 @@
         background: #ffffff;
         border-radius: 16px;
         width: 100%;
-        max-width: 920px;
-        max-height: 90vh;
         display: flex;
         flex-direction: column;
         box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-document {
+        max-width: 920px;
+        max-height: 90vh;
     }
 
     .modal-header {
@@ -1001,6 +1056,9 @@
             height: 12px;
             flex-shrink: 0;
         }
+
+        .tabs-bar { gap: 0.2rem; }
+        .tab-btn { padding: 0.55rem 0.8rem; font-size: 0.8rem; }
     }
 </style>
 </head>
@@ -1078,7 +1136,7 @@
                 <line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
             <div>
-                Este proveedor tiene un saldo a favor de <strong id="favorAlertAmount">$0</strong>. Si vas a realizar el pago, puedes hacerlo normalmente; en caso de que quiera usar este saldo a favor, notifica a contabilidad para que haga el respectivo descuento a esas facturas.
+                Este proveedor tiene un saldo a favor de <strong id="favorAlertAmount">$0</strong>. Si deseas realizar el pago, puedes hacerlo normalmente. Si prefieres utilizar este saldo a favor, puedes generar directamente desde el sistema el comprobante contable para aplicarlo a las facturas correspondientes.
             </div>
         </div>
 
@@ -1088,32 +1146,68 @@
 
         <div class="docs-wrap" id="docsWrap">
 
-            <div class="loading-state" id="loadingState">
-                <div class="spinner"></div>
-                <div class="loading-text">Espera un momento, cargando los documentos del proveedor...</div>
+            <div class="tabs-bar" id="tabsBar">
+                <button type="button" class="tab-btn active" id="tabDocumentos">Documentos</button>
+                <button type="button" class="tab-btn" id="tabPagos">Pagos</button>
             </div>
 
-            <div class="docs-scroll" id="docsScroll" style="display:none;">
-                <table class="docs-table" id="docsTable">
-                    <thead>
-                        <tr>
-                            <th style="width:34px;"><input type="checkbox" id="checkAll" class="row-check"></th>
-                            <th>Tipo</th>
-                            <th>Documento</th>
-                            <th style="min-width: 110px;">Factura</th>
-                            <th style="min-width: 110px;" class="col-extra">Orden</th>
-                            <th class="col-extra">Observaciones</th>
-                            <th style="min-width: 150px;" class="col-extra">Bodegas</th>
-                            <th class="col-extra">Cantidad</th>
-                            <th>Valor</th>
-                            <th style="min-width: 110px;">Fecha vence</th>
-                            <th>Estado</th>
-                            <th style="text-align:right;">Deuda</th>
-                            <th style="text-align:right;">Saldo</th>
-                        </tr>
-                    </thead>
-                    <tbody id="docsBody"></tbody>
-                </table>
+            <!-- ---- Panel: Documentos ---- -->
+            <div class="tab-panel show" id="panelDocumentos">
+
+                <div class="loading-state" id="loadingState">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Espera un momento, cargando los documentos del proveedor...</div>
+                </div>
+
+                <div class="docs-scroll" id="docsScroll" style="display:none;">
+                    <table class="docs-table" id="docsTable">
+                        <thead>
+                            <tr>
+                                <th style="width:34px;"><input type="checkbox" id="checkAll" class="row-check"></th>
+                                <th>Tipo</th>
+                                <th>Documento</th>
+                                <th style="min-width: 110px;">Factura</th>
+                                <th style="min-width: 110px;" class="col-extra">Orden</th>
+                                <th class="col-extra">Observaciones</th>
+                                <th style="min-width: 150px;" class="col-extra">Bodegas</th>
+                                <th class="col-extra">Cantidad</th>
+                                <th>Valor</th>
+                                <th style="min-width: 110px;">Fecha vence</th>
+                                <th>Estado</th>
+                                <th style="text-align:right;">Deuda</th>
+                                <th style="text-align:right;">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="docsBody"></tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- ---- Panel: Pagos ---- -->
+            <div class="tab-panel" id="panelPagos">
+
+                <div class="loading-state" id="paymentsLoadingState">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Espera un momento, cargando los pagos del proveedor...</div>
+                </div>
+
+                <div class="docs-scroll" id="paymentsScroll" style="display:none;">
+                    <table class="docs-table" id="paymentsTable">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Documento</th>
+                                <th style="min-width: 110px;">Fecha</th>
+                                <th style="text-align:right;">Valor</th>
+                                <th>Estado</th>
+                                <th style="width:60px; text-align:center;">Ver</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsBody"></tbody>
+                    </table>
+                </div>
+
             </div>
 
         </div>
@@ -1138,9 +1232,23 @@
     </a>
 </div>
 
+<!-- ---- Modal: Detalle de pago ---- -->
+<div class="modal-overlay" id="paymentDetailModalOverlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="paymentDetailModalTitle">Detalle del pago</div>
+            <button type="button" class="modal-close" id="paymentDetailModalClose">&times;</button>
+        </div>
+
+        <div class="modal-body" style="padding:0;">
+            <iframe id="paymentDetailIframe" style="width:100%; height:65vh; border:none; display:block;"></iframe>
+        </div>
+    </div>
+</div>
+
 <!-- ---- Modal: Realizar recibo de pago ---- -->
 <div class="modal-overlay" id="paymentModalOverlay">
-    <div class="modal">
+    <div class="modal modal-document">
         <div class="modal-header">
             <div class="modal-title">Realizar recibo de pago</div>
             <button type="button" class="modal-close" id="modalClose">&times;</button>
@@ -1182,6 +1290,13 @@
                     <label class="field-label" for="paymentDate">Fecha de elaboración</label>
                     <input type="date" class="combo-input" id="paymentDate">
                 </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="paymentTotalInput">Valor a pagar</label>
+                    <input type="number" class="combo-input" id="paymentTotalInput" min="0" step="0.01" placeholder="0">
+                </div>
+
+                <div class="field-group"></div>
 
                 <div class="modal-field-group">
                     <label class="field-label" for="paymentObservations">Observaciones</label>
@@ -1228,14 +1343,16 @@
                             <th style="min-width: 110px;">Factura</th>
                             <th style="min-width: 110px;">Fecha vence</th>
                             <th style="text-align:right;">Saldo</th>
+                            <th style="text-align:right;">Cubre</th>
                         </tr>
                     </thead>
                     <tbody id="modalDocsBody"></tbody>
                 </table>
             </div>
 
-            <div class="modal-total">
-                Total a pagar: <span id="modalTotal">$0</span>
+            <div class="conciliation-summary">
+                <div class="row"><span>Saldo total documentos:</span> <strong id="modalTotal">$0</strong></div>
+                <div class="row"><span>Total cubierto:</span> <strong id="modalCoveredTotal">$0</strong></div>
             </div>
         </div>
 
@@ -1248,7 +1365,7 @@
 
 <!-- ---- Modal: Realizar anticipo ---- -->
 <div class="modal-overlay" id="advanceModalOverlay">
-    <div class="modal">
+    <div class="modal modal-document">
         <div class="modal-header">
             <div class="modal-title">Realizar anticipo</div>
             <button type="button" class="modal-close" id="advanceModalClose">&times;</button>
@@ -1349,7 +1466,7 @@
 
 <!-- ---- Modal: Realizar cruce contable (conciliación) ---- -->
 <div class="modal-overlay" id="conciliationModalOverlay">
-    <div class="modal">
+    <div class="modal modal-document">
         <div class="modal-header">
             <div class="modal-title">Realizar cruce contable</div>
             <button type="button" class="modal-close" id="conciliationModalClose">&times;</button>
@@ -1439,6 +1556,21 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     const btnPayment               = document.getElementById('btnPayment');
     const btnAdvanceWrap           = document.getElementById('btnAdvanceWrap');
 
+    // Tabs Documentos / Pagos
+    const tabDocumentos            = document.getElementById('tabDocumentos');
+    const tabPagos                 = document.getElementById('tabPagos');
+    const panelDocumentos          = document.getElementById('panelDocumentos');
+    const panelPagos               = document.getElementById('panelPagos');
+    const paymentsLoadingState     = document.getElementById('paymentsLoadingState');
+    const paymentsScroll           = document.getElementById('paymentsScroll');
+    const paymentsBody             = document.getElementById('paymentsBody');
+
+    // Modal detalle de pago
+    const paymentDetailModalOverlay = document.getElementById('paymentDetailModalOverlay');
+    const paymentDetailModalClose   = document.getElementById('paymentDetailModalClose');
+    const paymentDetailModalTitle   = document.getElementById('paymentDetailModalTitle');
+    const paymentDetailIframe       = document.getElementById('paymentDetailIframe');
+
     // Modal recibo de pago
     const modalOverlay             = document.getElementById('paymentModalOverlay');
     const modalClose               = document.getElementById('modalClose');
@@ -1446,6 +1578,8 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     const modalPaymentConfirm      = document.getElementById('modalPaymentConfirm');
     const modalDocsBody            = document.getElementById('modalDocsBody');
     const modalTotalEl             = document.getElementById('modalTotal');
+    const modalCoveredTotalEl      = document.getElementById('modalCoveredTotal');
+    const paymentTotalInput        = document.getElementById('paymentTotalInput');
     const paymentTipo              = document.getElementById('paymentTipo');
     const paymentAction            = document.getElementById('paymentAction');
     const paymentSource            = document.getElementById('paymentSource');
@@ -1539,10 +1673,13 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
 
     let filtered = [];
     let activeIndex = -1;
-    let requestToken = 0; // evita que una respuesta vieja pise la selección actual
+    let requestToken = 0; // evita que una respuesta vieja pise la selección actual (documentos)
+    let paymentsRequestToken = 0; // idem, pero para la pestaña de pagos
     let currentProvider = null;
-    let currentDocs = [];   // documentos actualmente renderizados en la tabla principal
-    let selectedDocs = [];  // documentos elegidos al abrir el modal de pago
+    let currentDocs = [];    // documentos actualmente renderizados en la tabla principal
+    let selectedDocs = [];   // documentos elegidos al abrir el modal de pago
+    let paymentsData = null; // null = aún no se ha cargado para el proveedor actual
+    let activeTab = 'documentos';
 
     // Prefijos que colorean la fila (clasificación de novedades)
     const ROW_CLASS_BY_PREFIX = {
@@ -1580,6 +1717,11 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
     function formatQuantity(value) {
         const n = Number(value) || 0;
         return n.toLocaleString('es-CO', { maximumFractionDigits: 2 });
+    }
+
+    function isValid(doc) {
+        let prefix = (doc.DuePrefix || '').toUpperCase();
+        return (prefix === 'FC' || prefix === 'RM' || prefix.startsWith('RP') || prefix.startsWith('DES')) && !doc.IsAnnulled;
     }
 
     function isSelectable(doc) {
@@ -1688,7 +1830,9 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         listEl.classList.remove('show');
         favorAlert.classList.remove('show');
         requestToken++; // invalida cualquier fetch en curso
+        paymentsRequestToken++;
         currentProvider = null;
+        paymentsData = null;
         resetView();
     });
 
@@ -1704,6 +1848,11 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         clearBtn.classList.add('show');
         listEl.classList.remove('show');
         currentProvider = provider;
+
+        // Nuevo proveedor: se descarta el cache de pagos y se vuelve a la pestaña de documentos
+        paymentsData = null;
+        switchTab('documentos');
+
         loadProvider(provider);
     }
 
@@ -1719,15 +1868,62 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         emptyState.style.display = 'block';
         docsBody.innerHTML = '';
         currentDocs = [];
+
+        paymentsScroll.style.display = 'none';
+        paymentsLoadingState.classList.remove('show');
+        paymentsBody.innerHTML = '';
+
+        switchTab('documentos');
     }
 
+    // ---- Tabs Documentos / Pagos ----
+    function switchTab(tab) {
+        activeTab = tab;
+        tabDocumentos.classList.toggle('active', tab === 'documentos');
+        tabPagos.classList.toggle('active', tab === 'pagos');
+        panelDocumentos.classList.toggle('show', tab === 'documentos');
+        panelPagos.classList.toggle('show', tab === 'pagos');
+
+        // Solo consulta pagos la primera vez que se entra a esa pestaña para este proveedor
+        if (tab === 'pagos' && paymentsData === null && currentProvider) {
+            paymentsData = [];
+            loadPayments(currentProvider);
+        }
+    }
+
+    tabDocumentos.addEventListener('click', () => switchTab('documentos'));
+    tabPagos.addEventListener('click', () => switchTab('pagos'));
+
     // ---- Pinta el resumen de inmediato (no depende de los documentos) ----
+    function calcularResumenDesdeDocumentos(docs) {
+        return docs.reduce((acc, doc) => {
+            if (!isValid(doc)) return acc; // ignora los que no son válidos
+
+            acc.BalanceToExpire   += Number(doc.PorVencer) || 0;
+            acc.TotalBalance      += Number(doc.Saldo) || 0;
+            acc.Expired1to30      += Number(doc.VencidoDe1a30) || 0;
+            acc.Expired31to60     += Number(doc.VencidoDe31a60) || 0;
+            acc.Expired61to90     += Number(doc.VencidoDe61a90) || 0;
+            acc.ExpiredMoreTo91   += Number(doc.VencidoMasDe90) || 0;
+            acc.BalanceInFavor    += Number(doc.BalanceInFavor);
+
+            return acc;
+        }, {
+            BalanceToExpire: 0,
+            TotalBalance: 0,
+            Expired1to30: 0,
+            Expired31to60: 0,
+            Expired61to90: 0,
+            ExpiredMoreTo91: 0,
+            BalanceInFavor: 0,
+        });
+    }
+
     function renderSummary(provider) {
         const vencido = (Number(provider.Expired1to30) || 0)
             + (Number(provider.Expired31to60) || 0)
             + (Number(provider.Expired61to90) || 0)
             + (Number(provider.ExpiredMoreTo91) || 0);
-
 
         document.getElementById('sumDeuda').textContent      = formatMoney(provider.BalanceToExpire + vencido);
         document.getElementById('sumFavor').textContent      = formatMoney(provider.BalanceInFavor);
@@ -1758,7 +1954,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         const allData = allDataCheck.checked;
 
         emptyState.style.display = 'none';
-        renderSummary(provider);
+        renderSummary(provider); // valores iniciales/rápidos mientras carga
 
         docsWrap.classList.add('show');
         loadingState.classList.add('show');
@@ -1782,6 +1978,10 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             const data = await response.json();
             const docs = data.documents || [];
 
+            // Recalcula el resumen con los valores reales de los documentos ya cargados
+            const resumen = calcularResumenDesdeDocumentos(docs);
+            renderSummary(resumen);
+
             renderDocuments(docs, allData);
             document.getElementById('sumDocumentos').textContent = docs.length;
         } catch (err) {
@@ -1797,6 +1997,92 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             }
         }
     }
+
+    // ---- Trae los pagos del proveedor por AJAX (solo la primera vez que se entra a la pestaña) ----
+    async function loadPayments(provider) {
+        const myToken = ++paymentsRequestToken;
+
+        paymentsLoadingState.classList.add('show');
+        paymentsScroll.style.display = 'none';
+        paymentsBody.innerHTML = '';
+
+        let url = DOCUMENTS_URL_TEMPLATE.replace('__ID__', encodeURIComponent(provider.AccountID));
+        url += (url.includes('?') ? '&' : '?') + 'type=payment';
+
+        try {
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+            });
+
+            if (myToken !== paymentsRequestToken) return; // el proveedor cambió mientras cargaba
+
+            if (!response.ok) throw new Error('request_failed');
+
+            const data = await response.json();
+            paymentsData = data.payments || [];
+
+            renderPayments(paymentsData);
+        } catch (err) {
+            if (myToken !== paymentsRequestToken) return;
+
+            paymentsData = null; // permite reintentar al volver a entrar a la pestaña
+            paymentsBody.innerHTML = '<tr><td colspan="6" class="error-state">No se pudieron cargar los pagos de este proveedor. Intenta de nuevo.</td></tr>';
+            paymentsScroll.style.display = 'block';
+        } finally {
+            if (myToken === paymentsRequestToken) {
+                paymentsLoadingState.classList.remove('show');
+                paymentsScroll.style.display = 'block';
+            }
+        }
+    }
+
+    function renderPayments(payments) {
+        if (!payments.length) {
+            paymentsBody.innerHTML = '<tr><td colspan="6" class="empty-state">Este proveedor no tiene pagos registrados.</td></tr>';
+            return;
+        }
+
+        paymentsBody.innerHTML = payments.map((payment, i) => `
+            <tr class="${payment.IsAnnulled ? 'row-nov1' : ''}">
+                <td><span class="prefix-tag">${escapeHtml(payment.DocClass)}</span></td>
+                <td>${payment.Link
+                    ? `<a href="${escapeHtml(payment.Link)}" target="_blank" rel="noopener noreferrer" class="document-link">
+                            ${escapeHtml(payment.DocName)}
+                        </a>`
+                    : (escapeHtml(payment.DocName) || '-')
+                }</td>
+                <td>${formatDate(payment.DocDate)}</td>
+                <td style="text-align:right;">${formatMoney(payment.TotalValue)}</td>
+                <td>${payment.IsAnnulled ? '<span class="badge badge-v5">Anulado</span>' : '<span class="badge badge-ok">Activo</span>'}</td>
+                <td style="text-align:center;">
+                    <button type="button" class="btn-icon-eye" data-index="${i}" title="Ver detalle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    paymentsBody.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-icon-eye');
+        if (!btn || !paymentsData) return;
+
+        const payment = paymentsData[Number(btn.dataset.index)];
+        if (!payment) return;
+
+        paymentDetailModalTitle.textContent = `Detalle · ${payment.DocName || ''}`;
+        paymentDetailIframe.srcdoc = payment.Detail || '<p style="font-family:sans-serif;padding:1rem;color:#6b7280;">Sin detalle disponible.</p>';
+        paymentDetailModalOverlay.classList.add('show');
+    });
+
+    paymentDetailModalClose.addEventListener('click', () => paymentDetailModalOverlay.classList.remove('show'));
+
+    paymentDetailModalOverlay.addEventListener('click', (e) => {
+        if (e.target === paymentDetailModalOverlay) paymentDetailModalOverlay.classList.remove('show');
+    });
 
     function renderDocuments(docs, allData) {
         docsTable.classList.toggle('show-extra', allData);
@@ -1898,27 +2184,50 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             .filter(Boolean);
     }
 
-    function openPaymentModal() {
-        selectedDocs = getSelectedDocs();
-        if (!selectedDocs.length) return;
-
-        let total = 0;
+    // Reparte el "Valor a pagar" en cascada sobre los documentos seleccionados,
+    // en el mismo orden en que aparecen en la tabla del modal.
+    function renderPaymentCoverage() {
+        let remaining = Number(paymentTotalInput.value) || 0;
+        let coveredTotal = 0;
 
         modalDocsBody.innerHTML = selectedDocs.map((doc) => {
-            total += Number(doc.Saldo) || 0;
+            const saldo = Number(doc.Saldo) || 0;
+            const covered = Math.max(0, Math.min(remaining, saldo));
+            remaining -= covered;
+            coveredTotal += covered;
+
+            const coverClass = covered <= 0
+                ? 'cover-none'
+                : (covered >= saldo ? 'cover-full' : 'cover-partial');
 
             return `
-                <tr data-saldo="${Number(doc.Saldo) || 0}" data-documento="${escapeHtml(doc.DueName)}" data-json='${JSON.stringify(doc)}'>
+                <tr data-saldo="${saldo}" data-cubre="${covered}" data-documento="${escapeHtml(doc.DueName)}" data-json='${JSON.stringify(doc)}'>
                     <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                     <td>${escapeHtml(doc.DueName)}</td>
                     <td>${escapeHtml(doc.DocName)}</td>
                     <td>${formatDate(doc.DueDate)}</td>
-                    <td style="text-align:right;">${formatMoney(doc.Saldo)}</td>
+                    <td style="text-align:right;">${formatMoney(saldo)}</td>
+                    <td style="text-align:right;" class="${coverClass}">${formatMoney(covered)}</td>
                 </tr>
             `;
         }).join('');
 
+        modalCoveredTotalEl.textContent = formatMoney(coveredTotal);
+    }
+
+    paymentTotalInput.addEventListener('input', () => {
+        if (Number(paymentTotalInput.value) < 0) paymentTotalInput.value = 0;
+        renderPaymentCoverage();
+    });
+
+    function openPaymentModal() {
+        selectedDocs = getSelectedDocs();
+        if (!selectedDocs.length) return;
+
+        const total = selectedDocs.reduce((sum, d) => sum + (Number(d.Saldo) || 0), 0);
+
         modalTotalEl.textContent = formatMoney(total);
+        paymentTotalInput.value = total.toFixed(2);
 
         paymentTipo.value = '';
         paymentAction.value = '';
@@ -1927,6 +2236,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         paymentObservations.value = '';
         resetPaymentFile();
 
+        renderPaymentCoverage();
         modalOverlay.classList.add('show');
     }
 
@@ -1946,12 +2256,31 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         if (e.key === 'Escape' && modalOverlay.classList.contains('show')) closePaymentModal();
         if (e.key === 'Escape' && advanceModalOverlay.classList.contains('show')) closeAdvanceModal();
         if (e.key === 'Escape' && conciliationModalOverlay.classList.contains('show')) closeConciliationModal();
+        if (e.key === 'Escape' && paymentDetailModalOverlay.classList.contains('show')) paymentDetailModalOverlay.classList.remove('show');
     });
 
     modalPaymentConfirm.addEventListener('click', async () => {
-        const json = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => JSON.parse(tr.dataset.json));
-        const documentos = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => tr.dataset.documento);
-        const valor = Array.from(document.querySelectorAll('#modalDocsBody tr')).map(tr => Number(tr.dataset.saldo) || 0).reduce((sum, v) => sum + v, 0);
+        // Solo los documentos que efectivamente reciben cobertura (cubre > 0)
+        const rows = Array.from(document.querySelectorAll('#modalDocsBody tr'))
+            .filter(tr => Number(tr.dataset.cubre) > 0);
+
+        if (!rows.length) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Nada que pagar',
+                text: 'El valor a pagar no cubre ninguno de los documentos seleccionados.',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        const debtsWithCoverage = rows.map((tr) => ({
+            doc: JSON.parse(tr.dataset.json),
+            saldo: Number(tr.dataset.saldo) || 0,
+            covered: Number(tr.dataset.cubre) || 0,
+        }));
+
+        const valor = debtsWithCoverage.reduce((sum, d) => sum + d.covered, 0);
 
         if(!paymentTipo.value || !paymentAction.value || !paymentDate.value || !paymentSource.value || !paymentFile || !paymentObservations.value) {
             Swal.fire({
@@ -1984,8 +2313,7 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
         formData.append('fecha', paymentDate.value);
         formData.append('observaciones', paymentObservations.value);
         formData.append('valor', valor);
-        formData.append('documentos', JSON.stringify(documentos));
-        formData.append('json', JSON.stringify(json));
+        formData.append('documentos', JSON.stringify(debtsWithCoverage));
         if (paymentFile) formData.append('comprobante', paymentFile);
 
         // Guardamos el contenido original del boton para poder restaurarlo despues
@@ -2438,8 +2766,6 @@ const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['ac
             cancelButtonColor: '#3085d6'
         });
         if (!result.isConfirmed) return;
-
-        console.log(conciliationSelectedDebts, conciliationSelectedRPs, conciliationTipo.value, conciliationDate.value);
 
         const originalConfirmHTML = conciliationModalConfirm.innerHTML;
         conciliationModalConfirm.disabled = true;

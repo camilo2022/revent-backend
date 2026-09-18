@@ -124,11 +124,11 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 if(!empty($validate)) continue;
                 $traslados[] = $traslado;
 
-                /*if ($traslado['data']['bodega_salida_data'] && !empty($traslado['data']['bodega_salida_data']['emails'] ?? [])) {
+                if ($traslado['data']['bodega_salida_data'] && !empty($traslado['data']['bodega_salida_data']['emails'] ?? [])) {
                     $emails = $traslado['data']['bodega_salida_data']['emails'] ?? [];
 
                     if (!empty($emails)) {
-                        Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-exit-siigo'));
+                        Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: [$traslado], template_view: 'email.masive-transfer-exit-siigo'));
                     }
                 }
 
@@ -136,36 +136,12 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                     $emails = $traslado['data']['bodega_ingreso_data']['emails'] ?? [];
 
                     if (!empty($emails)) {
-                        Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $traslados, template_view: 'email.masive-transfer-entrance-siigo'));
+                        Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: [$traslado], template_view: 'email.masive-transfer-entrance-siigo'));
                     }
-                }*/
+                }
+
+                sleep(45);
             }
-        }
-
-        $trasladosPorSalida = collect($traslados)
-            ->groupBy(function ($traslado) {
-                return $traslado['data']['bodega_salida'];
-            });
-
-        foreach ($trasladosPorSalida as $trasladosSalida) {
-            $bodegaSalida = $trasladosSalida->first()['data']['bodega_salida_data'] ?? null;
-            if (!$bodegaSalida) continue;
-            $emails = $bodegaSalida['emails'] ?? [];
-            if (empty($emails)) continue;
-            Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $trasladosSalida->values()->all(), template_view: 'email.masive-transfer-exit-siigo'));
-        }
-
-        $trasladosPorEntrada = collect($traslados)
-            ->groupBy(function ($traslado) {
-                return $traslado['data']['bodega_ingreso'];
-            });
-
-        foreach ($trasladosPorEntrada as $trasladosEntrada) {
-            $bodegaEntrada = $trasladosEntrada->first()['data']['bodega_ingreso_data'] ?? null;
-            if (!$bodegaEntrada) continue;
-            $emails = $bodegaEntrada['emails'] ?? [];
-            if (empty($emails)) continue;
-            Mail::to($emails)->send(new MasiveTransferSiigoMail(traslados: $trasladosEntrada->values()->all(), template_view: 'email.masive-transfer-entrance-siigo'));
         }
 
         $this->notificarResultado($traslados, $errors);
@@ -562,8 +538,11 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         return array_values($traslados);
     }
 
-    private function traslado(string $token, array $detalles, array $config, array $bodegas)
+    private function traslado(string $token, array $detalles, array $config, array $bodegas, int $intento = 1)
     {
+        $maxIntentos = 3;
+        $segundosEspera = 45;
+
         $validate = [];
 
         $fecha = Carbon::parse($config['fecha'])->format('Ymd');
@@ -621,10 +600,26 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             ->post('https://services.siigo.com/ACEntryApi/api/v1/WarehouseTransfer/Save/', $body);
 
         if (!$response->successful()) {
+            $esErrorDuplicidad = str_contains($response->body(), 'duplicidad');
+
+            if ($esErrorDuplicidad && $intento < $maxIntentos) {
+                Log::warning('traslado reintentando por posible duplicidad', [
+                    'intento' => $intento,
+                ]);
+
+                sleep($segundosEspera);
+
+                return $this->traslado($token, $detalles, $config, $bodegas, $intento + 1);
+            }
+
+            $intentosTexto = $intento > 1
+                ? "Se intentó {$intento} veces (con espera de {$segundosEspera} segundos entre cada intento) y el error persistió."
+                : "Se intentó 1 vez.";
+
             $validate = [
                 [
                     'Row'   => 'ERROR DESCONOCIDO - TRASLADO',
-                    'Error' => $response->body(),
+                    'Error' => "{$intentosTexto} Respuesta de Siigo: " . $response->body(),
                 ]
             ];
             return [[], $validate];
