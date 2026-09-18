@@ -340,7 +340,7 @@ class AccountPayableSiigoController extends Controller
         ];
 
         $emails = []/*collect($provider['Contacts'])->pluck('Email')->filter()->unique()->values()->toArray()*/;
-        Mail::to(['camiloacacio16@gmail.com', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $documentos, $firma, $observaciones, $voucher_id, $url));
+        Mail::to(['contabilidad@revent.com.co', ...$emails])->send(new AccountPayablePaymentProviderSiigo($provider, $voucher, $documentos, $firma, $observaciones, $voucher_id, $url));
 
         return response()->json([
             'success' => true,
