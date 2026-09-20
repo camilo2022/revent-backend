@@ -65,6 +65,25 @@
             margin-bottom: 1.5rem;
         }
 
+        .store-search-wrap {
+            position: relative;
+            max-width: 420px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .store-search-wrap input {
+            width: 100%;
+            padding-left: 2.4rem;
+        }
+
+        .store-search-wrap .icon {
+            position: absolute;
+            left: .85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
         /* =========================
            GRID ESCRITORIO
         ========================= */
@@ -266,6 +285,10 @@
             transition: border-color 0.2s ease, background 0.2s ease;
         }
 
+        .excel-field-select {
+            cursor: pointer;
+        }
+
         .search-wrap {
             position: relative;
             flex: 1;
@@ -304,6 +327,47 @@
             font-size: 1rem;
         }
 
+        /* =========================
+           AUTOCOMPLETAR (referencia / tienda)
+        ========================= */
+
+        .autocomplete-list {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .1);
+            max-height: 280px;
+            overflow-y: auto;
+            z-index: 30;
+            text-align: left;
+        }
+
+        .autocomplete-item {
+            padding: .6rem .9rem;
+            font-size: .85rem;
+            cursor: pointer;
+            color: #1f2937;
+            display: flex;
+            align-items: baseline;
+            gap: .35rem;
+        }
+
+        .autocomplete-item strong {
+            color: #16a34a;
+        }
+
+        .autocomplete-item:hover {
+            background: #f0fdf4;
+        }
+
+        .autocomplete-item+.autocomplete-item {
+            border-top: 1px solid #f3f4f6;
+        }
+
         .filtro-label {
             font-size: .72rem;
             font-weight: 700;
@@ -317,44 +381,25 @@
             margin-bottom: 1rem;
         }
 
-        .chips {
+        .filtros-superiores {
             display: flex;
-            gap: .5rem;
             flex-wrap: wrap;
-            margin-bottom: 1.25rem;
+            align-items: flex-start;
+            gap: 0 2rem;
         }
 
-        .chip {
+        .filtro-row {
             display: flex;
+            gap: .6rem;
+            flex-wrap: wrap;
             align-items: center;
-            gap: .4rem;
-            padding: .4rem .9rem;
-            border-radius: 999px;
-            border: 1.5px solid #d1d5db;
-            background: #fff;
-            color: #4b5563;
-            font-size: .8rem;
-            font-weight: 600;
-            cursor: pointer;
         }
 
-        .chip.activo {
-            background: #16a34a;
-            border-color: #16a34a;
-            color: #fff;
-        }
-
-        .chip-color.activo {
-            background: #f0fdf4;
-            border-color: #16a34a;
-            color: #15803d;
-        }
-
-        .chip-swatch {
-            width: 14px;
-            height: 14px;
+        .swatch-inline {
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            border: 1px solid rgba(0, 0, 0, .15);
+            border: 1px solid rgba(0, 0, 0, .12);
             flex-shrink: 0;
         }
 
@@ -607,6 +652,14 @@
             font-size: .9rem;
         }
 
+        .empty-suggest-wrap {
+            margin-top: 1.25rem;
+            text-align: left;
+            max-width: 520px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         .prod-thumb,
         .photo-gallery img {
             cursor: zoom-in;
@@ -828,7 +881,7 @@
     <div x-data="inventarioApp()">
 
         {{-- ======================================================
-             PASO 1: SELECCIONAR TIENDA
+             PASO 1: SELECCIONAR TIENDA (buscable)
         ======================================================= --}}
 
         <template x-if="!tienda">
@@ -862,25 +915,55 @@
                     </div>
 
                     <div class="store-subtitle">
-                        Elige tu punto de venta para ver la disponibilidad
+                        Escribe para buscar tu punto de venta y selecciónalo
                     </div>
 
 
                     <template x-if="warehouses.length > 0">
 
-                        <div class="store-grid">
+                        <div>
 
-                            <template
-                                x-for="w in warehouses"
-                                :key="w.id">
+                            <div class="store-search-wrap">
 
-                                <button
-                                    type="button"
-                                    class="store-btn"
-                                    :disabled="cargando"
-                                    @click="seleccionarTienda(w)"
-                                    x-text="w.name">
-                                </button>
+                                <span class="icon">🔍</span>
+
+                                <input
+                                    type="text"
+                                    class="excel-field-input"
+                                    x-model="storeQuery"
+                                    placeholder="Busca tu tienda...">
+
+                            </div>
+
+
+                            <template x-if="warehousesFiltrados.length > 0">
+
+                                <div class="store-grid">
+
+                                    <template
+                                        x-for="w in warehousesFiltrados"
+                                        :key="w.id">
+
+                                        <button
+                                            type="button"
+                                            class="store-btn"
+                                            :disabled="cargando"
+                                            @click="seleccionarTienda(w)"
+                                            x-text="w.name">
+                                        </button>
+
+                                    </template>
+
+                                </div>
+
+                            </template>
+
+
+                            <template x-if="warehousesFiltrados.length === 0">
+
+                                <div class="store-empty">
+                                    No encontramos una tienda con ese nombre.
+                                </div>
 
                             </template>
 
@@ -994,11 +1077,13 @@
 
                         <div>
 
-                            {{-- TOOLBAR --}}
+                            {{-- TOOLBAR: búsqueda / referencia con autocompletar --}}
 
                             <div class="toolbar">
 
-                                <div class="search-wrap">
+                                <div
+                                    class="search-wrap"
+                                    @click.outside="refSuggestOpen = false">
 
                                     <span class="icon">
                                         🔍
@@ -1008,44 +1093,45 @@
                                         type="text"
                                         class="excel-field-input"
                                         x-model="query"
+                                        @focus="refSuggestOpen = true"
+                                        @input="refSuggestOpen = true"
                                         placeholder="Busca por referencia, nombre o color...">
 
                                     <button
                                         type="button"
                                         class="clear-btn"
                                         x-show="query"
-                                        @click="query = ''">
+                                        @click="query = ''; refSuggestOpen = false">
 
                                         ✕
 
                                     </button>
 
-                                </div>
 
-                            </div>
-
-
-                            {{-- CATEGORÍAS DE PRODUCTO --}}
-
-                            <div class="filtro-bloque">
-
-                                <p class="filtro-label">
-                                    Tipo de producto
-                                </p>
-
-                                <div class="chips">
+                                    {{-- Lista de referencias sugeridas mientras se escribe --}}
 
                                     <template
-                                        x-for="c in categorias"
-                                        :key="c">
+                                        x-if="refSuggestOpen && query && referenciasSugeridas.length > 0">
 
-                                        <button
-                                            type="button"
-                                            class="chip"
-                                            :class="{ activo: c === categoria }"
-                                            @click="categoria = c"
-                                            x-text="c">
-                                        </button>
+                                        <div class="autocomplete-list">
+
+                                            <template
+                                                x-for="r in referenciasSugeridas"
+                                                :key="r.referencia">
+
+                                                <div
+                                                    class="autocomplete-item"
+                                                    @click="seleccionarReferencia(r.referencia)">
+
+                                                    <strong x-text="r.referencia"></strong>
+
+                                                    <span x-text="' · ' + (r.nombre || '')"></span>
+
+                                                </div>
+
+                                            </template>
+
+                                        </div>
 
                                     </template>
 
@@ -1054,94 +1140,104 @@
                             </div>
 
 
-                            {{-- FAMILIA DE COLOR --}}
+                            {{-- FILTROS SUPERIORES: en pc van uno al lado del otro,
+                                 en tablet/celular se acomodan según el ancho --}}
 
-                            <template x-if="macroCategorias.length > 1">
+                            <div class="filtros-superiores">
 
-                                <div class="filtro-bloque">
-
-                                    <p class="filtro-label">
-                                        Familia de color
-                                    </p>
-
-                                    <div class="chips">
-
-                                        <template
-                                            x-for="m in macroCategorias"
-                                            :key="m">
-
-                                            <button
-                                                type="button"
-                                                class="chip"
-                                                :class="{ activo: m === macroColor }"
-                                                @click="seleccionarMacro(m)"
-                                                x-text="m">
-                                            </button>
-
-                                        </template>
-
-                                    </div>
-
-                                </div>
-
-                            </template>
-
-
-                            {{-- COLOR ESPECÍFICO (dentro de la familia elegida) --}}
-
-                            <template
-                                x-if="macroColor !== 'Todos' && coloresDelMacro.length > 0">
+                                {{-- CATEGORÍA DE PRODUCTO (select) --}}
 
                                 <div class="filtro-bloque">
 
                                     <p class="filtro-label">
-                                        Color
+                                        Tipo de producto
                                     </p>
 
-                                    <div class="chips">
-
-                                        <button
-                                            type="button"
-                                            class="chip chip-color"
-                                            :class="{ activo: !colorEspecifico }"
-                                            @click="colorEspecifico = null">
-
-                                            Todos
-
-                                        </button>
-
+                                    <select
+                                        class="excel-field-select"
+                                        x-model="categoria"
+                                        style="min-width:200px;">
 
                                         <template
-                                            x-for="c in coloresDelMacro"
-                                            :key="c.nombre">
+                                            x-for="c in categorias"
+                                            :key="c">
 
-                                            <button
-                                                type="button"
-                                                class="chip chip-color"
-                                                :class="{
-                                                    activo:
-                                                        colorEspecifico &&
-                                                        normalizarTexto(colorEspecifico) ===
-                                                            normalizarTexto(c.nombre)
-                                                }"
-                                                @click="seleccionarColorEspecifico(c.nombre)">
-
-                                                <span
-                                                    class="chip-swatch"
-                                                    :style="{ background: c.hex || '#9CA3AF' }">
-                                                </span>
-
-                                                <span x-text="c.nombre"></span>
-
-                                            </button>
+                                            <option :value="c" x-text="c"></option>
 
                                         </template>
 
-                                    </div>
+                                    </select>
 
                                 </div>
 
-                            </template>
+
+                                {{-- COLOR: familia + color específico (selects) --}}
+
+                                <template x-if="macroCategorias.length > 1">
+
+                                    <div class="filtro-bloque">
+
+                                        <p class="filtro-label">
+                                            Color
+                                        </p>
+
+                                        <div class="filtro-row">
+
+                                            <select
+                                                class="excel-field-select"
+                                                x-model="macroColor"
+                                                @change="colorEspecifico = ''"
+                                                style="min-width:190px;">
+
+                                                <template
+                                                    x-for="m in macroCategorias"
+                                                    :key="m">
+
+                                                    <option :value="m" x-text="m"></option>
+
+                                                </template>
+
+                                            </select>
+
+
+                                            <template
+                                                x-if="macroColor !== 'Todos' && coloresDelMacro.length > 0">
+
+                                                <div class="filtro-row" style="gap:.5rem;">
+
+                                                    <span
+                                                        class="swatch-inline"
+                                                        :style="{ background: colorEspecificoHex || '#9CA3AF' }">
+                                                    </span>
+
+                                                    <select
+                                                        class="excel-field-select"
+                                                        x-model="colorEspecifico"
+                                                        style="min-width:170px;">
+
+                                                        <option value="">Todos los tonos</option>
+
+                                                        <template
+                                                            x-for="c in coloresDelMacro"
+                                                            :key="c.nombre">
+
+                                                            <option :value="c.nombre" x-text="c.nombre"></option>
+
+                                                        </template>
+
+                                                    </select>
+
+                                                </div>
+
+                                            </template>
+
+                                        </div>
+
+                                    </div>
+
+                                </template>
+
+                            </div>
 
 
                             {{-- CONTADOR --}}
@@ -1447,7 +1543,7 @@
 
 
                                         {{-- ==================================================
-                                             SUGERENCIAS
+                                             SUGERENCIAS (mismo producto sin stock en el color elegido)
                                         =================================================== --}}
 
                                         <template
@@ -1535,18 +1631,463 @@
                                 </template>
 
 
-                                {{-- SIN RESULTADOS --}}
+                                {{-- SIN RESULTADOS: producto/color buscado no existe → sugerir alternativas --}}
 
                                 <div
                                     class="empty-state"
                                     x-show="resultados.length === 0"
                                     style="grid-column:1 / -1;">
 
-                                    No encontramos nada con esa búsqueda en
+                                    <div>
 
-                                    <span x-text="tiendaNombre"></span>.
+                                        No encontramos nada con esa búsqueda en
+
+                                        <span x-text="tiendaNombre"></span>.
+
+                                    </div>
+
+
+                                    <template x-if="sugerenciasVacio.length > 0">
+
+                                        <div class="empty-suggest-wrap">
+
+                                            <p class="filtro-label" style="text-align:center;">
+                                                Quizás te sirva esto
+                                            </p>
+
+                                            <template
+                                                x-for="(s, idx) in sugerenciasVacio"
+                                                :key="idx">
+
+                                                <div class="suggest-item">
+
+                                                    <span
+                                                        class="suggest-dot"
+                                                        :style="{
+                                                            background:
+                                                                s.color.hex ||
+                                                                '#9CA3AF'
+                                                        }">
+                                                    </span>
+
+                                                    <div style="min-width:0;">
+
+                                                        <div
+                                                            class="suggest-name"
+                                                            x-text="
+                                                                s.producto.referencia +
+                                                                ' · ' +
+                                                                s.producto.nombre
+                                                            ">
+                                                        </div>
+
+                                                        <div
+                                                            class="suggest-reason"
+                                                            x-text="
+                                                                (s.color.nombre || '') +
+                                                                ' · ' +
+                                                                (s.producto.categoria || '')
+                                                            ">
+                                                        </div>
+
+                                                    </div>
+
+                                                    <span
+                                                        class="suggest-stock"
+                                                        x-text="s.stock + ' und.'">
+                                                    </span>
+
+                                                </div>
+
+                                            </template>
+
+                                        </div>
+
+                                    </template>
 
                                 </div>
+
+
+                                <template
+                                    x-if="productoExacto && sugerenciasProducto.length > 0">
+
+                                    <p
+                                        class="filtro-label"
+                                        style="grid-column:1 / -1; text-align:center; margin-top:.5rem;">
+
+                                        También te puede interesar
+
+                                    </p>
+
+                                </template>
+
+
+                                <template
+                                    x-for="p in sugerenciasProducto"
+                                    :key="'sugerido-' + (p.id ?? p.referencia)">
+
+                                    <div class="prod-card" x-init="colorSeleccionado[p.id] = colorSugeridoIndex(p)">
+
+
+                                        {{-- ==================================================
+                                             CABECERA DEL PRODUCTO
+                                        =================================================== --}}
+
+                                        <div class="prod-head">
+
+                                            {{-- IMAGEN --}}
+
+                                            <template x-if="colorActual(p)">
+
+                                                <img
+                                                    class="prod-thumb"
+                                                    :src="imagenActual(p)"
+                                                    :alt="p.nombre || p.referencia"
+                                                    @click="abrirLightbox(
+                                                        p,
+                                                        indiceColorActual(p)
+                                                    )">
+
+                                            </template>
+
+
+                                            {{-- SIN COLORES --}}
+
+                                            <template x-if="!colorActual(p)">
+
+                                                <div
+                                                    class="prod-thumb"
+                                                    style="
+                                                        display:flex;
+                                                        align-items:center;
+                                                        justify-content:center;
+                                                        color:#9ca3af;
+                                                        font-size:.7rem;
+                                                    ">
+
+                                                    Sin imagen
+
+                                                </div>
+
+                                            </template>
+
+
+                                            {{-- INFORMACIÓN --}}
+
+                                            <div
+                                                style="
+                                                    min-width:0;
+                                                    flex:1;
+                                                    cursor:pointer;
+                                                "
+                                                @click="
+                                                    colorActual(p)
+                                                        ? abrirLightbox(
+                                                            p,
+                                                            indiceColorActual(p)
+                                                        )
+                                                        : null
+                                                ">
+
+                                                <div
+                                                    class="prod-ref"
+                                                    x-text="p.referencia || ''">
+                                                </div>
+
+                                                <div
+                                                    class="prod-nombre"
+                                                    x-text="p.nombre || ''">
+                                                </div>
+
+                                                <div
+                                                    class="prod-meta"
+                                                    x-text="
+                                                        (p.categoria || '') +
+                                                        (p.genero ? ' · ' + p.genero : '')
+                                                    ">
+                                                </div>
+
+                                            </div>
+
+
+                                            {{-- TOTAL --}}
+
+                                            <div class="prod-total">
+
+                                                <div
+                                                    class="prod-total-num"
+                                                    :style="{
+                                                        color: totalProducto(p) > 0
+                                                            ? '#16a34a'
+                                                            : '#dc2626'
+                                                    }"
+                                                    x-text="totalProducto(p)">
+                                                </div>
+
+                                                <div class="prod-total-label">
+
+                                                    en
+                                                    <span x-text="tiendaNombre"></span>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        {{-- ==================================================
+                                             COLORES
+                                        =================================================== --}}
+
+                                        <template x-if="p.colores.length > 0">
+
+                                            <div class="color-tabs">
+
+                                                <template
+                                                    x-for="(c, i) in p.colores"
+                                                    :key="c.nombre + '-' + i">
+
+                                                    <button
+                                                        type="button"
+                                                        class="color-tab"
+                                                        :class="{
+                                                            activo:
+                                                                (colorSeleccionado[p.id] ?? 0) === i,
+                                                            coincide: coincideFiltroColor(c)
+                                                        }"
+                                                        @click="
+                                                            colorSeleccionado[p.id] = i
+                                                        ">
+
+                                                        <span
+                                                            class="color-dot"
+                                                            :class="{
+                                                                agotado: totalColor(c) === 0
+                                                            }"
+                                                            :style="{
+                                                                background: c.hex || '#9CA3AF'
+                                                            }">
+                                                        </span>
+
+                                                        <span
+                                                            x-text="c.nombre || ''">
+                                                        </span>
+
+                                                    </button>
+
+                                                </template>
+
+                                            </div>
+
+                                        </template>
+
+
+                                        {{-- ==================================================
+                                             GALERÍA
+                                        =================================================== --}}
+
+                                        <template
+                                            x-if="colorActual(p) && colorActual(p).fotos.length > 0">
+
+                                            <div class="photo-gallery">
+
+                                                <template
+                                                    x-for="(foto, fi) in colorActual(p).fotos"
+                                                    :key="fi">
+
+                                                    <img
+                                                        :src="foto"
+                                                        :alt="
+                                                            (p.nombre || '') +
+                                                            ' foto ' +
+                                                            (fi + 1)
+                                                        "
+                                                        @click="
+                                                            abrirLightbox(
+                                                                p,
+                                                                indiceColorActual(p),
+                                                                fi
+                                                            )
+                                                        ">
+
+                                                </template>
+
+                                            </div>
+
+                                        </template>
+
+
+                                        {{-- ==================================================
+                                             TALLAS
+                                        =================================================== --}}
+
+                                        <template x-if="colorActual(p)">
+
+                                            <div class="tallas-row">
+
+                                                <template
+                                                    x-for="
+                                                        [talla, qty]
+                                                        in Object.entries(
+                                                            colorActual(p).tallas || {}
+                                                        )
+                                                    "
+                                                    :key="talla">
+
+                                                    <div
+                                                        class="talla-chip"
+                                                        :style="
+                                                            qty > 0
+                                                                ? {
+                                                                    borderColor: nivel(qty).color,
+                                                                    background:
+                                                                        nivel(qty).color + '14'
+                                                                }
+                                                                : {}
+                                                        ">
+
+                                                        <span
+                                                            class="talla-num"
+                                                            x-text="talla">
+                                                        </span>
+
+                                                        <span
+                                                            class="talla-stock"
+                                                            :style="{
+                                                                color: qty > 0
+                                                                    ? nivel(qty).color
+                                                                    : '#9ca3af'
+                                                            }"
+                                                            x-text="qty">
+                                                        </span>
+
+                                                    </div>
+
+                                                </template>
+
+                                            </div>
+
+                                        </template>
+
+
+                                        {{-- ==================================================
+                                             FOOTER
+                                        =================================================== --}}
+
+                                        <div class="prod-footer">
+
+                                            <span>
+
+                                                Total referencia:
+
+                                                <strong
+                                                    x-text="totalProducto(p)">
+                                                </strong>
+
+                                                und.
+
+                                            </span>
+
+                                            <span
+                                                x-text="
+                                                    p.colores.length +
+                                                    (p.colores.length === 1
+                                                        ? ' color'
+                                                        : ' colores')
+                                                ">
+                                            </span>
+
+                                        </div>
+
+
+                                        {{-- ==================================================
+                                             SUGERENCIAS (mismo producto sin stock en el color elegido)
+                                        =================================================== --}}
+
+                                        <template
+                                            x-if="
+                                                colorActual(p) &&
+                                                totalColor(colorActual(p)) === 0
+                                            ">
+
+                                            <div class="suggest-box">
+
+                                                <div class="suggest-title">
+
+                                                    ⚠ Sin stock en
+
+                                                    <span
+                                                        x-text="
+                                                            (colorActual(p).nombre || '')
+                                                                .toLowerCase()
+                                                        ">
+                                                    </span>
+
+                                                    — alternativas
+
+                                                </div>
+
+
+                                                <template
+                                                    x-for="
+                                                        (s, idx) in sugerenciasPara(
+                                                            p,
+                                                            colorActual(p)
+                                                        )
+                                                    "
+                                                    :key="idx">
+
+                                                    <div class="suggest-item">
+
+                                                        <span
+                                                            class="suggest-dot"
+                                                            :style="{
+                                                                background:
+                                                                    s.color.hex ||
+                                                                    '#9CA3AF'
+                                                            }">
+                                                        </span>
+
+
+                                                        <div style="min-width:0;">
+
+                                                            <div
+                                                                class="suggest-name"
+                                                                x-text="
+                                                                    s.producto.referencia +
+                                                                    ' · ' +
+                                                                    s.producto.nombre
+                                                                ">
+                                                            </div>
+
+                                                            <div
+                                                                class="suggest-reason"
+                                                                x-text="s.motivo">
+                                                            </div>
+
+                                                        </div>
+
+
+                                                        <span
+                                                            class="suggest-stock"
+                                                            x-text="
+                                                                totalColor(s.color) +
+                                                                ' und.'
+                                                            ">
+                                                        </span>
+
+                                                    </div>
+
+                                                </template>
+
+                                            </div>
+
+                                        </template>
+
+                                    </div>
+
+                                </template>
 
                             </div>
 
@@ -1709,14 +2250,20 @@
 
                 tiendaNombre: '',
 
+                // Buscador de tienda (pantalla 1)
+                storeQuery: '',
+
                 query: '',
+
+                // Se abre/cierra el listado de referencias sugeridas
+                refSuggestOpen: false,
 
                 categoria: 'Todos',
 
                 // Filtro de color: familia (macrocategoria) + color específico opcional
                 macroColor: 'Todos',
 
-                colorEspecifico: null,
+                colorEspecifico: '',
 
                 colorSeleccionado: {},
 
@@ -1874,6 +2421,31 @@
 
 
                 /* ======================================================
+                   TIENDAS FILTRADAS (buscador de la pantalla 1)
+                ======================================================= */
+
+                get warehousesFiltrados() {
+
+                    const q =
+                        this.storeQuery.trim().toLowerCase();
+
+                    if (!q) {
+
+                        return this.warehouses;
+
+                    }
+
+
+                    return this.warehouses.filter(
+                        w => String(w.name || '')
+                            .toLowerCase()
+                            .includes(q)
+                    );
+
+                },
+
+
+                /* ======================================================
                    SELECCIONAR TIENDA
                 ======================================================= */
 
@@ -1887,13 +2459,15 @@
 
                     this.tiendaNombre = w.name || '';
 
+                    this.storeQuery = '';
+
                     this.query = '';
 
                     this.categoria = 'Todos';
 
                     this.macroColor = 'Todos';
 
-                    this.colorEspecifico = null;
+                    this.colorEspecifico = '';
 
                     this.colorSeleccionado = {};
 
@@ -1914,13 +2488,15 @@
 
                     this.productos = [];
 
+                    this.storeQuery = '';
+
                     this.query = '';
 
                     this.categoria = 'Todos';
 
                     this.macroColor = 'Todos';
 
-                    this.colorEspecifico = null;
+                    this.colorEspecifico = '';
 
                     this.colorSeleccionado = {};
 
@@ -1941,6 +2517,70 @@
                         colorNombre: '',
 
                     };
+
+                },
+
+
+                /* ======================================================
+                   REFERENCIA: AUTOCOMPLETAR
+                ======================================================= */
+
+                get referenciasSugeridas() {
+
+                    const q =
+                        this.query.trim().toLowerCase();
+
+                    if (!q) {
+
+                        return [];
+
+                    }
+
+
+                    const vistos = new Set();
+
+                    const out = [];
+
+                    this.productos.forEach(p => {
+
+                        if (!p) {
+
+                            return;
+
+                        }
+
+
+                        const ref =
+                            String(p.referencia || '').toLowerCase();
+
+                        const nom =
+                            String(p.nombre || '').toLowerCase();
+
+
+                        if (
+                            (ref.includes(q) || nom.includes(q)) &&
+                            !vistos.has(p.referencia)
+                        ) {
+
+                            vistos.add(p.referencia);
+
+                            out.push(p);
+
+                        }
+
+                    });
+
+
+                    return out.slice(0, 8);
+
+                },
+
+
+                seleccionarReferencia(ref) {
+
+                    this.query = ref;
+
+                    this.refSuggestOpen = false;
 
                 },
 
@@ -1990,25 +2630,23 @@
                 },
 
 
-                seleccionarMacro(m) {
+                get colorEspecificoHex() {
 
-                    this.macroColor = m;
+                    if (!this.colorEspecifico) {
 
-                    this.colorEspecifico = null;
+                        return null;
 
-                },
+                    }
 
 
-                seleccionarColorEspecifico(nombre) {
+                    const c = this.coloresDelMacro.find(
+                        c =>
+                            this.normalizarTexto(c.nombre) ===
+                            this.normalizarTexto(this.colorEspecifico)
+                    );
 
-                    this.colorEspecifico =
-                        (
-                            this.colorEspecifico &&
-                            this.normalizarTexto(this.colorEspecifico) ===
-                                this.normalizarTexto(nombre)
-                        )
-                            ? null
-                            : nombre;
+
+                    return c?.hex || null;
 
                 },
 
@@ -2436,6 +3074,334 @@
                         );
 
                     });
+
+                },
+
+
+                /* ======================================================
+                   ¿LA BÚSQUEDA APUNTA A UNA SOLA REFERENCIA ESPECÍFICA?
+
+                   Cuando el filtro deja exactamente un producto y hay
+                   texto de búsqueda activo (el cliente escribió o eligió
+                   una referencia puntual), consideramos que está
+                   buscando ESE producto en particular.
+                ======================================================= */
+
+                get productoExacto() {
+
+                    if (this.resultados.length !== 1) {
+
+                        return null;
+
+                    }
+
+
+                    if (!this.query.trim()) {
+
+                        return null;
+
+                    }
+
+
+                    return this.resultados[0];
+
+                },
+
+
+                /* ======================================================
+                   SIMILARES AL PRODUCTO ENCONTRADO
+
+                   Aunque el producto buscado sí tenga resultado, la
+                   talla que el cliente necesita puede no estar en ese
+                   color/tienda. Por eso mostramos alternativas de la
+                   misma categoría y, si hay un color/familia de color
+                   filtrado, de esa misma familia; si no hay filtro de
+                   color activo, usamos las familias de color que tiene
+                   el propio producto encontrado.
+                ======================================================= */
+
+                /* ======================================================
+                   FAMILIAS DE COLOR "OBJETIVO" para las sugerencias del
+                   producto encontrado: el filtro de color activo, o si
+                   no hay filtro, las familias de color que ya tiene el
+                   propio producto encontrado.
+                ======================================================= */
+
+                get familiasSugeridas() {
+
+                    const p = this.productoExacto;
+
+                    if (!p) {
+
+                        return [];
+
+                    }
+
+
+                    return this.macroColor !== 'Todos'
+                        ? [this.macroColor]
+                        : [
+                            ...new Set(
+                                (p.colores || [])
+                                    .map(c => c.macrocategoria)
+                                    .filter(Boolean)
+                            )
+                        ];
+
+                },
+
+
+                get sugerenciasProducto() {
+
+                    const p = this.productoExacto;
+
+                    if (!p) {
+
+                        return [];
+
+                    }
+
+
+                    const familias = this.familiasSugeridas;
+
+                    const candidatos = [];
+
+                    this.productos.forEach(otro => {
+
+                        if (
+                            !otro ||
+                            otro.id === p.id ||
+                            otro.categoria !== p.categoria ||
+                            !Array.isArray(otro.colores)
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        // Nos quedamos con el mejor color (más stock)
+                        // de este producto que coincida con la familia
+                        // buscada, para ordenar por relevancia.
+
+                        let mejorStock = 0;
+
+                        otro.colores.forEach(c => {
+
+                            if (!c) {
+
+                                return;
+
+                            }
+
+
+                            const stock =
+                                this.totalColor(c);
+
+                            if (stock <= 0) {
+
+                                return;
+
+                            }
+
+
+                            if (familias.length > 0) {
+
+                                const coincide =
+                                    familias.some(
+                                        f =>
+                                            this.normalizarTexto(f) ===
+                                            this.normalizarTexto(c.macrocategoria)
+                                    );
+
+                                if (!coincide) {
+
+                                    return;
+
+                                }
+
+                            }
+
+
+                            if (stock > mejorStock) {
+
+                                mejorStock = stock;
+
+                            }
+
+                        });
+
+
+                        if (mejorStock > 0) {
+
+                            candidatos.push({
+                                producto: otro,
+                                stock: mejorStock,
+                            });
+
+                        }
+
+                    });
+
+
+                    candidatos.sort(
+                        (a, b) => b.stock - a.stock
+                    );
+
+
+                    return candidatos
+                        .slice(0, 6)
+                        .map(c => c.producto);
+
+                },
+
+
+                /* ======================================================
+                   ÍNDICE DE COLOR SUGERIDO PARA UNA TARJETA DE "TAMBIÉN
+                   TE PUEDE INTERESAR"
+
+                   Elige, dentro de los colores del producto sugerido, el
+                   que coincide con la familia buscada y tiene stock; si
+                   no hay ninguno así, cae al primer color con stock, y
+                   si tampoco hay, al primero de la lista.
+                ======================================================= */
+
+                colorSugeridoIndex(p) {
+
+                    if (
+                        !p ||
+                        !Array.isArray(p.colores) ||
+                        p.colores.length === 0
+                    ) {
+
+                        return 0;
+
+                    }
+
+
+                    const familias = this.familiasSugeridas;
+
+
+                    let idx = p.colores.findIndex(
+                        c =>
+                            c &&
+                            familias.some(
+                                f =>
+                                    this.normalizarTexto(f) ===
+                                    this.normalizarTexto(c.macrocategoria)
+                            ) &&
+                            this.totalColor(c) > 0
+                    );
+
+                    if (idx === -1) {
+
+                        idx = p.colores.findIndex(
+                            c => c && this.totalColor(c) > 0
+                        );
+
+                    }
+
+
+                    return idx === -1 ? 0 : idx;
+
+                },
+
+
+                /* ======================================================
+                   SUGERENCIAS CUANDO NO HAY RESULTADOS
+
+                   Se usa cuando lo que el cliente busca (referencia y/o
+                   color) no aparece en esta tienda. Se buscan productos
+                   con stock que respeten la categoría elegida (si hay) y
+                   la familia/color de color elegida (si hay), ordenados
+                   por cantidad disponible, para ofrecer alternativas
+                   parecidas al zapato que el cliente vio en exhibición.
+                ======================================================= */
+
+                get sugerenciasVacio() {
+
+                    if (this.resultados.length > 0) {
+
+                        return [];
+
+                    }
+
+
+                    const candidatos = [];
+
+                    this.productos.forEach(p => {
+
+                        if (
+                            !p ||
+                            !Array.isArray(p.colores)
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        if (
+                            this.categoria !== 'Todos' &&
+                            p.categoria !== this.categoria
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        p.colores.forEach(c => {
+
+                            if (!c) {
+
+                                return;
+
+                            }
+
+
+                            const stock =
+                                this.totalColor(c);
+
+                            if (stock <= 0) {
+
+                                return;
+
+                            }
+
+
+                            if (this.macroColor !== 'Todos') {
+
+                                const macroOk =
+                                    this.normalizarTexto(c.macrocategoria) ===
+                                    this.normalizarTexto(this.macroColor);
+
+                                if (!macroOk) {
+
+                                    return;
+
+                                }
+
+                            }
+
+
+                            candidatos.push({
+                                producto: p,
+                                color: c,
+                                stock,
+                            });
+
+                        });
+
+                    });
+
+
+                    candidatos.sort(
+                        (a, b) => b.stock - a.stock
+                    );
+
+
+                    return candidatos.slice(0, 6);
 
                 },
 

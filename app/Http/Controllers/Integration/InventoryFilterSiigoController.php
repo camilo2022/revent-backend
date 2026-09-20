@@ -203,12 +203,6 @@ class InventoryFilterSiigoController extends Controller
         ];
     }
 
-    /**
-     * Catálogo de colores. Cada color pertenece a una "macrocategoria"
-     * (familia de color). Esto permite que el filtro del frontend agrupe
-     * colores similares y que las sugerencias de "sin stock" busquen
-     * primero dentro de la misma familia antes de mostrar cualquier color.
-     */
     private function colores(): array
     {
         return [
@@ -263,10 +257,6 @@ class InventoryFilterSiigoController extends Controller
         ];
     }
 
-    /**
-     * Agrupa el catálogo de colores por macrocategoria, para poblar
-     * el filtro de color (familia -> colores) en el frontend.
-     */
     private function color_groups(): array
     {
         $grupos = [];
