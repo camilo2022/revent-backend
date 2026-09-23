@@ -113,6 +113,9 @@ class AccountPayableSiigoController extends Controller
             ]);
         }
 
+        $provider = $this->provider($token, $request->input('MsThirdPartyID'));
+        Cache::forever($request->input('MsThirdPartyID'), $provider);
+
         $allData = $request->boolean('all_data');
 
         $warehousesById = collect();
@@ -869,7 +872,7 @@ class AccountPayableSiigoController extends Controller
         return $response->json();
     }
 
-    public function accounts_payable_providers()
+    public function accounts_payable_providers(Request $request)
     {
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
@@ -917,12 +920,29 @@ class AccountPayableSiigoController extends Controller
             ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
 
         if (!$response->successful()) {
-            throw new \Exception(
-                'Error consultando cuentas por pagar a proveedores: ' . $response->body()
-            );
+            throw new \Exception('Error consultando cuentas por pagar a proveedores: ' . $response->body());
         }
+
+        $providers = $response->json('data.Value.Table');
+
+        foreach ($providers as &$provider) {
+            $data = Cache::get($provider['MsThirdPartyID']);
+
+            if(!$data || $request->boolean('sync')) {
+                $data = $this->provider($token, $provider['MsThirdPartyID']);
+                Cache::forever($provider['MsThirdPartyID'], $data);
+            }
+
+            $provider['FullName'] = strtoupper($provider['FullName']);
+            $provider['CompanyName'] = strtoupper(data_get($data, 'BasicData.CompanyName', ''));
+            $comments = trim(data_get($data, 'Comments', ''));
+            $provider['Type'] = str_starts_with($comments, 'PT') ? 'PRODUCTO TERMINADO' : 'OTROS';
+        }
+
+        unset($provider);
+
         return response()->json([
-            'providers' => $response->json('data.Value.Table'),
+            'providers' => $providers,
         ]);
     }
 

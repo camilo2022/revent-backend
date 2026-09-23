@@ -120,10 +120,41 @@
         gap: 0.8rem;
         margin-bottom: 1.1rem;
         align-items: center;
+        flex-wrap: wrap;
     }
 
     .providers-toolbar .combo-input { max-width: 480px; }
     .providers-toolbar select.combo-input { max-width: 110px; }
+    .providers-toolbar select#providerTypeFilter.combo-input { max-width: 220px; }
+
+    .btn-sync-providers {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        border-radius: 10px;
+        padding: 0.62rem 0.95rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #4338ca;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn-sync-providers:hover:not(:disabled) { background: #e0e7ff; }
+
+    .btn-sync-providers:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-sync-providers svg {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+    }
 
     .provider-row { cursor: pointer; }
     .provider-row:hover td { background: #f0fdf4; }
@@ -155,7 +186,12 @@
         cursor: pointer;
     }
 
-    .page-btn:hover:not(:disabled) { background: #f0fdf4; border-color: #16a34a; }
+    .page-btn:hover:not(:disabled) {
+        background: #f0fdf4;
+        border-color: #16a34a;
+        color: #16a34a;
+    }
+    
     .page-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
     .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .page-dots { padding: 0 0.3rem; color: #9ca3af; }
@@ -1084,7 +1120,23 @@
 
         .providers-toolbar { flex-direction: column; align-items: stretch; }
         .providers-toolbar .combo-input,
-        .providers-toolbar select.combo-input { max-width: 100%; }
+        .providers-toolbar select.combo-input,
+        .providers-toolbar select#providerTypeFilter.combo-input { max-width: 100%; }
+        .btn-sync-providers { width: 100%; justify-content: center; }
+    }
+
+    .btn-sync-providers .spinning {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>
 </head>
@@ -1106,12 +1158,22 @@
                     placeholder="Filtrar por nombre o identificación..."
                     autocomplete="off"
                 >
+                <select id="providerTypeFilter" class="combo-input">
+                    <option value="">Todos los tipos</option>
+                </select>
                 <select id="providerPageSize" class="combo-input">
                     <option value="10">10</option>
                     <option value="25">25</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
+                <button type="button" class="btn-sync-providers" id="btnSyncProviders">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <polyline points="1 20 1 14 7 14"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                </button>
             </div>
 
             <div class="loading-state" id="providersLoading">
@@ -1130,6 +1192,7 @@
                         <tr>
                             <th>Proveedor</th>
                             <th>Identificación</th>
+                            <th>Tipo</th>
                             <th style="text-align:right;">Por vencer</th>
                             <th style="text-align:right;">Vencido</th>
                             <th style="text-align:right;">A favor</th>
@@ -1609,7 +1672,9 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     // ---- Proveedores (lista) ----
     let providers                  = [];
     const searchInput              = document.getElementById('providerSearch');
+    const providerTypeFilter       = document.getElementById('providerTypeFilter');
     const pageSizeSelect           = document.getElementById('providerPageSize');
+    const btnSyncProviders         = document.getElementById('btnSyncProviders');
     const providersView            = document.getElementById('providersView');
     const detailView               = document.getElementById('detailView');
     const providersLoading         = document.getElementById('providersLoading');
@@ -1843,15 +1908,37 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
             + (Number(p.ExpiredMoreTo91) || 0);
     }
 
+    // Recalcula las opciones del select de "Tipo" a partir de los proveedores cargados,
+    // conservando la selección actual si sigue existiendo entre los tipos disponibles.
+    function populateTypeFilter() {
+        const currentValue = providerTypeFilter.value;
+
+        const types = Array.from(new Set(
+            providers.map((p) => (p.Type || '').trim()).filter(Boolean)
+        )).sort((a, b) => a.localeCompare(b, 'es'));
+
+        providerTypeFilter.innerHTML = '<option value="">Todos los tipos</option>' +
+            types.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+        if (types.includes(currentValue)) {
+            providerTypeFilter.value = currentValue;
+        }
+    }
+
     function getFilteredProviders() {
         const q = searchInput.value.trim().toLowerCase();
-        if (!q) return providers;
+        const typeFilter = providerTypeFilter.value;
 
-        return providers.filter((p) =>
-            (p.FullName || '').toLowerCase().includes(q) ||
-            (p.CompanyName || '').toLowerCase().includes(q) ||
-            String(p.Identification || '').toLowerCase().includes(q)
-        );
+        return providers.filter((p) => {
+            const matchesQuery = !q
+                || (p.FullName || '').toLowerCase().includes(q)
+                || (p.CompanyName || '').toLowerCase().includes(q)
+                || String(p.Identification || '').toLowerCase().includes(q);
+
+            const matchesType = !typeFilter || (p.Type || '') === typeFilter;
+
+            return matchesQuery && matchesType;
+        });
     }
 
     function renderProviders() {
@@ -1863,20 +1950,23 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         const items = list.slice(start, start + pageSize);
 
         providersBody.innerHTML = items.length
-            ? items.map((p) => `
+            ? items.map((p) => {
+                return `
                 <tr style="font-weight: 700;" class="provider-row" data-account-id="${escapeHtml(p.AccountID)}">
                     <td>
                         ${escapeHtml(p.FullName)}
                         ${p.CompanyName ? `<div class="provider-sub">${escapeHtml(p.CompanyName)}</div>` : ''}
                     </td>
+                    <td>${escapeHtml(p.Type)}</td>
                     <td style="font-weight: 700;" class="provider-row">${escapeHtml(p.Identification)}</td>
                     <td style="text-align:right;" class="cover-partial">${formatMoney(p.BalanceToExpire)}</td>
                     <td style="text-align:right;" class="cover-expired">${formatMoney(providerVencido(p))}</td>
                     <td style="text-align:right;" class="cover-full">${formatMoney(p.BalanceInFavor)}</td>
                     <td style="text-align:right;" class="cover-none">${formatMoney(p.TotalBalance)}</td>
                 </tr>
-            `).join('')
-            : '<tr><td colspan="6" class="empty-state">Sin resultados.</td></tr>';
+            `;
+            }).join('')
+            : '<tr><td colspan="7" class="empty-state">Sin resultados.</td></tr>';
 
         providersInfo.textContent = list.length
             ? `Mostrando ${start + 1}-${start + items.length} de ${list.length}`
@@ -1902,7 +1992,8 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     }
 
     // silent = true: no muestra loading ni errores (se usa para refrescar en segundo plano)
-    async function loadProviders({ silent = false } = {}) {
+    // sync = true: le pide al backend que sincronice tipo y nombre comercial (consulta más lenta)
+    async function loadProviders({ silent = false, sync = false } = {}) {
         const myToken = ++providersRequestToken;
 
         if (!silent) {
@@ -1912,13 +2003,18 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
             providersError.style.display = 'none';
         }
 
+        let url = PROVIDERS_URL;
+        if (sync) url += (url.includes('?') ? '&' : '?') + 'sync=true';
+
         try {
-            const response = await fetch(PROVIDERS_URL, { headers: { 'Accept': 'application/json' } });
+            const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
             if (myToken !== providersRequestToken) return;
             if (!response.ok) throw new Error('request_failed');
 
             const data = await response.json();
             providers = Object.values(data.providers || []);
+
+            populateTypeFilter();
 
             providersError.style.display = 'none';
             providersScroll.style.display = 'block';
@@ -1937,6 +2033,11 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         renderProviders();
     });
 
+    providerTypeFilter.addEventListener('change', () => {
+        providerPage = 1;
+        renderProviders();
+    });
+
     pageSizeSelect.addEventListener('change', () => {
         pageSize = Number(pageSizeSelect.value) || 10;
         providerPage = 1;
@@ -1951,6 +2052,63 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     });
 
     providersRetry.addEventListener('click', () => loadProviders());
+
+    // ---- Sincronización manual de proveedores (tipo y nombre comercial) ----
+    btnSyncProviders.addEventListener('click', async () => {
+        const result = await Swal.fire({
+            icon: 'info',
+            title: 'Sincronizar proveedores',
+            text: 'Esta acción puede demorar varios minutos, ya que se está consultando el tipo de proveedor y el nombre comercial de cada uno. ¿Deseas continuar?',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, sincronizar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#4338ca',
+            cancelButtonColor: '#6b7280',
+        });
+
+        if (!result.isConfirmed) return;
+
+        btnSyncProviders.disabled = true;
+        btnSyncProviders.innerHTML = `<svg class="icon-sync spinning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>`;
+
+        Swal.fire({
+            title: 'Sincronizando proveedores',
+            text: 'Por favor espera, este proceso puede demorar varios minutos. No cierres esta ventana...',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => Swal.showLoading(),
+        });
+
+        try {
+            await loadProviders({ sync: true });
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'Sincronización completa',
+                text: 'Los proveedores se sincronizaron correctamente.',
+                confirmButtonColor: '#3085d6',
+            });
+        } catch (err) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'No se pudo sincronizar',
+                text: 'Ocurrió un error al sincronizar los proveedores. Intenta de nuevo.',
+                confirmButtonColor: '#d33',
+            });
+        } finally {
+            // El botón queda deshabilitado de forma permanente tras la sincronización
+            // para evitar que se dispare varias veces esta consulta pesada.
+            btnSyncProviders.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            `;
+        }
+    });
 
     providersBody.addEventListener('click', (e) => {
         const row = e.target.closest('.provider-row');
@@ -2100,6 +2258,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         docsBody.innerHTML = '';
 
         let url = DOCUMENTS_URL_TEMPLATE.replace('__ID__', encodeURIComponent(provider.AccountID));
+        url += (url.includes('?') ? '&' : '?') + 'MsThirdPartyID=' + encodeURIComponent(provider.MsThirdPartyID);
         if (allData) url += (url.includes('?') ? '&' : '?') + 'all_data=1';
 
         try {

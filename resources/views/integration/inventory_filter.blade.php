@@ -1171,9 +1171,41 @@
                                 </div>
 
 
-                                {{-- COLOR: familia + color específico (selects) --}}
+                                {{-- TONO: familia de color (select) --}}
 
                                 <template x-if="macroCategorias.length > 1">
+
+                                    <div class="filtro-bloque">
+
+                                        <p class="filtro-label">
+                                            Tono
+                                        </p>
+
+                                        <select
+                                            class="excel-field-select"
+                                            x-model="macroColor"
+                                            @change="colorEspecifico = ''"
+                                            style="min-width:190px;">
+
+                                            <template
+                                                x-for="m in macroCategorias"
+                                                :key="m">
+
+                                                <option :value="m" x-text="m"></option>
+
+                                            </template>
+
+                                        </select>
+
+                                    </div>
+
+                                </template>
+
+
+                                {{-- COLOR: color específico dentro del tono elegido (select) --}}
+
+                                <template
+                                    x-if="macroColor !== 'Todos' && coloresDelMacro.length > 0">
 
                                     <div class="filtro-bloque">
 
@@ -1181,57 +1213,63 @@
                                             Color
                                         </p>
 
-                                        <div class="filtro-row">
+                                        <div class="filtro-row" style="gap:.5rem;">
+
+                                            <span
+                                                class="swatch-inline"
+                                                :style="{ background: colorEspecificoHex || '#9CA3AF' }">
+                                            </span>
 
                                             <select
                                                 class="excel-field-select"
-                                                x-model="macroColor"
-                                                @change="colorEspecifico = ''"
-                                                style="min-width:190px;">
+                                                x-model="colorEspecifico"
+                                                style="min-width:170px;">
+
+                                                <option value="">Todos los tonos</option>
 
                                                 <template
-                                                    x-for="m in macroCategorias"
-                                                    :key="m">
+                                                    x-for="c in coloresDelMacro"
+                                                    :key="c.nombre">
 
-                                                    <option :value="m" x-text="m"></option>
+                                                    <option :value="c.nombre" x-text="c.nombre"></option>
 
                                                 </template>
 
                                             </select>
 
+                                        </div>
+
+                                    </div>
+
+                                </template>
+
+
+                                {{-- TALLA (select) --}}
+
+                                <template x-if="tallas.length > 0">
+
+                                    <div class="filtro-bloque">
+
+                                        <p class="filtro-label">
+                                            Talla
+                                        </p>
+
+                                        <select
+                                            class="excel-field-select"
+                                            x-model="talla"
+                                            style="min-width:130px;">
+
+                                            <option value="">Todas</option>
 
                                             <template
-                                                x-if="macroColor !== 'Todos' && coloresDelMacro.length > 0">
+                                                x-for="t in tallas"
+                                                :key="t">
 
-                                                <div class="filtro-row" style="gap:.5rem;">
-
-                                                    <span
-                                                        class="swatch-inline"
-                                                        :style="{ background: colorEspecificoHex || '#9CA3AF' }">
-                                                    </span>
-
-                                                    <select
-                                                        class="excel-field-select"
-                                                        x-model="colorEspecifico"
-                                                        style="min-width:170px;">
-
-                                                        <option value="">Todos los tonos</option>
-
-                                                        <template
-                                                            x-for="c in coloresDelMacro"
-                                                            :key="c.nombre">
-
-                                                            <option :value="c.nombre" x-text="c.nombre"></option>
-
-                                                        </template>
-
-                                                    </select>
-
-                                                </div>
+                                                <option :value="t" x-text="t"></option>
 
                                             </template>
 
-                                        </div>
+                                        </select>
 
                                     </div>
 
@@ -1358,11 +1396,11 @@
                                                 <div
                                                     class="prod-total-num"
                                                     :style="{
-                                                        color: totalProducto(p) > 0
+                                                        color: totalColorActual(p) > 0
                                                             ? '#16a34a'
                                                             : '#dc2626'
                                                     }"
-                                                    x-text="totalProducto(p)">
+                                                    x-text="totalColorActual(p)">
                                                 </div>
 
                                                 <div class="prod-total-label">
@@ -1397,9 +1435,7 @@
                                                                 (colorSeleccionado[p.id] ?? 0) === i,
                                                             coincide: coincideFiltroColor(c)
                                                         }"
-                                                        @click="
-                                                            colorSeleccionado[p.id] = i
-                                                        ">
+                                                        @click="seleccionarColor(p, i)">
 
                                                         <span
                                                             class="color-dot"
@@ -1817,11 +1853,11 @@
                                                 <div
                                                     class="prod-total-num"
                                                     :style="{
-                                                        color: totalProducto(p) > 0
+                                                        color: totalColorActual(p) > 0
                                                             ? '#16a34a'
                                                             : '#dc2626'
                                                     }"
-                                                    x-text="totalProducto(p)">
+                                                    x-text="totalColorActual(p)">
                                                 </div>
 
                                                 <div class="prod-total-label">
@@ -1856,9 +1892,7 @@
                                                                 (colorSeleccionado[p.id] ?? 0) === i,
                                                             coincide: coincideFiltroColor(c)
                                                         }"
-                                                        @click="
-                                                            colorSeleccionado[p.id] = i
-                                                        ">
+                                                        @click="seleccionarColor(p, i)">
 
                                                         <span
                                                             class="color-dot"
@@ -2265,6 +2299,9 @@
 
                 colorEspecifico: '',
 
+                // Filtro de talla: vacío = todas
+                talla: '',
+
                 colorSeleccionado: {},
 
                 cargando: false,
@@ -2469,6 +2506,8 @@
 
                     this.colorEspecifico = '';
 
+                    this.talla = '';
+
                     this.colorSeleccionado = {};
 
                     this.cargarInventario();
@@ -2497,6 +2536,8 @@
                     this.macroColor = 'Todos';
 
                     this.colorEspecifico = '';
+
+                    this.talla = '';
 
                     this.colorSeleccionado = {};
 
@@ -2877,6 +2918,53 @@
 
 
                 /* ======================================================
+                   SELECCIONAR UN COLOR EN LA PESTAÑA DE UNA TARJETA
+
+                   Si el producto es justo el que se está buscando
+                   (productoExacto), además de cambiar la pestaña,
+                   sincronizamos el filtro de "Tono" con la familia de
+                   ese color (y limpiamos "Color" a "Todos"), para que
+                   "también te puede interesar" se sombree de inmediato
+                   con tonos parecidos al que el cliente está viendo.
+                ======================================================= */
+
+                seleccionarColor(p, i) {
+
+                    if (!p) {
+
+                        return;
+
+                    }
+
+
+                    this.colorSeleccionado[p.id] = i;
+
+
+                    const exacto = this.productoExacto;
+
+                    if (
+                        exacto &&
+                        exacto.id === p.id &&
+                        Array.isArray(p.colores)
+                    ) {
+
+                        const color = p.colores[i];
+
+                        if (color && color.macrocategoria) {
+
+                            this.macroColor =
+                                color.macrocategoria;
+
+                            this.colorEspecifico = '';
+
+                        }
+
+                    }
+
+                },
+
+
+                /* ======================================================
                    ÍNDICE DEL COLOR ACTUAL
                 ======================================================= */
 
@@ -2975,6 +3063,84 @@
 
 
                 /* ======================================================
+                   TALLAS DISPONIBLES (para el filtro de talla)
+                ======================================================= */
+
+                get tallas() {
+
+                    const set = new Set();
+
+                    this.productos.forEach(p => {
+
+                        if (!Array.isArray(p.colores)) {
+
+                            return;
+
+                        }
+
+
+                        p.colores.forEach(c => {
+
+                            if (!c || !c.tallas) {
+
+                                return;
+
+                            }
+
+
+                            Object.keys(c.tallas).forEach(
+                                t => set.add(t)
+                            );
+
+                        });
+
+                    });
+
+
+                    return [...set].sort(
+                        (a, b) =>
+                            a.localeCompare(
+                                b,
+                                undefined,
+                                { numeric: true }
+                            )
+                    );
+
+                },
+
+
+                /* ======================================================
+                   STOCK RELEVANTE DE UN COLOR
+
+                   Si hay una talla filtrada, el stock que importa es el
+                   de esa talla puntual (no el total del color); si no
+                   hay talla filtrada, se usa el total del color.
+                ======================================================= */
+
+                stockRelevante(c) {
+
+                    if (!c) {
+
+                        return 0;
+
+                    }
+
+
+                    if (this.talla) {
+
+                        return Number(
+                            c.tallas?.[this.talla]
+                        ) || 0;
+
+                    }
+
+
+                    return this.totalColor(c);
+
+                },
+
+
+                /* ======================================================
                    RESULTADOS
                    Aplica: categoría de producto, familia/color de color
                    y texto de búsqueda libre.
@@ -2990,32 +3156,86 @@
 
                     return this.productos.filter(p => {
 
-                        if (
-                            this.categoria !== 'Todos' &&
-                            p.categoria !== this.categoria
-                        ) {
+                        // Si el texto buscado es exactamente la
+                        // referencia de este producto, lo mostramos
+                        // siempre, sin importar categoría, tono o talla
+                        // seleccionados: es justo el producto que el
+                        // cliente está buscando.
 
-                            return false;
+                        const esReferenciaExacta =
+                            q &&
+                            this.normalizarTexto(p.referencia) ===
+                                this.normalizarTexto(q);
 
-                        }
 
+                        if (!esReferenciaExacta) {
 
-                        // Filtro por familia de color / color específico:
-                        // el producto debe tener AL MENOS un color que
-                        // coincida (no importa si está agotado, para que
-                        // el usuario vea igual el producto y las
-                        // sugerencias de alternativas).
-
-                        if (this.macroColor !== 'Todos') {
-
-                            const tieneColor =
-                                p.colores.some(
-                                    c => this.coincideFiltroColor(c)
-                                );
-
-                            if (!tieneColor) {
+                            if (
+                                this.categoria !== 'Todos' &&
+                                p.categoria !== this.categoria
+                            ) {
 
                                 return false;
+
+                            }
+
+
+                            // Filtro por familia de color / color
+                            // específico: el producto debe tener AL
+                            // MENOS un color que coincida (no importa si
+                            // está agotado, para que el usuario vea
+                            // igual el producto y las sugerencias de
+                            // alternativas).
+
+                            if (this.macroColor !== 'Todos') {
+
+                                const tieneColor =
+                                    p.colores.some(
+                                        c => this.coincideFiltroColor(c)
+                                    );
+
+                                if (!tieneColor) {
+
+                                    return false;
+
+                                }
+
+                            }
+
+
+                            // Filtro por talla: el producto debe tener
+                            // AL MENOS un color (que además respete el
+                            // tono filtrado, si hay uno) con stock en la
+                            // talla seleccionada.
+
+                            if (this.talla) {
+
+                                const tieneTalla =
+                                    p.colores.some(c => {
+
+                                        if (
+                                            this.macroColor !== 'Todos' &&
+                                            !this.coincideFiltroColor(c)
+                                        ) {
+
+                                            return false;
+
+                                        }
+
+
+                                        return (
+                                            Number(
+                                                c.tallas?.[this.talla]
+                                            ) || 0
+                                        ) > 0;
+
+                                    });
+
+                                if (!tieneTalla) {
+
+                                    return false;
+
+                                }
 
                             }
 
@@ -3180,9 +3400,10 @@
                         }
 
 
-                        // Nos quedamos con el mejor color (más stock)
-                        // de este producto que coincida con la familia
-                        // buscada, para ordenar por relevancia.
+                        // Nos quedamos con el mejor color (más stock
+                        // relevante: el de la talla filtrada si hay una,
+                        // o el total del color si no) de este producto
+                        // que coincida con la familia buscada.
 
                         let mejorStock = 0;
 
@@ -3196,7 +3417,7 @@
 
 
                             const stock =
-                                this.totalColor(c);
+                                this.stockRelevante(c);
 
                             if (stock <= 0) {
 
@@ -3261,9 +3482,10 @@
                    TE PUEDE INTERESAR"
 
                    Elige, dentro de los colores del producto sugerido, el
-                   que coincide con la familia buscada y tiene stock; si
-                   no hay ninguno así, cae al primer color con stock, y
-                   si tampoco hay, al primero de la lista.
+                   que coincide con la familia buscada y tiene stock
+                   relevante (en la talla filtrada si hay una); si no hay
+                   ninguno así, cae al primer color con stock, y si
+                   tampoco hay, al primero de la lista.
                 ======================================================= */
 
                 colorSugeridoIndex(p) {
@@ -3290,13 +3512,13 @@
                                     this.normalizarTexto(f) ===
                                     this.normalizarTexto(c.macrocategoria)
                             ) &&
-                            this.totalColor(c) > 0
+                            this.stockRelevante(c) > 0
                     );
 
                     if (idx === -1) {
 
                         idx = p.colores.findIndex(
-                            c => c && this.totalColor(c) > 0
+                            c => c && this.stockRelevante(c) > 0
                         );
 
                     }
@@ -3361,7 +3583,7 @@
 
 
                             const stock =
-                                this.totalColor(c);
+                                this.stockRelevante(c);
 
                             if (stock <= 0) {
 
@@ -3456,6 +3678,24 @@
                             total + this.totalColor(color),
                         0
                     );
+
+                },
+
+
+                /* ======================================================
+                   TOTAL DEL COLOR ACTUALMENTE SELECCIONADO
+
+                   Usado en el número de arriba a la derecha de cada
+                   tarjeta: no es la suma de todos los colores, sino
+                   solo las unidades del color que se está viendo en
+                   ese momento.
+                ======================================================= */
+
+                totalColorActual(p) {
+
+                    const c = this.colorActual(p);
+
+                    return c ? this.totalColor(c) : 0;
 
                 },
 
