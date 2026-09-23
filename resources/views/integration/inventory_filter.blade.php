@@ -1225,7 +1225,7 @@
                                                 x-model="colorEspecifico"
                                                 style="min-width:170px;">
 
-                                                <option value="">Todos los tonos</option>
+                                                <option value="">Todos</option>
 
                                                 <template
                                                     x-for="c in coloresDelMacro"
