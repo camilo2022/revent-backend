@@ -136,8 +136,8 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             }
         } else {
             $errors[] = [
-                'Row' => 'FECHA',
-                'Error' => 'La fecha es obligatoria',
+                'Row' => 'FECHA LIMITE',
+                'Error' => 'La fecha limite es obligatoria',
             ];
         }
 
