@@ -57,7 +57,7 @@ class PhotoProductSiigoController extends Controller
             'token' => 'required|string',
             'referencia' => 'required|string',
             'photos' => 'required|array|min:1',
-            'photos.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'photos.*' => 'required|image|mimes:jpg,jpeg,png,webp',
         ]);
 
         $usuario = $this->validar_usuario_permitido($request->input('token'));

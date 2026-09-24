@@ -191,7 +191,7 @@
         border-color: #16a34a;
         color: #16a34a;
     }
-    
+
     .page-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
     .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .page-dots { padding: 0 0.3rem; color: #9ca3af; }
@@ -1957,8 +1957,8 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
                         ${escapeHtml(p.FullName)}
                         ${p.CompanyName ? `<div class="provider-sub">${escapeHtml(p.CompanyName)}</div>` : ''}
                     </td>
-                    <td>${escapeHtml(p.Type)}</td>
                     <td style="font-weight: 700;" class="provider-row">${escapeHtml(p.Identification)}</td>
+                    <td>${escapeHtml(p.Type)}</td>
                     <td style="text-align:right;" class="cover-partial">${formatMoney(p.BalanceToExpire)}</td>
                     <td style="text-align:right;" class="cover-expired">${formatMoney(providerVencido(p))}</td>
                     <td style="text-align:right;" class="cover-full">${formatMoney(p.BalanceInFavor)}</td>
