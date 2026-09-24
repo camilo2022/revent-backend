@@ -572,7 +572,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $total_value = (float) bcsub(bcsub(bcadd(number_format($total_base, 2, '.', ''), number_format($vat_total_value, 2, '.', ''), 2), number_format($tax_disc_total_value, 2, '.', ''),2), bcadd(number_format($ret_ica_total_value, 2, '.', ''), number_format($ret_vat_total_value, 2, '.', ''), 2), 2);
         $total_value = round($total_base + $vat_total_value - $tax_disc_total_value - $ret_ica_total_value - $ret_vat_total_value, 2);
 
-        $observaciones = "DIRIGIDO A: {$warehouse['id']} - {$warehouse['name']}. TIPO: {$tipo}. FECHA LIMITE: {$config['fecha_limite']}" . ($config['observaciones'] ?? '');
+        $observaciones = "DIRIGIDO A: {$warehouse['id']} - {$warehouse['name']}. TIPO: {$tipo}. FECHA LIMITE: {$config['fecha_limite']}. " . ($config['observaciones'] ?? '');
 
         return [
             "Process" => 1,
