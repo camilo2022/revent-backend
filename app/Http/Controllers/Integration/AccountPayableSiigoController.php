@@ -1334,6 +1334,8 @@ class AccountPayableSiigoController extends Controller
 
         $data = $response->json();
 
+        Cache::forever("FC-ID-{$data['Entry']['ACEntryID']}", $data);
+
         $items = collect($data['Items'] ?? []);
 
         return [
