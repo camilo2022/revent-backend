@@ -49,7 +49,8 @@ class MasivePurchaseOrderSiigoExport implements FromGenerator, Responsable, With
             'tipo',
             'tipo_orden',
             'fecha',
-            'proveedor'
+            'proveedor',
+            'fecha_limite'
         ];
 
         if ($this->filters['use_cost_center']) $headings[] = 'centro_costo';
@@ -74,7 +75,8 @@ class MasivePurchaseOrderSiigoExport implements FromGenerator, Responsable, With
             'tipo' => $this->purchase_order_type->ERPDocumentTypeID,
             'tipo_orden' => "{$this->purchase_order_type->ERPDocClass} - {$this->purchase_order_type->ERPDocCode} - {$this->purchase_order_type->InternalDescription}",
             'fecha' => Carbon::now()->format('d/m/Y'),
-            'proveedor' => ''
+            'proveedor' => '',
+            'fecha_limite' => Carbon::now()->addDays(7)->format('d/m/Y')
         ];
 
         if ($this->filters['use_cost_center']) $generator['centro_costo'] = $this->purchase_order_type->CostCenterDefaultCode;

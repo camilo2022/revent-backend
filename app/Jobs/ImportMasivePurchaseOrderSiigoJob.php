@@ -120,6 +120,27 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             ];
         }
 
+        if (isset($config['fecha_limite']) && $config['fecha_limite'] != '') {
+            $fecha_limite = $config['fecha_limite'];
+            if (is_numeric($fecha_limite)) {
+                $config['fecha_limite'] = Date::excelToDateTimeObject($fecha_limite)->format('Y-m-d');
+            } else {
+                $config['fecha_limite'] = Carbon::createFromFormat('d/m/Y', trim($fecha_limite))->format('Y-m-d');
+            }
+
+            if (Carbon::parse($config['fecha_limite'])->lt(Carbon::parse($config['fecha']))) {
+                $errors[] = [
+                    'Row' => 'FECHA LIMITE',
+                    'Error' => 'La fecha limite no puede ser menor a la fecha',
+                ];
+            }
+        } else {
+            $errors[] = [
+                'Row' => 'FECHA',
+                'Error' => 'La fecha es obligatoria',
+            ];
+        }
+
         $cost_center = [];
 
         if ($purchase_order_type->UseCostCenter) {
@@ -551,7 +572,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         $total_value = (float) bcsub(bcsub(bcadd(number_format($total_base, 2, '.', ''), number_format($vat_total_value, 2, '.', ''), 2), number_format($tax_disc_total_value, 2, '.', ''),2), bcadd(number_format($ret_ica_total_value, 2, '.', ''), number_format($ret_vat_total_value, 2, '.', ''), 2), 2);
         $total_value = round($total_base + $vat_total_value - $tax_disc_total_value - $ret_ica_total_value - $ret_vat_total_value, 2);
 
-        $observaciones = "DIRIGIDO A: {$warehouse['id']} - {$warehouse['name']}. TIPO: {$tipo}. " . ($config['observaciones'] ?? '');
+        $observaciones = "DIRIGIDO A: {$warehouse['id']} - {$warehouse['name']}. TIPO: {$tipo}. FECHA LIMITE: {$config['fecha_limite']}" . ($config['observaciones'] ?? '');
 
         return [
             "Process" => 1,
