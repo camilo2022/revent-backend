@@ -3,35 +3,189 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
+use App\Mail\InvoicePurchaseOrderAccessLink;
 use App\Services\SiigoInventoryService;
 use Carbon\Carbon;
+use App\Mail\InvoicePurchaseOrderConfirmedSiigo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 class InvoicePurchaseOrderSiigoController extends Controller
 {
-    public function invoice_purchase_order()
+    private const INVOICE_PURCHASE_ORDER_ALLOWED_EMAILS = [
+        'tecnologia@revent.com.co',
+    ];
+
+    public function invoice_purchase_order_reception()
+    {
+        return view('integration.invoice_purchase_order_reception');
+    }
+
+    public function invoice_purchase_order_search(Request $request)
     {
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
 
+        $response = Http::withToken($token)
+            ->asJson()
+            ->post('https://services.siigo.com/cross/api/v2/quicksearch', [
+                'quicksearch' => [
+                    'queryString' => $request->input('query'),
+                    'queryType' => 19,
+                    'typeQuickSearch' => 0,
+                ],
+            ]);
+
+        if (!$response->successful()) {
+            return response()->json([
+                'invoice_purchase_order' => null,
+            ]);
+        }
+
+        $data = $response->json('result.data', []);
+
+        $purchase_order = collect($data)->first(function ($item) use ($request) {
+            return data_get($item, 'codeEntity') === $request->input('query');
+        });
+
+        if (!$purchase_order) {
+            return response()->json([
+                'invoice_purchase_order' => null,
+            ]);
+        }
+
+        $url = data_get($purchase_order, 'urlEntity');
+
+        preg_match('/ERPDocumentID=(\d+)/', $url, $matches);
+
+        $acEntryId = $matches[1] ?? null;
+
+        if (!$acEntryId) {
+            return response()->json([
+                'invoice_purchase_order' => null,
+            ]);
+        }
+
+        $cacheKey = "OC-ID-{$acEntryId}";
+
+        $warehouses = $this->warehouses($token);
+        $invoice_purchase_order = $this->fetch_detail($token, $acEntryId, $cacheKey);
+        $invoice_purchase_order['Items'] = $this->parse_items($invoice_purchase_order, $warehouses);
+
+        return response()->json([
+            'invoice_purchase_order' => $invoice_purchase_order,
+        ]);
+    }
+
+    public function invoice_purchase_order_confirmed(Request $request)
+    {
+        $data = $request->validate([
+            'Order' => ['required', 'array'],
+            'Order.ACEntryID' => ['required'],
+            'Order.DocName' => ['required', 'string'],
+            'Order.DocDate' => ['required', 'string'],
+            'Order.Observations' => ['nullable', 'string'],
+            'Order.Warehouse' => ['nullable', 'string'],
+
+            'Items' => ['nullable', 'array'],
+
+            'Totals' => ['nullable', 'array'],
+            'Totals.Requested' => ['nullable', 'numeric'],
+            'Totals.Receiving' => ['nullable', 'numeric'],
+            'Totals.Pending' => ['nullable', 'numeric'],
+
+            'Checklist' => ['required', 'array'],
+
+            'Checklist.cajas_master' => ['required', 'boolean'],
+            'Checklist.sellos' => ['required', 'boolean'],
+            'Checklist.estado_cajas' => ['required', 'boolean'],
+            'Checklist.documentos' => ['required', 'boolean'],
+            'Checklist.empaque' => ['required', 'boolean'],
+            'Checklist.stickers' => ['required', 'boolean'],
+            'Checklist.producto' => ['required', 'boolean'],
+            'Checklist.exactitud' => ['required', 'boolean'],
+            'Checklist.variacion_diseno' => ['required', 'boolean'],
+            'Checklist.firma' => ['required', 'boolean'],
+            'Checklist.reporte_whatsapp' => ['required', 'boolean'],
+            'Checklist.respaldo_whatsapp' => ['required', 'boolean'],
+            'Checklist.alerta' => ['required', 'boolean'],
+            'Checklist.venta' => ['required', 'boolean'],
+
+            'Checklist.referencias_recibidas' => ['nullable', 'string'],
+            'Checklist.observaciones' => ['nullable', 'string'],
+        ]);
+
+        Mail::to(['camiloacacio16@gmail.com'])->send(new InvoicePurchaseOrderConfirmedSiigo($data));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'La recepción fue registrada y el correo fue enviado correctamente.',
+        ]);
+    }
+
+    public function invoice_purchase_order_access()
+    {
+        return view('integration.invoice_purchase_order_access');
+    }
+
+    public function invoice_purchase_order_send_access_link(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $email = strtolower(trim($request->input('email')));
+
+        if (!in_array($email, self::INVOICE_PURCHASE_ORDER_ALLOWED_EMAILS, true)) {
+            return back()
+                ->withErrors(['email' => 'Este correo no tiene autorización para acceder a ordenes de compra.'])
+                ->withInput();
+        }
+
+        try {
+            $url = URL::temporarySignedRoute('siigo.invoice_purchase_order', now()->addHours(24));
+
+            Mail::to($email)->send(new InvoicePurchaseOrderAccessLink($url));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()
+                ->withErrors(['email' => 'No fue posible enviar el enlace de acceso. Intenta nuevamente en unos minutos.'])
+                ->withInput();
+        }
+
+        return back()->with('status', 'Te enviamos el enlace de acceso a ' . $email . '. Revisa tu bandeja de entrada (y spam).');
+    }
+
+    public function invoice_purchase_order()
+    {
+        return view('integration.invoice_purchase_order');
+    }
+
+    public function invoice_purchase_order_documents(Request $request)
+    {
+        $siigo = new SiigoInventoryService();
+        $token = $siigo->auth();
+
+        $users = $this->users($token);
         $warehouses = $this->warehouses($token);
 
-        $fecha_inicio = Carbon::now()->subDays(1);
+        $fecha_inicio = Carbon::now()->subDays(7);
         $fecha_fin = Carbon::now();
 
-        $hora_inicio = Carbon::now();
-
-        // Facturas agrupadas por la OC a la que pertenecen
         $invoices = $this->purchase_invoices($token, $fecha_inicio, $fecha_fin);
         $invoice_details = $this->details($token, $invoices->pluck('ACEntryID'), 'FC-ID');
 
         $purchase_invoices = $invoices
-            ->map(function ($invoice) use ($invoice_details, $warehouses) {
+            ->map(function ($invoice) use ($invoice_details, $users, $warehouses) {
                 $detail = $invoice_details->get($invoice['ACEntryID']);
 
+                $user = $users->get(data_get($detail, 'Entry.SalesmanCode'));
+                $invoice['User'] = trim(data_get($user, 'first_name', '') . ' ' . data_get($user, 'last_name', ''));
                 $invoice['ACEntryCode'] = data_get($detail, 'Entry.ACEntryCode');
                 $invoice['Items'] = $this->parse_items($detail, $warehouses);
                 $invoice['Link'] = "https://siigonube.siigo.com/#/purchase/1008/{$invoice['ACEntryID']}";
@@ -43,16 +197,14 @@ class InvoicePurchaseOrderSiigoController extends Controller
         // Órdenes
         $orders = $this->purchase_orders($token, $fecha_inicio, $fecha_fin);
         $order_details = $this->details($token, $orders->pluck('ACEntryID'), 'OC-ID');
-        $providers = collect(Cache::many(
-            $orders->pluck('MsThirdPartyID')->filter()->unique()->values()->all()
-        ));
+        $providers = collect(Cache::many($orders->pluck('MsThirdPartyID')->filter()->unique()->values()->all()));
 
-        $purchase_orders = $orders->map(function ($order) use ($order_details, $providers, $purchase_invoices, $warehouses) {
+        $purchase_orders = $orders->map(function ($order) use ($order_details, $providers, $purchase_invoices, $users, $warehouses) {
             $detail = $order_details->get($order['ACEntryID']);
             $provider = $providers->get($order['MsThirdPartyID']);
             $comments = trim(data_get($provider, 'Comments', ''));
             $order_invoices = $purchase_invoices->get($order['ACEntryID'], collect());
-            
+
             $order['Observations'] = trim(data_get($detail, 'Entry.Observations', ''));
             $order['FullName'] = strtoupper($order['FullName']);
             $order['CompanyName'] = strtoupper(data_get($provider, 'BasicData.CompanyName', ''));
@@ -86,30 +238,29 @@ class InvoicePurchaseOrderSiigoController extends Controller
                 return $item;
             });
 
+
+            $user = $users->get(data_get($detail, 'Entry.SalesmanCode'));
+            $order['User'] = trim(data_get($user, 'first_name', '') . ' ' . data_get($user, 'last_name', ''));
             $order['Items'] = $items->all();
             $order['TotalQuantity'] = $items->sum('Quantity');
             $order['TotalConfirmed'] = $items->sum('Confirmed');
             $order['Invoices'] = $order_invoices
                 ->map(fn ($invoice) => collect($invoice)->only([
-                    'ACEntryID', 'DocName', 'ExternalDocumentNumber', 'DocDate', 'TotalValue', 'Link',
+                    'ACEntryID', 'DocName', 'ExternalDocumentNumber', 'DocDate', 'TotalValue', 'Link', 'User'
                 ]))
                 ->values();
-            $order['Warehouse'] = collect($detail['Items'] ?? [])
-                ->pluck('WarehouseCode')
-                ->filter()
-                ->unique()
-                ->map(fn ($code) => $code . ' - ' . ($warehouses->get($code)['name'] ?? ''))
-                ->implode(', ');
+            $order['Warehouse'] = collect($detail['Items'] ?? [])->pluck('WarehouseCode')->filter()->unique()
+                ->map(fn ($code) => $code . ' - ' . ($warehouses->get($code)['name'] ?? ''))->implode(', ');
             $order['Link'] = "https://siigonube.siigo.com/#/asp/" . base64_encode("Default.aspx?TabID=1671&ERPDocumentID={$order['ACEntryID']}") . "?TabID=1671";
 
             return $order;
         });
 
-        $hora_fin = Carbon::now();
-        
-        return view('integration.invoice_purchase_order', compact('purchase_orders'));
+        return response()->json([
+            'purchase_orders' => $purchase_orders,
+        ]);
     }
-    
+
     private function parse_items(?array $detail, ?Collection $warehouses = null): array
     {
         return collect($detail['Items'] ?? [])
@@ -290,7 +441,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
         return collect($rows);
     }
-    
+
     private function purchase_invoices(string $token, ?Carbon $fecha_inicio = null, ?Carbon $fecha_fin = null)
     {
         $take = 100;
@@ -487,5 +638,43 @@ class InvoicePurchaseOrderSiigoController extends Controller
                 'id' => -1,
                 'name' => 'SIN ASIGNAR',
             ]);
+    }
+
+    private function users(string $token)
+    {
+        $page = 1;
+        $page_size = 100;
+        $total_pages = null;
+        $users = [];
+
+        do {
+            $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => $token,
+                'Partner-Id' => 'consultadeFacturas',
+            ])->get("https://api.siigo.com/v1/users", [
+                'page' => $page,
+                'page_size' => $page_size,
+            ]);
+
+            if (! $response->successful()) {
+                throw new \Exception($response->body());
+            }
+
+            $data = $response->json();
+
+            if (!empty($data['results'])) {
+                $users = array_merge($users, $data['results']);
+            }
+
+            if ($total_pages === null) {
+                $pagination = $data['pagination'];
+                $total_pages = (int) ceil($pagination['total_results'] / $pagination['page_size']);
+            }
+
+            $page++;
+        } while ($page <= $total_pages);
+
+        return $users = collect($users)->keyBy('id');
     }
 }

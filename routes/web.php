@@ -65,7 +65,14 @@ Route::post('/siigo/accounts_conciliation', [AccountPayableSiigoController::clas
 Route::get('/siigo/inventory_filter', [InventoryFilterSiigoController::class, 'inventory_filter'])->name('siigo.inventory_filter');
 Route::post('/siigo/inventory_filter_search', [InventoryFilterSiigoController::class, 'inventory_filter_search'])->name('siigo.inventory_filter_search');
 
+Route::get('/siigo/invoice_purchase_order/reception', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_reception'])->name('siigo.invoice_purchase_order_reception');
+Route::get('/siigo/invoice_purchase_order/search', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_search'])->name('siigo.invoice_purchase_order_search');
+Route::post('/siigo/invoice_purchase_order/confirmed', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_confirmed'])->name('siigo.invoice_purchase_order_confirmed');
+
+Route::get('/siigo/invoice_purchase_order/access', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_access'])->name('siigo.invoice_purchase_order_access');
+Route::post('/siigo/invoice_purchase_order/access', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_send_access_link'])->middleware('throttle:5,1')->name('siigo.invoice_purchase_order_send_access_link');
 Route::get('/siigo/invoice_purchase_order', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order'])->name('siigo.invoice_purchase_order');
+Route::get('/siigo/invoice_purchase_order/documents', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_documents'])->name('siigo.invoice_purchase_order_documents');
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);
