@@ -13,9 +13,14 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class InvoicePurchaseOrderSiigoController extends Controller
 {
+    private const DISK = 'public';
+    private const BASE_PATH = 'evidences';
     private const INVOICE_PURCHASE_ORDER_ALLOWED_EMAILS = [
         'tecnologia@revent.com.co',
     ];
@@ -83,7 +88,22 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order_confirmed(Request $request)
     {
-        $data = $request->validate([
+        $request->validate([
+            'receivingData' => ['required', 'string'],
+            'imagenes' => ['nullable', 'array'],
+            'imagenes.*' => ['file', 'image', 'mimes:jpg,jpeg,png', 'max:8192'],
+        ]);
+
+        $data = json_decode($request->input('receivingData'), true);
+
+        if (!is_array($data)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Los datos de recepción no tienen un formato válido.'
+            ], 422);
+        }
+
+        $validator = Validator::make($data, [
             'Order' => ['required', 'array'],
             'Order.ACEntryID' => ['required'],
             'Order.DocName' => ['required', 'string'],
@@ -99,7 +119,6 @@ class InvoicePurchaseOrderSiigoController extends Controller
             'Totals.Pending' => ['nullable', 'numeric'],
 
             'Checklist' => ['required', 'array'],
-
             'Checklist.cajas_master' => ['required', 'boolean'],
             'Checklist.sellos' => ['required', 'boolean'],
             'Checklist.estado_cajas' => ['required', 'boolean'],
@@ -114,12 +133,33 @@ class InvoicePurchaseOrderSiigoController extends Controller
             'Checklist.respaldo_whatsapp' => ['required', 'boolean'],
             'Checklist.alerta' => ['required', 'boolean'],
             'Checklist.venta' => ['required', 'boolean'],
-
             'Checklist.referencias_recibidas' => ['nullable', 'string'],
             'Checklist.observaciones' => ['nullable', 'string'],
         ]);
 
-        Mail::to(['camiloacacio16@gmail.com'])->send(new InvoicePurchaseOrderConfirmedSiigo($data));
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Los datos enviados no son válidos.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $imagenes = [];
+
+        foreach ($request->file('imagenes', []) as $imagen) {
+            $parentPathGuid = (string) Str::uuid();
+            $filename = $parentPathGuid . '.' . $imagen->getClientOriginalExtension();
+            $path = self::BASE_PATH;
+
+            Storage::disk(self::DISK)->putFileAs($path, $imagen, $filename);
+
+            $imagenes[] = Storage::disk(self::DISK)->url("{$path}/{$filename}");
+        }
+
+        Mail::to(['camiloacacio16@gmail.com'])->send(
+            new InvoicePurchaseOrderConfirmedSiigo($data, $imagenes)
+        );
 
         return response()->json([
             'success' => true,

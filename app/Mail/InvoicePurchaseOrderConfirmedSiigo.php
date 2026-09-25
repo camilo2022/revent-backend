@@ -10,7 +10,8 @@ class InvoicePurchaseOrderConfirmedSiigo extends Mailable
     use SerializesModels;
 
     public function __construct(
-        public array $data
+        public array $data,
+        public array $imagenes = []
     ) {}
 
     public function build()
