@@ -14,7 +14,7 @@
         padding: 2rem 1rem;
     }
 
-    .wrapper { max-width: 1700px; margin: 0 auto; }
+    .wrapper { max-width: 95%; margin: 0 auto; }
 
     .card {
         background: #ffffff;
@@ -86,7 +86,7 @@
     .summary-received  { background: #5C6BC0; }
     .summary-pending   { background: #7986CB; }
 
-    /* ---- Tabla principal ---- */
+    /* ---- Contenedor con scroll (los encabezados sticky se calculan contra este) ---- */
     .docs-scroll {
         overflow: auto;
         max-height: 75vh;
@@ -98,40 +98,9 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 0.83rem;
-        min-width: 1750px;
     }
 
-    .docs-table thead th {
-        text-align: center;
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: #9ca3af;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        padding: 0.7rem 0.8rem;
-        background: #f9fafb;
-        border-bottom: 1px solid #f1f3f5;
-        border-right: 1px solid #f1f3f5;
-        vertical-align: middle;
-    }
-
-    .docs-table thead th:last-child { border-right: none; }
-
-    .docs-table thead tr:first-child th {
-        color: #374151;
-        background: #f3f4f6;
-        border-bottom: 1px solid #e5e7eb;
-        border-right: 1px solid #e5e7eb;
-        position: sticky;
-        top: 0;
-        z-index: 3;
-    }
-
-    .docs-table thead tr:nth-child(2) th {
-        position: sticky;
-        top: 39px;
-        z-index: 2;
-    }
+    .main-table { min-width: 1750px; }
 
     .docs-table td {
         padding: 0.65rem 0.8rem;
@@ -139,6 +108,36 @@
         color: #374151;
         vertical-align: middle;
         background: #ffffff;
+    }
+
+    /* ---- Encabezado principal: 2 niveles ---- */
+    .main-table thead th {
+        text-align: center;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        padding: 0.7rem 0.8rem;
+        vertical-align: middle;
+        position: sticky;
+        top: 0;
+        border-right: 1px solid #e5e7eb;
+        box-shadow: inset 0 -1px 0 #e5e7eb;
+    }
+
+    .main-table thead th:last-child { border-right: none; }
+
+    /* Nivel 1: gris oscuro */
+    .main-table thead tr:first-child th {
+        font-size: 0.7rem;
+        color: #374151;
+        background: #f3f4f6;
+    }
+
+    /* Nivel 2: tono índigo, claramente distinto del nivel 1 (el top lo fija el JS) */
+    .main-table thead tr:nth-child(2) th {
+        font-size: 0.7rem;
+        color: #374151;
+        background: #f3f4f6;
     }
 
     /* Cada OC es un <tbody> */
@@ -186,12 +185,24 @@
         background: #ffffff;
     }
 
-    .items-table { min-width: 1100px; font-size: 0.8rem; }
-    .items-table thead th { position: static; }
+    .items-table { min-width: 1200px; font-size: 0.8rem; }
+
+    .items-table thead th {
+        text-align: center;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        padding: 0.7rem 0.8rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
     .items-table td { text-align: center; }
+    .items-table td.text-right { text-align: right; }
     .items-table tr.item-start > td { border-top: 2px solid #eef0f2; }
     .items-table tbody tr:first-child.item-start > td { border-top: none; }
-    .items-table td.text-right { text-align: right; }
 
     /* ---- Links / tags / badges ---- */
     .document-link {
@@ -227,6 +238,7 @@
     .badge-ok      { background: #f0fdf4; color: #166534; }
     .badge-invalid { background: #fee2e2; color: #991b1b; }
 
+    /* Cantidad recibida: igual = verde, menor (≠0) = naranja, mayor = azul, 0 = gris */
     .cover-full    { color: #16a34a !important; font-weight: 700; }
     .cover-partial { color: #c2410c !important; font-weight: 700; }
     .cover-over    { color: #2563eb !important; font-weight: 700; }
@@ -277,7 +289,7 @@
         .title { font-size: 1.3rem; }
         .summary-grid { grid-template-columns: repeat(2, 1fr); }
         .summary-card .amount { font-size: 1rem; }
-        .docs-table { min-width: 1500px; }
+        .main-table { min-width: 1500px; }
         .result-count { margin-left: 0; }
     }
 </style>
@@ -297,6 +309,13 @@
     $money = fn ($v) => '$' . number_format((float) $v, 0, ',', '.');
     $qty   = fn ($v) => number_format((float) $v, 0, ',', '.');
     $date  = fn ($v) => $v ? \Carbon\Carbon::parse($v)->format('d/m/Y') : '-';
+
+    // 0 = gris | menor y distinto de 0 = naranja | igual = verde | mayor = azul
+    $receivedClass = fn ($received, $requested) => $received <= 0
+        ? 'cover-none'
+        : ($received < $requested
+            ? 'cover-partial'
+            : ($received > $requested ? 'cover-over' : 'cover-full'));
 @endphp
 
 <div class="wrapper">
@@ -340,7 +359,7 @@
         </div>
 
         <div class="docs-scroll">
-            <table class="docs-table">
+            <table class="docs-table main-table">
                 <thead>
                     <tr>
                         <th rowspan="2" style="width:50px;"></th>
@@ -373,7 +392,7 @@
 
                         $invoices = collect($order['Invoices'] ?? [])->values();
                         $invoiceRows = $invoices->isEmpty() ? collect([null]) : $invoices;
-                        $rowspan = $invoiceRows->count();
+                        $rowspan = $invoiceRows->count(); // 1 por defecto; N si la OC tiene N facturas
 
                         $requested = $order['TotalQuantity'] ?? 0;
                         $confirmed = $order['TotalConfirmed'] ?? 0;
@@ -449,7 +468,7 @@
                                     <td rowspan="{{ $rowspan }}" class="quantity">{{ $qty($requested) }}</td>
 
                                     <td rowspan="{{ $rowspan }}" class="quantity">
-                                        <span class="{{ $confirmed <= 0 ? 'cover-none' : ($confirmed < $requested ? 'cover-partial' : 'cover-full') }}">
+                                        <span class="{{ $receivedClass($confirmed, $requested) }}">
                                             {{ $qty($confirmed) }}
                                         </span>
                                     </td>
@@ -482,12 +501,13 @@
                                     <table class="docs-table items-table">
                                         <thead>
                                             <tr>
-                                                <th>Producto</th>
                                                 <th>Referencia</th>
                                                 <th>Color</th>
                                                 <th>Categoría</th>
                                                 <th>Talla</th>
+                                                <th>Bodega</th>
                                                 <th>Valor unit.</th>
+                                                <th>Valor total</th>
                                                 <th>Solicitada</th>
                                                 <th>Recibida</th>
                                                 <th>Pendiente</th>
@@ -506,26 +526,31 @@
                                                     $itemQty = $item['Quantity'] ?? 0;
                                                     $itemConfirmed = $item['Confirmed'] ?? 0;
                                                     $itemPending = $item['Pending'] ?? ($itemQty - $itemConfirmed);
+
+                                                    $pendingClass = $itemPending > 0
+                                                        ? 'cover-partial'
+                                                        : ($itemPending < 0 ? 'cover-over' : 'cover-full');
                                                 @endphp
 
                                                 @foreach($itemRows as $itemInvoice)
                                                     <tr class="{{ $loop->first ? 'item-start' : '' }}">
 
                                                         @if($loop->first)
-                                                            <td rowspan="{{ $itemSpan }}">{{ $item['ProductCode'] ?? '-' }}</td>
                                                             <td rowspan="{{ $itemSpan }}"><span class="prefix-tag">{{ $item['Reference'] ?? '-' }}</span></td>
                                                             <td rowspan="{{ $itemSpan }}">{{ $item['Color'] ?? '-' }}</td>
                                                             <td rowspan="{{ $itemSpan }}">{{ $item['Category'] ?? '-' }}</td>
                                                             <td rowspan="{{ $itemSpan }}">{{ $item['Size'] ?? '-' }}</td>
+                                                            <td rowspan="{{ $itemSpan }}">{{ !empty($item['Warehouse']) ? $item['Warehouse'] : '-' }}</td>
                                                             <td rowspan="{{ $itemSpan }}" class="text-right">{{ $money($item['UnitValue'] ?? 0) }}</td>
+                                                            <td rowspan="{{ $itemSpan }}" class="text-right">{{ $money($item['Value'] ?? 0) }}</td>
                                                             <td rowspan="{{ $itemSpan }}" class="quantity">{{ $qty($itemQty) }}</td>
                                                             <td rowspan="{{ $itemSpan }}" class="quantity">
-                                                                <span class="{{ $itemConfirmed <= 0 ? 'cover-none' : ($itemConfirmed < $itemQty ? 'cover-partial' : ($itemConfirmed > $itemQty ? 'cover-over' : 'cover-full')) }}">
+                                                                <span class="{{ $receivedClass($itemConfirmed, $itemQty) }}">
                                                                     {{ $qty($itemConfirmed) }}
                                                                 </span>
                                                             </td>
                                                             <td rowspan="{{ $itemSpan }}" class="quantity">
-                                                                <span class="{{ $itemPending > 0 ? 'cover-partial' : 'cover-full' }}">
+                                                                <span class="{{ $pendingClass }}">
                                                                     {{ $qty($itemPending) }}
                                                                 </span>
                                                             </td>
@@ -547,7 +572,7 @@
 
                                             @empty
                                                 <tr>
-                                                    <td colspan="11" class="empty-state">Esta orden no tiene items.</td>
+                                                    <td colspan="12" class="empty-state">Esta orden no tiene items.</td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
@@ -644,7 +669,24 @@
 
     searchInput.addEventListener('input', applyFilters);
     statusSel.addEventListener('change', applyFilters);
+
+    // ---- Sticky: el 2do nivel del encabezado se pega justo debajo del 1ro (altura real) ----
+    function fixStickyHeaderOffset() {
+        const firstRow  = document.querySelector('.main-table thead tr:first-child');
+        const secondRow = document.querySelector('.main-table thead tr:nth-child(2)');
+        if (!firstRow || !secondRow) return;
+
+        const height = firstRow.getBoundingClientRect().height;
+        secondRow.querySelectorAll('th').forEach((th) => {
+            th.style.top = `${height}px`;
+        });
+    }
+
+    window.addEventListener('load', fixStickyHeaderOffset);
+    window.addEventListener('resize', fixStickyHeaderOffset);
+
     applyFilters();
+    fixStickyHeaderOffset();
 })();
 </script>
 

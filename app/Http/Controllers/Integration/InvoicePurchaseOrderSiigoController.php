@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\SiigoInventoryService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -28,11 +29,11 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $invoice_details = $this->details($token, $invoices->pluck('ACEntryID'), 'FC-ID');
 
         $purchase_invoices = $invoices
-            ->map(function ($invoice) use ($invoice_details) {
+            ->map(function ($invoice) use ($invoice_details, $warehouses) {
                 $detail = $invoice_details->get($invoice['ACEntryID']);
 
                 $invoice['ACEntryCode'] = data_get($detail, 'Entry.ACEntryCode');
-                $invoice['Items'] = $this->parse_items($detail);
+                $invoice['Items'] = $this->parse_items($detail, $warehouses);
                 $invoice['Link'] = "https://siigonube.siigo.com/#/purchase/1008/{$invoice['ACEntryID']}";
 
                 return $invoice;
@@ -61,7 +62,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
             $order['DeadlineDate'] = $match[1] ?? null;
 
             // Items de la OC + en qué facturas se confirmaron y cuántos
-            $items = collect($this->parse_items($detail))->map(function ($item) use ($order_invoices) {
+            $items = collect($this->parse_items($detail, $warehouses))->map(function ($item) use ($order_invoices) {
                 $confirmed_in = $order_invoices
                     ->map(function ($invoice) use ($item) {
                         $quantity = collect($invoice['Items'])
@@ -105,26 +106,30 @@ class InvoicePurchaseOrderSiigoController extends Controller
         });
 
         $hora_fin = Carbon::now();
-
+        
         return view('integration.invoice_purchase_order', compact('purchase_orders'));
-        return [$hora_inicio, $hora_fin, $purchase_orders];
     }
     
-    private function parse_items(?array $detail): array
+    private function parse_items(?array $detail, ?Collection $warehouses = null): array
     {
         return collect($detail['Items'] ?? [])
-            // Las facturas traen una línea de pago (ProductCode null, EntryItemType 3): se descarta
             ->filter(fn ($item) => !empty($item['ProductCode']))
-            ->map(function ($item) {
+            ->map(function ($item) use ($warehouses) {
                 $parts = array_map('trim', explode('-', $item['LongDescription'] ?? ''));
                 $count = count($parts);
                 $valid = $count === 5;
+
+                $warehouseCode = $item['WarehouseCode'] ?? null;
+                $warehouseName = $warehouses?->get($warehouseCode)['name'] ?? null;
 
                 return [
                     'ProductCode'        => $item['ProductCode'],
                     'Description'        => $item['Description'] ?? null,
                     'LongDescription'    => $item['LongDescription'] ?? null,
-                    'WarehouseCode'      => $item['WarehouseCode'] ?? null,
+                    'WarehouseCode'      => $warehouseCode,
+                    'Warehouse'          => $warehouseCode !== null
+                        ? $warehouseCode . ' - ' . ($warehouseName ?? '')
+                        : null,
 
                     'Reference'          => $valid ? $parts[0] : null,
                     'Color'              => $valid ? $parts[1] : null,
@@ -132,9 +137,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
                     'Size'               => $valid ? $parts[$count - 1] : null,
 
                     'Quantity'           => $item['Quantity'] ?? 0,
-                    'UnitValue'          => $item['UnitValue'] ?? 0,
-                    'GrossValue'         => $item['GrossValue'] ?? 0,
-                    'BaseValue'          => $item['BaseValue'] ?? 0,
+                    'UnitValue'          => ($item['UnitValue'] ?? 0) + ($item['TaxAddValue'] ?? 0) - ($item['TaxDiscValue'] ?? 0),
                     'Value'              => $item['Value'] ?? 0,
 
                     'DiscountPercentage' => $item['DiscountPercentage'] ?? 0,
