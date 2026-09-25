@@ -32,7 +32,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order_search(Request $request)
     {
-        $token = $request->input('token', '');
+        /*$token = $request->input('token');
         $usuario = $this->validar_usuario($token);
 
         if (!$usuario['success']) {
@@ -40,7 +40,10 @@ class InvoicePurchaseOrderSiigoController extends Controller
                 'success' => false,
                 'error' => $usuario['message'],
             ], 401);
-        }
+        }*/
+
+        $siigo = new SiigoInventoryService();
+        $token = $siigo->auth();
 
         $response = Http::withToken($token)
             ->asJson()

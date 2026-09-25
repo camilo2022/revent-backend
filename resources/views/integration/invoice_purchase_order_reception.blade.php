@@ -1385,8 +1385,7 @@
        CONFIGURACION
     ========================================================== */
 
-    const SEARCH_URL =
-        @json(route('siigo.invoice_purchase_order_search'));
+    const SEARCH_URL = "{{ route('siigo.invoice_purchase_order_search') }}";
 
     const form = document.getElementById('searchForm');
     const tokenInput = document.getElementById('token');
@@ -2143,144 +2142,80 @@
 
             event.preventDefault();
 
+            const token = tokenInput.value.trim();
             const query = queryInput.value.trim();
 
-            if (!query) {
-
+            if (!token) {
                 Swal.fire({
-
                     icon: 'warning',
-
-                    title:
-                        'Falta el numero de orden',
-
-                    text:
-                        'Escribe el numero de la orden de compra que quieres consultar.',
-
-                    confirmButtonColor:
-                        '#16a34a'
-
+                    title: 'Falta el token de acceso',
+                    text: 'Obten de siigo el token de acceso y copialo aca para realizar la consulta.',
+                    confirmButtonColor: '#16a34a'
                 });
-
                 return;
-
             }
 
-            submitBtn.disabled =
-                true;
+            if (!query) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Falta el numero de orden',
+                    text: 'Escribe el numero de la orden de compra que quieres consultar.',
+                    confirmButtonColor: '#16a34a'
+                });
+                return;
+            }
 
-            submitBtn.classList.add(
-                'is-loading'
-            );
-
-            btnLabel.textContent =
-                'Buscando...';
-
-            resultCard.classList.remove(
-                'show'
-            );
-
-            checklistCard.classList.remove(
-                'show'
-            );
+            submitBtn.disabled = true;
+            submitBtn.classList.add('is-loading');
+            btnLabel.textContent = 'Buscando...';
+            resultCard.classList.remove('show');
+            checklistCard.classList.remove('show');
 
             Swal.fire({
-
-                title:
-                    'Consultando orden de compra',
-
-                text:
-                    'Por favor espera un momento...',
-
-                allowOutsideClick:
-                    false,
-
-                allowEscapeKey:
-                    false,
-
+                title: 'Consultando orden de compra',
+                text: 'Por favor espera un momento...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
                 didOpen: function() {
-
                     Swal.showLoading();
-
                 }
-
             });
 
             try {
 
-                const url =
-                    SEARCH_URL +
-                    '?query=' +
-                    encodeURIComponent(query);
-
-                const response =
-                    await fetch(
-                        url,
-                        {
-                            method: 'GET',
-
-                            headers: {
-                                'Accept':
-                                    'application/json'
-                            }
+                const url = SEARCH_URL + '?token=' + encodeURIComponent(token) + '&query=' + encodeURIComponent(query);
+                const response = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'Accept':'application/json'
                         }
-                    );
+                    }
+                );
 
                 if (!response.ok) {
-
-                    throw new Error(
-                        'HTTP ' +
-                        response.status
-                    );
-
+                    throw new Error('HTTP ' + response.status);
                 }
 
-                const data =
-                    await response.json();
-
-                const order =
-                    data.invoice_purchase_order;
+                const data = await response.json();
+                const order = data.invoice_purchase_order;
 
                 if (!order) {
-
                     Swal.fire({
-
-                        icon:
-                            'warning',
-
-                        title:
-                            'No encontrada',
-
-                        text:
-                            'No se encontro ninguna orden de compra con el numero "' +
-                            query +
-                            '". Verifica el dato e intenta de nuevo.',
-
-                        confirmButtonColor:
-                            '#16a34a'
-
+                        icon: 'warning',
+                        title: 'No encontrada',
+                        text: 'No se encontro ninguna orden de compra con el numero "' + query + '". Verifica el dato e intenta de nuevo.',
+                        confirmButtonColor: '#16a34a'
                     });
-
                     return;
-
                 }
 
                 renderResult(order);
 
                 Swal.fire({
-
-                    icon:
-                        'success',
-
-                    title:
-                        'Orden encontrada',
-
-                    timer:
-                        1200,
-
-                    showConfirmButton:
-                        false
-
+                    icon: 'success',
+                    title: 'Orden encontrada',
+                    timer: 1200,
+                    showConfirmButton: false
                 });
 
             } catch (error) {
