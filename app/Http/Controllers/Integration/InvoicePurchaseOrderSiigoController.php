@@ -32,8 +32,15 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order_search(Request $request)
     {
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
+        $token = $request->input('token', '');
+        $usuario = $this->validar_usuario($token);
+
+        if (!$usuario['success']) {
+            return response()->json([
+                'success' => false,
+                'error' => $usuario['message'],
+            ], 401);
+        }
 
         $response = Http::withToken($token)
             ->asJson()
@@ -88,18 +95,29 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order_confirmed(Request $request)
     {
-        $request->validate([
-            'receivingData' => ['required', 'string'],
-            'imagenes' => ['nullable', 'array'],
-            'imagenes.*' => ['file', 'image', 'mimes:jpg,jpeg,png', 'max:8192'],
-        ]);
+        try {
+            $request->validate([
+                'receivingData' => ['required', 'string'],
+                'imagenes' => ['required', 'array', 'min:1'],
+                'imagenes.*' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:8192'],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => collect($e->errors())->flatten()->first() ?? 'Datos inválidos.',
+                'errors' => $e->errors(),
+            ], 422);
+        }
 
         $data = json_decode($request->input('receivingData'), true);
 
         if (!is_array($data)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Los datos de recepción no tienen un formato válido.'
+                'message' => 'Los datos de recepción no tienen un formato válido.',
+                'errors' => [
+                    'receivingData' => ['Los datos de recepción no tienen un formato válido.']
+                ]
             ], 422);
         }
 
@@ -134,14 +152,20 @@ class InvoicePurchaseOrderSiigoController extends Controller
             'Checklist.alerta' => ['required', 'boolean'],
             'Checklist.venta' => ['required', 'boolean'],
             'Checklist.referencias_recibidas' => ['nullable', 'string'],
-            'Checklist.observaciones' => ['nullable', 'string'],
+            'Checklist.observaciones' => ['required', 'string'],
+
+            'Checklist.responsable' => ['required', 'array'],
+            'Checklist.responsable.nombre' => ['required', 'string', 'max:150'],
+            'Checklist.responsable.cargo' => ['required', 'string', 'max:150'],
+            'Checklist.responsable.departamento' => ['required', 'string', 'max:150'],
+            'Checklist.responsable.celular' => ['nullable', 'string', 'max:30'],
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Los datos enviados no son válidos.',
-                'errors' => $validator->errors()
+                'message' => collect($validator->errors())->flatten()->first() ?? 'Datos inválidos.',
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -214,7 +238,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $users = $this->users($token);
         $warehouses = $this->warehouses($token);
 
-        $fecha_inicio = Carbon::now()->subDays(7);
+        $fecha_inicio = Carbon::now()->subDays(31);
         $fecha_fin = Carbon::now();
 
         $invoices = $this->purchase_invoices($token, $fecha_inicio, $fecha_fin);
@@ -272,7 +296,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
                     ->values();
 
                 $item['Confirmed'] = $confirmed_in->sum('Quantity');
-                $item['Pending'] = $item['Quantity'] - $item['Confirmed'];
+                $item['Pending'] = $item['Confirmed'] - $item['Quantity'];
                 $item['Invoices'] = $confirmed_in->all();
 
                 return $item;
@@ -306,9 +330,10 @@ class InvoicePurchaseOrderSiigoController extends Controller
         return collect($detail['Items'] ?? [])
             ->filter(fn ($item) => !empty($item['ProductCode']))
             ->map(function ($item) use ($warehouses) {
-                $parts = array_map('trim', explode('-', $item['LongDescription'] ?? ''));
+                $parts = preg_split('/[-*]/', $item['LongDescription'] ?? '', -1, PREG_SPLIT_NO_EMPTY);
+                $parts = array_map('trim', $parts);
                 $count = count($parts);
-                $valid = $count === 5;
+                $valid = $count === 5 || $count === 4;
 
                 $warehouseCode = $item['WarehouseCode'] ?? null;
                 $warehouseName = $warehouses?->get($warehouseCode)['name'] ?? null;
@@ -716,5 +741,50 @@ class InvoicePurchaseOrderSiigoController extends Controller
         } while ($page <= $total_pages);
 
         return $users = collect($users)->keyBy('id');
+    }
+
+    private function validar_usuario(string $token): array
+    {
+        $usuario = $this->obtener_datos_usuario($token);
+
+        if (!$usuario['success']) {
+            return [
+                'success' => false,
+                'message' => $usuario['message'],
+            ];
+        }
+
+        return [
+            'success' => true,
+            'data' => $usuario['data'],
+        ];
+    }
+
+    private function obtener_datos_usuario(string $token)
+    {
+        $response = Http::retry(3, 3000)->withHeaders([
+            'Authorization' => $token,
+            'Accept' => '*/*',
+            'Referer' => 'https://siigonube.siigo.com/',
+        ])->get('https://services.siigo.com/cross/globalstate/api/v1/Settings/LoadSettings');
+
+        if (!$response->successful()) {
+            return [
+                'success' => false,
+                'data' => [],
+                'message' => 'Error de autenticacion'
+            ];
+        }
+
+        $data = $response->json();
+
+        return [
+            'success' => true,
+            'data' => [
+                'id' => $data['userID'],
+                'name' => $data['userName'],
+            ],
+            'message' => 'Usuario encontrado exitosamente'
+        ];
     }
 }

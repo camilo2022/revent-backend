@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
 <title>Órdenes de compra</title>
 <style>
     * { box-sizing: border-box; }
@@ -389,6 +390,20 @@
         flex-shrink: 0;
     }
 
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4f46e5;
+        text-decoration: none;
+        margin-top: 1.4rem;
+    }
+
+    .back-link:hover { text-decoration: underline; }
+    .back-link svg { width: 15px; height: 15px; }
+
     @media (max-width: 768px) {
         body { padding: 1rem 0.6rem; }
         .card { padding: 1.3rem 1.1rem; border-radius: 12px; }
@@ -499,6 +514,11 @@
         </div>
 
     </div>
+
+    <a href="{{ route('home') }}" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Volver a acciones disponibles
+    </a>
 </div>
 
 <script>
@@ -555,6 +575,11 @@
         return formatThousands(Number(v) || 0);
     }
 
+    function pendingFmt(value) {
+        value = Number(value) || 0;
+        return value > 0 ? '+' + qtyFmt(value) : qtyFmt(value);
+    }
+
     function dateFmt(v) {
         if (!v) return '-';
         const isoMatch = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -578,8 +603,8 @@
 
     function pendingClass(pending) {
         pending = Number(pending) || 0;
-        if (pending > 0) return 'cover-partial';
-        if (pending < 0) return 'cover-over';
+        if (pending > 0) return 'cover-over';
+        if (pending < 0) return 'cover-partial';
         return 'cover-full';
     }
 
@@ -668,7 +693,7 @@
                         <td rowspan="${itemSpan}" class="text-right">${money(item.Value)}</td>
                         <td rowspan="${itemSpan}" class="quantity">${qtyFmt(itemQty)}</td>
                         <td rowspan="${itemSpan}" class="quantity"><span class="${receivedClass(itemConfirmed, itemQty)}">${qtyFmt(itemConfirmed)}</span></td>
-                        <td rowspan="${itemSpan}" class="quantity"><span class="${pClass}">${qtyFmt(itemPending)}</span></td>
+                        <td rowspan="${itemSpan}" class="quantity"><span class="${pClass}">${pendingFmt(itemPending)}</span></td>
                     `;
                 }
 
@@ -760,13 +785,13 @@
             const conf = Number(o.TotalConfirmed) || 0;
             totalQuantity += req;
             totalConfirmed += conf;
-            totalPending += Math.max(req - conf, 0);
+            totalPending += conf - req;
         });
 
         sumOrdersEl.textContent    = qtyFmt(totalOrders);
         sumRequestedEl.textContent = qtyFmt(totalQuantity);
         sumReceivedEl.textContent  = qtyFmt(totalConfirmed);
-        sumPendingEl.textContent   = qtyFmt(totalPending);
+        sumPendingEl.textContent   = pendingFmt(totalPending);
     }
 
     /* ---------------- Render principal ---------------- */

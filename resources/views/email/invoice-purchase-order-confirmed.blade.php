@@ -1,4 +1,3 @@
-```blade
 {{-- resources/views/email/invoice-purchase-order-confirmed.blade.php --}}
 
 <!DOCTYPE html>
@@ -57,16 +56,7 @@
                         </p>
 
                         <p style="margin:0; font-size:17px; font-weight:bold; color:#ffffff; line-height:1.3;">
-                            Recepción de orden de compra
-
-                            @if(!empty($orderLink))
-                                <a href="{{ $orderLink }}" target="_blank"
-                                    style="color:#93c5fd; text-decoration:none;">
-                                    {{ data_get($data, 'Order.DocName', '') }}
-                                </a>
-                            @else
-                                {{ data_get($data, 'Order.DocName', '') }}
-                            @endif
+                            Recepción de orden de compra {{ data_get($data, 'Order.DocName', '') }}
                         </p>
                     </td>
                 </tr>
@@ -80,13 +70,7 @@
                     <td style="background-color:#ffffff; border:1px solid #eef0f2; border-radius:12px; padding:20px; font-family:Segoe UI, Arial, sans-serif;">
 
                         <p style="margin:0 0 12px 0; font-size:14px; color:#374151; line-height:1.5;">
-                            Estimado
-                            <strong>
-                                {{ data_get($data, 'Order.FullName', 'señores') }}
-                                @if(data_get($data, 'Order.CompanyName'))
-                                    ({{ data_get($data, 'Order.CompanyName') }})
-                                @endif
-                            </strong>,
+                            Estimado señor(a),
                         </p>
 
                         <p style="margin:0 0 12px 0; font-size:14px; color:#374151; line-height:1.5;">
@@ -234,8 +218,13 @@
                                             {{ number_format((float) ($item['ReceivingQuantity'] ?? 0), 0, ',', '.') }}
                                         </td>
 
-                                        <td align="center" style="padding:8px 3px; font-size:11px; color:#b45309; font-weight:bold; border-bottom:1px solid #f3f4f6; vertical-align:top;">
-                                            {{ number_format((float) ($item['PendingQuantity'] ?? 0), 0, ',', '.') }}
+                                        @php
+                                            $pending = (float) ($item['PendingQuantity'] ?? 0);
+                                            $pendingColor = $pending < 0 ? '#b45309' : ($pending > 0 ? '#1d4ed8' : '#166534');
+                                            $pendingText = $pending > 0 ? '+' . number_format($pending, 0, ',', '.') : number_format($pending, 0, ',', '.');
+                                        @endphp
+                                        <td align="center" style="padding:8px 3px; font-size:11px; color:{{ $pendingColor }}; font-weight:bold; border-bottom:1px solid #f3f4f6; vertical-align:top;">
+                                            {{ $pendingText }}
                                         </td>
 
                                     </tr>
@@ -469,17 +458,17 @@
 
                 {{-- CIERRE --}}
                 <tr>
-                    <td style="padding:10px 4px 4px 4px; font-family:Segoe UI, Arial, sans-serif;">
-
-                        <p style="margin:0 0 4px 0; font-size:14px; color:#374151; line-height:1.5;">
+                    <td style="padding:12px 4px 4px 4px; font-family:Segoe UI, Arial, sans-serif;">
+                        <p style="margin:0 0 4px 0; font-size:14px; color:#374151; line-height:1.6;">
                             Atentamente,
                         </p>
-
-                        <p style="margin:14px 0 0 0; font-size:13px; color:#6b7280; line-height:1.5;">
-                            <strong style="color:#374151;">REVENT CALZADO S.A.S.</strong><br>
-                            Recepción de mercancía
+                        <p style="margin:16px 0 0 0; font-size:13px; color:#6b7280; line-height:1.5;">
+                            <strong style="color:#374151;">{{ data_get($data, 'Checklist.responsable.nombre') }}</strong><br>
+                            {{ data_get($data, 'Checklist.responsable.cargo') }}<br>
+                            {{ data_get($data, 'Checklist.responsable.departamento') }}<br>
+                            Revent Calzado SAS<br>
+                            Celular: {{ data_get($data, 'Checklist.responsable.celular') }}
                         </p>
-
                     </td>
                 </tr>
 
@@ -511,4 +500,3 @@
 
 </body>
 </html>
-```
