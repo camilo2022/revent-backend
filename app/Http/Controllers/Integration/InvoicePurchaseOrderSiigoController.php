@@ -32,7 +32,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order_search(Request $request)
     {
-        /*$token = $request->input('token');
+        $token = $request->input('token');
         $usuario = $this->validar_usuario($token);
 
         if (!$usuario['success']) {
@@ -40,7 +40,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
                 'success' => false,
                 'error' => $usuario['message'],
             ], 401);
-        }*/
+        }
 
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
@@ -765,10 +765,8 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     private function obtener_datos_usuario(string $token)
     {
-        $response = Http::retry(3, 3000)->withHeaders([
+        $response = Http::withHeaders([
             'Authorization' => $token,
-            'Accept' => '*/*',
-            'Referer' => 'https://siigonube.siigo.com/',
         ])->get('https://services.siigo.com/cross/globalstate/api/v1/Settings/LoadSettings');
 
         if (!$response->successful()) {
@@ -785,7 +783,8 @@ class InvoicePurchaseOrderSiigoController extends Controller
             'success' => true,
             'data' => [
                 'id' => $data['userID'],
-                'name' => $data['userName'],
+                'user' => $data['userName'],
+                'name' => $data['UserOptions']['userPrincipalName'],
             ],
             'message' => 'Usuario encontrado exitosamente'
         ];

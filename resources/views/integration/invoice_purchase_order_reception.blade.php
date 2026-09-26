@@ -818,12 +818,16 @@
 
         <form id="searchForm" autocomplete="off">
             <div class="excel-field-group">
-                <label for="query" class="excel-field-label">
+                <label for="token" class="excel-field-label">
                     Token *
                 </label>
 
                 <div class="excel-search-row">
                     <input type="text" name="token" id="token" class="excel-field-input" required autofocus>
+                </div>
+
+                <div class="excel-field-hint">
+                    Este token se reutiliza también al enviar la recepción, así que debe permanecer vigente durante todo el proceso.
                 </div>
             </div>
             <div class="excel-field-group">
@@ -832,7 +836,7 @@
                 </label>
 
                 <div class="excel-search-row">
-                    <input type="text" name="query" id="query" class="excel-field-input" placeholder="Ej: OC-1-12345" required autofocus>
+                    <input type="text" name="query" id="query" class="excel-field-input" placeholder="Ej: OC-1-12345" required>
                     <button type="submit" class="excel-submit-btn" id="submitBtn"><span class="btn-spinner"></span><span class="btn-label">Buscar</span></button>
                 </div>
 
@@ -1345,7 +1349,7 @@
                     class="checklist-submit-btn"
                     id="saveChecklistBtn">
 
-                    Guardar recepción
+                    Enviar
 
                 </button>
 
@@ -2656,6 +2660,12 @@
             event.preventDefault();
 
             /* -------------------------------------------------
+               TOKEN (el mismo que se usó para buscar la orden)
+            ------------------------------------------------- */
+
+            const token = tokenInput.value.trim();
+
+            /* -------------------------------------------------
                VALIDAR ORDEN
             ------------------------------------------------- */
 
@@ -2691,9 +2701,23 @@
             const firmaCargo = (checklistFormData.get('firma_cargo') || '').trim();
             const firmaDepartamento = (checklistFormData.get('firma_departamento') || '').trim();
 
-            if (!observaciones || !firmaNombre || !firmaCargo || !firmaDepartamento || receivingImages.length === 0) {
+            /* -------------------------------------------------
+               VALIDAR TODO LO OBLIGATORIO ANTES DE ARMAR
+               Y ENVIAR EL FORMDATA (token, orden, checklist,
+               responsable e imágenes)
+            ------------------------------------------------- */
+
+            if (
+                !token ||
+                !observaciones ||
+                !firmaNombre ||
+                !firmaCargo ||
+                !firmaDepartamento ||
+                receivingImages.length === 0
+            ) {
                 let mensaje = 'Completa los campos obligatorios.';
-                if (!observaciones) mensaje = 'Ingresa las observaciones de la recepción.';
+                if (!token) mensaje = 'Falta el token de acceso. Vuelve a escribirlo en el campo "Token" de arriba.';
+                else if (!observaciones) mensaje = 'Ingresa las observaciones de la recepción.';
                 else if (!firmaNombre) mensaje = 'Ingresa el nombre de quien realiza la recepción.';
                 else if (!firmaCargo) mensaje = 'Ingresa el cargo de quien realiza la recepción.';
                 else if (!firmaDepartamento) mensaje = 'Ingresa el departamento de quien realiza la recepción.';
@@ -2777,9 +2801,9 @@
                 referencias_recibidas: checklistFormData.get('referencias_recibidas') || '',
                 observaciones: checklistFormData.get('observaciones') || '',
                 responsable: {
-                    nombre: checklistFormData.get('firma_nombre') || '',
-                    cargo: checklistFormData.get('firma_cargo') || '',
-                    departamento: checklistFormData.get('firma_departamento') || '',
+                    nombre: firmaNombre,
+                    cargo: firmaCargo,
+                    departamento: firmaDepartamento,
                     celular: checklistFormData.get('firma_celular') || ''
                 }
 
@@ -2829,6 +2853,17 @@
 
             const requestData =
                 new FormData();
+
+            /*
+             * Token de acceso a Siigo (el mismo usado para
+             * buscar la orden). El backend lo vuelve a
+             * validar antes de procesar la recepción.
+             */
+
+            requestData.append(
+                'token',
+                token
+            );
 
             /*
              * JSON de recepción.
