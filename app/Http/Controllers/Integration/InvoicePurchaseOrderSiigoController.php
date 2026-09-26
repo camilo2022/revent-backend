@@ -251,7 +251,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $users = $this->users($token);
         $warehouses = $this->warehouses($token);
 
-        $fecha_inicio = Carbon::now()->subMonths(5)/*->subDays(31)*/;
+        $fecha_inicio = Carbon::now()/*->subMonths(5)*/->subDays(31);
         $fecha_fin = Carbon::now();
 
         $invoices = $this->purchase_invoices($token, $fecha_inicio, $fecha_fin);
