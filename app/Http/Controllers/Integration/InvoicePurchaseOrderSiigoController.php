@@ -172,6 +172,16 @@ class InvoicePurchaseOrderSiigoController extends Controller
             ], 422);
         }
 
+        $token = $request->input('token');
+        $usuario = $this->validar_usuario($token);
+
+        if (!$usuario['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $usuario['message'],
+            ], 401);
+        }
+
         $imagenes = [];
 
         foreach ($request->file('imagenes', []) as $imagen) {
@@ -185,7 +195,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
         }
 
         Mail::to(['camiloacacio16@gmail.com'])->send(
-            new InvoicePurchaseOrderConfirmedSiigo($data, $imagenes)
+            new InvoicePurchaseOrderConfirmedSiigo($data, $usuario, $imagenes)
         );
 
         return response()->json([
@@ -241,7 +251,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $users = $this->users($token);
         $warehouses = $this->warehouses($token);
 
-        $fecha_inicio = Carbon::now()->subDays(31);
+        $fecha_inicio = Carbon::now()->subMonths(5)/*->subDays(31)*/;
         $fecha_fin = Carbon::now();
 
         $invoices = $this->purchase_invoices($token, $fecha_inicio, $fecha_fin);

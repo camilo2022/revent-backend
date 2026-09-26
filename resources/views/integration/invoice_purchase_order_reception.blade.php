@@ -350,14 +350,42 @@
             font-weight: 600;
             text-align: center;
             outline: none;
+            transition: all 0.2s ease;
         }
 
-        .receiving-input:focus {
+        /* RECIBIDO < SOLICITADO */
+        .receiving-input.partial {
+            border-color: #f59e0b;
+            background: #fffbeb;
+            color: #b45309;
+        }
+
+        /* RECIBIDO = SOLICITADO */
+        .receiving-input.complete {
             border-color: #16a34a;
-            background: #ffffff;
+            background: #f0fdf4;
+            color: #166534;
         }
 
+        /* RECIBIDO > SOLICITADO */
         .receiving-input.over {
+            border-color: #2563eb;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        /* Mantener el color del estado al hacer focus */
+        .receiving-input.partial:focus {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .receiving-input.complete:focus {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .receiving-input.over:focus {
             border-color: #2563eb;
             background: #eff6ff;
         }
@@ -1775,10 +1803,19 @@
                 `.pending-value[data-item-index="${index}"]`
             );
 
-        input.classList.toggle(
-            'over',
-            receiving > requested
+        input.classList.remove(
+            'partial',
+            'complete',
+            'over'
         );
+
+        if (receiving > requested) {
+            input.classList.add('over');
+        } else if (receiving === requested) {
+            input.classList.add('complete');
+        } else {
+            input.classList.add('partial');
+        }
 
         if (pendingElement) {
 

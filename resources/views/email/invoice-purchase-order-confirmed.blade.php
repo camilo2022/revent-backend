@@ -74,7 +74,7 @@
                         </p>
 
                         <p style="margin:0 0 12px 0; font-size:14px; color:#374151; line-height:1.5;">
-                            Reciba un cordial saludo de parte de <strong>REVENT CALZADO S.A.S.</strong>
+                            Reciba un cordial saludo de parte de <strong>{{ $usuario['data']['name'] }}</strong>
                         </p>
 
                         <p style="margin:0 0 12px 0; font-size:14px; color:#374151; line-height:1.5;">

@@ -11,6 +11,7 @@ class InvoicePurchaseOrderConfirmedSiigo extends Mailable
 
     public function __construct(
         public array $data,
+        public array $usuario,
         public array $imagenes = []
     ) {}
 
