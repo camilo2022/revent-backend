@@ -62,16 +62,17 @@ Route::post('/siigo/accounts_payment', [AccountPayableSiigoController::class, 'a
 Route::post('/siigo/accounts_advance', [AccountPayableSiigoController::class, 'accounts_advance'])->name('siigo.accounts_advance');
 Route::post('/siigo/accounts_conciliation', [AccountPayableSiigoController::class, 'accounts_conciliation'])->name('siigo.accounts_conciliation');
 
-Route::get('/siigo/inventory_filter', [InventoryFilterSiigoController::class, 'inventory_filter'])->name('siigo.inventory_filter');
+Route::get('/siigo/inventory_filter/access', [InventoryFilterSiigoController::class, 'inventory_filter_access'])->name('siigo.inventory_filter_access');
+Route::post('/siigo/inventory_filter/access', [InventoryFilterSiigoController::class, 'inventory_filter_send_access_link'])->middleware('throttle:5,1')->name('siigo.inventory_filter_send_access_link');
+Route::get('/siigo/inventory_filter', [InventoryFilterSiigoController::class, 'inventory_filter'])->middleware('signed')->name('siigo.inventory_filter');
 Route::post('/siigo/inventory_filter_search', [InventoryFilterSiigoController::class, 'inventory_filter_search'])->name('siigo.inventory_filter_search');
 
 Route::get('/siigo/invoice_purchase_order/reception', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_reception'])->name('siigo.invoice_purchase_order_reception');
 Route::get('/siigo/invoice_purchase_order/search', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_search'])->name('siigo.invoice_purchase_order_search');
 Route::post('/siigo/invoice_purchase_order/confirmed', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_confirmed'])->name('siigo.invoice_purchase_order_confirmed');
-
 Route::get('/siigo/invoice_purchase_order/access', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_access'])->name('siigo.invoice_purchase_order_access');
 Route::post('/siigo/invoice_purchase_order/access', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_send_access_link'])->middleware('throttle:5,1')->name('siigo.invoice_purchase_order_send_access_link');
-Route::get('/siigo/invoice_purchase_order', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order'])->name('siigo.invoice_purchase_order');
+Route::get('/siigo/invoice_purchase_order', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order'])->middleware('signed')->name('siigo.invoice_purchase_order');
 Route::get('/siigo/invoice_purchase_order/documents', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_documents'])->name('siigo.invoice_purchase_order_documents');
 
 Route::get('/exports/download/{file}', function (string $file) {

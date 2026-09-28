@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Services\SiigoInventoryService;
+use App\Mail\InventroyFilterAccessLink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class InventoryFilterSiigoController extends Controller
 {
@@ -14,14 +17,53 @@ class InventoryFilterSiigoController extends Controller
     private const BASE_PATH = 'products';
     private string $siigo_base_url = 'https://api.siigo.com';
 
+    public function inventory_filter_access()
+    {
+        return view('integration.inventory_filter_access');
+    }
+
+    public function inventory_filter_send_access_link(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $siigo = new SiigoInventoryService();
+        $token = $siigo->auth();
+
+        $email = strtolower(trim($request->input('email')));
+
+        $sellers = $this->sellers($token);
+
+        if (!in_array($email, $sellers, true)) {
+            return back()
+                ->withErrors(['email' => 'Este correo no tiene autorización para acceder a filtro de inventarios.'])
+                ->withInput();
+        }
+
+        try {
+            $url = URL::temporarySignedRoute('siigo.invoice_purchase_order', now()->addHours(24));
+
+            Mail::to($email)->send(new InventroyFilterAccessLink($url));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()
+                ->withErrors(['email' => 'No fue posible enviar el enlace de acceso. Intenta nuevamente en unos minutos.'])
+                ->withInput();
+        }
+
+        return back()->with('status', 'Te enviamos el enlace de acceso a ' . $email . '. Revisa tu bandeja de entrada (y spam).');
+    }
+
     public function inventory_filter(Request $request)
     {
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
         $warehouses = $this->warehouses($token);
-        $colorGroups = $this->color_groups();
+        $color_groups = $this->color_groups();
 
-        return view('integration.inventory_filter', compact('warehouses', 'colorGroups'));
+        return view('integration.inventory_filter', compact('warehouses', 'color_groups'));
     }
 
     public function inventory_filter_search(Request $request)
@@ -213,15 +255,15 @@ class InventoryFilterSiigoController extends Controller
             ['nombre' => 'ANIMAL NEGRO',    'codigo' => 93, 'hex' => '#2B2523', 'macrocategoria' => 'ANIMAL PRINT'],
 
             // BEIGE / CREMA
-            ['nombre' => 'BEIGE',         'codigo' => 17, 'hex' => '#EDE9E3', 'macrocategoria' => 'BEIGE / CREMA'],
-            ['nombre' => 'CREMA',         'codigo' => 18, 'hex' => '#E8DCC3', 'macrocategoria' => 'BEIGE / CREMA'],
-            ['nombre' => 'PERLA',         'codigo' => 19, 'hex' => '#EDE9E3', 'macrocategoria' => 'BEIGE / CREMA'],
-            ['nombre' => 'CRUDO',         'codigo' => 24, 'hex' => '#E8DCC3', 'macrocategoria' => 'BEIGE / CREMA'],
-            ['nombre' => 'BLANCO',        'codigo' => 10, 'hex' => '#FFFFFF', 'macrocategoria' => 'BEIGE / CREMA'],
-            ['nombre' => 'TRANSPARENTE',  'codigo' => 13, 'hex' => '#F2F2F2', 'macrocategoria' => 'BEIGE / CREMA'],
-            ['nombre' => 'TIZA',          'codigo' => 16, 'hex' => '#F5F5F0', 'macrocategoria' => 'BEIGE / CREMA'],
-            ['nombre' => 'PLATA',         'codigo' => 36, 'hex' => '#C0C0C0', 'macrocategoria' => 'BEIGE / CREMA'],
-            ['nombre' => 'GRIS',          'codigo' => 92, 'hex' => '#666666', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'BEIGE',        'codigo' => 17, 'hex' => '#EDE9E3', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'CREMA',        'codigo' => 18, 'hex' => '#E8DCC3', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'PERLA',        'codigo' => 19, 'hex' => '#EDE9E3', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'CRUDO',        'codigo' => 24, 'hex' => '#E8DCC3', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'BLANCO',       'codigo' => 10, 'hex' => '#FFFFFF', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'TRANSPARENTE', 'codigo' => 13, 'hex' => '#F2F2F2', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'TIZA',         'codigo' => 16, 'hex' => '#F5F5F0', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'PLATA',        'codigo' => 36, 'hex' => '#C0C0C0', 'macrocategoria' => 'BEIGE / CREMA'],
+            ['nombre' => 'GRIS',         'codigo' => 92, 'hex' => '#666666', 'macrocategoria' => 'BEIGE / CREMA'],
 
             // CAFÉ / MARRÓN
             ['nombre' => 'BROWN',  'codigo' => 76, 'hex' => '#6B4423', 'macrocategoria' => 'CAFÉ / MARRÓN'],
@@ -245,13 +287,14 @@ class InventoryFilterSiigoController extends Controller
             ['nombre' => 'NEGRO',  'codigo' => 99, 'hex' => '#000000', 'macrocategoria' => 'NEGRO / OSCUROS'],
 
             // NUDE / ARENA
-            ['nombre' => 'CHAMPAÑA',  'codigo' => 21, 'hex' => '#F0DFC4', 'macrocategoria' => 'NUDE / ARENA'],
-            ['nombre' => 'VAINILLA',  'codigo' => 27, 'hex' => '#EED9AE', 'macrocategoria' => 'NUDE / ARENA'],
-            ['nombre' => 'NUDE',      'codigo' => 30, 'hex' => '#E3C9A6', 'macrocategoria' => 'NUDE / ARENA'],
-            ['nombre' => 'ARENA',     'codigo' => 33, 'hex' => '#D9C199', 'macrocategoria' => 'NUDE / ARENA'],
-            ['nombre' => 'KHAKI',     'codigo' => 50, 'hex' => '#C3B091', 'macrocategoria' => 'NUDE / ARENA'],
-            ['nombre' => 'ORO ROSA',  'codigo' => 39, 'hex' => '#E0BFB8', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'CHAMPAÑA', 'codigo' => 21, 'hex' => '#F0DFC4', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'VAINILLA', 'codigo' => 27, 'hex' => '#EED9AE', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'NUDE',     'codigo' => 30, 'hex' => '#E3C9A6', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'ARENA',    'codigo' => 33, 'hex' => '#D9C199', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'KHAKI',    'codigo' => 50, 'hex' => '#C3B091', 'macrocategoria' => 'NUDE / ARENA'],
+            ['nombre' => 'ORO ROSA', 'codigo' => 39, 'hex' => '#E0BFB8', 'macrocategoria' => 'NUDE / ARENA'],
 
+            // ROJO / VINOTINTO
             ['nombre' => 'ROJO', 'codigo' => 88, 'hex' => '#B22222', 'macrocategoria' => 'ROJO / VINOTINTO'],
             ['nombre' => 'VINO', 'codigo' => 90, 'hex' => '#5B1A1A', 'macrocategoria' => 'ROJO / VINOTINTO'],
         ];
@@ -407,5 +450,51 @@ class InventoryFilterSiigoController extends Controller
         $color = preg_replace('/[^A-Z0-9]/', '', $color);
 
         return $color;
+    }
+
+    private function sellers(string $token)
+    {
+        $page = 1;
+        $pageSize = 100;
+        $totalPages = null;
+        $sellers = [];
+
+        do {
+            $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => $token,
+                'Partner-Id' => 'consultadeFacturas',
+            ])->get("{$this->siigo_base_url}/v1/users", [
+                'page' => $page,
+                'page_size' => $pageSize,
+            ]);
+
+            if ($response->status() === 429) {
+                sleep(1);
+                continue;
+            }
+
+            if (! $response->successful()) {
+                throw new \Exception($response->body());
+            }
+
+            $data = $response->json();
+
+            if (!empty($data['results'])) {
+                $sellers = array_merge($sellers, $data['results']);
+            }
+
+            if ($totalPages === null) {
+                $pagination = $data['pagination'];
+                $totalPages = (int) ceil($pagination['total_results'] / $pagination['page_size']);
+            }
+
+            $page++;
+
+        } while ($page <= $totalPages);
+
+        $sellers = collect($sellers)->pluck('email')->all();
+
+        return $sellers;
     }
 }

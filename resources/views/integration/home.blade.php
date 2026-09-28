@@ -90,6 +90,8 @@
         .icon-fotos { background: #1f2937; }
         .icon-cuentas-pagar { background: #059669; }
         .icon-tienda { background: #2563eb; }
+        .icon-recepcion { background: #ea580c; }
+        .icon-pendientes { background: #0d9488; }
 
         .report-body {
             flex: 1;
@@ -136,7 +138,9 @@
         .report-card:has(.icon-fotos) .report-action { color: #1f2937; }
         .report-card:has(.icon-cuentas-pagar) .report-action { color: #059669; }
         .report-card:has(.icon-tienda) .report-action { color: #2563eb; }
-
+        .report-card:has(.icon-recepcion) .report-action { color: #ea580c; }
+        .report-card:has(.icon-pendientes) .report-action { color: #0d9488; }
+        
         .report-action svg {
             width: 14px;
             height: 14px;
@@ -341,7 +345,7 @@
             </div>
         </a>
 
-        <a href="{{ route('siigo.inventory_filter') }}" class="report-card">
+        <a href="{{ route('siigo.inventory_filter_access') }}" class="report-card">
             <div class="report-icon icon-tienda">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 9l1-5h16l1 5"/>
@@ -357,6 +361,46 @@
             <div class="report-footer">
                 <span class="report-action">
                     Consultar inventario
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
+
+                <a href="{{ route('siigo.invoice_purchase_order_reception') }}" class="report-card">
+            <div class="report-icon icon-recepcion">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <path d="M9 12l2 2 4-4"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Recepción de Orden de Compra</div>
+                <div class="report-desc">Busca una orden de compra y registra la recepción de mercancía con evidencia fotográfica.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Recepcionar orden
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
+
+        <a href="{{ route('siigo.invoice_purchase_order_access') }}" class="report-card">
+            <div class="report-icon icon-pendientes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 7h-9"/>
+                    <path d="M14 17H5"/>
+                    <circle cx="17" cy="17" r="3"/>
+                    <circle cx="7" cy="7" r="3"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Compras por Recepcionar</div>
+                <div class="report-desc">Consulta qué órdenes de compra siguen pendientes de recibir mercancía, agrupadas por proveedor.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Ver pendientes
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </span>
             </div>

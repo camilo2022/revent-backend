@@ -869,7 +869,7 @@
     <script>
         window.WAREHOUSES = @json($warehouses ?? []);
         window.PRODUCTOS_INICIALES = @json($productos ?? []);
-        window.COLOR_GROUPS = @json($colorGroups ?? []);
+        window.COLOR_GROUPS = @json($color_groups ?? []);
         window.INVENTORY_FILTER_URL = "{{ route('siigo.inventory_filter_search') }}";
     </script>
 

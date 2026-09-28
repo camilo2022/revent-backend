@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Integration;
 use App\Http\Controllers\Controller;
 use App\Mail\InvoicePurchaseOrderAccessLink;
 use App\Services\SiigoInventoryService;
+use App\Services\SiigoPurchaseOrderCacheService;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use App\Mail\InvoicePurchaseOrderConfirmedSiigo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -251,11 +253,17 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $users = $this->users($token);
         $warehouses = $this->warehouses($token);
 
-        $fecha_inicio = Carbon::now()/*->subMonths(5)*/->subDays(31);
-        $fecha_fin = Carbon::now();
+        // Cache: anteayer y ayer | En vivo: solo hoy
+        $fecha_inicio = Carbon::now()->subDays(3)->startOfDay();
+        $ayer = Carbon::yesterday();
+        $hoy_inicio = Carbon::today();
+        $hoy_fin = Carbon::now();
 
-        $invoices = $this->purchase_invoices($token, $fecha_inicio, $fecha_fin);
-        $invoice_details = $this->details($token, $invoices->pluck('ACEntryID'), 'FC-ID');
+        // Facturas históricas: solo caché. Facturas de hoy: consulta en vivo.
+        $invoices_cached = $this->cachedDocumentsByDay('FC', $fecha_inicio, $ayer);
+        $invoices_today = $this->purchase_invoices($token, $hoy_inicio, $hoy_fin);
+        $invoices = $invoices_cached->merge($invoices_today)->unique('ACEntryID')->values();
+        $invoice_details = $this->details($token, $invoices->pluck('ACEntryID'), 'FC-ID', $invoices_today->pluck('ACEntryID'));
 
         $purchase_invoices = $invoices
             ->map(function ($invoice) use ($invoice_details, $users, $warehouses) {
@@ -271,9 +279,11 @@ class InvoicePurchaseOrderSiigoController extends Controller
             })
             ->groupBy('ACEntryCode');
 
-        // Órdenes
-        $orders = $this->purchase_orders($token, $fecha_inicio, $fecha_fin);
-        $order_details = $this->details($token, $orders->pluck('ACEntryID'), 'OC-ID');
+        // Órdenes históricas: solo caché. Órdenes de hoy: consulta en vivo.
+        $orders_cached = $this->cachedDocumentsByDay('OC', $fecha_inicio, $ayer);
+        $orders_today = $this->purchase_orders($token, $hoy_inicio, $hoy_fin);
+        $orders = $orders_cached->merge($orders_today)->unique('ACEntryID')->values();
+        $order_details = $this->details($token, $orders->pluck('ACEntryID'), 'OC-ID', $orders_today->pluck('ACEntryID'));
         $providers = collect(Cache::many($orders->pluck('MsThirdPartyID')->filter()->unique()->values()->all()));
 
         $purchase_orders = $orders->map(function ($order) use ($order_details, $providers, $purchase_invoices, $users, $warehouses) {
@@ -314,7 +324,6 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
                 return $item;
             });
-
 
             $user = $users->get(data_get($detail, 'Entry.SalesmanCode'));
             $order['User'] = trim(data_get($user, 'first_name', '') . ' ' . data_get($user, 'last_name', ''));
@@ -656,16 +665,46 @@ class InvoicePurchaseOrderSiigoController extends Controller
         return collect($rows);
     }
 
-    private function details(string $token, $ids, string $prefix)
+    private function cachedDocumentsByDay(string $type, Carbon $from, Carbon $to): Collection
+    {
+        $days = collect(CarbonPeriod::create($from->copy()->startOfDay(), $to->copy()->startOfDay()))
+            ->map(fn ($day) => $day->toDateString());
+
+        $keys = $days->map(fn ($day) => SiigoPurchaseOrderCacheService::dayKey($type, $day))->all();
+        $cached = Cache::many($keys);
+        $rows = collect();
+
+        foreach ($days as $day) {
+            $key = SiigoPurchaseOrderCacheService::dayKey($type, $day);
+
+            if (!array_key_exists($key, $cached) || $cached[$key] === null) {
+                continue;
+            }
+
+            $rows = $rows->merge($cached[$key]);
+        }
+
+        return $rows->unique('ACEntryID')->values();
+    }
+
+    private function details(string $token, $ids, string $prefix, $fetchMissingIds = []): Collection
     {
         $ids = collect($ids)->filter()->unique()->values();
-
+        $fetchMissingIds = collect($fetchMissingIds)->map(fn ($id) => (string) $id)->flip();
         $cached = Cache::many($ids->map(fn ($id) => "{$prefix}-{$id}")->all());
 
-        return $ids->mapWithKeys(function ($id) use ($token, $prefix, $cached) {
+        return $ids->mapWithKeys(function ($id) use ($token, $prefix, $cached, $fetchMissingIds) {
             $key = "{$prefix}-{$id}";
 
-            return [$id => $cached[$key] ?? $this->fetch_detail($token, $id, $key)];
+            if (array_key_exists($key, $cached) && $cached[$key] !== null) {
+                return [$id => $cached[$key]];
+            }
+
+            if ($fetchMissingIds->has((string) $id)) {
+                return [$id => $this->fetch_detail($token, (int) $id, $key)];
+            }
+
+            return [$id => []];
         });
     }
 

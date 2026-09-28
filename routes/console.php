@@ -17,3 +17,5 @@ Schedule::command('siigo:export-purchase-scheduled')->dailyAt('06:45');
 Schedule::command('siigo:export-inventory-scheduled')->dailyAt('07:00');
 
 Schedule::command('siigo:sync-unico-scheduled')->hourly()->between('08:00', '22:00');
+
+Schedule::command('siigo:warm-purchase-cache')->dailyAt('00:00');

@@ -4,22 +4,24 @@
 namespace App\Services;
 
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Extrae la parte de InvoicePurchaseOrderSiigoController que consulta
- * el reporte de Siigo (órdenes de compra / facturas de compra) y cachea
- * el detalle de cada documento (Cache::forever bajo "OC-ID-{id}" /
- * "FC-ID-{id}"), para poder reutilizarla tanto desde el controlador
- * como desde el Job de precalentado de cache.
+ * Consulta el reporte de Siigo (órdenes de compra / facturas de compra)
+ * y cachea:
+ *  - El listado de cada día (SIIGO-FC-DAY-{Y-m-d} / SIIGO-OC-DAY-{Y-m-d})
+ *  - El detalle de cada documento ("FC-ID-{id}" / "OC-ID-{id}")
+ *
+ * Se usa tanto desde el controlador (lectura) como desde el Job (precalentado).
  */
 class SiigoPurchaseOrderCacheService
 {
     /**
-     * Órdenes de compra (tipo transacción 4) entre dos fechas.
+     * Órdenes de compra (tipo transacción 4) entre dos fechas, directo a Siigo.
      */
     public function purchaseOrders(string $token, Carbon $fecha_inicio, Carbon $fecha_fin): Collection
     {
@@ -27,7 +29,7 @@ class SiigoPurchaseOrderCacheService
     }
 
     /**
-     * Facturas de compra (tipo transacción 0) entre dos fechas.
+     * Facturas de compra (tipo transacción 0) entre dos fechas, directo a Siigo.
      */
     public function purchaseInvoices(string $token, Carbon $fecha_inicio, Carbon $fecha_fin): Collection
     {
@@ -35,19 +37,67 @@ class SiigoPurchaseOrderCacheService
     }
 
     /**
-     * Precalienta el cache de un rango de fechas: trae las órdenes y
-     * facturas de ese rango y deja cacheado (para siempre, igual que
-     * hoy) el detalle de cada una que todavía no estuviera cacheada.
+     * Facturas de compra leyendo del cache del listado por día.
+     * Si algún día no está cacheado, lo consulta y lo guarda.
+     */
+    public function purchaseInvoicesCached(string $token, Carbon $from, Carbon $to): Collection
+    {
+        return $this->cachedRange($token, 'FC', $from, $to);
+    }
+
+    /**
+     * Órdenes de compra leyendo del cache del listado por día.
+     * Si algún día no está cacheado, lo consulta y lo guarda.
+     */
+    public function purchaseOrdersCached(string $token, Carbon $from, Carbon $to): Collection
+    {
+        return $this->cachedRange($token, 'OC', $from, $to);
+    }
+
+    public static function dayKey(string $type, string $day): string
+    {
+        return "SIIGO-{$type}-DAY-{$day}"; // FC = facturas, OC = órdenes
+    }
+
+    /**
+     * Consulta un solo día a Siigo y SOBRESCRIBE el listado cacheado de ese día.
+     * Si Siigo falla, lanza excepción y el cache anterior queda intacto.
+     */
+    public function refreshDay(string $token, string $type, string $day): array
+    {
+        $d = Carbon::parse($day);
+
+        $rows = $type === 'FC'
+            ? $this->purchaseInvoices($token, $d->copy()->startOfDay(), $d->copy()->endOfDay())
+            : $this->purchaseOrders($token, $d->copy()->startOfDay(), $d->copy()->endOfDay());
+
+        $rows = $rows->values()->all();
+
+        // También guarda [] si ese día no hubo documentos
+        Cache::forever(self::dayKey($type, $day), $rows);
+
+        return $rows;
+    }
+
+    /**
+     * Precalienta un rango de fechas: por cada día refresca el listado
+     * (sobrescribiendo) y luego refresca el detalle de cada documento.
      *
-     * Devuelve un resumen (para loguear cuántos documentos había y
-     * cuántos tuvo que consultar de verdad).
+     * Devuelve un resumen para loguear.
      */
     public function warmRange(string $token, Carbon $fecha_inicio, Carbon $fecha_fin): array
     {
-        $invoices = $this->purchaseInvoices($token, $fecha_inicio, $fecha_fin);
-        $invoiceStats = $this->warmDetails($token, $invoices->pluck('ACEntryID'), 'FC-ID');
+        $invoices = collect();
+        $orders = collect();
 
-        $orders = $this->purchaseOrders($token, $fecha_inicio, $fecha_fin);
+        foreach (CarbonPeriod::create($fecha_inicio->copy()->startOfDay(), $fecha_fin->copy()->startOfDay()) as $day) {
+            $day = $day->toDateString();
+
+            $invoices = $invoices->merge($this->refreshDay($token, 'FC', $day));
+            $orders = $orders->merge($this->refreshDay($token, 'OC', $day));
+        }
+
+        $invoiceStats = $this->warmDetails($token, $invoices->pluck('ACEntryID'), 'FC-ID');
         $orderStats = $this->warmDetails($token, $orders->pluck('ACEntryID'), 'OC-ID');
 
         return [
@@ -60,10 +110,8 @@ class SiigoPurchaseOrderCacheService
     }
 
     /**
-     * Igual que el `details()` privado del controlador, pero
-     * devolviendo cuántos tuvo que ir a consultar (los que no
-     * estaban ya cacheados) en vez de la colección completa,
-     * porque para el warm-up solo nos interesa dejarlos en cache.
+     * Consulta SIEMPRE el detalle a Siigo y sobrescribe el cache existente.
+     * Si falla un documento, se conserva el valor anterior.
      */
     public function warmDetails(string $token, $ids, string $prefix): array
     {
@@ -73,16 +121,10 @@ class SiigoPurchaseOrderCacheService
             return ['total' => 0, 'cached_now' => 0];
         }
 
-        $cached = Cache::many($ids->map(fn ($id) => "{$prefix}-{$id}")->all());
         $cachedNow = 0;
 
         foreach ($ids as $id) {
             $key = "{$prefix}-{$id}";
-
-            // Ya está en cache (incluye el caso "sin datos" cacheado por 1h)
-            if (array_key_exists($key, $cached) && $cached[$key] !== null) {
-                continue;
-            }
 
             try {
                 $this->fetchDetail($token, (int) $id, $key);
@@ -96,8 +138,7 @@ class SiigoPurchaseOrderCacheService
     }
 
     /**
-     * Idéntico al fetch_detail() privado del controlador: consulta
-     * el detalle de un documento y lo deja cacheado con la misma
+     * Consulta el detalle de un documento y lo deja cacheado con la misma
      * llave que usa el resto de la aplicación.
      */
     public function fetchDetail(string $token, int $acEntryId, string $cacheKey)
@@ -127,12 +168,37 @@ class SiigoPurchaseOrderCacheService
     }
 
     /**
-     * Consulta paginada al reporte de Siigo (getreport), igual a los
-     * antiguos purchase_orders()/purchase_invoices() del controlador,
-     * unificados en un solo método porque solo cambian el valor y la
-     * etiqueta de "_vTypeTransaction".
+     * Lee del cache los días del rango; si algún día no está cacheado,
+     * lo consulta a Siigo y lo guarda.
      */
-    private function report(string $token, string $typeTransactionValue, string $typeTransactionLabel, Carbon $fecha_inicio, Carbon $fecha_fin): Collection {
+    private function cachedRange(string $token, string $type, Carbon $from, Carbon $to): Collection
+    {
+        $days = collect(CarbonPeriod::create($from->copy()->startOfDay(), $to->copy()->startOfDay()))
+            ->map(fn ($d) => $d->toDateString());
+
+        $cached = Cache::many($days->map(fn ($d) => self::dayKey($type, $d))->all());
+
+        $rows = collect();
+
+        foreach ($days as $day) {
+            $dayRows = $cached[self::dayKey($type, $day)] ?? null;
+
+            if ($dayRows === null) {
+                $dayRows = $this->refreshDay($token, $type, $day);
+            }
+
+            $rows = $rows->merge($dayRows);
+        }
+
+        return $rows->values();
+    }
+
+    /**
+     * Consulta paginada al reporte de Siigo (getreport). Solo cambian el valor
+     * y la etiqueta de "_vTypeTransaction" entre órdenes y facturas.
+     */
+    private function report(string $token, string $typeTransactionValue, string $typeTransactionLabel, Carbon $fecha_inicio, Carbon $fecha_fin): Collection
+    {
         $take = 100;
         $skip = 0;
         $total = null;
