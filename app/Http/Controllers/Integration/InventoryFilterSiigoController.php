@@ -148,14 +148,14 @@ class InventoryFilterSiigoController extends Controller
             $description = $fila['Description'] ?? '';
             $partes = explode('-', $description);
 
-            if (count($partes) < 5) {
+            if (count($partes) < 5 && count($partes) < 4) {
                 continue;
             }
 
             $referencia = $partes[0];
             $color      = $partes[1];
-            $categoria  = $partes[3];
-            $talla      = end($partes);
+            $categoria  = $partes[count($partes)-2];
+            $talla      = $partes[count($partes)-1];
 
             $cantidad = (int) ($fila['QuantityBalance'] ?? 0);
 
@@ -337,7 +337,7 @@ class InventoryFilterSiigoController extends Controller
             'MO' => 'MOCASIN',
             'MC' => 'MOCASIN CHAROL',
             'ST' => 'STILETTO',
-            'KH' => 'KITTEN',
+            'KH' => 'KITTEN HILLS',
             'CH' => 'CHUNKY',
             'CA' => 'CANOA',
             'CF' => 'CONFORT',

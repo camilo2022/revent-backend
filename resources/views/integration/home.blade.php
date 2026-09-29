@@ -140,7 +140,7 @@
         .report-card:has(.icon-tienda) .report-action { color: #2563eb; }
         .report-card:has(.icon-recepcion) .report-action { color: #ea580c; }
         .report-card:has(.icon-pendientes) .report-action { color: #0d9488; }
-        
+
         .report-action svg {
             width: 14px;
             height: 14px;
