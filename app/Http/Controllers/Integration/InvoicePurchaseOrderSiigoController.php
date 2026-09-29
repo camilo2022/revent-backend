@@ -254,7 +254,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $warehouses = $this->warehouses($token);
 
         // Cache: anteayer y ayer | En vivo: solo hoy
-        $fecha_inicio = Carbon::now()->subDays(3)->startOfDay();
+        $fecha_inicio = Carbon::now()->subMonths(5)->startOfDay();
         $ayer = Carbon::yesterday();
         $hoy_inicio = Carbon::today();
         $hoy_fin = Carbon::now();
