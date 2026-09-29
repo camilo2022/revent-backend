@@ -159,9 +159,8 @@ class PhotoProductSiigoController extends Controller
 
     private function obtener_datos_usuario(string $token)
     {
-        $response = Http::retry(3, 3000)->withToken($token)->withHeaders([
-            'Accept' => '*/*',
-            'Referer' => 'https://siigonube.siigo.com/',
+        $response = Http::withHeaders([
+            'Authorization' => $token,
         ])->get('https://services.siigo.com/cross/globalstate/api/v1/Settings/LoadSettings');
 
         if (!$response->successful()) {
@@ -178,7 +177,8 @@ class PhotoProductSiigoController extends Controller
             'success' => true,
             'data' => [
                 'id' => $data['userID'],
-                'name' => $data['userName'],
+                'user' => $data['userName'],
+                'name' => $data['UserOptions']['userPrincipalName'],
             ],
             'message' => 'Usuario encontrado exitosamente'
         ];

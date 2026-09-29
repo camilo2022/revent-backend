@@ -345,7 +345,7 @@
             </div>
         </a>
 
-        <a href="{{ route('siigo.inventory_filter') }}" class="report-card">
+        <a href="{{ route('siigo.inventory_filter_access') }}" class="report-card">
             <div class="report-icon icon-tienda">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 9l1-5h16l1 5"/>
