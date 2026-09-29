@@ -100,6 +100,19 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order_confirmed(Request $request)
     {
+        // Validamos el token primero: si no es válido, no tiene sentido
+        // seguir procesando/validando un payload que puede traer varias
+        // imágenes de hasta 8MB cada una.
+        $token = $request->input('token');
+        $usuario = $this->validar_usuario($token);
+
+        if (!$usuario['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $usuario['message'],
+            ], 401);
+        }
+
         try {
             $request->validate([
                 'receivingData' => ['required', 'string'],
@@ -174,16 +187,6 @@ class InvoicePurchaseOrderSiigoController extends Controller
             ], 422);
         }
 
-        $token = $request->input('token');
-        $usuario = $this->validar_usuario($token);
-
-        if (!$usuario['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $usuario['message'],
-            ], 401);
-        }
-
         $imagenes = [];
 
         foreach ($request->file('imagenes', []) as $imagen) {
@@ -247,6 +250,8 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order_documents(Request $request)
     {
+        ini_set('memory_limit', '-1');
+
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
 
@@ -300,27 +305,32 @@ class InvoicePurchaseOrderSiigoController extends Controller
             preg_match('/FECHA LIMITE: (\d{4}-\d{2}-\d{2})/', $order['Observations'], $match);
             $order['DeadlineDate'] = $match[1] ?? null;
 
-            // Items de la OC + en qué facturas se confirmaron y cuántos
-            $items = collect($this->parse_items($detail, $warehouses))->map(function ($item) use ($order_invoices) {
-                $confirmed_in = $order_invoices
-                    ->map(function ($invoice) use ($item) {
-                        $quantity = collect($invoice['Items'])
-                            ->where('ProductCode', $item['ProductCode'])
-                            ->sum('Quantity');
+            $confirmedByProduct = [];
 
-                        return $quantity > 0 ? [
-                            'ACEntryID' => $invoice['ACEntryID'],
-                            'DocName'   => $invoice['DocName'] ?? null,
-                            'Quantity'  => $quantity,
-                            'Link'      => $invoice['Link'],
-                        ] : null;
-                    })
-                    ->filter()
-                    ->values();
+            foreach ($order_invoices as $invoice) {
+                foreach (($invoice['Items'] ?? []) as $invoiceItem) {
+                    $productCode = $invoiceItem['ProductCode'] ?? null;
+                    $quantity = $invoiceItem['Quantity'] ?? 0;
 
-                $item['Confirmed'] = $confirmed_in->sum('Quantity');
+                    if ($productCode === null || $quantity <= 0) {
+                        continue;
+                    }
+
+                    $confirmedByProduct[$productCode][] = [
+                        'ACEntryID' => $invoice['ACEntryID'],
+                        'DocName'   => $invoice['DocName'] ?? null,
+                        'Quantity'  => $quantity,
+                        'Link'      => $invoice['Link'],
+                    ];
+                }
+            }
+
+            $items = collect($this->parse_items($detail, $warehouses))->map(function ($item) use ($confirmedByProduct) {
+                $confirmed_in = $confirmedByProduct[$item['ProductCode']] ?? [];
+
+                $item['Confirmed'] = array_sum(array_column($confirmed_in, 'Quantity'));
                 $item['Pending'] = $item['Confirmed'] - $item['Quantity'];
-                $item['Invoices'] = $confirmed_in->all();
+                $item['Invoices'] = $confirmed_in;
 
                 return $item;
             });
@@ -393,144 +403,30 @@ class InvoicePurchaseOrderSiigoController extends Controller
             ->all();
     }
 
-    private function purchase_orders(string $token, ?Carbon $fecha_inicio = null, ?Carbon $fecha_fin = null)
+    private function purchase_orders(string $token, ?Carbon $fecha_inicio = null, ?Carbon $fecha_fin = null): Collection
     {
-        $take = 100;
-        $skip = 0;
-        $total = null;
-        $rows = [];
-
-        $fecha_inicio = $fecha_inicio ?? Carbon::now()->subMonth();
-        $fecha_fin = $fecha_fin ?? Carbon::now();
-
-        $source = collect(range(2015, $fecha_fin->year))
-            ->map(fn ($anio) => [
-                'id' => $anio,
-                'StartDate' => "{$anio}0101",
-                'EndDate' => "{$anio}1231",
-            ])
-            ->values()
-            ->toArray();
-
-        do {
-            $filterCriterias = [
-                [
-                    'Field' => '_vTypeTransaction',
-                    'FilterType' => 7,
-                    'OperatorType' => 0,
-                    'Value' => ['4'],
-                    'ValueUI' => 'Orden de compra',
-                    'Source' => 'PurchasesTransactionEnum',
-                ],
-                [
-                    'Field' => '_vProvider',
-                    'FilterType' => 68,
-                    'OperatorType' => 0,
-                    'Value' => [],
-                    'ValueUI' => '',
-                    'Source' => 'Account',
-                ],
-                [
-                    'Field' => '_vDocDate',
-                    'FilterType' => 76,
-                    'OperatorType' => 0,
-                    'Value' => [
-                        $fecha_inicio->format('Ymd'),
-                        $fecha_fin->format('Ymd'),
-                    ],
-                    'ValueUI' => $fecha_inicio->format('Y/m/d')
-                        . ' - '
-                        . $fecha_fin->format('Y/m/d'),
-                    'Source' => $source,
-                ],
-                [
-                    'Field' => '_vUser',
-                    'FilterType' => 6,
-                    'OperatorType' => 0,
-                    'Value' => [],
-                    'ValueUI' => '',
-                    'Source' => '12',
-                ],
-                [
-                    'Field' => '_vProviderInvoice',
-                    'FilterType' => 6,
-                    'OperatorType' => 0,
-                    'Value' => [],
-                    'ValueUI' => '',
-                    'Source' => '64',
-                ],
-                [
-                    'Field' => '_vESiigoStatus',
-                    'FilterType' => 7,
-                    'OperatorType' => 0,
-                    'Value' => ['-1'],
-                    'ValueUI' => '',
-                    'Source' => 'DianStateFilterEnum',
-                ],
-            ];
-
-            $body = [
-                'Id' => 5451,
-                'Skip' => $skip,
-                'Take' => $take,
-                'Sort' => ' ',
-                'FilterCriterias' => json_encode($filterCriterias),
-                'Params' => json_encode([
-                    'TabID' => '1408',
-                ]),
-                'GetTotalCount' => $total === null,
-                'GridOrderCriteria' => null,
-                'AddOns' => [
-                    [
-                        'name' => 'POS Web',
-                        'state' => true,
-                        'tenantId' => '0x00000000000000000000000000605286',
-                        'type' => 1,
-                        'module' => 5,
-                        'dateActive' => '09/19/2026 08:55:44.118',
-                        'posActiveCashiers' => [
-                            'baseCashiers' => 1,
-                            'aditionalCashiers' => 28,
-                        ],
-                        'documentBase' => 0,
-                        'readOnly' => null,
-                        'subState' => 1,
-                        'updateType' => 1,
-                        'complements' => null,
-                        'payrollComplements' => null,
-                    ],
-                ],
-            ];
-
-            $response = Http::withToken($token)
-                ->acceptJson()
-                ->timeout(600)
-                ->connectTimeout(30)
-                ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
-
-            if (!$response->successful()) {
-                throw new \Exception(
-                    'Error consultando órdenes de compra: ' . $response->body()
-                );
-            }
-
-            if ($total === null) {
-                $total = (int) $response->json('totalCount');
-            }
-
-            $page = $response->json('data.Value.Table') ?? [];
-
-            $rows = array_merge($rows, $page);
-
-            $skip += $take;
-
-        } while ($skip < $total);
-
-        return collect($rows);
+        return $this->report($token, '4', 'Orden de compra', $fecha_inicio, $fecha_fin);
     }
 
-    private function purchase_invoices(string $token, ?Carbon $fecha_inicio = null, ?Carbon $fecha_fin = null)
+    private function purchase_invoices(string $token, ?Carbon $fecha_inicio = null, ?Carbon $fecha_fin = null): Collection
     {
+        return $this->report($token, '0', 'Compra', $fecha_inicio, $fecha_fin);
+    }
+
+    /**
+     * purchase_orders() y purchase_invoices() eran dos métodos casi
+     * idénticos (~150 líneas cada uno) donde lo único que cambiaba era
+     * el valor/etiqueta de "_vTypeTransaction". Quedan unificados acá
+     * para no tener que mantener la misma consulta paginada al reporte
+     * de Siigo duplicada en dos lugares.
+     */
+    private function report(
+        string $token,
+        string $typeTransactionValue,
+        string $typeTransactionLabel,
+        ?Carbon $fecha_inicio = null,
+        ?Carbon $fecha_fin = null
+    ): Collection {
         $take = 100;
         $skip = 0;
         $total = null;
@@ -554,8 +450,8 @@ class InvoicePurchaseOrderSiigoController extends Controller
                     'Field' => '_vTypeTransaction',
                     'FilterType' => 7,
                     'OperatorType' => 0,
-                    'Value' => ['0'],
-                    'ValueUI' => 'Compra',
+                    'Value' => [$typeTransactionValue],
+                    'ValueUI' => $typeTransactionLabel,
                     'Source' => 'PurchasesTransactionEnum',
                 ],
                 [
@@ -646,7 +542,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
             if (!$response->successful()) {
                 throw new \Exception(
-                    'Error consultando facturas de compra: ' . $response->body()
+                    "Error consultando reporte ({$typeTransactionLabel}): " . $response->body()
                 );
             }
 
