@@ -1131,6 +1131,8 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
                 'Cookie' => $cookie,
             ])
             ->timeout(180)
+            ->connectTimeout(60)
+            ->retry(3, 5000)
             ->withoutRedirecting()
             ->asMultipart()
             ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Framework/Controls/AutoComplete.ashx', [
