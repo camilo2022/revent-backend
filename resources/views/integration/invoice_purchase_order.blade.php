@@ -447,9 +447,14 @@
 
             <select id="ocStatus" class="combo-input">
                 <option value="">Todos los estados</option>
-                <option value="completa">Recibidas completas</option>
-                <option value="pendiente">Con pendientes</option>
-                <option value="sin_factura">Sin factura</option>
+                <option value="completa">Completo</option>
+                <option value="faltantes">Faltantes</option>
+            </select>
+
+            <select id="ocValid" class="combo-input">
+                <option value="">Todas las OC</option>
+                <option value="valida">Válida</option>
+                <option value="anulada">Anulada</option>
             </select>
 
             <select id="ocPageSize" class="combo-input" style="max-width: 110px;">
@@ -532,6 +537,7 @@
     const retryBtn       = document.getElementById('ocRetryBtn');
     const searchInput    = document.getElementById('ocSearch');
     const statusSel      = document.getElementById('ocStatus');
+    const validSel       = document.getElementById('ocValid');
     const pageSizeSel    = document.getElementById('ocPageSize');
     const btnAll         = document.getElementById('btnToggleAll');
     const paginationEl   = document.getElementById('ocPagination');
@@ -747,6 +753,10 @@
             ? 'sin_factura'
             : (confirmed >= requested ? 'completa' : 'pendiente');
 
+        // Todo lo que no está "completa" (sin_factura o pendiente) cae
+        // bajo el filtro "Faltantes" del select de estado.
+        const validState = order.IsAnnulled ? 'anulada' : 'valida';
+
         const searchText = [
             order.DocName,
             order.FullName,
@@ -769,7 +779,7 @@
 
         const detailsHtml = buildDetailsRow(order, ocIndex, items);
 
-        return `<tbody class="oc-group" data-search="${esc(searchText)}" data-status="${status}">${rowsHtml}${detailsHtml}</tbody>`;
+        return `<tbody class="oc-group" data-search="${esc(searchText)}" data-status="${status}" data-valid="${validState}">${rowsHtml}${detailsHtml}</tbody>`;
     }
 
     /* ---------------- Resumen ---------------- */
@@ -906,9 +916,20 @@
     function applyFilters() {
         const q = searchInput.value.trim().toLowerCase();
         const status = statusSel.value;
+        const validValue = validSel.value;
 
-        const matched = groups.filter((g) => (!q || g.dataset.search.includes(q))
-            && (!status || g.dataset.status === status));
+        const matched = groups.filter((g) => {
+            const matchesSearch = !q || g.dataset.search.includes(q);
+
+            // "completa" filtra exacto; "faltantes" agrupa todo lo que
+            // no está completo (pendiente + sin_factura).
+            const matchesStatus = !status
+                || (status === 'faltantes' ? g.dataset.status !== 'completa' : g.dataset.status === status);
+
+            const matchesValid = !validValue || g.dataset.valid === validValue;
+
+            return matchesSearch && matchesStatus && matchesValid;
+        });
 
         const totalPages = Math.max(1, Math.ceil(matched.length / ocPageSize));
         if (ocPage > totalPages) ocPage = totalPages;
@@ -957,6 +978,7 @@
 
     searchInput.addEventListener('input', () => { ocPage = 1; applyFilters(); });
     statusSel.addEventListener('change', () => { ocPage = 1; applyFilters(); });
+    validSel.addEventListener('change', () => { ocPage = 1; applyFilters(); });
     pageSizeSel.addEventListener('change', () => {
         ocPageSize = Number(pageSizeSel.value) || 10;
         ocPage = 1;

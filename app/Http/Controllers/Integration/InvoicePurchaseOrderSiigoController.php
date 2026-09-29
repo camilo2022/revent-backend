@@ -254,11 +254,10 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
         $siigo = new SiigoInventoryService();
         $token = $siigo->auth();
-
         $users = $this->users($token);
         $warehouses = $this->warehouses($token);
 
-        // Cache: anteayer y ayer | En vivo: solo hoy
+        // Cache: histórico | En vivo: solo hoy
         $fecha_inicio = Carbon::now()->subMonths(5)->startOfDay();
         $ayer = Carbon::yesterday();
         $hoy_inicio = Carbon::today();
@@ -268,6 +267,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $invoices_cached = $this->cachedDocumentsByDay('FC', $fecha_inicio, $ayer);
         $invoices_today = $this->purchase_invoices($token, $hoy_inicio, $hoy_fin);
         $invoices = $invoices_cached->merge($invoices_today)->unique('ACEntryID')->values();
+
         $invoice_details = $this->details($token, $invoices->pluck('ACEntryID'), 'FC-ID', $invoices_today->pluck('ACEntryID'));
 
         $purchase_invoices = $invoices
@@ -288,13 +288,17 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $orders_cached = $this->cachedDocumentsByDay('OC', $fecha_inicio, $ayer);
         $orders_today = $this->purchase_orders($token, $hoy_inicio, $hoy_fin);
         $orders = $orders_cached->merge($orders_today)->unique('ACEntryID')->values();
+
         $order_details = $this->details($token, $orders->pluck('ACEntryID'), 'OC-ID', $orders_today->pluck('ACEntryID'));
+
         $providers = collect(Cache::many($orders->pluck('MsThirdPartyID')->filter()->unique()->values()->all()));
 
         $purchase_orders = $orders->map(function ($order) use ($order_details, $providers, $purchase_invoices, $users, $warehouses) {
             $detail = $order_details->get($order['ACEntryID']);
             $provider = $providers->get($order['MsThirdPartyID']);
+
             $comments = trim(data_get($provider, 'Comments', ''));
+
             $order_invoices = $purchase_invoices->get($order['ACEntryID'], collect());
 
             $order['Observations'] = trim(data_get($detail, 'Entry.Observations', ''));
@@ -309,44 +313,80 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
             foreach ($order_invoices as $invoice) {
                 foreach (($invoice['Items'] ?? []) as $invoiceItem) {
-                    $productCode = $invoiceItem['ProductCode'] ?? null;
+                    $longDescription = trim($invoiceItem['LongDescription'] ?? '');
                     $quantity = $invoiceItem['Quantity'] ?? 0;
 
-                    if ($productCode === null || $quantity <= 0) {
+                    if ($longDescription === '' || $quantity <= 0) {
                         continue;
                     }
 
-                    $confirmedByProduct[$productCode][] = [
+                    $confirmedByProduct[$longDescription][] = [
                         'ACEntryID' => $invoice['ACEntryID'],
-                        'DocName'   => $invoice['DocName'] ?? null,
-                        'Quantity'  => $quantity,
-                        'Link'      => $invoice['Link'],
+                        'DocName' => $invoice['DocName'] ?? null,
+                        'Quantity' => $quantity,
+                        'Link' => $invoice['Link'],
+                        'Item' => $invoiceItem,
                     ];
                 }
             }
 
             $items = collect($this->parse_items($detail, $warehouses))->map(function ($item) use ($confirmedByProduct) {
-                $confirmed_in = $confirmedByProduct[$item['ProductCode']] ?? [];
+                $longDescription = trim($item['LongDescription'] ?? '');
+                $confirmed_in = $confirmedByProduct[$longDescription] ?? [];
 
                 $item['Confirmed'] = array_sum(array_column($confirmed_in, 'Quantity'));
                 $item['Pending'] = $item['Confirmed'] - $item['Quantity'];
-                $item['Invoices'] = $confirmed_in;
+                $item['Invoices'] = collect($confirmed_in)->map(fn ($invoice) => collect($invoice)->except('Item')->all())->values()->all();
 
                 return $item;
             });
+
+            $existingProducts = $items->pluck('LongDescription')
+                ->map(fn ($description) => trim($description ?? ''))
+                ->all();
+
+            foreach ($confirmedByProduct as $longDescription => $invoiceItems) {
+                if (in_array($longDescription, $existingProducts, true)) {
+                    continue;
+                }
+
+                $invoiceItem = $invoiceItems[0]['Item'];
+
+                $confirmed = array_sum(array_column($invoiceItems, 'Quantity'));
+
+                $invoiceReferences = collect($invoiceItems)
+                    ->map(fn ($invoice) => collect($invoice)->except('Item')->all())
+                    ->values()
+                    ->all();
+
+                $invoiceItem['Quantity'] = 0;
+                $invoiceItem['Confirmed'] = $confirmed;
+                $invoiceItem['Pending'] = $confirmed;
+                $invoiceItem['Invoices'] = $invoiceReferences;
+
+                $items->push($invoiceItem);
+                $existingProducts[] = $longDescription;
+            }
 
             $user = $users->get(data_get($detail, 'Entry.SalesmanCode'));
             $order['User'] = trim(data_get($user, 'first_name', '') . ' ' . data_get($user, 'last_name', ''));
             $order['Items'] = $items->all();
             $order['TotalQuantity'] = $items->sum('Quantity');
             $order['TotalConfirmed'] = $items->sum('Confirmed');
+
             $order['Invoices'] = $order_invoices
                 ->map(fn ($invoice) => collect($invoice)->only([
                     'ACEntryID', 'DocName', 'ExternalDocumentNumber', 'DocDate', 'TotalValue', 'Link', 'User'
                 ]))
                 ->values();
-            $order['Warehouse'] = collect($detail['Items'] ?? [])->pluck('WarehouseCode')->filter()->unique()
-                ->map(fn ($code) => $code . ' - ' . ($warehouses->get($code)['name'] ?? ''))->implode(', ');
+
+            $order['Warehouse'] = collect($detail['Items'] ?? [])
+                ->pluck('WarehouseCode')
+                ->filter()
+                ->unique()
+                ->map(fn ($code) => $code . ' - ' . ($warehouses->get($code)['name'] ?? ''))
+                ->implode(', ');
+
             $order['Link'] = "https://siigonube.siigo.com/#/asp/" . base64_encode("Default.aspx?TabID=1671&ERPDocumentID={$order['ACEntryID']}") . "?TabID=1671";
 
             return $order;
