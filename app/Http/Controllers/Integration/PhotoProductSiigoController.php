@@ -394,17 +394,16 @@ class PhotoProductSiigoController extends Controller
         ]);
     }
 
-    /**
-     * Convierte una imagen válida a WebP y devuelve sus bytes.
-     * Conserva la transparencia cuando el formato de origen la soporta.
-     */
     private function convertir_webp(string $contents): string
     {
         $manager = new ImageManager(new Driver());
 
-         return $manager
-            ->decodeBinary($contents)
-            ->encodeUsingFormat(Format::WEBP, quality: 80)
+        $image = $manager->decodeBinary($contents);
+
+        // Redimensionar proporcionalmente, sin ampliar imágenes pequeñas.
+        $image->scaleDown(width: 1000, height: 1000);
+
+        return $image->encodeUsingFormat(Format::WEBP, quality: 80)
             ->toString();
     }
 

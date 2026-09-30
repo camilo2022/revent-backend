@@ -245,7 +245,7 @@ class InventoryFilterSiigoController extends Controller
         $productos = [];
 
         foreach ($agrupado as $referencia => $producto) {
-            $imagenes = $this->images($this->clean_text($referencia));
+            $imagenes = $this->images($this->sanitize_referencia($referencia));
             $producto['imagen'] = $imagenes->first()['url'] ?? null;
 
             $producto['colores'] = collect($producto['colores'])
@@ -454,6 +454,11 @@ class InventoryFilterSiigoController extends Controller
         $texto = preg_replace('/[^A-Za-z0-9 ]/', '', $texto);
 
         return trim($texto);
+    }
+
+    private function sanitize_referencia(string $referencia): string
+    {
+        return strtoupper(preg_replace('/[^A-Za-z0-9\-_]/', '-', trim($referencia)));
     }
 
     private function normalizar_color(string $color): string
