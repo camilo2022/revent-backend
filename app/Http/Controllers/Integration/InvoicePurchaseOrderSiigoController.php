@@ -9,6 +9,7 @@ use App\Services\SiigoPurchaseOrderCacheService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use App\Mail\InvoicePurchaseOrderConfirmedSiigo;
+use App\Services\SiigoProductsCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -256,6 +257,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $token = $siigo->auth();
         $users = $this->users($token);
         $warehouses = $this->warehouses($token);
+        $productsByCode = app(SiigoProductsCache::class)->keyedByProductId();
 
         // Cache: histórico | En vivo: solo hoy
         $fecha_inicio = Carbon::now()->subMonths(5)->startOfDay();
@@ -293,7 +295,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
         $providers = collect(Cache::many($orders->pluck('MsThirdPartyID')->filter()->unique()->values()->all()));
 
-        $purchase_orders = $orders->map(function ($order) use ($order_details, $providers, $purchase_invoices, $users, $warehouses) {
+        $purchase_orders = $orders->map(function ($order) use ($order_details, $providers, $purchase_invoices, $users, $warehouses, $productsByCode) {
             $detail = $order_details->get($order['ACEntryID']);
             $provider = $providers->get($order['MsThirdPartyID']);
 
@@ -330,14 +332,16 @@ class InvoicePurchaseOrderSiigoController extends Controller
                 }
             }
 
-            $items = collect($this->parse_items($detail, $warehouses))->map(function ($item) use ($confirmedByProduct) {
+            $items = collect($this->parse_items($detail, $warehouses))->map(function ($item) use ($confirmedByProduct, $productsByCode) {
                 $longDescription = trim($item['LongDescription'] ?? '');
                 $confirmed_in = $confirmedByProduct[$longDescription] ?? [];
 
                 $item['Confirmed'] = array_sum(array_column($confirmed_in, 'Quantity'));
                 $item['Pending'] = $item['Confirmed'] - $item['Quantity'];
                 $item['Invoices'] = collect($confirmed_in)->map(fn ($invoice) => collect($invoice)->except('Item')->all())->values()->all();
-
+                $producto = $productsByCode->get($item['ProductCode'] ?? null);
+                $item['Model'] = $producto['model'] ?? '';
+                
                 return $item;
             });
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Integration;
 use App\Http\Controllers\Controller;
 use App\Services\SiigoInventoryService;
 use App\Mail\InventroyFilterAccessLink;
+use App\Services\SiigoProductsCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -42,7 +43,7 @@ class InventoryFilterSiigoController extends Controller
         }
 
         try {
-            $url = URL::temporarySignedRoute('siigo.invoice_purchase_order', now()->addHours(24));
+            $url = URL::temporarySignedRoute('siigo.inventory_filter', now()->addHours(24));
 
             Mail::to($email)->send(new InventroyFilterAccessLink($url));
         } catch (\Throwable $e) {
@@ -143,7 +144,10 @@ class InventoryFilterSiigoController extends Controller
 
     private function map_products(array $filas): array
     {
+        $productsByCode = app(SiigoProductsCache::class)->keyedByProductId();
+
         $agrupado = [];
+
         foreach ($filas as $fila) {
             $description = $fila['Description'] ?? '';
             $partes = explode('-', $description);
@@ -154,8 +158,7 @@ class InventoryFilterSiigoController extends Controller
 
             $referencia = $partes[0];
             $color      = $partes[1];
-            $categoria  = $partes[count($partes)-2];
-            $talla      = $partes[count($partes)-1];
+            $talla      = $partes[count($partes) - 1];
 
             $cantidad = (int) ($fila['QuantityBalance'] ?? 0);
 
@@ -164,10 +167,18 @@ class InventoryFilterSiigoController extends Controller
                     'id'         => $referencia,
                     'referencia' => $referencia,
                     'nombre'     => ucfirst(strtolower($referencia)),
-                    'categoria'  => $this->name_category($categoria),
+                    'categoria'  => '',
                     'genero'     => '',
                     'colores'    => [],
                 ];
+            }
+
+            if ($agrupado[$referencia]['categoria'] === '') {
+                $producto = $productsByCode->get($fila['productcode'] ?? null);
+
+                if ($producto) {
+                    $agrupado[$referencia]['categoria'] = $producto['model'] ?? '';
+                }
             }
 
             if (!isset($agrupado[$referencia]['colores'][$color])) {
@@ -180,9 +191,6 @@ class InventoryFilterSiigoController extends Controller
                     'nombre'         => ucfirst(strtolower($colorLimpio)),
                     'codigo'         => $colorInfo['codigo'],
                     'hex'            => $colorInfo['hex'],
-                    // Familia/macrocategoría de color (p. ej. "NUDE / ARENA"),
-                    // usada por el frontend para agrupar colores parecidos
-                    // y para buscar alternativas cuando no hay stock exacto.
                     'macrocategoria' => $colorInfo['macrocategoria'] ?? 'OTROS',
                     'tallas'         => [],
                 ];
@@ -322,35 +330,6 @@ class InventoryFilterSiigoController extends Controller
         }
 
         return array_values($grupos);
-    }
-
-    private function name_category(string $categoria): string
-    {
-        $mapa = [
-            'PL' => 'PLANA',
-            'BA' => 'BALETA',
-            'TE' => 'TENIS',
-            'BO' => 'BOLSO',
-            'TC' => 'TACON',
-            'NI' => 'NIÑA',
-            'PT' => 'PLATAFORMA',
-            'MO' => 'MOCASIN',
-            'MC' => 'MOCASIN CHAROL',
-            'ST' => 'STILETTO',
-            'KH' => 'KITTEN HILLS',
-            'CH' => 'CHUNKY',
-            'CA' => 'CANOA',
-            'CF' => 'CONFORT',
-            'BB' => 'BABUCHA',
-            'BT' => 'BOTA',
-            'BN' => 'BOTIN',
-            'ES' => 'ESPADRILA',
-            'SE' => 'SENA',
-        ];
-
-        $categoria = strtoupper(trim($categoria));
-
-        return $mapa[$categoria] ?? $categoria;
     }
 
     private function images(string $referencia)
@@ -493,8 +472,8 @@ class InventoryFilterSiigoController extends Controller
 
         } while ($page <= $totalPages);
 
-        $sellers = collect($sellers)->pluck('email')->all();
+        $sellers = collect($sellers)->pluck('email')->toArray();
 
-        return $sellers;
+        return [...$sellers, 'tecnologia@revent.com.co'];
     }
 }

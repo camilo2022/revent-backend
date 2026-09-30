@@ -691,6 +691,7 @@
                 if (idx === 0) {
                     cells += `
                         <td rowspan="${itemSpan}"><span class="prefix-tag">${esc(item.Reference || '-')}</span></td>
+                        <td rowspan="${itemSpan}">${esc(item.Model || '-')}</td>
                         <td rowspan="${itemSpan}">${esc(item.Color || '-')}</td>
                         <td rowspan="${itemSpan}">${esc(item.Category || '-')}</td>
                         <td rowspan="${itemSpan}">${esc(item.Size || '-')}</td>
@@ -728,8 +729,17 @@
                         <table class="docs-table items-table">
                             <thead>
                                 <tr>
-                                    <th>Referencia</th><th>Color</th><th>Categoría</th><th>Talla</th><th>Bodega</th>
-                                    <th>Valor unit.</th><th>Valor total</th><th>Solicitada</th><th>Recibida</th><th>Pendiente</th>
+                                    <th>Referencia</th>
+                                    <th>Modelo</th>
+                                    <th>Color</th>
+                                    <th>Categoría</th>
+                                    <th>Talla</th>
+                                    <th>Bodega</th>
+                                    <th>Valor unit.</th>
+                                    <th>Valor total</th>
+                                    <th>Solicitada</th>
+                                    <th>Recibida</th>
+                                    <th>Pendiente</th>
                                     <th>Factura</th><th>Cant. en factura</th>
                                 </tr>
                             </thead>
