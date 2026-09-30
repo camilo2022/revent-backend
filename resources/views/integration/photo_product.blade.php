@@ -384,6 +384,26 @@
         }
 
         .section-label:first-child { margin-top: 0; }
+
+        .mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; padding: 4px; background: #f3f4f6; border-radius: 10px; }
+        .mode-tab { flex: 1; padding: 0.65rem 0.5rem; border: none; border-radius: 7px; background: transparent; color: #6b7280; font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .mode-tab.active { background: #fff; color: #15803d; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .bulk-note { margin: 0.75rem 0; padding: 0.75rem; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff; color: #1d4ed8; font-size: 0.78rem; line-height: 1.5; }
+        .zip-dropzone { position: relative; border: 2px dashed #cbd5e1; border-radius: 14px; padding: 2.25rem 1.5rem; text-align: center; cursor: pointer; background: #f9fafb; transition: all 0.25s ease; }
+        .zip-dropzone:hover, .zip-dropzone.dragover { border-color: #16a34a; background: #f0fdf4; }
+        .zip-dropzone.has-file { border-color: #16a34a; border-style: solid; background: #f0fdf4; }
+        .zip-input { display: none; }
+        .zip-summary { display: none; margin-top: 1rem; padding: 0.85rem; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; font-size: 0.82rem; color: #374151; }
+        .zip-summary.show { display: block; }
+        .zip-summary ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+        .zip-summary li { margin: 0.25rem 0; overflow-wrap: anywhere; }
+        .zip-action-btn { width: 100%; margin-top: 1rem; padding: 0.75rem; border: none; border-radius: 10px; background: #d1d5db; color: #fff; font-size: 0.9rem; font-weight: 600; cursor: not-allowed; }
+        .zip-action-btn:enabled { background: #16a34a; cursor: pointer; }
+        .zip-action-btn:enabled:hover { background: #15803d; }
+        .zip-status { display: none; margin-top: 0.75rem; padding: 0.65rem 0.75rem; border-radius: 8px; font-size: 0.8rem; line-height: 1.5; }
+        .zip-status.show { display: block; }
+        .zip-status.error { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; }
+        .zip-status.success { color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
     </style>
 </head>
 
@@ -396,6 +416,13 @@
             <div class="excel-upload-subtitle">
                 Busca una referencia para ver, subir o eliminar sus fotos.
             </div>
+
+            <div class="mode-tabs" role="tablist" aria-label="Modo de gestión de fotos">
+                <button type="button" class="mode-tab active" id="individualTab" role="tab" aria-selected="true">Por referencia</button>
+                <button type="button" class="mode-tab" id="bulkTab" role="tab" aria-selected="false">Carga masiva ZIP</button>
+            </div>
+
+            <div id="individualMode">
 
             <div class="excel-field-group">
                 <label for="tokenInput" class="excel-field-label">
@@ -463,6 +490,54 @@
                     <span class="excel-submit-btn-text">Subir fotos</span>
                 </button>
             </div>
+            </div>
+
+            <div id="bulkMode" style="display: none;">
+                <div class="excel-upload-subtitle">Carga fotografías de muchas referencias usando un archivo ZIP con una carpeta por referencia.</div>
+                <div class="bulk-note"><strong>Carga masiva:</strong> primero se valida la estructura del ZIP en el navegador. Después se enviará el ZIP y tu token al servidor, que validará tu usuario antes de guardar las imágenes.</div>
+
+                <div class="excel-field-group">
+                    <label for="zipModeSelect" class="excel-field-label">Tipo de ZIP <span class="required-mark">*</span></label>
+                    <select id="zipModeSelect" class="excel-field-input">
+                        <option value="folders">ZIP con carpetas por referencia</option>
+                        <option value="filenames">ZIP con imágenes nombradas por referencia</option>
+                    </select>
+                    <div class="excel-field-hint" id="zipModeHint">Cada carpeta debe llamarse como la referencia y contener las imágenes de ese producto.</div>
+                </div>
+
+                <div class="excel-field-group">
+                    <label for="bulkTokenInput" class="excel-field-label">
+                        Token <span class="required-mark">*</span>
+                    </label>
+                    <div class="search-row">
+                        <input type="text" id="bulkTokenInput" class="excel-field-input" autocomplete="off" placeholder="Ingresa tu token de Siigo">
+                    </div>
+                    <div class="excel-field-hint">Necesario para validar que tu usuario tenga permisos para realizar la carga masiva.</div>
+                </div>
+
+                <div class="excel-field-group">
+                    <label for="zipInput" class="excel-field-label">Archivo comprimido <span class="required-mark">*</span></label>
+                    <div class="zip-dropzone" id="zipDropzone">
+                        <div class="excel-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="16" rx="2" />
+                                <path d="M7 4v4M11 4v4M15 4v4M7 12h10M7 16h6" />
+                            </svg>
+                        </div>
+                        <div class="excel-dropzone-text">Arrastra tu archivo ZIP aquí o <span>selecciónalo</span></div>
+                        <div class="excel-dropzone-hint">Solo se acepta ZIP con carpetas de referencia; cada carpeta debe contener solo imágenes JPG, JPEG, PNG o WEBP.</div>
+                        <input type="file" id="zipInput" class="zip-input" accept=".zip,application/zip">
+                    </div>
+                    <div class="excel-field-hint">Estructura requerida: CUÑIS/frontal.jpg, CUÑIS/lateral.png, SANDALIA45/foto1.webp. Las carpetas deben estar en MAYÚSCULAS; se permite Ñ. Se aceptan carpetas vacías. Sin subcarpetas ni archivos en la raíz.</div>
+                </div>
+
+                <div class="zip-summary" id="zipSummary"></div>
+                <div class="zip-status" id="zipStatus"></div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                    <button type="button" class="zip-action-btn" id="analyzeZipBtn" disabled>Analizar archivo ZIP</button>
+                    <button type="button" class="zip-action-btn" id="uploadZipBtn" disabled>Importar ZIP al servidor</button>
+                </div>
+            </div>
         </div>
 
         <a href="{{ route('home') }}" class="back-link">
@@ -474,11 +549,15 @@
 </body>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
     (function () {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
         const tokenInput = document.getElementById('tokenInput');
+        const bulkTokenInput = document.getElementById('bulkTokenInput');
+        const zipModeSelect = document.getElementById('zipModeSelect');
+        const zipModeHint = document.getElementById('zipModeHint');
         const referenciaInput = document.getElementById('referenciaInput');
         const searchBtn = document.getElementById('searchBtn');
         const searchError = document.getElementById('searchError');
@@ -501,6 +580,344 @@
 
         let currentReferencia = null;
         let selectedFiles = [];
+
+        // --- Carga masiva ZIP: solo análisis local, sin enviar archivos al servidor ---
+        const individualTab = document.getElementById('individualTab');
+        const bulkTab = document.getElementById('bulkTab');
+        const individualMode = document.getElementById('individualMode');
+        const bulkMode = document.getElementById('bulkMode');
+        const zipDropzone = document.getElementById('zipDropzone');
+        const zipInput = document.getElementById('zipInput');
+        const zipSummary = document.getElementById('zipSummary');
+        const zipStatus = document.getElementById('zipStatus');
+        const analyzeZipBtn = document.getElementById('analyzeZipBtn');
+        const uploadZipBtn = document.getElementById('uploadZipBtn');
+        const allowedZipImageExt = ['jpg', 'jpeg', 'png', 'webp'];
+        const maxZipSizeMB = 512;
+        let selectedZip = null;
+        let zipAnalysisValid = false;
+        const bulkZipImportRoute = "{{ route('siigo.product_photo_bulk_upload') }}";
+
+        tokenInput.addEventListener('input', () => {
+            bulkTokenInput.value = tokenInput.value;
+        });
+        bulkTokenInput.addEventListener('input', () => {
+            tokenInput.value = bulkTokenInput.value;
+        });
+
+        individualTab.addEventListener('click', () => setBulkMode(false));
+        bulkTab.addEventListener('click', () => setBulkMode(true));
+
+        function setBulkMode(enabled) {
+            individualMode.style.display = enabled ? 'none' : 'block';
+            bulkMode.style.display = enabled ? 'block' : 'none';
+            individualTab.classList.toggle('active', !enabled);
+            bulkTab.classList.toggle('active', enabled);
+            individualTab.setAttribute('aria-selected', String(!enabled));
+            bulkTab.setAttribute('aria-selected', String(enabled));
+        }
+
+        zipDropzone.addEventListener('click', () => zipInput.click());
+        ['dragover', 'dragenter'].forEach(evt => zipDropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            zipDropzone.classList.add('dragover');
+        }));
+        ['dragleave', 'dragend'].forEach(evt => zipDropzone.addEventListener(evt, () => zipDropzone.classList.remove('dragover')));
+        zipDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zipDropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) setZipFile(e.dataTransfer.files[0]);
+        });
+        zipInput.addEventListener('change', () => {
+            if (zipInput.files.length) setZipFile(zipInput.files[0]);
+            zipInput.value = '';
+        });
+        zipModeSelect.addEventListener('change', () => {
+            zipAnalysisValid = false;
+            uploadZipBtn.disabled = true;
+            zipSummary.innerHTML = '';
+            zipSummary.className = 'zip-summary';
+            zipStatus.textContent = '';
+            zipStatus.className = 'zip-status';
+            zipModeHint.textContent = zipModeSelect.value === 'folders'
+                ? 'Cada carpeta debe llamarse como la referencia y contener las imágenes de ese producto. Se aceptan carpetas vacías.'
+                : 'Todas las imágenes deben estar directamente en la raíz del ZIP y el nombre de cada archivo, sin extensión, debe ser la referencia. Ejemplo: CUÑIS.jpg.';
+        });
+        analyzeZipBtn.addEventListener('click', analyzeZipLocally);
+        uploadZipBtn.addEventListener('click', uploadZipToServer);
+
+        function setZipFile(file) {
+            zipStatus.className = 'zip-status';
+            zipStatus.textContent = '';
+            zipSummary.className = 'zip-summary';
+            zipSummary.innerHTML = '';
+            analyzeZipBtn.disabled = true;
+            uploadZipBtn.disabled = true;
+            zipAnalysisValid = false;
+
+            if (!file.name.toLowerCase().endsWith('.zip')) {
+                selectedZip = null;
+                showZipStatus('Formato no válido. Selecciona únicamente un archivo ZIP (.zip).', 'error');
+                return;
+            }
+            if (file.size > maxZipSizeMB * 1024 * 1024) {
+                selectedZip = null;
+                showZipStatus(`El ZIP supera el límite de ${maxZipSizeMB} MB.`, 'error');
+                return;
+            }
+
+            selectedZip = file;
+            zipDropzone.classList.add('has-file');
+            zipDropzone.querySelector('.excel-dropzone-text').innerHTML = `<strong>${escapeHtml(file.name)}</strong>`;
+            zipDropzone.querySelector('.excel-dropzone-hint').textContent = `Tamaño: ${formatSize(file.size)}. Aún no se ha enviado al servidor.`;
+            analyzeZipBtn.disabled = false;
+        }
+
+        async function analyzeZipLocally() {
+            if (!selectedZip) return;
+            if (typeof JSZip === 'undefined') {
+                showZipStatus('No se pudo cargar el analizador ZIP. Comprueba la conexión y vuelve a intentarlo.', 'error');
+                return;
+            }
+
+            analyzeZipBtn.disabled = true;
+            uploadZipBtn.disabled = true;
+            zipAnalysisValid = false;
+            analyzeZipBtn.textContent = 'Analizando localmente...';
+            zipStatus.className = 'zip-status';
+            zipSummary.className = 'zip-summary';
+            zipSummary.innerHTML = '';
+
+            try {
+                const archive = await JSZip.loadAsync(selectedZip, { checkCRC32: false });
+                const entries = Object.values(archive.files);
+                const files = entries.filter(entry => !entry.dir);
+                const folders = entries.filter(entry => entry.dir);
+                const mode = zipModeSelect.value;
+                const groups = new Map();
+                const errors = [];
+                let imageCount = 0;
+
+                if (mode === 'folders') {
+                    files.forEach(entry => {
+                        const parts = entry.name.split('/').filter(Boolean);
+                        const filename = parts[parts.length - 1] || '';
+                        const ext = filename.includes('.') ? filename.split('.').pop().toLowerCase() : '';
+                        if (parts.length === 1) {
+                            errors.push(`Archivo en la raíz del ZIP: ${entry.name}`);
+                            return;
+                        }
+                        const reference = parts[0];
+                        if (!/^[A-ZÑ0-9_-]+$/.test(reference)) {
+                            errors.push(`Nombre de carpeta inválido: "${reference}". Usa solo MAYÚSCULAS (se permite Ñ), números, guion o guion bajo.`);
+                            return;
+                        }
+                        if (parts.length !== 2) {
+                            errors.push(`No se permiten subcarpetas: ${entry.name}`);
+                            return;
+                        }
+                        if (!allowedZipImageExt.includes(ext)) {
+                            errors.push(`Archivo no permitido: ${entry.name}. Solo se aceptan JPG, JPEG, PNG y WEBP.`);
+                            return;
+                        }
+                        if (!groups.has(reference)) groups.set(reference, []);
+                        groups.get(reference).push(entry.name);
+                        imageCount++;
+                    });
+
+                    folders.forEach(entry => {
+                        const parts = entry.name.split('/').filter(Boolean);
+                        if (parts.length > 1) errors.push(`No se permiten subcarpetas: ${entry.name}`);
+                        else if (parts.length === 1 && !/^[A-ZÑ0-9_-]+$/.test(parts[0])) {
+                            errors.push(`Nombre de carpeta inválido: "${parts[0]}". Usa solo MAYÚSCULAS (se permite Ñ), números, guion o guion bajo.`);
+                        }
+                    });
+                } else {
+                    if (folders.length) {
+                        folders.forEach(entry => errors.push(`El ZIP de imágenes por nombre no debe contener carpetas: ${entry.name}`));
+                    }
+                    files.forEach(entry => {
+                        const parts = entry.name.split('/').filter(Boolean);
+                        if (parts.length !== 1) {
+                            errors.push(`En el modo por nombre, todas las imágenes deben estar en la raíz: ${entry.name}`);
+                            return;
+                        }
+                        const filename = parts[0];
+                        const ext = filename.includes('.') ? filename.split('.').pop().toLowerCase() : '';
+                        const reference = filename.slice(0, filename.lastIndexOf('.'));
+                        if (!allowedZipImageExt.includes(ext)) {
+                            errors.push(`Archivo no permitido: ${filename}. Solo se aceptan JPG, JPEG, PNG y WEBP.`);
+                            return;
+                        }
+                        if (!/^[A-ZÑ0-9_-]+$/.test(reference)) {
+                            errors.push(`Nombre de imagen inválido: "${filename}". El nombre sin extensión debe ser la referencia en MAYÚSCULAS (se permite Ñ), números, guion o guion bajo.`);
+                            return;
+                        }
+                        if (!groups.has(reference)) groups.set(reference, []);
+                        groups.get(reference).push(filename);
+                        imageCount++;
+                    });
+                }
+
+                const groupRows = Array.from(groups.entries()).map(([reference, groupFiles]) =>
+                    `<li><strong>${escapeHtml(reference)}</strong>: ${groupFiles.length} imagen(es)</li>`
+                ).join('');
+                const errorRows = errors.length
+                    ? `<strong style="color:#dc2626;">Problemas encontrados (${errors.length})</strong><ul>${errors.map(error => `<li>${escapeHtml(error)}</li>`).join('')}</ul>`
+                    : '';
+                const formatDescription = mode === 'folders'
+                    ? 'Estructura requerida: REFERENCIA/imagen.jpg. Las carpetas deben estar en MAYÚSCULAS (se permite Ñ). Se aceptan carpetas vacías. No se permiten subcarpetas ni archivos en la raíz.'
+                    : 'Estructura requerida: REFERENCIA.jpg. Todas las imágenes deben estar en la raíz del ZIP y el nombre sin extensión debe ser la referencia en MAYÚSCULAS (se permite Ñ).';
+                zipSummary.innerHTML = `<strong>Resultado del análisis local</strong><ul><li>Archivos dentro del ZIP: ${files.length}</li><li>Imágenes válidas: ${imageCount}</li><li>Referencias detectadas: ${groups.size}</li><li>Problemas encontrados: ${errors.length}</li></ul>${groupRows ? `<strong>Referencias detectadas</strong><ul>${groupRows}</ul>` : ''}${errorRows}<p class="excel-field-hint">${formatDescription}</p>`;
+                zipSummary.classList.add('show');
+                zipAnalysisValid = errors.length === 0 && imageCount > 0;
+                uploadZipBtn.disabled = !zipAnalysisValid;
+                showZipStatus(
+                    errors.length ? 'Análisis terminado: corrige los problemas indicados antes de importar.'
+                        : imageCount === 0 ? 'El ZIP no contiene imágenes para importar.'
+                        : 'ZIP válido. Puedes importar las imágenes al servidor.',
+                    errors.length || imageCount === 0 ? 'error' : 'success'
+                );
+            } catch (error) {
+                showZipStatus('No se pudo leer el ZIP. Verifica que no esté dañado o protegido con contraseña.', 'error');
+            } finally {
+                analyzeZipBtn.disabled = !selectedZip;
+                analyzeZipBtn.textContent = 'Analizar archivo ZIP';
+            }
+        }
+
+        async function uploadZipToServer() {
+            const token = bulkTokenInput.value.trim();
+
+            if (!token) {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Token requerido',
+                    text: 'Ingresa tu token de Siigo antes de importar el ZIP.',
+                    confirmButtonText: 'Entendido'
+                });
+                bulkTokenInput.focus();
+                return;
+            }
+
+            if (!selectedZip || !zipAnalysisValid) {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'ZIP no validado',
+                    text: 'Selecciona y analiza un ZIP válido antes de importarlo.',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('token', token);
+            formData.append('zip_mode', zipModeSelect.value);
+            formData.append('zip', selectedZip);
+
+            uploadZipBtn.disabled = true;
+            analyzeZipBtn.disabled = true;
+            uploadZipBtn.textContent = 'Importando imágenes...';
+
+            Swal.fire({
+                title: 'Cargando fotografías',
+                text: 'Por favor espera. Se están guardando las imágenes y este proceso puede demorar varios minutos. No cierres esta ventana...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const response = await fetch(bulkZipImportRoute, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (parseError) {
+                    data = {};
+                }
+
+                if (!response.ok || !data.success) {
+                    Swal.close();
+                    const message = data.error || data.message || 'No se pudo importar el ZIP.';
+                    const details = Array.isArray(data.errors) && data.errors.length
+                        ? '\n\n' + data.errors.join('\n')
+                        : '';
+
+                    showZipStatus(message + details, 'error');
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'No se pudo completar la carga',
+                        text: message,
+                        footer: details ? `<div style="text-align:left;white-space:pre-line">${escapeHtml(details.trim())}</div>` : undefined,
+                        confirmButtonText: 'Entendido'
+                    });
+                    return;
+                }
+
+                Swal.close();
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: '¡Carga completada!',
+                    html: `
+                        <p>Las fotografías se guardaron correctamente.</p>
+                        <div style="text-align:left;margin-top:12px">
+                            <p><strong>Referencias procesadas:</strong> ${Number(data.references_processed || 0)}</p>
+                            <p><strong>Imágenes guardadas:</strong> ${Number(data.images_uploaded || 0)}</p>
+                            <p><strong>Carpetas vacías:</strong> ${Number(data.empty_folders || 0)}</p>
+                        </div>
+                    `,
+                    confirmButtonText: 'Aceptar',
+                    allowOutsideClick: false
+                });
+
+                // Limpiar los campos solo después de confirmar el éxito.
+                selectedZip = null;
+                zipAnalysisValid = false;
+                zipInput.value = '';
+                bulkTokenInput.value = '';
+                tokenInput.value = '';
+                zipSummary.innerHTML = '';
+                zipSummary.className = 'zip-summary';
+                zipStatus.textContent = '';
+                zipStatus.className = 'zip-status';
+                zipDropzone.classList.remove('has-file', 'dragover');
+                zipDropzone.querySelector('.excel-dropzone-text').innerHTML = 'Arrastra tu archivo ZIP aquí o <span>selecciónalo</span>';
+                zipDropzone.querySelector('.excel-dropzone-hint').textContent = 'Solo se acepta ZIP con carpetas de referencia; cada carpeta debe contener solo imágenes JPG, JPEG, PNG o WEBP.';
+                analyzeZipBtn.disabled = true;
+                uploadZipBtn.disabled = true;
+            } catch (error) {
+                Swal.close();
+                showZipStatus('Ocurrió un error de conexión durante la importación. Verifica el resultado antes de volver a enviar el ZIP para evitar duplicar imágenes.', 'error');
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'No se pudo confirmar el resultado de la importación. Verifica el servidor antes de volver a enviar el ZIP para evitar duplicar imágenes.',
+                    confirmButtonText: 'Entendido'
+                });
+            } finally {
+                uploadZipBtn.disabled = !zipAnalysisValid;
+                analyzeZipBtn.disabled = !selectedZip;
+                uploadZipBtn.textContent = 'Importar ZIP al servidor';
+            }
+        }
+
+        function showZipStatus(message, type) {
+            zipStatus.textContent = message;
+            zipStatus.className = `zip-status show ${type}`;
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+        }
 
         // --- Buscar referencia ---
         searchBtn.addEventListener('click', () => buscarReferencia());
