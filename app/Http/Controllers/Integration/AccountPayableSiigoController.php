@@ -169,6 +169,8 @@ class AccountPayableSiigoController extends Controller
                     }
                 }
 
+                $document['DueExpire'] = !empty($document['DueDate']) ? Carbon::parse($document['DueDate'])->addDays(30)->toDateString() : null;
+
                 $document['Links'] = [];
                 if($document['ACEntryID'] ?? null) {
                     $document['Links']['PurchaseInvoice'] = "https://siigonube.siigo.com/#/purchase/1008/{$document['ACEntryID']}";

@@ -1302,7 +1302,8 @@
                                     <th style="min-width: 150px;" class="col-extra">Bodegas</th>
                                     <th class="col-extra">Cantidad</th>
                                     <th>Valor</th>
-                                    <th style="min-width: 110px;">Fecha vence</th>
+                                    <th style="min-width: 110px;">Fecha Ingreso</th>
+                                    <th style="min-width: 110px;">Fecha Vence</th>
                                     <th>Estado</th>
                                     <th style="text-align:right;">Deuda</th>
                                     <th style="text-align:right;">Saldo</th>
@@ -2481,7 +2482,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         currentDocs = docs;
 
         if (!docs.length) {
-            docsBody.innerHTML = '<tr><td colspan="13" class="empty-state">Este proveedor no tiene documentos.</td></tr>';
+            docsBody.innerHTML = '<tr><td colspan="14" class="empty-state">Este proveedor no tiene documentos.</td></tr>';
         } else {
             docsBody.innerHTML = docs.map((doc, i) => {
                 const selectable = isSelectable(doc);
@@ -2519,6 +2520,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
                         ${extraCells}
                         <td>${formatMoney(doc.TotalValue)}</td>
                         <td>${formatDate(doc.DueDate)}</td>
+                        <td>${formatDate(doc.DueExpire)}</td>
                         <td>${estadoBadge(doc)}</td>
                         <td style="text-align:right;">${formatMoney(doc.Deuda)}</td>
                         <td style="text-align:right;">${formatMoney(doc.Saldo)}</td>
@@ -2627,7 +2629,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
                     <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                     <td>${escapeHtml(doc.DueName)}</td>
                     <td>${escapeHtml(doc.DocName)}</td>
-                    <td>${formatDate(doc.DueDate)}</td>
+                    <td>${formatDate(doc.DueExpire)}</td>
                     <td style="text-align:right;">${formatMoney(saldo)}</td>
                     <td style="text-align:right;" class="${coverClass}">${formatMoney(covered)}</td>
                 </tr>
@@ -3124,7 +3126,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
                     <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                     <td>${escapeHtml(doc.DueName)}</td>
                     <td>${escapeHtml(doc.DocName) || '-'}</td>
-                    <td>${formatDate(doc.DueDate)}</td>
+                    <td>${formatDate(doc.DueExpire)}</td>
                     <td style="text-align:right;">${formatMoney(saldo)}</td>
                     <td style="text-align:right;" class="${coverClass}">${formatMoney(used)}</td>
                 </tr>
@@ -3139,7 +3141,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
                     <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                     <td>${escapeHtml(doc.DueName)}</td>
                     <td>${escapeHtml(doc.DocName) || '-'}</td>
-                    <td>${formatDate(doc.DueDate)}</td>
+                    <td>${formatDate(doc.DueExpire)}</td>
                     <td style="text-align:right;">${formatMoney(saldo)}</td>
                     <td style="text-align:right;" class="${coverClass}">${formatMoney(covered)}</td>
                 </tr>
