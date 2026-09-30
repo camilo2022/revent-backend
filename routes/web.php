@@ -67,6 +67,7 @@ Route::get('/siigo/inventory_filter/access', [InventoryFilterSiigoController::cl
 Route::post('/siigo/inventory_filter/access', [InventoryFilterSiigoController::class, 'inventory_filter_send_access_link'])->middleware('throttle:5,1')->name('siigo.inventory_filter_send_access_link');
 Route::get('/siigo/inventory_filter', [InventoryFilterSiigoController::class, 'inventory_filter'])/*->middleware('signed')*/->name('siigo.inventory_filter');
 Route::post('/siigo/inventory_filter_search', [InventoryFilterSiigoController::class, 'inventory_filter_search'])->name('siigo.inventory_filter_search');
+Route::get('/siigo/inventory_filter_images', [InventoryFilterSiigoController::class, 'inventory_filter_images'])->name('siigo.inventory_filter_images');
 
 Route::get('/siigo/invoice_purchase_order/reception', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_reception'])->name('siigo.invoice_purchase_order_reception');
 Route::get('/siigo/invoice_purchase_order/search', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_search'])->name('siigo.invoice_purchase_order_search');

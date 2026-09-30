@@ -871,6 +871,7 @@
         window.PRODUCTOS_INICIALES = @json($productos ?? []);
         window.COLOR_GROUPS = @json($color_groups ?? []);
         window.INVENTORY_FILTER_URL = "{{ route('siigo.inventory_filter_search') }}";
+        window.INVENTORY_FILTER_IMAGES_URL = "{{ route('siigo.inventory_filter_images') }}";
     </script>
 
 
@@ -1322,6 +1323,9 @@
                                                     class="prod-thumb"
                                                     :src="imagenActual(p)"
                                                     :alt="p.nombre || p.referencia"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    fetchpriority="low"
                                                     @click="abrirLightbox(
                                                         p,
                                                         indiceColorActual(p)
@@ -1475,6 +1479,9 @@
 
                                                     <img
                                                         :src="foto"
+                                                        loading="lazy"
+                                                        decoding="async"
+                                                        fetchpriority="low"
                                                         :alt="
                                                             (p.nombre || '') +
                                                             ' foto ' +
@@ -1779,6 +1786,9 @@
                                                     class="prod-thumb"
                                                     :src="imagenActual(p)"
                                                     :alt="p.nombre || p.referencia"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    fetchpriority="low"
                                                     @click="abrirLightbox(
                                                         p,
                                                         indiceColorActual(p)
@@ -1932,6 +1942,9 @@
 
                                                     <img
                                                         :src="foto"
+                                                        loading="lazy"
+                                                        decoding="async"
+                                                        fetchpriority="low"
                                                         :alt="
                                                             (p.nombre || '') +
                                                             ' foto ' +
@@ -2168,9 +2181,9 @@
                                 x-text="
                                     lightbox.colorNombre +
                                     ' — foto ' +
-                                    (lightbox.index + 1) +
+                                    ((lightbox.pagina - 1) * lightbox.porPagina + lightbox.index + 1) +
                                     ' de ' +
-                                    lightbox.fotos.length
+                                    lightbox.total
                                 ">
                             </div>
 
@@ -2195,19 +2208,23 @@
                             type="button"
                             class="lightbox-nav prev"
                             @click="moverLightbox(-1)"
-                            x-show="lightbox.fotos.length > 1">
+                            x-show="lightbox.total > 1">
 
                             ‹
 
                         </button>
 
 
-                        <template x-if="lightbox.fotos.length > 0">
+                        <template x-if="lightbox.cargando">
+                            <div style="color:#fff;padding:2rem;font-size:.9rem;">Cargando fotografías...</div>
+                        </template>
 
-                            <img
-                                :src="lightbox.fotos[lightbox.index]"
-                                :alt="lightbox.nombre">
+                        <template x-if="lightbox.error">
+                            <div style="color:#fecaca;padding:2rem;font-size:.9rem;" x-text="lightbox.error"></div>
+                        </template>
 
+                        <template x-if="!lightbox.cargando && lightbox.fotos.length > 0">
+                            <img :src="lightbox.fotos[lightbox.index]" :alt="lightbox.nombre" decoding="async">
                         </template>
 
 
@@ -2215,7 +2232,7 @@
                             type="button"
                             class="lightbox-nav next"
                             @click="moverLightbox(1)"
-                            x-show="lightbox.fotos.length > 1">
+                            x-show="lightbox.total > 1">
 
                             ›
 
@@ -2226,7 +2243,7 @@
 
                     <div
                         class="lightbox-thumbs"
-                        x-show="lightbox.fotos.length > 1">
+                        x-show="lightbox.total > 1">
 
                         <template
                             x-for="(foto, fi) in lightbox.fotos"
@@ -2241,6 +2258,12 @@
 
                         </template>
 
+                    </div>
+
+                    <div x-show="lightbox.total > lightbox.porPagina" style="display:flex;align-items:center;justify-content:center;gap:.75rem;margin-top:.75rem;color:#fff;font-size:.78rem;">
+                        <button type="button" class="lightbox-close" :disabled="lightbox.pagina <= 1 || lightbox.cargando" @click="cargarPaginaLightbox(lightbox.pagina - 1, lightbox.porPagina - 1)" style="width:auto;padding:0 .8rem;opacity:1;">Anterior</button>
+                        <span x-text="'Página ' + lightbox.pagina + ' de ' + lightbox.ultimaPagina"></span>
+                        <button type="button" class="lightbox-close" :disabled="lightbox.pagina >= lightbox.ultimaPagina || lightbox.cargando" @click="cargarPaginaLightbox(lightbox.pagina + 1, 0)" style="width:auto;padding:0 .8rem;opacity:1;">Siguiente</button>
                     </div>
 
                 </div>
@@ -2278,6 +2301,9 @@
                 filterUrl:
                     window.INVENTORY_FILTER_URL || '',
 
+                imagesUrl:
+                    window.INVENTORY_FILTER_IMAGES_URL || '',
+
                 productos: [],
 
                 tienda: null,
@@ -2314,19 +2340,18 @@
                 ======================================================= */
 
                 lightbox: {
-
                     open: false,
-
                     fotos: [],
-
                     index: 0,
-
                     referencia: '',
-
                     nombre: '',
-
                     colorNombre: '',
-
+                    pagina: 1,
+                    porPagina: 12,
+                    total: 0,
+                    ultimaPagina: 1,
+                    cargando: false,
+                    error: null,
                 },
 
 
@@ -3979,98 +4004,54 @@
                    ABRIR LIGHTBOX
                 ======================================================= */
 
-                abrirLightbox(
-                    producto,
-                    colorIdx,
-                    fotoIdx = 0
-                ) {
-
-                    if (
-                        !producto ||
-                        !Array.isArray(producto.colores)
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    const color =
-                        producto.colores[colorIdx];
-
-
-                    if (!color) {
-
-                        return;
-
-                    }
-
-
-                    let fotos = [];
-
-
-                    if (
-                        Array.isArray(color.fotos) &&
-                        color.fotos.length > 0
-                    ) {
-
-                        fotos =
-                            color.fotos.filter(Boolean);
-
-                    }
-
-
-                    if (
-                        fotos.length === 0 &&
-                        producto.imagen
-                    ) {
-
-                        fotos = [
-                            producto.imagen
-                        ];
-
-                    }
-
-
-                    if (fotos.length === 0) {
-
-                        return;
-
-                    }
-
+                async abrirLightbox(producto, colorIdx, fotoIdx = 0) {
+                    if (!producto || !Array.isArray(producto.colores)) return;
+                    const color = producto.colores[colorIdx];
+                    if (!color) return;
 
                     this.lightbox = {
-
-                        open: true,
-
-                        fotos,
-
-                        index:
-                            Math.max(
-                                0,
-                                Math.min(
-                                    Number(fotoIdx) || 0,
-                                    fotos.length - 1
-                                )
-                            ),
-
-                        referencia:
-                            producto.referencia || '',
-
-                        nombre:
-                            producto.nombre || '',
-
-                        colorNombre:
-                            color.nombre || '',
-
+                        open: true, fotos: [], index: 0,
+                        referencia: producto.referencia || '',
+                        nombre: producto.nombre || '',
+                        colorNombre: color.nombre || '',
+                        pagina: 1, porPagina: 12, total: 0, ultimaPagina: 1,
+                        cargando: false, error: null,
                     };
-
+                    await this.cargarPaginaLightbox(1, fotoIdx);
                 },
 
+                async cargarPaginaLightbox(pagina = 1, indiceInicial = 0) {
+                    if (!this.lightbox.open || this.lightbox.cargando) return;
+                    this.lightbox.cargando = true;
+                    this.lightbox.error = null;
+                    try {
+                        const url = new URL(this.imagesUrl, window.location.origin);
+                        url.searchParams.set('referencia', this.lightbox.referencia);
+                        url.searchParams.set('color', this.lightbox.colorNombre);
+                        url.searchParams.set('page', String(pagina));
+                        url.searchParams.set('per_page', String(this.lightbox.porPagina));
 
-                /* ======================================================
-                   CERRAR LIGHTBOX
-                ======================================================= */
+                        const response = await fetch(url.toString(), {
+                            method: 'GET',
+                            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                        });
+                        if (!response.ok) throw new Error('No fue posible cargar las fotografías (HTTP ' + response.status + ').');
+
+                        const data = await response.json();
+                        this.lightbox.fotos = Array.isArray(data.images) ? data.images.map(image => image.url).filter(Boolean) : [];
+                        this.lightbox.pagina = Number(data.page) || 1;
+                        this.lightbox.total = Number(data.total) || 0;
+                        this.lightbox.ultimaPagina = Number(data.last_page) || 1;
+                        this.lightbox.index = this.lightbox.fotos.length
+                            ? Math.max(0, Math.min(Number(indiceInicial) || 0, this.lightbox.fotos.length - 1)) : 0;
+                        if (!this.lightbox.fotos.length) this.lightbox.error = 'No hay fotografías para esta referencia.';
+                    } catch (error) {
+                        this.lightbox.fotos = [];
+                        this.lightbox.error = error.message || 'Ocurrió un error al cargar las fotografías.';
+                    } finally {
+                        this.lightbox.cargando = false;
+                    }
+                },
 
                 cerrarLightbox() {
 
@@ -4083,26 +4064,20 @@
                    MOVER LIGHTBOX
                 ======================================================= */
 
-                moverLightbox(delta) {
-
-                    const total =
-                        this.lightbox.fotos.length;
-
-
-                    if (total <= 1) {
-
+                async moverLightbox(delta) {
+                    if (this.lightbox.cargando || this.lightbox.fotos.length === 0) return;
+                    const nextIndex = this.lightbox.index + delta;
+                    if (nextIndex >= 0 && nextIndex < this.lightbox.fotos.length) {
+                        this.lightbox.index = nextIndex;
                         return;
-
                     }
-
-
-                    this.lightbox.index =
-                        (
-                            this.lightbox.index +
-                            delta +
-                            total
-                        ) % total;
-
+                    if (delta > 0 && this.lightbox.pagina < this.lightbox.ultimaPagina) {
+                        await this.cargarPaginaLightbox(this.lightbox.pagina + 1, 0);
+                        return;
+                    }
+                    if (delta < 0 && this.lightbox.pagina > 1) {
+                        await this.cargarPaginaLightbox(this.lightbox.pagina - 1, this.lightbox.porPagina - 1);
+                    }
                 },
 
             };

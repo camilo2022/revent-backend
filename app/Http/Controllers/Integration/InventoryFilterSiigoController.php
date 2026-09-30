@@ -7,6 +7,7 @@ use App\Services\SiigoInventoryService;
 use App\Mail\InventroyFilterAccessLink;
 use App\Services\SiigoProductsCache;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -142,6 +143,46 @@ class InventoryFilterSiigoController extends Controller
         ]);
     }
 
+    /** Devuelve una página de fotos para el carrusel, no toda la galería. */
+    public function inventory_filter_images(Request $request)
+    {
+        $validated = $request->validate([
+            'referencia' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9Ññ_-]+$/u'],
+            'color' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:12'],
+        ]);
+
+        $referencia = trim($validated['referencia']);
+        $color = trim((string) ($validated['color'] ?? ''));
+        $page = (int) ($validated['page'] ?? 1);
+        $perPage = (int) ($validated['per_page'] ?? 12);
+        $images = $this->images($referencia);
+
+        if ($color !== '') {
+            $matching = $images->filter(fn ($image) => str_contains(
+                mb_strtolower($image['name']), mb_strtolower($color)
+            ))->values();
+            if ($matching->isNotEmpty()) {
+                $images = $matching;
+            }
+        }
+
+        $total = $images->count();
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        $page = min($page, $lastPage);
+
+        return response()->json([
+            'images' => $images->forPage($page, $perPage)->values(),
+            'page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => $lastPage,
+            'has_previous' => $page > 1,
+            'has_next' => $page < $lastPage,
+        ])->header('Cache-Control', 'private, max-age=30');
+    }
+
     private function map_products(array $filas): array
     {
         $productsByCode = app(SiigoProductsCache::class)->keyedByProductId();
@@ -204,23 +245,22 @@ class InventoryFilterSiigoController extends Controller
         $productos = [];
 
         foreach ($agrupado as $referencia => $producto) {
-            $imagenes = $this->images($referencia);
-
+            $imagenes = $this->images($this->clean_text($referencia));
             $producto['imagen'] = $imagenes->first()['url'] ?? null;
 
             $producto['colores'] = collect($producto['colores'])
                 ->map(function ($color) use ($imagenes) {
-                    $fotosColor = $imagenes
-                        ->filter(fn ($img) => str_contains(strtolower($img['name']), strtolower($color['nombre'])))
-                        ->pluck('url')
-                        ->values();
+                    $fotoColor = $imagenes->first(fn ($img) => str_contains(
+                        mb_strtolower($img['name']), mb_strtolower($color['nombre'])
+                    ));
+                    $previewUrl = ($fotoColor['url'] ?? null) ?: ($imagenes->first()['url'] ?? null);
 
-                    $color['fotos'] = $fotosColor->isNotEmpty()
-                        ? $fotosColor->toArray()
-                        : $imagenes->pluck('url')->toArray();
+                    // Solo se entrega una imagen de vista previa por color.
+                    // El carrusel consulta el resto mediante el endpoint paginado.
+                    $color['imagen'] = $previewUrl;
+                    $color['fotos'] = $previewUrl ? [$previewUrl] : [];
 
                     ksort($color['tallas'], SORT_NATURAL);
-
                     return $color;
                 })
                 ->values()
@@ -334,18 +374,22 @@ class InventoryFilterSiigoController extends Controller
 
     private function images(string $referencia)
     {
-        $path = self::BASE_PATH . "/{$referencia}";
+        $cacheKey = 'inventory_filter:images:' . hash('sha256', mb_strtoupper($referencia));
 
-        if (!Storage::disk(self::DISK)->exists($path)) {
-            return collect();
-        }
+        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($referencia) {
+            $path = self::BASE_PATH . "/{$referencia}";
+            if (!Storage::disk(self::DISK)->exists($path)) {
+                return collect();
+            }
 
-        return collect(Storage::disk(self::DISK)->files($path))
-            ->map(fn ($file) => [
-                'name' => basename($file),
-                'url'  => Storage::disk(self::DISK)->url($file),
-            ])
-            ->values();
+            return collect(Storage::disk(self::DISK)->files($path))
+                ->map(fn ($file) => [
+                    'name' => basename($file),
+                    'url' => Storage::disk(self::DISK)->url($file),
+                ])
+                ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+                ->values();
+        });
     }
 
     private function warehouses(string $token)
@@ -423,7 +467,6 @@ class InventoryFilterSiigoController extends Controller
             'Ó' => 'O',
             'Ú' => 'U',
             'Ü' => 'U',
-            'Ñ' => 'N',
         ]);
 
         $color = preg_replace('/[^A-Z0-9]/', '', $color);

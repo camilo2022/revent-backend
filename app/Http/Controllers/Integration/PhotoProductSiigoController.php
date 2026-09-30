@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Format;
+use Intervention\Image\ImageManager;
 use ZipArchive;
 use Throwable;
 
@@ -63,7 +66,7 @@ class PhotoProductSiigoController extends Controller
             'token' => 'required|string',
             'referencia' => 'required|string',
             'photos' => 'required|array|min:1',
-            'photos.*' => 'required|image|mimes:jpg,jpeg,png,webp',
+            'photos.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
         ]);
 
         $usuario = $this->validar_usuario_permitido($request->input('token'));
@@ -81,14 +84,30 @@ class PhotoProductSiigoController extends Controller
         $uploaded = [];
 
         foreach ($request->file('photos') as $photo) {
-            $filename = Str::uuid() . '.' . strtolower($photo->getClientOriginalExtension());
+            $originalContents = file_get_contents($photo->getRealPath());
 
-            Storage::disk(self::DISK)->putFileAs($path, $photo, $filename);
+            if ($originalContents === false) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'No se pudo leer una de las imágenes.',
+                ], 422);
+            }
+
+            $webpContents = $this->convertir_webp($originalContents);
+            $filename = Str::uuid() . '.webp';
+            $filePath = "{$path}/{$filename}";
+
+            if (!Storage::disk(self::DISK)->put($filePath, $webpContents)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'No se pudo guardar una de las imágenes convertidas.',
+                ], 500);
+            }
 
             $uploaded[] = [
                 'name' => $filename,
-                'url' => Storage::disk(self::DISK)->url("{$path}/{$filename}"),
-                'size' => $photo->getSize(),
+                'url' => Storage::disk(self::DISK)->url($filePath),
+                'size' => strlen($webpContents),
             ];
         }
 
@@ -303,11 +322,12 @@ class PhotoProductSiigoController extends Controller
 
                 $reference = $entry['reference'];
                 $directory = self::BASE_PATH . '/' . $reference;
-                $filename = Str::uuid() . '.' . $entry['extension'];
+                $filename = Str::uuid() . '.webp';
                 $path = $directory . '/' . $filename;
+                $webpContents = $this->convertir_webp($contents);
 
-                if (!Storage::disk(self::DISK)->put($path, $contents)) {
-                    throw new \RuntimeException('No se pudo guardar la imagen ' . $entry['name']);
+                if (!Storage::disk(self::DISK)->put($path, $webpContents)) {
+                    throw new \RuntimeException('No se pudo guardar la imagen convertida ' . $entry['name']);
                 }
 
                 $savedPaths[] = $path;
@@ -372,6 +392,20 @@ class PhotoProductSiigoController extends Controller
         return response()->json([
             'success' => true,
         ]);
+    }
+
+    /**
+     * Convierte una imagen válida a WebP y devuelve sus bytes.
+     * Conserva la transparencia cuando el formato de origen la soporta.
+     */
+    private function convertir_webp(string $contents): string
+    {
+        $manager = new ImageManager(new Driver());
+
+         return $manager
+            ->decodeBinary($contents)
+            ->encodeUsingFormat(Format::WEBP, quality: 80)
+            ->toString();
     }
 
     private function sanitize_referencia(string $referencia): string
