@@ -19,7 +19,7 @@
         }
 
         .excel-upload-wrapper {
-            max-width: 580px;
+            max-width: 90%;
             margin: 2rem auto;
             font-family: 'Segoe UI', system-ui, sans-serif;
         }
@@ -404,6 +404,29 @@
         .zip-status.show { display: block; }
         .zip-status.error { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; }
         .zip-status.success { color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
+
+        /* --- Explorador de carpetas --- */
+        .explorer-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem; margin: 0.25rem 0 1rem; font-size: 0.82rem; }
+        .crumb-btn { background: none; border: none; padding: 0.2rem 0.45rem; border-radius: 6px; color: #4f46e5; font: inherit; font-weight: 600; cursor: pointer; }
+        .crumb-btn:hover { background: #eef2ff; }
+        .crumb-btn.current { color: #1f2937; cursor: default; }
+        .crumb-btn.current:hover { background: none; }
+        .crumb-sep { color: #9ca3af; }
+
+        .explorer-toolbar { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .explorer-toolbar .excel-field-input { flex: 1; min-width: 0; }
+        .explorer-btn { padding: 0.65rem 1rem; border: 1px solid #16a34a; border-radius: 10px; background: #fff; color: #15803d; font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .explorer-btn:hover { background: #f0fdf4; }
+
+        .folder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.75rem; }
+        .folder-item { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding: 0.9rem 0.6rem; border: 1px solid #eef0f2; border-radius: 12px; background: #f9fafb; cursor: pointer; text-align: center; font: inherit; transition: border-color 0.2s ease, background 0.2s ease; }
+        .folder-item:hover { border-color: #16a34a; background: #f0fdf4; }
+        .folder-icon { width: 36px; height: 36px; stroke: #16a34a; }
+        .folder-swatch { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.15); flex-shrink: 0; }
+        .folder-name { font-size: 0.8rem; font-weight: 600; color: #1f2937; overflow-wrap: anywhere; }
+        .folder-meta { font-size: 0.7rem; color: #9ca3af; }
+
+        .explorer-dropzone { padding: 1.25rem 1rem; margin-top: 1rem; }
     </style>
 </head>
 
@@ -420,6 +443,7 @@
             <div class="mode-tabs" role="tablist" aria-label="Modo de gestión de fotos">
                 <button type="button" class="mode-tab active" id="individualTab" role="tab" aria-selected="true">Por referencia</button>
                 <button type="button" class="mode-tab" id="bulkTab" role="tab" aria-selected="false">Carga masiva ZIP</button>
+                <button type="button" class="mode-tab" id="explorerTab" role="tab" aria-selected="false">Explorador</button>
             </div>
 
             <div id="individualMode">
@@ -538,6 +562,48 @@
                     <button type="button" class="zip-action-btn" id="uploadZipBtn" disabled>Importar ZIP al servidor</button>
                 </div>
             </div>
+
+            <!-- Explorador de carpetas: products / REFERENCIA / CÓDIGO DE COLOR -->
+            <div id="explorerMode" style="display: none;">
+                <div class="excel-upload-subtitle">Explora <strong>products</strong>: cada carpeta es un producto y dentro puede tener fotos o carpetas por color.</div>
+
+                <div class="excel-field-group">
+                    <label for="explorerTokenInput" class="excel-field-label">
+                        Token <span class="required-mark">*</span>
+                    </label>
+                    <input type="text" id="explorerTokenInput" class="excel-field-input" autocomplete="off" placeholder="Ingresa tu token de Siigo">
+                    <div class="excel-field-hint">Solo es necesario para crear carpetas, subir o eliminar fotos. Navegar no lo requiere.</div>
+                </div>
+
+                <nav class="explorer-breadcrumb" id="explorerBreadcrumb" aria-label="Ruta"></nav>
+
+                <div class="explorer-toolbar">
+                    <input type="text" id="explorerFilter" class="excel-field-input" placeholder="Filtrar carpetas..." autocomplete="off">
+                    <button type="button" class="explorer-btn" id="explorerNewBtn">Nueva carpeta</button>
+                </div>
+
+                <div class="excel-error" id="explorerError"></div>
+
+                <div id="explorerFoldersSection" style="display: none;">
+                    <div class="section-label" id="explorerFoldersLabel">Carpetas</div>
+                    <div class="folder-grid" id="explorerFolders"></div>
+                </div>
+
+                <div id="explorerFilesSection" style="display: none;">
+                    <div class="section-label">Fotos</div>
+                    <div class="photo-grid" id="explorerFiles"></div>
+                </div>
+
+                <div class="photo-empty-hint" id="explorerEmptyHint" style="display: none;"></div>
+
+                <div id="explorerUploadSection" style="display: none;">
+                    <div class="excel-dropzone explorer-dropzone" id="explorerDropzone">
+                        <div class="excel-dropzone-text">Arrastra fotos aquí o <span>selecciónalas</span> para subirlas a esta carpeta</div>
+                        <div class="excel-dropzone-hint">.jpg, .jpeg, .png, .webp (máx. 5 MB c/u)</div>
+                        <input type="file" id="explorerPhotosInput" class="excel-input" accept=".jpg,.jpeg,.png,.webp" multiple>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <a href="{{ route('home') }}" class="back-link">
@@ -556,6 +622,7 @@
 
         const tokenInput = document.getElementById('tokenInput');
         const bulkTokenInput = document.getElementById('bulkTokenInput');
+        const explorerTokenInput = document.getElementById('explorerTokenInput');
         const zipModeSelect = document.getElementById('zipModeSelect');
         const zipModeHint = document.getElementById('zipModeHint');
         const referenciaInput = document.getElementById('referenciaInput');
@@ -581,11 +648,43 @@
         let currentReferencia = null;
         let selectedFiles = [];
 
-        // --- Carga masiva ZIP: solo análisis local, sin enviar archivos al servidor ---
+        // --- Pestañas y sincronización del token ---
         const individualTab = document.getElementById('individualTab');
         const bulkTab = document.getElementById('bulkTab');
+        const explorerTab = document.getElementById('explorerTab');
         const individualMode = document.getElementById('individualMode');
         const bulkMode = document.getElementById('bulkMode');
+        const explorerMode = document.getElementById('explorerMode');
+
+        const tokenInputs = [tokenInput, bulkTokenInput, explorerTokenInput];
+        tokenInputs.forEach((input) => {
+            input.addEventListener('input', () => {
+                tokenInputs.forEach((other) => { if (other !== input) other.value = input.value; });
+            });
+        });
+
+        individualTab.addEventListener('click', () => setMode('individual'));
+        bulkTab.addEventListener('click', () => setMode('bulk'));
+        explorerTab.addEventListener('click', () => setMode('explorer'));
+
+        function setMode(mode) {
+            const tabs = { individual: individualTab, bulk: bulkTab, explorer: explorerTab };
+            const panels = { individual: individualMode, bulk: bulkMode, explorer: explorerMode };
+
+            Object.keys(tabs).forEach((key) => {
+                const active = key === mode;
+                panels[key].style.display = active ? 'block' : 'none';
+                tabs[key].classList.toggle('active', active);
+                tabs[key].setAttribute('aria-selected', String(active));
+            });
+
+            // El explorador carga su contenido la primera vez que se abre.
+            if (mode === 'explorer' && !explorerLoaded) {
+                cargarExplorador('');
+            }
+        }
+
+        // --- Carga masiva ZIP: solo análisis local, sin enviar archivos al servidor ---
         const zipDropzone = document.getElementById('zipDropzone');
         const zipInput = document.getElementById('zipInput');
         const zipSummary = document.getElementById('zipSummary');
@@ -597,25 +696,6 @@
         let selectedZip = null;
         let zipAnalysisValid = false;
         const bulkZipImportRoute = "{{ route('siigo.product_photo_bulk_upload') }}";
-
-        tokenInput.addEventListener('input', () => {
-            bulkTokenInput.value = tokenInput.value;
-        });
-        bulkTokenInput.addEventListener('input', () => {
-            tokenInput.value = bulkTokenInput.value;
-        });
-
-        individualTab.addEventListener('click', () => setBulkMode(false));
-        bulkTab.addEventListener('click', () => setBulkMode(true));
-
-        function setBulkMode(enabled) {
-            individualMode.style.display = enabled ? 'none' : 'block';
-            bulkMode.style.display = enabled ? 'block' : 'none';
-            individualTab.classList.toggle('active', !enabled);
-            bulkTab.classList.toggle('active', enabled);
-            individualTab.setAttribute('aria-selected', String(!enabled));
-            bulkTab.setAttribute('aria-selected', String(enabled));
-        }
 
         zipDropzone.addEventListener('click', () => zipInput.click());
         ['dragover', 'dragenter'].forEach(evt => zipDropzone.addEventListener(evt, (e) => {
@@ -883,8 +963,7 @@
                 selectedZip = null;
                 zipAnalysisValid = false;
                 zipInput.value = '';
-                bulkTokenInput.value = '';
-                tokenInput.value = '';
+                tokenInputs.forEach((input) => { input.value = ''; });
                 zipSummary.innerHTML = '';
                 zipSummary.className = 'zip-summary';
                 zipStatus.textContent = '';
@@ -894,6 +973,9 @@
                 zipDropzone.querySelector('.excel-dropzone-hint').textContent = 'Solo se acepta ZIP con carpetas de referencia; cada carpeta debe contener solo imágenes JPG, JPEG, PNG o WEBP.';
                 analyzeZipBtn.disabled = true;
                 uploadZipBtn.disabled = true;
+
+                // El explorador pudo quedar desactualizado tras la importación.
+                explorerLoaded = false;
             } catch (error) {
                 Swal.close();
                 showZipStatus('Ocurrió un error de conexión durante la importación. Verifica el resultado antes de volver a enviar el ZIP para evitar duplicar imágenes.', 'error');
@@ -1040,6 +1122,8 @@
                 if (!existingGrid.children.length) {
                     existingEmptyHint.style.display = 'block';
                 }
+
+                explorerLoaded = false;
             } catch (err) {
                 Swal.fire({
                     icon: 'error',
@@ -1190,6 +1274,7 @@
 
                 showSuccess(uploadSuccess, `${data.uploaded.length} foto(s) subida(s) correctamente.`);
                 resetUploadState();
+                explorerLoaded = false;
             } catch (err) {
                 showError(uploadError, err.message || 'No se pudieron subir las fotos. Intenta de nuevo.');
             } finally {
@@ -1197,6 +1282,356 @@
                 uploadBtnText.textContent = 'Subir fotos';
             }
         });
+
+        // =====================================================================
+        // Explorador de carpetas
+        // =====================================================================
+        const explorerRoute = "{{ route('siigo.product_photo_explorer') }}";
+        const explorerUploadRoute = "{{ route('siigo.product_photo_explorer_upload') }}";
+        const explorerDeleteRoute = "{{ route('siigo.product_photo_explorer_delete') }}";
+        const explorerCreateRoute = "{{ route('siigo.product_photo_explorer_create_folder') }}";
+
+        const explorerBreadcrumb = document.getElementById('explorerBreadcrumb');
+        const explorerFilter = document.getElementById('explorerFilter');
+        const explorerNewBtn = document.getElementById('explorerNewBtn');
+        const explorerError = document.getElementById('explorerError');
+        const explorerFoldersSection = document.getElementById('explorerFoldersSection');
+        const explorerFoldersLabel = document.getElementById('explorerFoldersLabel');
+        const explorerFolders = document.getElementById('explorerFolders');
+        const explorerFilesSection = document.getElementById('explorerFilesSection');
+        const explorerFiles = document.getElementById('explorerFiles');
+        const explorerEmptyHint = document.getElementById('explorerEmptyHint');
+        const explorerUploadSection = document.getElementById('explorerUploadSection');
+        const explorerDropzone = document.getElementById('explorerDropzone');
+        const explorerPhotosInput = document.getElementById('explorerPhotosInput');
+
+        const folderIconSvg = '<svg class="folder-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+
+        let explorerLoaded = false;
+        let explorerData = null;
+
+        explorerNewBtn.addEventListener('click', crearCarpeta);
+        explorerFilter.addEventListener('input', renderExplorerFolders);
+
+        async function cargarExplorador(path) {
+            explorerError.classList.remove('show');
+            explorerFilter.value = '';
+
+            try {
+                const res = await fetch(explorerRoute + '?path=' + encodeURIComponent(path || ''), {
+                    headers: { 'Accept': 'application/json' },
+                });
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'No se pudo cargar la carpeta.');
+                }
+
+                explorerData = data;
+                explorerLoaded = true;
+                renderExplorer();
+            } catch (err) {
+                showError(explorerError, err.message || 'No se pudo cargar la carpeta.');
+            }
+        }
+
+        function renderExplorer() {
+            const data = explorerData;
+
+            // Breadcrumb
+            explorerBreadcrumb.innerHTML = '';
+            data.breadcrumb.forEach((crumb, index) => {
+                const isLast = index === data.breadcrumb.length - 1;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'crumb-btn' + (isLast ? ' current' : '');
+                btn.textContent = crumb.label;
+                if (!isLast) btn.addEventListener('click', () => cargarExplorador(crumb.path));
+                explorerBreadcrumb.appendChild(btn);
+
+                if (!isLast) {
+                    const sep = document.createElement('span');
+                    sep.className = 'crumb-sep';
+                    sep.textContent = '/';
+                    explorerBreadcrumb.appendChild(sep);
+                }
+            });
+
+            // Botón "Nueva carpeta" según el nivel
+            explorerNewBtn.style.display = data.level === 2 ? 'none' : '';
+            explorerNewBtn.textContent = data.level === 0 ? 'Nuevo producto' : 'Nuevo color';
+            explorerFilter.style.display = data.level === 2 ? 'none' : '';
+            explorerFilter.placeholder = data.level === 0 ? 'Filtrar productos...' : 'Filtrar colores...';
+            explorerFoldersLabel.textContent = data.level === 0 ? 'Productos' : 'Colores';
+
+            renderExplorerFolders();
+            renderExplorerFiles();
+
+            // Zona de subida: solo dentro de un producto o de un color
+            explorerUploadSection.style.display = data.level >= 1 ? 'block' : 'none';
+
+            // Mensaje de carpeta vacía
+            const empty = !data.folders.length && !data.files.length;
+            explorerEmptyHint.style.display = empty ? 'block' : 'none';
+            explorerEmptyHint.textContent = data.level === 0
+                ? 'Todavía no hay productos en esta carpeta.'
+                : 'Esta carpeta está vacía.';
+        }
+
+        function renderExplorerFolders() {
+            const data = explorerData;
+            if (!data) return;
+
+            const term = explorerFilter.value.trim().toLowerCase();
+            const folders = data.folders.filter((f) => f.label.toLowerCase().includes(term));
+
+            explorerFolders.innerHTML = '';
+            explorerFoldersSection.style.display = data.folders.length ? 'block' : 'none';
+
+            folders.forEach((folder) => {
+                const counts = folder.counts || { photos: 0, folders: 0 };
+                let meta = `${counts.photos} foto(s)`;
+                if (folder.type === 'product' && counts.folders) meta += ` · ${counts.folders} color(es)`;
+
+                const el = document.createElement('button');
+                el.type = 'button';
+                el.className = 'folder-item';
+                el.innerHTML = `
+                    ${folder.type === 'color'
+                        ? `<span class="folder-swatch" style="background:${escapeHtml(folder.hex)}"></span>`
+                        : folderIconSvg}
+                    <div class="folder-name">${escapeHtml(folder.label)}</div>
+                    <div class="folder-meta">${escapeHtml(meta)}</div>
+                `;
+                el.addEventListener('click', () => cargarExplorador(folder.path));
+                explorerFolders.appendChild(el);
+            });
+        }
+
+        function renderExplorerFiles() {
+            const data = explorerData;
+            explorerFiles.innerHTML = '';
+            explorerFilesSection.style.display = data.files.length ? 'block' : 'none';
+
+            data.files.forEach((photo) => explorerFiles.appendChild(buildExplorerPhoto(photo)));
+        }
+
+        function buildExplorerPhoto(photo) {
+            const item = document.createElement('div');
+            item.className = 'photo-item';
+            item.innerHTML = `
+                <img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.name)}">
+                <button type="button" class="photo-delete-btn" title="Eliminar">&times;</button>
+            `;
+            item.querySelector('.photo-delete-btn').addEventListener('click', () => eliminarFotoExplorer(photo.name));
+            return item;
+        }
+
+        function tokenExplorer() {
+            return explorerTokenInput.value.trim();
+        }
+
+        async function pedirToken() {
+            await Swal.fire({
+                icon: 'warning',
+                title: 'Token requerido',
+                text: 'Ingresa tu token de Siigo para realizar esta acción.',
+                confirmButtonText: 'Entendido'
+            });
+            explorerTokenInput.focus();
+        }
+
+        async function crearCarpeta() {
+            if (!explorerData || explorerData.level === 2) return;
+
+            if (!tokenExplorer()) {
+                await pedirToken();
+                return;
+            }
+
+            let options;
+
+            if (explorerData.level === 0) {
+                options = {
+                    title: 'Nuevo producto',
+                    input: 'text',
+                    inputLabel: 'Referencia',
+                    inputPlaceholder: 'Ej: VAMPELT',
+                    inputValidator: (value) => (!value || !value.trim()) ? 'Ingresa la referencia.' : null,
+                };
+            } else {
+                if (!explorerData.available_colors.length) {
+                    Swal.fire({ icon: 'info', title: 'Sin colores disponibles', text: 'Este producto ya tiene una carpeta para cada color.' });
+                    return;
+                }
+
+                // Select agrupado por macrocategoría (optgroup)
+                const inputOptions = {};
+                explorerData.available_colors.forEach((group) => {
+                    inputOptions[group.macro] = {};
+                    group.items.forEach((c) => { inputOptions[group.macro][c.carpeta] = c.nombre; });
+                });
+
+                options = {
+                    title: 'Nuevo color',
+                    input: 'select',
+                    inputOptions,
+                    inputPlaceholder: 'Selecciona un color',
+                    inputValidator: (value) => !value ? 'Selecciona un color.' : null,
+                };
+            }
+
+            const result = await Swal.fire({
+                ...options,
+                showCancelButton: true,
+                confirmButtonText: 'Crear',
+                cancelButtonText: 'Cancelar',
+            });
+
+            if (!result.isConfirmed) return;
+
+            try {
+                const res = await fetch(explorerCreateRoute, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ token: tokenExplorer(), path: explorerData.path, name: result.value }),
+                });
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || data.message || 'No se pudo crear la carpeta.');
+                }
+
+                await cargarExplorador(data.path);
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'No se pudo crear la carpeta.' });
+            }
+        }
+
+        async function eliminarFotoExplorer(filename) {
+            const confirm = await Swal.fire({
+                icon: 'warning',
+                title: '¿Eliminar esta foto?',
+                text: 'Esta acción no se puede deshacer.',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            if (!tokenExplorer()) {
+                await pedirToken();
+                return;
+            }
+
+            try {
+                const res = await fetch(explorerDeleteRoute, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ token: tokenExplorer(), path: explorerData.path, filename }),
+                });
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'No se pudo eliminar la foto.');
+                }
+
+                await cargarExplorador(explorerData.path);
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'No se pudo eliminar la foto.' });
+            }
+        }
+
+        explorerDropzone.addEventListener('click', () => explorerPhotosInput.click());
+        ['dragover', 'dragenter'].forEach(evt => explorerDropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            explorerDropzone.classList.add('dragover');
+        }));
+        ['dragleave', 'dragend'].forEach(evt => explorerDropzone.addEventListener(evt, () => explorerDropzone.classList.remove('dragover')));
+        explorerDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            explorerDropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) subirFotosExplorer(Array.from(e.dataTransfer.files));
+        });
+        explorerPhotosInput.addEventListener('change', () => {
+            if (explorerPhotosInput.files.length) {
+                subirFotosExplorer(Array.from(explorerPhotosInput.files));
+                explorerPhotosInput.value = '';
+            }
+        });
+
+        async function subirFotosExplorer(files) {
+            if (!explorerData || explorerData.level === 0) return;
+
+            const valid = [];
+            const rejected = [];
+
+            files.forEach((file) => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (!allowedExt.includes(ext)) rejected.push(`"${file.name}" no es un formato permitido`);
+                else if (file.size / (1024 * 1024) > maxSizeMB) rejected.push(`"${file.name}" supera ${maxSizeMB} MB`);
+                else valid.push(file);
+            });
+
+            if (rejected.length) {
+                showError(explorerError, rejected.join('. ') + '.');
+            } else {
+                explorerError.classList.remove('show');
+            }
+
+            if (!valid.length) return;
+
+            if (!tokenExplorer()) {
+                await pedirToken();
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('token', tokenExplorer());
+            formData.append('path', explorerData.path);
+            valid.forEach((file) => formData.append('photos[]', file));
+
+            Swal.fire({
+                title: 'Subiendo fotos',
+                text: 'Por favor espera...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const res = await fetch(explorerUploadRoute, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                });
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || data.message || 'No se pudieron subir las fotos.');
+                }
+
+                Swal.close();
+                await cargarExplorador(explorerData.path);
+            } catch (err) {
+                Swal.close();
+                Swal.fire({ icon: 'error', title: 'Error', text: err.message || 'No se pudieron subir las fotos.' });
+            }
+        }
 
         function showError(el, msg) {
             el.textContent = msg;

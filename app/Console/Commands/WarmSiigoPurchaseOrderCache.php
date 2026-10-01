@@ -38,8 +38,9 @@ class WarmSiigoPurchaseOrderCache extends Command
         $delaySeconds = max(0, (int) $this->option('delay'));
 
         // Hoy no se cachea: el controlador lo consulta en vivo
+        //$fecha_inicio = Carbon::now()->subMonths($months)->startOfDay();
+        $fecha_inicio = Carbon::parse('2026-04-01')->startOfDay();
         $fecha_fin = Carbon::yesterday()->endOfDay();
-        $fecha_inicio = Carbon::now()->subMonths($months)->startOfDay();
 
         $this->info("Cacheando desde {$fecha_inicio->toDateString()} hasta {$fecha_fin->toDateString()}, en tramos de {$chunkDays} día(s)...");
 

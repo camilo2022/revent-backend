@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
+use App\Services\ProductPhotoService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -15,13 +17,17 @@ use Throwable;
 
 class PhotoProductSiigoController extends Controller
 {
-    private const DISK = 'public';
-    private const BASE_PATH = 'products';
+    private const DISK = ProductPhotoService::DISK;
+    private const BASE_PATH = ProductPhotoService::BASE_PATH;
     private const ALLOWED_USER_IDS = [597];
-    private const MAX_ZIP_SIZE_KB = 512000; // 100 MB
+    private const MAX_ZIP_SIZE_KB = 512000; // 500 MB
     private const MAX_IMAGE_SIZE_BYTES = 10485760; // 10 MB por imagen
     private const MAX_TOTAL_IMAGE_BYTES = 524288000; // 500 MB descomprimidos
     private const MAX_ZIP_ENTRIES = 5000;
+
+    public function __construct(private ProductPhotoService $photos)
+    {
+    }
 
     public function product_photo()
     {
@@ -116,6 +122,174 @@ class PhotoProductSiigoController extends Controller
             'referencia' => $referencia,
             'uploaded' => $uploaded,
         ]);
+    }
+
+    // ------------------------------------------------------------------
+    // Explorador de carpetas: products / {REFERENCIA} / {CODIGO_COLOR}
+    // ------------------------------------------------------------------
+
+    /** Lista carpetas e imágenes de una ruta. Solo lectura, no requiere token. */
+    public function product_photo_explorer(Request $request)
+    {
+        $request->validate([
+            'path' => 'nullable|string|max:200',
+        ]);
+
+        $info = $this->photos->resolverRuta($request->input('path'));
+
+        if (!$info) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Ruta no válida.',
+            ], 422);
+        }
+
+        $data = $this->photos->listar($info);
+
+        if ($data === null) {
+            return response()->json([
+                'success' => false,
+                'error' => 'La carpeta no existe.',
+            ], 404);
+        }
+
+        return response()->json(['success' => true] + $data);
+    }
+
+    /** Crea un producto (en products) o una carpeta de color (dentro de un producto). */
+    public function product_photo_explorer_create_folder(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'path' => 'nullable|string|max:200',
+            'name' => 'required|string|max:100',
+        ]);
+
+        if ($denied = $this->autorizar($request)) {
+            return $denied;
+        }
+
+        $info = $this->photos->resolverRuta($request->input('path'));
+
+        if (!$info) {
+            return response()->json(['success' => false, 'error' => 'Ruta no válida.'], 422);
+        }
+
+        $result = $this->photos->crearCarpeta($info, $request->input('name'));
+
+        if (!$result['success']) {
+            return response()->json(['success' => false, 'error' => $result['message']], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $result['message'],
+            'path' => $result['path'],
+        ]);
+    }
+
+    /** Sube fotos a la carpeta actual (producto o color). No se permite en la raíz. */
+    public function product_photo_explorer_upload(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'path' => 'required|string|max:200',
+            'photos' => 'required|array|min:1',
+            'photos.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
+        ]);
+
+        if ($denied = $this->autorizar($request)) {
+            return $denied;
+        }
+
+        $info = $this->photos->resolverRuta($request->input('path'));
+
+        if (!$info || $info['level'] === 0) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Abre la carpeta de un producto o de un color para subir fotos.',
+            ], 422);
+        }
+
+        if (!Storage::disk(self::DISK)->exists($info['relative'])) {
+            return response()->json(['success' => false, 'error' => 'La carpeta no existe.'], 404);
+        }
+
+        $uploaded = [];
+        $savedPaths = [];
+
+        try {
+            foreach ($request->file('photos') as $photo) {
+                $contents = file_get_contents($photo->getRealPath());
+
+                if ($contents === false) {
+                    throw new \RuntimeException('No se pudo leer una de las imágenes.');
+                }
+
+                $webpContents = $this->convertir_webp($contents);
+                $filename = Str::uuid() . '.webp';
+                $filePath = "{$info['relative']}/{$filename}";
+
+                if (!Storage::disk(self::DISK)->put($filePath, $webpContents)) {
+                    throw new \RuntimeException('No se pudo guardar una de las imágenes convertidas.');
+                }
+
+                $savedPaths[] = $filePath;
+                $uploaded[] = [
+                    'name' => $filename,
+                    'url' => Storage::disk(self::DISK)->url($filePath),
+                    'size' => strlen($webpContents),
+                ];
+            }
+        } catch (Throwable $exception) {
+            foreach ($savedPaths as $savedPath) {
+                Storage::disk(self::DISK)->delete($savedPath);
+            }
+
+            report($exception);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'No se pudieron procesar las fotos. No se guardó ninguna.',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'path' => $info['path'],
+            'uploaded' => $uploaded,
+        ]);
+    }
+
+    /** Elimina una foto de la carpeta actual (producto o color). */
+    public function product_photo_explorer_delete(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'path' => 'required|string|max:200',
+            'filename' => 'required|string',
+        ]);
+
+        if ($denied = $this->autorizar($request)) {
+            return $denied;
+        }
+
+        $info = $this->photos->resolverRuta($request->input('path'));
+        $filename = basename($request->input('filename'));
+
+        if (!$info || $info['level'] === 0 || !$this->photos->esImagen($filename)) {
+            return response()->json(['success' => false, 'error' => 'Solicitud no válida.'], 422);
+        }
+
+        $path = "{$info['relative']}/{$filename}";
+
+        if (!Storage::disk(self::DISK)->exists($path)) {
+            return response()->json(['success' => false, 'error' => 'La foto no existe'], 404);
+        }
+
+        Storage::disk(self::DISK)->delete($path);
+
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -415,6 +589,21 @@ class PhotoProductSiigoController extends Controller
     private function validar_nombre_referencia_masiva(string $referencia): bool
     {
         return preg_match('/^[A-ZÑ0-9_-]+$/u', $referencia) === 1;
+    }
+
+    /** Devuelve una respuesta 401 si el token no es válido/autorizado; null si todo bien. */
+    private function autorizar(Request $request): ?JsonResponse
+    {
+        $usuario = $this->validar_usuario_permitido($request->input('token'));
+
+        if (!$usuario['success']) {
+            return response()->json([
+                'success' => false,
+                'error' => $usuario['message'],
+            ], 401);
+        }
+
+        return null;
     }
 
     private function validar_usuario_permitido(string $token): array

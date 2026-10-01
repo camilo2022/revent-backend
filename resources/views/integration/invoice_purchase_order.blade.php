@@ -151,7 +151,30 @@
     /* Cada OC es un <tbody> */
     tbody.oc-group { border-top: 2px solid #e5e7eb; }
     tbody.oc-group:first-of-type { border-top: none; }
-    tbody.oc-group:hover > tr:not(.oc-details-row) > td { background: #f0fdf4; }
+
+    /* Antigüedad de la OC: tonos suaves, compatibles con el hover verde original. */
+    tbody.oc-group.age-green > tr:not(.oc-details-row) > td { background: #f0fdf4; }
+    tbody.oc-group.age-orange > tr:not(.oc-details-row) > td { background: #fff7ed; }
+    tbody.oc-group.age-red > tr:not(.oc-details-row) > td { background: #fef2f2; }
+    tbody.oc-group.age-blue > tr:not(.oc-details-row) > td { background: #eff6ff; }
+
+    tbody.oc-group.age-green:hover > tr:not(.oc-details-row) > td { background: #dcfce7; }
+    tbody.oc-group.age-orange:hover > tr:not(.oc-details-row) > td { background: #ffedd5; }
+    tbody.oc-group.age-red:hover > tr:not(.oc-details-row) > td { background: #fee2e2; }
+    tbody.oc-group.age-blue:hover > tr:not(.oc-details-row) > td { background: #dbeafe; }
+
+    .aging-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+    .aging-indicator.age-green { background: #16a34a; }
+    .aging-indicator.age-orange { background: #f97316; }
+    .aging-indicator.age-red { background: #dc2626; }
+    .aging-indicator.age-blue { background: #2563eb; }
 
     .invoice-empty {
         text-align: center;
@@ -457,6 +480,14 @@
                 <option value="anulada">Anulada</option>
             </select>
 
+            <select id="ocAging" class="combo-input">
+                <option value="">Todos los estados</option>
+                <option value="age-red">🔴 Vencido · Más de 4 meses</option>
+                <option value="age-orange">🟠 Por vencer · Más de 1 mes y hasta 4 meses</option>
+                <option value="age-green">🟢 Reciente · Hasta 1 mes</option>
+                <option value="age-blue">🔵 Sin fecha</option>
+            </select>
+
             <select id="ocPageSize" class="combo-input" style="max-width: 110px;">
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -538,6 +569,7 @@
     const searchInput    = document.getElementById('ocSearch');
     const statusSel      = document.getElementById('ocStatus');
     const validSel       = document.getElementById('ocValid');
+    const agingSel       = document.getElementById('ocAging');
     const pageSizeSel    = document.getElementById('ocPageSize');
     const btnAll         = document.getElementById('btnToggleAll');
     const paginationEl   = document.getElementById('ocPagination');
@@ -766,6 +798,9 @@
         // Todo lo que no está "completa" (sin_factura o pendiente) cae
         // bajo el filtro "Faltantes" del select de estado.
         const validState = order.IsAnnulled ? 'anulada' : 'valida';
+        const agingState = ['age-red', 'age-orange', 'age-green'].includes(order.AgingStatus)
+            ? order.AgingStatus
+            : 'age-green';
 
         const searchText = [
             order.DocName,
@@ -789,7 +824,7 @@
 
         const detailsHtml = buildDetailsRow(order, ocIndex, items);
 
-        return `<tbody class="oc-group" data-search="${esc(searchText)}" data-status="${status}" data-valid="${validState}">${rowsHtml}${detailsHtml}</tbody>`;
+        return `<tbody class="oc-group ${agingState}" data-search="${esc(searchText)}" data-status="${status}" data-valid="${validState}" data-aging="${agingState}">${rowsHtml}${detailsHtml}</tbody>`;
     }
 
     /* ---------------- Resumen ---------------- */
@@ -927,6 +962,7 @@
         const q = searchInput.value.trim().toLowerCase();
         const status = statusSel.value;
         const validValue = validSel.value;
+        const agingValue = agingSel.value;
 
         const matched = groups.filter((g) => {
             const matchesSearch = !q || g.dataset.search.includes(q);
@@ -937,8 +973,9 @@
                 || (status === 'faltantes' ? g.dataset.status !== 'completa' : g.dataset.status === status);
 
             const matchesValid = !validValue || g.dataset.valid === validValue;
+            const matchesAging = !agingValue || g.dataset.aging === agingValue;
 
-            return matchesSearch && matchesStatus && matchesValid;
+            return matchesSearch && matchesStatus && matchesValid && matchesAging;
         });
 
         const totalPages = Math.max(1, Math.ceil(matched.length / ocPageSize));
@@ -989,6 +1026,7 @@
     searchInput.addEventListener('input', () => { ocPage = 1; applyFilters(); });
     statusSel.addEventListener('change', () => { ocPage = 1; applyFilters(); });
     validSel.addEventListener('change', () => { ocPage = 1; applyFilters(); });
+    agingSel.addEventListener('change', () => { ocPage = 1; applyFilters(); });
     pageSizeSel.addEventListener('change', () => {
         ocPageSize = Number(pageSizeSel.value) || 10;
         ocPage = 1;

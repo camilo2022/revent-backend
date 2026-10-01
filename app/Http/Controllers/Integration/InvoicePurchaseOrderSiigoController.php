@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\InvoicePurchaseOrderAccessLink;
 use App\Services\SiigoInventoryService;
 use App\Services\SiigoPurchaseOrderCacheService;
+use App\Exports\InvoicePurchaseOrderMissingExport;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use App\Mail\InvoicePurchaseOrderConfirmedSiigo;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InvoicePurchaseOrderSiigoController extends Controller
 {
@@ -249,7 +251,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
         return view('integration.invoice_purchase_order');
     }
 
-    public function invoice_purchase_order_documents(Request $request)
+    public function invoice_purchase_order_documents()
     {
         ini_set('memory_limit', '-1');
 
@@ -260,7 +262,8 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $productsByCode = app(SiigoProductsCache::class)->keyedByProductId();
 
         // Cache: histórico | En vivo: solo hoy
-        $fecha_inicio = Carbon::now()->subMonths(5)->startOfDay();
+        //$fecha_inicio = Carbon::now()->subMonths(5)->startOfDay();
+        $fecha_inicio = Carbon::parse('2026-04-01')->startOfDay();
         $ayer = Carbon::yesterday();
         $hoy_inicio = Carbon::today();
         $hoy_fin = Carbon::now();
@@ -272,14 +275,19 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
         $invoice_details = $this->details($token, $invoices->pluck('ACEntryID'), 'FC-ID', $invoices_today->pluck('ACEntryID'));
 
-        $purchase_invoices = $invoices
-            ->map(function ($invoice) use ($invoice_details, $users, $warehouses) {
-                $detail = $invoice_details->get($invoice['ACEntryID']);
+        $purchase_invoices = $invoices->map(function ($invoice) use ($invoice_details, $users, $warehouses, $productsByCode) {
 
+                $detail = $invoice_details->get($invoice['ACEntryID']);
                 $user = $users->get(data_get($detail, 'Entry.SalesmanCode'));
                 $invoice['User'] = trim(data_get($user, 'first_name', '') . ' ' . data_get($user, 'last_name', ''));
                 $invoice['ACEntryCode'] = data_get($detail, 'Entry.ACEntryCode');
-                $invoice['Items'] = $this->parse_items($detail, $warehouses);
+
+                $invoice['Items'] = collect($this->parse_items($detail, $warehouses))->map(function ($item) use ($productsByCode) {
+                    $producto = $productsByCode->get($item['ProductCode'] ?? null);
+                    $item['Model'] = $producto['model'] ?? '';
+                    return $item;
+                })->values()->all();
+
                 $invoice['Link'] = "https://siigonube.siigo.com/#/purchase/1008/{$invoice['ACEntryID']}";
 
                 return $invoice;
@@ -297,6 +305,23 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
         $purchase_orders = $orders->map(function ($order) use ($order_details, $providers, $purchase_invoices, $users, $warehouses, $productsByCode) {
             $detail = $order_details->get($order['ACEntryID']);
+            $fechaOrden = data_get($order, 'DocDate');
+
+            if ($fechaOrden) {
+                $fechaOrden = Carbon::parse($fechaOrden)->startOfDay();
+                $hoy = Carbon::today();
+
+                if ($fechaOrden->lt($hoy->copy()->subMonthsNoOverflow(4))) {
+                    $order['AgingStatus'] = 'age-red';
+                } elseif ($fechaOrden->lt($hoy->copy()->subMonthsNoOverflow(1))) {
+                    $order['AgingStatus'] = 'age-orange';
+                } else {
+                    $order['AgingStatus'] = 'age-green';
+                }
+            } else {
+                $order['AgingStatus'] = 'age-blue';
+            }
+
             $provider = $providers->get($order['MsThirdPartyID']);
 
             $comments = trim(data_get($provider, 'Comments', ''));
@@ -341,7 +366,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
                 $item['Invoices'] = collect($confirmed_in)->map(fn ($invoice) => collect($invoice)->except('Item')->all())->values()->all();
                 $producto = $productsByCode->get($item['ProductCode'] ?? null);
                 $item['Model'] = $producto['model'] ?? '';
-                
+
                 return $item;
             });
 
@@ -777,5 +802,74 @@ class InvoicePurchaseOrderSiigoController extends Controller
             ],
             'message' => 'Usuario encontrado exitosamente'
         ];
+    }
+
+    public function invoice_purchase_order_missing_download()
+    {
+        ini_set('memory_limit', '-1');
+
+        $response = $this->invoice_purchase_order_documents();
+
+        $data = $response->getData(true);
+
+        $purchaseOrders = collect($data['purchase_orders'] ?? []);
+
+        $rows = $purchaseOrders->flatMap(function ($order) {
+
+            // FILTRO 1:
+            // Solo procesar las OC que aparecen en el filtro
+            // "Faltantes" del frontend.
+            $requestedTotal = (float) ($order['TotalQuantity'] ?? 0);
+            $receivedTotal = (float) ($order['TotalConfirmed'] ?? 0);
+
+            if ($requestedTotal <= $receivedTotal) {
+                return collect();
+            }
+
+            // FILTRO 2:
+            // Dentro de las OC seleccionadas, mostrar únicamente
+            // las referencias que no tienen facturas asociadas.
+            return collect($order['Items'] ?? [])
+                ->filter(function ($item) {
+                    return collect($item['Invoices'] ?? [])->isEmpty();
+                })
+                ->map(function ($item) use ($order) {
+
+                    $requested = (float) ($item['Quantity'] ?? 0);
+                    $received = (float) ($item['Confirmed'] ?? 0);
+
+                    $date = $order['DocDate'] ?? null;
+
+                    return [
+                        // Orden de compra
+                        $order['DocName'],
+
+                        // Proveedor
+                        $order['FullName'],
+                        $order['CompanyName'],
+                        $order['Identification'],
+
+                        // Fecha de la orden
+                        $date ? Carbon::parse($date)->format('d/m/Y') : '',
+
+                        // Descripción de la referencia
+                        $item['LongDescription'] ?? $item['Description'],
+
+                        // Datos del producto
+                        $item['Reference'],
+                        $item['Model'],
+                        $item['Color'],
+                        $item['Size'],
+                        $item['Warehouse'],
+
+                        // Cantidades
+                        $requested,
+                        $received,
+                        max(0, $requested - $received),
+                    ];
+                });
+        })->values()->all();
+
+        return Excel::download(new InvoicePurchaseOrderMissingExport($rows), 'referencias_faltantes_' . now()->format('Ymd_His') . '.xlsx');
     }
 }

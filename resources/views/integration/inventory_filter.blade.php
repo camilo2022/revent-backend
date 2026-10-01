@@ -78,7 +78,7 @@
             border-bottom: 1px solid #eef0f2; box-shadow: 0 2px 10px rgba(0, 0, 0, .05);
         }
 
-        .header-inner { max-width: 1280px; margin: 0 auto; padding: .75rem 2rem; }
+        .header-inner { max-width: 90%; margin: 0 auto; padding: .75rem 2rem; }
 
         .header-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 
@@ -93,7 +93,7 @@
 
         .store-pill:hover { background: #15803d; }
 
-        .app-body { padding: 1.25rem 2rem 3rem; max-width: 1280px; margin: 0 auto; }
+        .app-body { padding: 1.25rem 2rem 3rem; max-width: 90%; margin: 0 auto; }
 
         .toolbar { display: flex; gap: .6rem; margin-top: .75rem; }
 

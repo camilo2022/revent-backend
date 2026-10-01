@@ -381,6 +381,10 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
                 }
             }
 
+            if (($documento === null || $url === null) && $intento < $maxIntentos) {
+                return $this->consultar_orden_compra($token, $cookie, $erp_document_id, $urlDefault, $intento + 1);
+            }
+
             return [
                 'documento' => $documento,
                 'url' => $url,

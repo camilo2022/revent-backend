@@ -52,6 +52,10 @@ Route::post('/siigo/product_photo_search', [PhotoProductSiigoController::class, 
 Route::post('/siigo/product_photo_upload', [PhotoProductSiigoController::class, 'product_photo_upload'])->name('siigo.product_photo_upload');
 Route::post('/siigo/product_photo_delete', [PhotoProductSiigoController::class, 'product_photo_delete'])->name('siigo.product_photo_delete');
 Route::post('/siigo/product_photo_bulk_upload', [PhotoProductSiigoController::class, 'product_photo_bulk_upload'])->name('siigo.product_photo_bulk_upload');
+Route::get('/product_photo/explorer', [PhotoProductSiigoController::class, 'product_photo_explorer'])->name('siigo.product_photo_explorer');
+Route::post('/product_photo/explorer/folder', [PhotoProductSiigoController::class, 'product_photo_explorer_create_folder'])->name('siigo.product_photo_explorer_create_folder');
+Route::post('/product_photo/explorer/upload', [PhotoProductSiigoController::class, 'product_photo_explorer_upload'])->name('siigo.product_photo_explorer_upload');
+Route::post('/product_photo/explorer/delete', [PhotoProductSiigoController::class, 'product_photo_explorer_delete'])->name('siigo.product_photo_explorer_delete');
 
 Route::get('/siigo/account_payable/access', [AccountPayableSiigoController::class, 'account_payable_access'])->name('siigo.account_payable_access');
 Route::post('/siigo/account_payable/access', [AccountPayableSiigoController::class, 'account_payable_send_access_link'])->middleware('throttle:5,1')->name('siigo.account_payable_send_access_link');
@@ -76,6 +80,7 @@ Route::get('/siigo/invoice_purchase_order/access', [InvoicePurchaseOrderSiigoCon
 Route::post('/siigo/invoice_purchase_order/access', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_send_access_link'])->middleware('throttle:5,1')->name('siigo.invoice_purchase_order_send_access_link');
 Route::get('/siigo/invoice_purchase_order', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order'])->middleware('signed')->name('siigo.invoice_purchase_order');
 Route::get('/siigo/invoice_purchase_order/documents', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_documents'])->name('siigo.invoice_purchase_order_documents');
+Route::get('/siigo/invoice_purchase_order_missing_download', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_missing_download'])->name('siigo.invoice_purchase_order_missing_download');
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);
