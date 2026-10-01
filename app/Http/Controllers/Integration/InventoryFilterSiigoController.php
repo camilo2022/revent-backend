@@ -147,26 +147,16 @@ class InventoryFilterSiigoController extends Controller
     public function inventory_filter_images(Request $request)
     {
         $validated = $request->validate([
-            'referencia' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9Ññ_-]+$/u'],
-            'color' => ['nullable', 'string', 'max:100'],
+            'referencia' => ['required', 'string', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:12'],
         ]);
 
-        $referencia = trim($validated['referencia']);
-        $color = trim((string) ($validated['color'] ?? ''));
-        $page = (int) ($validated['page'] ?? 1);
-        $perPage = (int) ($validated['per_page'] ?? 12);
-        $images = $this->images($referencia);
+        $referencia = $this->clean_text(strtoupper(trim($validated['referencia'])));
 
-        if ($color !== '') {
-            $matching = $images->filter(fn ($image) => str_contains(
-                mb_strtolower($image['name']), mb_strtolower($color)
-            ))->values();
-            if ($matching->isNotEmpty()) {
-                $images = $matching;
-            }
-        }
+        $page = (int) ($validated['page'] ?? 1);
+        $perPage = (int) ($validated['per_page'] ?? 10);
+        $images = $this->images($referencia);
 
         $total = $images->count();
         $lastPage = max(1, (int) ceil($total / $perPage));
@@ -245,7 +235,7 @@ class InventoryFilterSiigoController extends Controller
         $productos = [];
 
         foreach ($agrupado as $referencia => $producto) {
-            $imagenes = $this->images($this->sanitize_referencia($referencia));
+            $imagenes = $this->images($this->clean_text(strtoupper($referencia)));
             $producto['imagen'] = $imagenes->first()['url'] ?? null;
 
             $producto['colores'] = collect($producto['colores'])
@@ -446,19 +436,14 @@ class InventoryFilterSiigoController extends Controller
     private function clean_text(string $texto): string
     {
         $texto = strtr($texto, [
-            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U', 'Ü' => 'U', 'Ñ' => 'N',
-            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n',
+            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U', 'Ü' => 'U',
+            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u',
         ]);
 
         // Cualquier otro caracter que no sea letra/número/espacio se elimina.
         $texto = preg_replace('/[^A-Za-z0-9 ]/', '', $texto);
 
         return trim($texto);
-    }
-
-    private function sanitize_referencia(string $referencia): string
-    {
-        return strtoupper(preg_replace('/[^A-Za-z0-9\-_]/', '-', trim($referencia)));
     }
 
     private function normalizar_color(string $color): string
