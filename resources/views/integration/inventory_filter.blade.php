@@ -1477,44 +1477,6 @@
 
 
                                         {{-- ==================================================
-                                             GALERÍA
-                                        =================================================== --}}
-
-                                        <template
-                                            x-if="colorActual(p) && colorActual(p).fotos.length > 0">
-
-                                            <div class="photo-gallery">
-
-                                                <template
-                                                    x-for="(foto, fi) in colorActual(p).fotos"
-                                                    :key="fi">
-
-                                                    <img
-                                                        :src="foto"
-                                                        loading="lazy"
-                                                        decoding="async"
-                                                        fetchpriority="low"
-                                                        :alt="
-                                                            (p.nombre || '') +
-                                                            ' foto ' +
-                                                            (fi + 1)
-                                                        "
-                                                        @click="
-                                                            abrirLightbox(
-                                                                p,
-                                                                indiceColorActual(p),
-                                                                fi
-                                                            )
-                                                        ">
-
-                                                </template>
-
-                                            </div>
-
-                                        </template>
-
-
-                                        {{-- ==================================================
                                              TALLAS
                                         =================================================== --}}
 
@@ -1936,44 +1898,6 @@
                                                         </span>
 
                                                     </button>
-
-                                                </template>
-
-                                            </div>
-
-                                        </template>
-
-
-                                        {{-- ==================================================
-                                             GALERÍA
-                                        =================================================== --}}
-
-                                        <template
-                                            x-if="colorActual(p) && colorActual(p).fotos.length > 0">
-
-                                            <div class="photo-gallery">
-
-                                                <template
-                                                    x-for="(foto, fi) in colorActual(p).fotos"
-                                                    :key="fi">
-
-                                                    <img
-                                                        :src="foto"
-                                                        loading="lazy"
-                                                        decoding="async"
-                                                        fetchpriority="low"
-                                                        :alt="
-                                                            (p.nombre || '') +
-                                                            ' foto ' +
-                                                            (fi + 1)
-                                                        "
-                                                        @click="
-                                                            abrirLightbox(
-                                                                p,
-                                                                indiceColorActual(p),
-                                                                fi
-                                                            )
-                                                        ">
 
                                                 </template>
 
