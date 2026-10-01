@@ -204,11 +204,19 @@ class InventoryFilterSiigoController extends Controller
                 ];
             }
 
-            if ($agrupado[$referencia]['categoria'] === '') {
+            if (empty($agrupado[$referencia]['categoria'])) {
                 $producto = $productsByCode->get($fila['productcode'] ?? null);
 
                 if ($producto) {
                     $agrupado[$referencia]['categoria'] = $producto['model'] ?? '';
+                }
+            }
+
+            if (empty($agrupado[$referencia]['precio'])) {
+                $producto = $productsByCode->get($fila['productcode'] ?? null);
+
+                if ($producto) {
+                    $agrupado[$referencia]['precio'] = $producto['price'] ?? '';
                 }
             }
 

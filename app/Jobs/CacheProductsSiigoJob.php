@@ -34,7 +34,7 @@ class CacheProductsSiigoJob implements ShouldQueue
         $totalPages = null;
         $totalResults = null;
         $totalDownloaded = 0;
-        $fields = ['accountGroupCode', 'accountGroupName', 'brand', 'code', 'codeBars', 'codeBin', 'description', 'descriptionBin', 'measureUnit', 'measurementUnitCode', 'minimumStock', 'model', 'productGUID', 'productID', 'unit'];
+        $fields = ['accountGroupCode', 'accountGroupName', 'brand', 'code', 'codeBars', 'codeBin', 'description', 'descriptionBin', 'measureUnit', 'measurementUnitCode', 'minimumStock', 'model', 'productGUID', 'productID', 'unit', 'priceList'];
 
         do {
             $data = $this->fetchPage($token, $page);
@@ -62,7 +62,17 @@ class CacheProductsSiigoJob implements ShouldQueue
                 throw new \RuntimeException("Página {$page} vacía o fuera del rango esperado.");
             }
 
-            $pageResults = array_map(fn (array $product) => array_intersect_key($product, array_flip($fields)), $pageResults);
+            $pageResults = array_map(function (array $product) use ($fields) {
+                $product = array_intersect_key($product, array_flip($fields));
+
+                $product['price'] = collect(data_get($product, 'priceList', []))
+                    ->flatMap(fn ($item) => $item['priceList'] ?? [])
+                    ->firstWhere('priceListID', 7142)['value'] ?? null;
+
+                unset($product['priceList']);
+
+                return $product;
+            }, $pageResults);
 
             Cache::forever(SiigoProductsCache::PAGE_PREFIX . $page, $pageResults);
             $totalDownloaded += count($pageResults);

@@ -463,6 +463,13 @@
             margin-top: .15rem;
         }
 
+        .prod-precio {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #000000;
+            margin-top: .25rem;
+        }
+
         .prod-total {
             text-align: right;
             flex-shrink: 0;
@@ -1390,6 +1397,11 @@
                                                     ">
                                                 </div>
 
+                                                <div
+                                                    class="prod-precio"
+                                                    x-text="formatPrecio(p.precio)">
+                                                </div>
+
                                             </div>
 
 
@@ -1851,6 +1863,11 @@
                                                         (p.categoria || '') +
                                                         (p.genero ? ' · ' + p.genero : '')
                                                     ">
+                                                </div>
+
+                                                <div
+                                                    class="prod-precio"
+                                                    x-text="formatPrecio(p.precio)">
                                                 </div>
 
                                             </div>
@@ -2444,6 +2461,33 @@
 
 
                 /* ======================================================
+                   FORMATEAR PRECIO
+
+                   Ej: 75000 -> "$75.000". Sin decimales. Si no hay
+                   precio (null/undefined/0/NaN) muestra "-".
+                ======================================================= */
+
+                formatPrecio(precio) {
+
+                    const valor = Number(precio);
+
+                    if (precio === null || precio === undefined || !Number.isFinite(valor) || valor <= 0) {
+                        return '$-';
+                    }
+
+                    const formateado =
+                        Math.round(valor)
+                            .toLocaleString(
+                                'es-CO',
+                                { maximumFractionDigits: 0 }
+                            );
+
+                    return '$' + formateado;
+
+                },
+
+
+                /* ======================================================
                    ¿ESTE COLOR COINCIDE CON EL FILTRO ACTIVO?
                 ======================================================= */
 
@@ -2889,6 +2933,9 @@
 
                         imagen:
                             p.imagen || '',
+
+                        precio:
+                            p.precio ?? null,
 
                         colores:
 
