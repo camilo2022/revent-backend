@@ -28,6 +28,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
     private const BASE_PATH = 'evidences';
     private const INVOICE_PURCHASE_ORDER_ALLOWED_EMAILS = [
         'tecnologia@revent.com.co',
+        'operaciones@revent.com.co',
     ];
 
     public function invoice_purchase_order_reception()

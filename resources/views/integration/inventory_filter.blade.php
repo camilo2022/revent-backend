@@ -527,6 +527,10 @@
                                         <span class="chip"><span x-text="'Talla: ' + talla"></span><button type="button" @click="talla = ''">✕</button></span>
                                     </template>
 
+                                    <template x-if="precioRango">
+                                        <span class="chip"><span x-text="'Precio: ' + etiquetaPrecio(precioRango)"></span><button type="button" @click="precioRango = ''">✕</button></span>
+                                    </template>
+
                                     <button type="button" class="chip-clear" @click="limpiarFiltros()">Limpiar todo</button>
                                 </div>
                             </template>
@@ -800,6 +804,18 @@
                             </div>
                         </template>
 
+                        {{-- RANGO DE PRECIO --}}
+                        <div class="filtro-bloque">
+                            <p class="filtro-label">Rango de precio</p>
+                            <select class="excel-field-select" x-model="precioRango">
+                                <option value="">Todos los precios</option>
+                                <option value="0-50000">$0 a $50.000</option>
+                                <option value="50000-100000">Más de $50.000 a $100.000</option>
+                                <option value="100000-150000">Más de $100.000 a $150.000</option>
+                                <option value="150000+">Más de $150.000</option>
+                            </select>
+                        </div>
+
                         {{-- TALLA --}}
                         <template x-if="tallas.length > 0">
                             <div class="filtro-bloque">
@@ -957,6 +973,7 @@
                 macroColor: 'Todos',
                 colorEspecifico: '',
                 talla: '',
+                precioRango: '',
 
                 colorSeleccionado: {},
                 cargando: false,
@@ -1014,7 +1031,8 @@
                     return (this.categoria !== 'Todos' ? 1 : 0)
                         + (this.macroColor !== 'Todos' ? 1 : 0)
                         + (this.colorEspecifico ? 1 : 0)
-                        + (this.talla ? 1 : 0);
+                        + (this.talla ? 1 : 0)
+                        + (this.precioRango ? 1 : 0);
 
                 },
 
@@ -1024,6 +1042,7 @@
                     this.macroColor = 'Todos';
                     this.colorEspecifico = '';
                     this.talla = '';
+                    this.precioRango = '';
 
                 },
 
@@ -1046,6 +1065,33 @@
                     if (precio === null || precio === undefined || !Number.isFinite(valor) || valor <= 0) return '$-';
 
                     return '$' + Math.round(valor).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+
+                },
+
+                etiquetaPrecio(rango) {
+
+                    return ({
+                        '0-50000': '$0 a $50.000',
+                        '50000-100000': 'Más de $50.000 a $100.000',
+                        '100000-150000': 'Más de $100.000 a $150.000',
+                        '150000+': 'Más de $150.000',
+                    })[rango] || '';
+
+                },
+
+                coincideFiltroPrecio(precio) {
+
+                    const valor = Number(precio);
+
+                    if (!this.precioRango) return true;
+                    if (!Number.isFinite(valor) || valor < 0) return false;
+
+                    if (this.precioRango === '0-50000') return valor <= 50000;
+                    if (this.precioRango === '50000-100000') return valor > 50000 && valor <= 100000;
+                    if (this.precioRango === '100000-150000') return valor > 100000 && valor <= 150000;
+                    if (this.precioRango === '150000+') return valor > 150000;
+
+                    return true;
 
                 },
 
@@ -1086,6 +1132,7 @@
                     this.macroColor = 'Todos';
                     this.colorEspecifico = '';
                     this.talla = '';
+                    this.precioRango = '';
                     this.colorSeleccionado = {};
                     this.filtrosOpen = false;
 
@@ -1395,6 +1442,8 @@
                         if (!esReferenciaExacta) {
 
                             if (this.categoria !== 'Todos' && p.categoria !== this.categoria) return false;
+
+                            if (!this.coincideFiltroPrecio(p.precio)) return false;
 
                             // Debe tener AL MENOS un color que coincida (aunque esté agotado).
                             if (this.macroColor !== 'Todos' && !p.colores.some(c => this.coincideFiltroColor(c))) return false;

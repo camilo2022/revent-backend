@@ -413,6 +413,27 @@
         flex-shrink: 0;
     }
 
+    .btn-download-missing {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #dcfce7;
+        border: 1px solid #bbf7d0;
+        border-radius: 10px;
+        padding: 0.62rem 0.7rem;
+        color: #15803d;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .btn-download-missing:hover { background: #bbf7d0; }
+
+    .btn-download-missing svg {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+    }
+
     .back-link {
         display: inline-flex;
         align-items: center;
@@ -499,6 +520,13 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="7 13 12 18 17 13"/>
                     <polyline points="7 6 12 11 17 6"/>
+                </svg>
+            </button>
+            <button type="button" class="btn-download-missing" title="Descargar facturas faltantes" aria-label="Descargar facturas faltantes" onclick="window.location.href='{{ route('siigo.invoice_purchase_order_missing_download') }}'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
             </button>
         </div>
