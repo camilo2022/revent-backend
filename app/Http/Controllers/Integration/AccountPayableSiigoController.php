@@ -127,7 +127,7 @@ class AccountPayableSiigoController extends Controller
         $documents = $this->accounts_payable_documents($token, $accountId);
         $purchases = $this->purchases_documents($token, $accountId);
 
-        $purchasesByExternalDocument = collect($purchases)->keyBy('ExternalDocumentNumber');
+        $purchasesByExternalDocument = collect($purchases)->sortBy('DocDate')->keyBy('ExternalDocumentNumber');
 
         $documents = collect($documents)
             ->map(function ($document) use ($purchasesByExternalDocument, $token, $accountId, $allData, $warehousesById) {
