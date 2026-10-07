@@ -177,7 +177,7 @@ class CacheProductsSiigoJob implements ShouldQueue
 
     /**
      * Guarda como candidato al producto si no tiene foto (imagePosition vacío) y existe
-     * una carpeta en el disco con su referencia (posición 0 de la descripción, exacta).
+     * una carpeta en el disco con su referencia (posición 0 de la descripción, sin acentos).
      */
     private function collectPhotoCandidate(array $product): void
     {
@@ -287,8 +287,9 @@ class CacheProductsSiigoJob implements ShouldQueue
     }
 
     /**
-     * AGUILA-NEGRO-SEBA-BA-35 => referencia AGUILA (exacta), color NEGRO.
-     * Separa por "-" o "*". Solo el color se normaliza (mayúsculas y espacios a guion).
+     * AGUILA-NEGRO-SEBA-BA-35 => referencia AGUILA, color NEGRO.
+     * Separa por "-" o "*". Referencia y color se normalizan: sin acentos (BACARDÍ => BACARDI),
+     * en mayúsculas y conservando la Ñ. En el color los espacios pasan a guion.
      */
     private function parseDescription(string $description): ?array
     {
@@ -298,8 +299,8 @@ class CacheProductsSiigoJob implements ShouldQueue
             return null;
         }
 
-        $reference = trim($parts[0]);
-        $color = preg_replace('/\s+/', '-', mb_strtoupper(trim($parts[1])));
+        $reference = $this->normalizeText($parts[0]);
+        $color = preg_replace('/\s+/', '-', $this->normalizeText($parts[1]));
 
         if (preg_match(self::PHOTO_REFERENCE_REGEX, $reference) !== 1
             || preg_match(self::PHOTO_COLOR_REGEX, $color) !== 1) {
@@ -307,6 +308,24 @@ class CacheProductsSiigoJob implements ShouldQueue
         }
 
         return ['reference' => $reference, 'color' => $color];
+    }
+
+    /** Quita acentos (Á→A, Ü→U...) pero conserva la Ñ, y pasa a mayúsculas. */
+    private function normalizeText(string $text): string
+    {
+        $text = trim($text);
+
+        // Unifica acentos descompuestos (letra + acento combinado, común en Mac) en un solo carácter.
+        if (class_exists(\Normalizer::class)) {
+            $text = \Normalizer::normalize($text, \Normalizer::FORM_C) ?: $text;
+        }
+
+        $text = strtr($text, [
+            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U', 'Ü' => 'U',
+            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u',
+        ]);
+
+        return mb_strtoupper($text);
     }
 
     private function referenceFolderExists(string $reference): bool

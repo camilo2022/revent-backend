@@ -402,9 +402,6 @@ class InventoryFilterSiigoController extends Controller
             'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u',
         ]);
 
-        // Cualquier otro caracter que no sea letra/número/espacio se elimina.
-        $texto = preg_replace('/[^A-Za-z0-9 ]/', '', $texto);
-
         return trim($texto);
     }
 
