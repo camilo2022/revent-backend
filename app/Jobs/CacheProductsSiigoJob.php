@@ -8,16 +8,12 @@ use App\Services\SiigoProductsCache;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Http\Client\Response;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\Format;
-use Intervention\Image\ImageManager;
 
 class CacheProductsSiigoJob implements ShouldQueue
 {
@@ -32,22 +28,23 @@ class CacheProductsSiigoJob implements ShouldQueue
     private const PHOTO_BASE_PATH = ProductPhotoService::BASE_PATH;
     private const PHOTO_REFERENCE_REGEX = '/^[A-ZÑ0-9_]+$/u';
     private const PHOTO_COLOR_REGEX = '/^[A-ZÑ0-9_-]+$/u';
-    private const PHOTO_SYNC_TIME_BUDGET = 3000; // segundos desde el inicio del job (el timeout es 3600)
     private const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
+
+    /** Máximo de productos por job de fotos (si una referencia tiene más, se divide en varios jobs). */
+    private const PHOTO_JOB_CHUNK_SIZE = 300;
+    /** Segundos de separación entre el inicio de cada job de fotos, para no golpear a Siigo de golpe. */
+    private const PHOTO_JOB_STAGGER_SECONDS = 2;
 
     public int $tries = 3;
     public int $backoff = 120;
     public int $timeout = 3600;
 
-    /** Estado interno de la sincronización de fotos (se reinicia en cada ejecución). */
-    private int $startedAt = 0;
-    private ?string $photoToken = null;
+    /** Productos sin foto agrupados por referencia (se reinicia en cada ejecución). */
     private array $photoCandidates = [];
     private array $referenceFolders = [];
 
     public function handle(): void
     {
-        $this->startedAt = time();
         $this->photoCandidates = [];
         $this->referenceFolders = [];
 
@@ -132,12 +129,12 @@ class CacheProductsSiigoJob implements ShouldQueue
             'total_paginas' => $totalPages,
         ]);
 
-        // El catálogo ya quedó guardado. Un fallo en las fotos no debe hacer fallar ni reintentar el job.
+        // El catálogo ya quedó guardado. Un fallo al despachar las fotos no debe hacer fallar ni reintentar este job.
         try {
-            $this->syncPhotos();
+            $this->dispatchPhotoJobs();
         } catch (\Throwable $exception) {
             report($exception);
-            Log::error('[CacheProductsSiigoJob] Falló la sincronización de fotos: ' . $exception->getMessage());
+            Log::error('[CacheProductsSiigoJob] Falló el despacho de los jobs de fotos: ' . $exception->getMessage());
         }
     }
 
@@ -172,7 +169,7 @@ class CacheProductsSiigoJob implements ShouldQueue
     }
 
     // ------------------------------------------------------------------
-    // Sincronización de fotos con Siigo
+    // Fotos: acumular candidatos y despachar un job por referencia
     // ------------------------------------------------------------------
 
     /**
@@ -201,7 +198,8 @@ class CacheProductsSiigoJob implements ShouldQueue
         ];
     }
 
-    private function syncPhotos(): void
+    /** Despacha un SyncReferencePhotosSiigoJob por referencia (dividido en bloques si es muy grande). */
+    private function dispatchPhotoJobs(): void
     {
         if (!$this->photoCandidates) {
             Log::info('[CacheProductsSiigoJob] Fotos: no hay productos sin foto con carpeta de referencia.');
@@ -209,81 +207,26 @@ class CacheProductsSiigoJob implements ShouldQueue
             return;
         }
 
-        $this->photoToken = (new SiigoInventoryService())->auth();
+        $jobs = 0;
+        $products = 0;
 
-        $stats = ['subido' => 0, 'omitido' => 0, 'sin_foto_local' => 0, 'error' => 0, 'pendiente_por_tiempo' => 0];
+        foreach ($this->photoCandidates as $reference => $candidates) {
+            foreach (array_chunk($candidates, self::PHOTO_JOB_CHUNK_SIZE) as $chunk) {
+                SyncReferencePhotosSiigoJob::dispatch((string) $reference, $chunk)
+                    ->delay(now()->addSeconds($jobs * self::PHOTO_JOB_STAGGER_SECONDS));
 
-        foreach ($this->photoCandidates as $reference => $products) {
-            $reference = (string) $reference;
-            $jpgByColor = [];
-            $rootJpg = false; // false = aún no consultada; null = la raíz no tiene fotos
-
-            foreach ($products as $index => $product) {
-                if (time() - $this->startedAt > self::PHOTO_SYNC_TIME_BUDGET) {
-                    // El resto se procesa en la próxima ejecución (los que ya tienen foto se omiten).
-                    $stats['pendiente_por_tiempo'] += $this->countRemainingCandidates($reference, $index);
-                    Log::warning('[CacheProductsSiigoJob] Fotos: se alcanzó el tiempo máximo; el resto queda para la próxima ejecución.', $stats);
-
-                    return;
-                }
-
-                try {
-                    // Confirmar en Siigo que realmente no tiene foto.
-                    if ($this->siigoProductHasPhoto($product['product_id'])) {
-                        $stats['omitido']++;
-                        continue;
-                    }
-
-                    $color = $product['color'];
-
-                    if (!array_key_exists($color, $jpgByColor)) {
-                        $jpgByColor[$color] = $this->firstPhotoAsJpg(self::PHOTO_BASE_PATH . "/{$reference}/{$color}");
-                    }
-
-                    $jpg = $jpgByColor[$color];
-
-                    if ($jpg === null) {
-                        if ($rootJpg === false) {
-                            $rootJpg = $this->firstPhotoAsJpg(self::PHOTO_BASE_PATH . "/{$reference}");
-                        }
-
-                        $jpg = $rootJpg;
-                    }
-
-                    if ($jpg === null) {
-                        $stats['sin_foto_local']++;
-                        continue;
-                    }
-
-                    $this->siigoUploadPhoto($product['product_id'], $jpg);
-                    $stats['subido']++;
-                } catch (\Throwable $exception) {
-                    $stats['error']++;
-                    Log::warning("[CacheProductsSiigoJob] Fotos: error con el producto {$product['code']} ({$product['product_id']}): " . $exception->getMessage());
-                }
-            }
-
-            unset($jpgByColor, $rootJpg);
-        }
-
-        Log::info('[CacheProductsSiigoJob] Sincronización de fotos terminada', $stats);
-    }
-
-    private function countRemainingCandidates(string $currentReference, int $currentIndex): int
-    {
-        $remaining = 0;
-        $reached = false;
-
-        foreach ($this->photoCandidates as $reference => $products) {
-            if ((string) $reference === $currentReference) {
-                $remaining += count($products) - $currentIndex;
-                $reached = true;
-            } elseif ($reached) {
-                $remaining += count($products);
+                $jobs++;
+                $products += count($chunk);
             }
         }
 
-        return $remaining;
+        Log::info('[CacheProductsSiigoJob] Jobs de fotos despachados', [
+            'referencias' => count($this->photoCandidates),
+            'jobs' => $jobs,
+            'productos_sin_foto' => $products,
+        ]);
+
+        $this->photoCandidates = []; // liberar memoria
     }
 
     /**
@@ -332,94 +275,5 @@ class CacheProductsSiigoJob implements ShouldQueue
     {
         return $this->referenceFolders[$reference]
             ??= Storage::disk(self::PHOTO_DISK)->exists(self::PHOTO_BASE_PATH . "/{$reference}");
-    }
-
-    /**
-     * Primera foto (orden alfabético) que esté directamente en la carpeta, sin entrar a
-     * subcarpetas, convertida a JPG. Null si la carpeta no existe o no tiene fotos.
-     */
-    private function firstPhotoAsJpg(string $path): ?string
-    {
-        $disk = Storage::disk(self::PHOTO_DISK);
-
-        if (!$disk->exists($path)) {
-            return null;
-        }
-
-        $files = collect($disk->files($path))
-            ->filter(fn ($file) => preg_match('/\.(jpe?g|png|webp)$/i', $file) === 1)
-            ->sort()
-            ->values();
-
-        if ($files->isEmpty()) {
-            return null;
-        }
-
-        $contents = $disk->get($files->first());
-
-        if ($contents === null || $contents === '') {
-            return null;
-        }
-
-        return (new ImageManager(new Driver()))
-            ->decodeBinary($contents)
-            ->encodeUsingFormat(Format::JPEG, quality: 90)
-            ->toString();
-    }
-
-    /** Envía la petición con el token actual; si Siigo responde 401 renueva el token y reintenta una vez. */
-    private function siigoRequest(callable $send): Response
-    {
-        $response = $send($this->photoToken);
-
-        if ($response->status() === 401) {
-            $this->photoToken = (new SiigoInventoryService())->auth();
-            $response = $send($this->photoToken);
-        }
-
-        return $response;
-    }
-
-    private function siigoProductHasPhoto(int $productId): bool
-    {
-        $response = $this->siigoRequest(fn (string $token) => Http::withToken($token)
-            ->acceptJson()
-            ->timeout(30)
-            ->retry(2, 2000, throw: false)
-            ->get(self::CATALOG_URL . '/FileStorage/File/list', [
-                'referenceCode' => $productId,
-                'referenceType' => 0,
-                'storageStrategy' => 1,
-            ]));
-
-        if (!$response->successful()) {
-            throw new \RuntimeException("Siigo respondió {$response->status()} al listar la foto del producto {$productId}.");
-        }
-
-        $files = $response->json();
-
-        return is_array($files) && !empty($files);
-    }
-
-    private function siigoUploadPhoto(int $productId, string $jpgContents): void
-    {
-        $fileName = (int) (microtime(true) * 1000) . '.jpg';
-
-        $response = $this->siigoRequest(fn (string $token) => Http::withToken($token)
-            ->acceptJson()
-            ->timeout(60)
-            ->retry(2, 2000, throw: false)
-            ->attach('File', $jpgContents, $fileName, ['Content-Type' => 'image/jpeg'])
-            ->post(self::CATALOG_URL . '/FileStorage/File', [
-                'ReferenceType' => 0,
-                'ReferenceCode' => $productId,
-                'FileName' => $fileName,
-                'IsMigrate' => 'true',
-                'StorageStrategy' => 1,
-            ]));
-
-        if (!$response->successful()) {
-            throw new \RuntimeException("Siigo respondió {$response->status()} al subir la foto del producto {$productId}.");
-        }
     }
 }
