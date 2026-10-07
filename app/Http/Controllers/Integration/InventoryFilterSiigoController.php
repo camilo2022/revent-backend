@@ -331,12 +331,15 @@ class InventoryFilterSiigoController extends Controller
                 return collect();
             }
 
-            return collect(Storage::disk(self::DISK)->files($path))
+            return collect(Storage::disk(self::DISK)->allFiles($path))
+                ->sortBy(fn ($file) => [
+                    substr_count($file, '/'), // primero las de la raíz, luego las de subcarpetas
+                    $file,
+                ])
                 ->map(fn ($file) => [
                     'name' => basename($file),
                     'url' => Storage::disk(self::DISK)->url($file),
                 ])
-                ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
                 ->values();
         });
     }

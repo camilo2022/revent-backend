@@ -309,7 +309,11 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
             return collect();
         }
 
-        return collect(Storage::disk(self::DISK)->files($path))
+        return collect(Storage::disk(self::DISK)->allFiles($path))
+            ->sortBy(fn ($file) => [
+                substr_count($file, '/'), // primero las de la raíz, luego las de subcarpetas
+                $file,
+            ])
             ->map(fn ($file) => [
                 'name' => basename($file),
                 'url' => Storage::disk(self::DISK)->url($file),
@@ -1368,7 +1372,15 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
     private function sanitize_referencia(string $referencia): string
     {
-        return strtoupper(preg_replace('/[^A-Za-z0-9\-_]/', '-', trim($referencia)));
+        $referencia = trim($referencia);
+
+        if (class_exists(\Normalizer::class)) {
+            $referencia = \Normalizer::normalize($referencia, \Normalizer::FORM_C) ?: $referencia;
+        }
+
+        $limpia = preg_replace('/[^A-Za-zÑñ0-9\-_]/u', '-', $referencia);
+
+        return mb_strtoupper($limpia ?? '');
     }
 
     private function bcSumMoney(Collection $items, string $field): string
