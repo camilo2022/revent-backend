@@ -203,7 +203,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
             $imagenes[] = Storage::disk(self::DISK)->url("{$path}/{$filename}");
         }
 
-        Mail::to(['camiloacacio16@gmail.com'])->send(
+        Mail::to(['operaciones@revent.com.co'])->send(
             new InvoicePurchaseOrderConfirmedSiigo($data, $usuario, $imagenes)
         );
 
