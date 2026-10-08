@@ -156,6 +156,39 @@
         flex-shrink: 0;
     }
 
+    /* ---- Botón de token (candado) ---- */
+    .btn-token {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-radius: 10px;
+        padding: 0.62rem 0.95rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #c2410c;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.2s ease;
+    }
+
+    .btn-token:hover { background: #ffedd5; }
+
+    .btn-token svg {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+    }
+
+    .btn-token.has-token {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .btn-token.has-token:hover { background: #dcfce7; }
+
     .provider-row { cursor: pointer; }
     .provider-row:hover td { background: #f0fdf4; }
     .provider-sub { font-size: 0.72rem; color: #9ca3af; margin-top: 0.1rem; }
@@ -239,7 +272,7 @@
     /* ---- Leyenda de clasificación ---- */
     .legend {
         display: none;
-        grid-template-columns: repeat(7, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
         gap: 0.6rem;
         margin-bottom: 1.1rem;
         padding: 0.85rem 1rem;
@@ -337,6 +370,51 @@
 
     .tab-panel { display: none; }
     .tab-panel.show { display: block; }
+
+    /* ---- Filtros de documentos ---- */
+    .docs-filters {
+        display: none;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 1rem;
+    }
+
+    .docs-filters.show { display: flex; }
+
+    .docs-filters .combo-input {
+        width: auto;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.82rem;
+    }
+
+    .docs-filters #docsSearch {
+        flex: 1 1 260px;
+        min-width: 200px;
+    }
+
+    .docs-filters select.combo-input { max-width: 230px; }
+    .docs-filters input[type="date"].combo-input { max-width: 160px; }
+
+    .filter-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6b7280;
+    }
+
+    .filter-count {
+        font-size: 0.78rem;
+        color: #6b7280;
+        margin-left: auto;
+        white-space: nowrap;
+    }
+
+    .docs-table tbody tr.row-hidden { display: none; }
+
+    .hidden-selected-hint {
+        display: none;
+        color: #fbbf24;
+    }
 
     /* ---- Loading ---- */
     .loading-state {
@@ -506,6 +584,14 @@
     /* RP - Recibo de pago */
     .row-rp { background: #f3f4f6; }
     .row-rp .prefix-tag { background: #d1d5db; color: #374151; }
+
+    /* ERR1 - Duplicado */
+    .row-err1 { background: #e5e5e5; }
+    .row-err1 .prefix-tag { background: #000000; color: #ffffff; }
+
+    /* ERR2 - Vencimiento erróneo */
+    .row-err2 { background: #efebe9; }
+    .row-err2 .prefix-tag { background: #795548; color: #ffffff; }
 
     .prefix-tag {
         display: inline-flex;
@@ -682,6 +768,9 @@
     }
 
     .modal-overlay.show { display: flex; }
+
+    /* El modal del token se abre por encima de los demás modales */
+    #tokenModalOverlay { z-index: 110; }
 
     .modal {
         background: #ffffff;
@@ -1123,6 +1212,12 @@
         .providers-toolbar select.combo-input,
         .providers-toolbar select#providerTypeFilter.combo-input { max-width: 100%; }
         .btn-sync-providers { width: 100%; justify-content: center; }
+        .btn-token { width: 100%; justify-content: center; }
+
+        .docs-filters .combo-input,
+        .docs-filters select.combo-input,
+        .docs-filters input[type="date"].combo-input { width: 100%; max-width: 100%; }
+        .filter-count { margin-left: 0; }
     }
 
     .btn-sync-providers .spinning {
@@ -1172,6 +1267,12 @@
                         <polyline points="23 4 23 10 17 10"/>
                         <polyline points="1 20 1 14 7 14"/>
                         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                </button>
+                <button type="button" class="btn-token" id="btnToken" style="display:none;" title="Ingresar token">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path id="btnTokenShackle" d="M7 11V7a5 5 0 0 1 9.9-1"/>
                     </svg>
                 </button>
             </div>
@@ -1230,6 +1331,8 @@
                 <span class="legend-item"><span class="legend-dot" style="background:#fde047"></span>NOV5 · Mercancia mal estado</span>
                 <span class="legend-item"><span class="legend-dot" style="background:#d8b4fe"></span>DES1 · Descuento</span>
                 <span class="legend-item"><span class="legend-dot" style="background:#d1d5db"></span>RP · Recibo de pago</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#000000"></span>ERR1 · Duplicado</span>
+                <span class="legend-item"><span class="legend-dot" style="background:#795548"></span>ERR2 · Vencimiento erroneo</span>
             </div>
 
             <div class="summary-grid" id="summaryGrid">
@@ -1284,6 +1387,53 @@
                 <!-- ---- Panel: Documentos ---- -->
                 <div class="tab-panel show" id="panelDocumentos">
 
+                    <!-- Filtros (solo ocultan filas, no las eliminan) -->
+                    <div class="docs-filters" id="docsFilters">
+                        <input
+                            type="text"
+                            id="docsSearch"
+                            class="combo-input"
+                            placeholder="Buscar en los documentos..."
+                            autocomplete="off"
+                        >
+
+                        <select id="docsTypeFilter" class="combo-input" title="Filtrar por tipo">
+                            <option value="">Todos los tipos</option>
+                        </select>
+
+                        <select id="docsColorFilter" class="combo-input" title="Filtrar por clasificación">
+                            <option value="">Todas las clasificaciones</option>
+                            <option value="__none__">⚪ Sin clasificar</option>
+
+                            <option value="NOV1">🔴 NOV1 · Faltantes</option>
+                            <option value="NOV2">🟢 NOV2 · Sobrantes</option>
+                            <option value="NOV3">🔵 NOV3 · Trocados</option>
+                            <option value="NOV4">🟠 NOV4 · Corrección de factura</option>
+                            <option value="NOV5">🟡 NOV5 · Mercancía mal estado</option>
+
+                            <option value="DES1">🟣 DES1 · Descuento</option>
+                            <option value="RP">⚪ RP · Recibo de pago</option>
+
+                            <option value="ERR1">⚫ ERR1 · Duplicado</option>
+                            <option value="ERR2">🟤 ERR2 · Vencimiento erróneo</option>
+                        </select>
+
+                        <select id="docsDateField" class="combo-input" title="Fecha a filtrar">
+                            <option value="DueDate">Fecha de vencimiento</option>
+                            <option value="CreatedDate">Fecha de creación</option>
+                        </select>
+
+                        <span class="filter-label">Desde</span>
+                        <input type="date" id="docsDateFrom" class="combo-input">
+
+                        <span class="filter-label">Hasta</span>
+                        <input type="date" id="docsDateTo" class="combo-input">
+
+                        <button type="button" class="btn-secondary" id="docsFiltersClear" style="padding:0.5rem 0.9rem;">Limpiar</button>
+
+                        <span class="filter-count" id="docsFilterCount"></span>
+                    </div>
+
                     <div class="loading-state" id="loadingState">
                         <div class="spinner"></div>
                         <div class="loading-text">Espera un momento, cargando los documentos del proveedor...</div>
@@ -1296,6 +1446,7 @@
                                     <th style="width:34px;"><input type="checkbox" id="checkAll" class="row-check"></th>
                                     <th>Tipo</th>
                                     <th>Documento</th>
+                                    <th style="min-width: 110px;">Fecha</th>
                                     <th style="min-width: 110px;">Factura</th>
                                     <th style="min-width: 110px;" class="col-extra">Orden</th>
                                     <th class="col-extra">Observaciones</th>
@@ -1310,6 +1461,10 @@
                             </thead>
                             <tbody id="docsBody"></tbody>
                         </table>
+
+                        <div class="empty-state" id="docsFilterEmpty" style="display:none;">
+                            Ningún documento coincide con los filtros.
+                        </div>
                     </div>
 
                 </div>
@@ -1345,7 +1500,10 @@
 
     <div class="totals-bar" id="totalsBar">
         <div class="totals-info">
-            <div class="count"><span id="selCount">0</span> documento(s) seleccionado(s)</div>
+            <div class="count">
+                <span id="selCount">0</span> documento(s) seleccionado(s)
+                <span class="hidden-selected-hint" id="selHiddenWrap">(<span id="selHidden">0</span> oculto(s) por el filtro)</span>
+            </div>
             <div class="amount">Total a pagar: <span id="selTotal">$0</span></div>
         </div>
         <div class="totals-actions">
@@ -1660,6 +1818,29 @@
     </div>
 </div>
 
+<!-- ---- Modal: Token requerido ---- -->
+<div class="modal-overlay" id="tokenModalOverlay">
+    <div class="modal" style="max-width:460px;">
+        <div class="modal-header">
+            <div class="modal-title">Token de autorización</div>
+            <button type="button" class="modal-close" id="tokenModalClose">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="field-group" style="max-width:none; margin-bottom:0;">
+                <label class="field-label" for="tokenInput">Token</label>
+                <input type="password" class="combo-input" id="tokenInput" autocomplete="off" placeholder="Ingresa el token...">
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="tokenModalClear">Limpiar</button>
+            <button type="button" class="btn-secondary" id="tokenModalCancel">Cancelar</button>
+            <button type="button" class="btn-primary" id="tokenModalSave">Guardar token</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 const PROVIDERS_URL = "{{ route('siigo.accounts_payable_providers') }}";
@@ -1669,6 +1850,11 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
 
 
 (function () {
+    // ---- Token requerido (viene en la URL de la página: ?required_token=true) ----
+    const urlParams     = new URLSearchParams(window.location.search);
+    const requiredToken = ['true', '1'].includes(String(urlParams.get('required_token')).toLowerCase());
+    let accessToken     = ''; // solo en memoria
+
     // ---- Proveedores (lista) ----
     let providers                  = [];
     const searchInput              = document.getElementById('providerSearch');
@@ -1689,6 +1875,19 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     const detailProviderName       = document.getElementById('detailProviderName');
     const detailProviderId         = document.getElementById('detailProviderId');
 
+    // ---- Token (candado + modal) ----
+    const btnToken          = document.getElementById('btnToken');
+    const btnTokenShackle   = document.getElementById('btnTokenShackle');
+    const tokenModalOverlay = document.getElementById('tokenModalOverlay');
+    const tokenModalClose   = document.getElementById('tokenModalClose');
+    const tokenModalCancel  = document.getElementById('tokenModalCancel');
+    const tokenModalClear   = document.getElementById('tokenModalClear');
+    const tokenModalSave    = document.getElementById('tokenModalSave');
+    const tokenInput        = document.getElementById('tokenInput');
+
+    const SHACKLE_OPEN   = 'M7 11V7a5 5 0 0 1 9.9-1';
+    const SHACKLE_CLOSED = 'M7 11V7a5 5 0 0 1 10 0v4';
+
     // ---- Detalle ----
     const allDataCheck             = document.getElementById('allDataCheck');
     const legend                   = document.getElementById('legend');
@@ -1703,6 +1902,20 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     const checkAll                 = document.getElementById('checkAll');
     const btnPayment               = document.getElementById('btnPayment');
     const btnAdvanceWrap           = document.getElementById('btnAdvanceWrap');
+
+    // Filtros de documentos
+    const docsFilters              = document.getElementById('docsFilters');
+    const docsSearch               = document.getElementById('docsSearch');
+    const docsTypeFilter           = document.getElementById('docsTypeFilter');
+    const docsColorFilter          = document.getElementById('docsColorFilter');
+    const docsDateField            = document.getElementById('docsDateField');
+    const docsDateFrom             = document.getElementById('docsDateFrom');
+    const docsDateTo               = document.getElementById('docsDateTo');
+    const docsFiltersClear         = document.getElementById('docsFiltersClear');
+    const docsFilterCount          = document.getElementById('docsFilterCount');
+    const docsFilterEmpty          = document.getElementById('docsFilterEmpty');
+    const selHiddenWrap            = document.getElementById('selHiddenWrap');
+    const selHiddenEl              = document.getElementById('selHidden');
 
     // Tabs Documentos / Pagos
     const tabDocumentos            = document.getElementById('tabDocumentos');
@@ -1748,6 +1961,84 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     const ALLOWED_IMAGE_EXT = ['jpg', 'jpeg', 'png'];
     const MAX_IMAGE_MB = 8;
 
+    // =====================================================================
+    // Token requerido: candado, modal y helpers
+    // =====================================================================
+    function updateTokenButton() {
+        btnToken.style.display = requiredToken ? 'inline-flex' : 'none';
+        btnToken.classList.toggle('has-token', !!accessToken);
+        btnToken.title = accessToken ? 'Token cargado' : 'Ingresar token';
+        btnTokenShackle.setAttribute('d', accessToken ? SHACKLE_CLOSED : SHACKLE_OPEN);
+    }
+
+    function openTokenModal() {
+        tokenInput.value = accessToken;
+        tokenModalOverlay.classList.add('show');
+        setTimeout(() => tokenInput.focus(), 50);
+    }
+
+    function closeTokenModal() {
+        tokenModalOverlay.classList.remove('show');
+    }
+
+    btnToken.addEventListener('click', openTokenModal);
+    tokenModalClose.addEventListener('click', closeTokenModal);
+    tokenModalCancel.addEventListener('click', closeTokenModal);
+
+    tokenModalOverlay.addEventListener('click', (e) => {
+        if (e.target === tokenModalOverlay) closeTokenModal();
+    });
+
+    tokenModalClear.addEventListener('click', () => {
+        accessToken = '';
+        tokenInput.value = '';
+        updateTokenButton();
+    });
+
+    tokenModalSave.addEventListener('click', () => {
+        const value = tokenInput.value.trim();
+
+        if (!value) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Token vacío',
+                text: 'Ingresa el token para continuar.',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        accessToken = value;
+        updateTokenButton();
+        closeTokenModal();
+    });
+
+    tokenInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') tokenModalSave.click();
+    });
+
+    // Devuelve true si se puede continuar; si falta el token, avisa y abre el modal.
+    function ensureToken() {
+        if (!requiredToken || accessToken) return true;
+
+        Swal.fire({
+            icon: 'warning',
+            title: 'Token requerido',
+            text: 'Debes ingresar el token antes de realizar esta acción.',
+            confirmButtonColor: '#3085d6'
+        }).then(openTokenModal);
+
+        return false;
+    }
+
+    // Agrega el token al FormData solo si es requerido
+    function appendToken(formData) {
+        if (requiredToken) formData.append('token', accessToken);
+    }
+
+    // =====================================================================
+    // Comprobante (recibo de pago)
+    // =====================================================================
     paymentDropzone.addEventListener('click', () => paymentFileInput.click());
 
     ['dragover', 'dragenter'].forEach((evt) => {
@@ -1826,6 +2117,8 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     let paymentsRequestToken = 0;  // idem, para la pestaña de pagos
     let currentProvider = null;
     let currentDocs = [];    // documentos actualmente renderizados en la tabla principal
+    let docMeta = [];        // errores calculados por documento (paralelo a currentDocs)
+    let docSearchIndex = []; // texto buscable por documento (paralelo a currentDocs)
     let selectedDocs = [];   // documentos elegidos al abrir el modal de pago
     let paymentsData = null; // null = aún no se ha cargado para el proveedor actual
     let activeTab = 'documentos';
@@ -1839,7 +2132,27 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         'NOV5': 'row-nov5',
         'DES1': 'row-des1',
         'RP': 'row-rp',
+        'ERR1': 'row-err1',
+        'ERR2': 'row-err2',
     };
+
+    // Texto de cada clasificación (se usa en el buscador)
+    const CLASS_LABELS = {
+        'NOV1': 'faltantes',
+        'NOV2': 'sobrantes',
+        'NOV3': 'trocados',
+        'NOV4': 'correccion de factura',
+        'NOV5': 'mercancia mal estado',
+        'DES1': 'descuento',
+        'RP': 'recibo de pago',
+        'ERR1': 'duplicado',
+        'ERR2': 'vencimiento erroneo',
+    };
+
+    // Prefijos sobre los que se evalúan ERR1 (duplicado) y ERR2 (vencimiento erróneo).
+    // Los RP se excluyen a propósito: su fecha de creación y vencimiento suele coincidir.
+    // Si también quieres evaluar descuentos, agrega 'DES1' (o el prefijo que corresponda).
+    const ERROR_PREFIXES = ['FC', 'RM'];
 
     function escapeHtml(str) {
         return String(str ?? '').replace(/[&<>"']/g, (m) => ({
@@ -1878,14 +2191,68 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         return (prefix === 'FC' || prefix === 'RM' || prefix.startsWith('DES')) && !doc.IsAnnulled;
     }
 
-    function rowClassFor(doc) {
+    // ---- Clasificación y errores ----
+    function canHaveError(doc) {
         const prefix = (doc.DuePrefix || '').toUpperCase();
+        return !doc.IsAnnulled && ERROR_PREFIXES.includes(prefix);
+    }
 
-        if (prefix.startsWith('RP')) {
-            return ROW_CLASS_BY_PREFIX['RP'] || '';
-        }
+    function datePart(value) {
+        return String(value || '').slice(0, 10);
+    }
 
-        return ROW_CLASS_BY_PREFIX[prefix] || '';
+    // ERR1: mismo DueName en 2 o más documentos.
+    // ERR2: fecha de creación y de vencimiento iguales (solo la parte de fecha).
+    function computeDocMeta(docs) {
+        const counts = {};
+
+        docs.forEach((doc) => {
+            if (!canHaveError(doc)) return;
+            const key = String(doc.DueName || '').trim();
+            if (key) counts[key] = (counts[key] || 0) + 1;
+        });
+
+        return docs.map((doc) => {
+            if (!canHaveError(doc)) return { dup: false, sameDate: false };
+
+            const key = String(doc.DueName || '').trim();
+            const created = datePart(doc.CreatedDate);
+            const due = datePart(doc.DueDate);
+
+            return {
+                dup: !!key && counts[key] > 1,
+                sameDate: !!created && created === due,
+            };
+        });
+    }
+
+    function hasError(meta) {
+        return !!(meta && (meta.dup || meta.sameDate));
+    }
+
+    function errorTitle(meta) {
+        const parts = [];
+        if (meta?.dup) parts.push('ERR1: documento duplicado');
+        if (meta?.sameDate) parts.push('ERR2: la fecha de creación y de vencimiento son la misma');
+        return parts.join(' | ');
+    }
+
+    // Claves de clasificación del documento, en orden de prioridad visual
+    function classKeysFor(doc, meta) {
+        const keys = [];
+        if (meta?.dup) keys.push('ERR1');
+        if (meta?.sameDate) keys.push('ERR2');
+
+        const prefix = (doc.DuePrefix || '').toUpperCase();
+        const base = prefix.startsWith('RP') ? 'RP' : prefix;
+        if (ROW_CLASS_BY_PREFIX[base]) keys.push(base);
+
+        return keys;
+    }
+
+    function rowClassFor(doc, meta) {
+        const keys = classKeysFor(doc, meta);
+        return keys.length ? (ROW_CLASS_BY_PREFIX[keys[0]] || '') : '';
     }
 
     function estadoBadge(doc) {
@@ -2128,6 +2495,10 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         detailProviderName.textContent = provider.FullName || '';
         detailProviderId.textContent = [provider.CompanyName, provider.Identification].filter(Boolean).join(' · ');
 
+        // Filtros limpios para el nuevo proveedor
+        docsTypeFilter.innerHTML = '<option value="">Todos los tipos</option>';
+        resetDocFilterValues();
+
         providersView.style.display = 'none';
         detailView.style.display = 'block';
 
@@ -2165,9 +2536,13 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         docsWrap.classList.remove('show');
         loadingState.classList.remove('show');
         docsScroll.style.display = 'none';
+        docsFilters.classList.remove('show');
+        docsFilterEmpty.style.display = 'none';
         totalsBar.classList.remove('show');
         docsBody.innerHTML = '';
         currentDocs = [];
+        docMeta = [];
+        docSearchIndex = [];
 
         paymentsScroll.style.display = 'none';
         paymentsLoadingState.classList.remove('show');
@@ -2253,6 +2628,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         docsWrap.classList.add('show');
         loadingState.classList.add('show');
         docsScroll.style.display = 'none';
+        docsFilters.classList.remove('show');
         totalsBar.classList.remove('show');
         checkAll.checked = false;
         docsBody.innerHTML = '';
@@ -2278,10 +2654,12 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
             renderSummary(resumen);
 
             renderDocuments(docs, allData);
+            docsFilters.classList.add('show');
             document.getElementById('sumDocumentos').textContent = docs.length;
         } catch (err) {
             if (myToken !== requestToken) return;
 
+            docsFilters.classList.remove('show');
             docsBody.innerHTML = '<tr><td colspan="13" class="error-state">No se pudieron cargar los documentos de este proveedor. Intenta de nuevo.</td></tr>';
             docsScroll.style.display = 'block';
             document.getElementById('sumDocumentos').textContent = '-';
@@ -2476,16 +2854,157 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         if (e.target === paymentDetailModalOverlay) paymentDetailModalOverlay.classList.remove('show');
     });
 
+    // =====================================================================
+    // Documentos: render + filtros (los filtros solo ocultan filas)
+    // =====================================================================
+    function normalizeText(value) {
+        return String(value ?? '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    // Texto en el que busca el filtro. Con allData también incluye orden, observaciones, bodegas y cantidad.
+    function buildSearchText(doc, meta, allData) {
+        const parts = [
+            doc.DuePrefix,
+            doc.DueName,
+            doc.DocName,
+            doc.TotalValue, formatMoney(doc.TotalValue),
+            doc.Deuda, formatMoney(doc.Deuda),
+            doc.Saldo, formatMoney(doc.Saldo),
+            formatDate(doc.DueDate), datePart(doc.DueDate),
+            formatDate(doc.CreatedDate), datePart(doc.CreatedDate),
+            estadoBadge(doc).replace(/<[^>]*>/g, ''),
+        ];
+
+        classKeysFor(doc, meta).forEach((key) => {
+            parts.push(key, CLASS_LABELS[key] || '');
+        });
+
+        if (allData) {
+            const purchaseEntry = doc.PurchaseEntry || {};
+            const detail = doc.PurchaseEntryDetail || {};
+
+            parts.push(
+                purchaseEntry.docName,
+                detail.Observations,
+                detail.WarehouseCodes,
+                detail.Quantity
+            );
+        }
+
+        return normalizeText(parts.filter((p) => p !== null && p !== undefined).join(' '));
+    }
+
+    function populateDocTypeFilter() {
+        const current = docsTypeFilter.value;
+
+        const types = Array.from(new Set(
+            currentDocs.map((d) => (d.DuePrefix || '').trim()).filter(Boolean)
+        )).sort((a, b) => a.localeCompare(b, 'es'));
+
+        docsTypeFilter.innerHTML = '<option value="">Todos los tipos</option>' +
+            types.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+        if (types.includes(current)) docsTypeFilter.value = current;
+    }
+
+    function resetDocFilterValues() {
+        docsSearch.value = '';
+        docsTypeFilter.value = '';
+        docsColorFilter.value = '';
+        docsDateField.value = 'DueDate';
+        docsDateFrom.value = '';
+        docsDateTo.value = '';
+    }
+
+    // Marca/oculta filas con la clase row-hidden. Nunca elimina filas del DOM,
+    // así los checks marcados se conservan al cambiar o quitar el filtro.
+    function applyDocFilters() {
+        const tokens = normalizeText(docsSearch.value).split(/\s+/).filter(Boolean);
+        const type = docsTypeFilter.value;
+        const color = docsColorFilter.value;
+        const dateField = docsDateField.value;
+        const from = docsDateFrom.value;
+        const to = docsDateTo.value;
+
+        let visible = 0;
+
+        docsBody.querySelectorAll('tr[data-doc-index]').forEach((row) => {
+            const i = Number(row.dataset.docIndex);
+            const doc = currentDocs[i];
+            const meta = docMeta[i];
+
+            if (!doc) return;
+
+            let show = true;
+
+            if (tokens.length) {
+                const haystack = docSearchIndex[i] || '';
+                show = tokens.every((t) => haystack.includes(t));
+            }
+
+            if (show && type) {
+                show = (doc.DuePrefix || '').trim() === type;
+            }
+
+            if (show && color) {
+                const keys = classKeysFor(doc, meta);
+                show = color === '__none__' ? keys.length === 0 : keys.includes(color);
+            }
+
+            if (show && (from || to)) {
+                const value = datePart(doc[dateField]);
+
+                if (!value) {
+                    show = false;
+                } else {
+                    if (from && value < from) show = false;
+                    if (to && value > to) show = false;
+                }
+            }
+
+            row.classList.toggle('row-hidden', !show);
+            if (show) visible++;
+        });
+
+        const total = currentDocs.length;
+        const filtering = tokens.length || type || color || from || to;
+
+        docsFilterCount.textContent = total
+            ? (filtering ? `${visible} de ${total} documento(s)` : `${total} documento(s)`)
+            : '';
+
+        docsFilterEmpty.style.display = (total && visible === 0) ? 'block' : 'none';
+
+        updateTotals();
+    }
+
+    [docsSearch].forEach((el) => el.addEventListener('input', applyDocFilters));
+    [docsTypeFilter, docsColorFilter, docsDateField, docsDateFrom, docsDateTo].forEach((el) => {
+        el.addEventListener('change', applyDocFilters);
+    });
+
+    docsFiltersClear.addEventListener('click', () => {
+        resetDocFilterValues();
+        applyDocFilters();
+    });
+
     function renderDocuments(docs, allData) {
         docsTable.classList.toggle('show-extra', allData);
         currentDocs = docs;
+        docMeta = computeDocMeta(docs);
+        docSearchIndex = docs.map((doc, i) => buildSearchText(doc, docMeta[i], allData));
 
         if (!docs.length) {
-            docsBody.innerHTML = '<tr><td colspan="13" class="empty-state">Este proveedor no tiene documentos.</td></tr>';
+            docsBody.innerHTML = '<tr><td colspan="14" class="empty-state">Este proveedor no tiene documentos.</td></tr>';
         } else {
             docsBody.innerHTML = docs.map((doc, i) => {
-                const selectable = isSelectable(doc);
-                const rowClass = rowClassFor(doc);
+                const meta = docMeta[i];
+                const selectable = isSelectable(doc) && !hasError(meta);
+                const rowClass = rowClassFor(doc, meta);
+                const rowTitle = hasError(meta) ? ` title="${escapeHtml(errorTitle(meta))}"` : '';
 
                 let extraCells = '';
                 if (allData) {
@@ -2506,10 +3025,11 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
                 }
 
                 return `
-                    <tr class="${rowClass} ${selectable ? 'selectable' : ''}" data-saldo="${Number(doc.Saldo) || 0}" data-documento="${escapeHtml(doc.DueName)}" data-doc-index="${i}">
+                    <tr class="${rowClass} ${selectable ? 'selectable' : ''}"${rowTitle} data-saldo="${Number(doc.Saldo) || 0}" data-documento="${escapeHtml(doc.DueName)}" data-doc-index="${i}">
                         <td><input type="checkbox" class="row-check doc-check" ${selectable ? '' : 'disabled'}></td>
                         <td><span class="prefix-tag">${escapeHtml(doc.DuePrefix)}</span></td>
                         <td>${escapeHtml(doc.DueName)}</td>
+                        <td>${formatDate(doc.CreatedDate)}</td>
                         <td>${doc.Links?.PurchaseInvoice
                             ? `<a href="${escapeHtml(doc.Links.PurchaseInvoice)}" target="_blank" rel="noopener noreferrer" class="document-link">
                                     ${escapeHtml(doc.DocName)}
@@ -2527,7 +3047,8 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
             }).join('');
         }
 
-        updateTotals();
+        populateDocTypeFilter();
+        applyDocFilters(); // también llama a updateTotals()
     }
 
     // ---- Selección y totales ----
@@ -2546,25 +3067,39 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         if (e.target.classList.contains('doc-check')) updateTotals();
     });
 
+    // Marca/desmarca solo las filas visibles (las ocultas por filtro no se tocan)
     checkAll.addEventListener('change', () => {
-        docsBody.querySelectorAll('.doc-check:not(:disabled)').forEach((cb) => {
+        docsBody.querySelectorAll('tr:not(.row-hidden) .doc-check:not(:disabled)').forEach((cb) => {
             cb.checked = checkAll.checked;
         });
         updateTotals();
     });
 
+    function syncCheckAll() {
+        const visibleChecks = docsBody.querySelectorAll('tr:not(.row-hidden) .doc-check:not(:disabled)');
+        checkAll.checked = visibleChecks.length > 0 && Array.from(visibleChecks).every((cb) => cb.checked);
+    }
+
+    // Los totales cuentan TODO lo seleccionado, esté visible u oculto por el filtro
     function updateTotals() {
         const checked = docsBody.querySelectorAll('.doc-check:checked');
         let total = 0;
+        let hidden = 0;
 
         checked.forEach((cb) => {
             const row = cb.closest('tr');
             total += Number(row.dataset.saldo) || 0;
+            if (row.classList.contains('row-hidden')) hidden++;
         });
 
         document.getElementById('selCount').textContent = checked.length;
         document.getElementById('selTotal').textContent = formatMoney(total);
+
+        selHiddenEl.textContent = hidden;
+        selHiddenWrap.style.display = hidden > 0 ? 'inline' : 'none';
+
         totalsBar.classList.toggle('show', checked.length > 0);
+        syncCheckAll();
     }
 
     // =====================================================================
@@ -2598,6 +3133,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     }
 
     // ---- Modal: Realizar recibo de pago ----
+    // Toma TODAS las filas marcadas (visibles u ocultas por el filtro)
     function getSelectedDocs() {
         const checked = docsBody.querySelectorAll('.doc-check:checked');
 
@@ -2677,6 +3213,11 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
 
+        if (tokenModalOverlay.classList.contains('show')) {
+            closeTokenModal();
+            return;
+        }
+
         if (modalOverlay.classList.contains('show')) closePaymentModal();
         if (advanceModalOverlay.classList.contains('show')) closeAdvanceModal();
         if (conciliationModalOverlay.classList.contains('show')) closeConciliationModal();
@@ -2684,6 +3225,8 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     });
 
     modalPaymentConfirm.addEventListener('click', async () => {
+        if (!ensureToken()) return;
+
         // Solo los documentos que efectivamente reciben cobertura (cubre > 0)
         const rows = Array.from(document.querySelectorAll('#modalDocsBody tr'))
             .filter(tr => Number(tr.dataset.cubre) > 0);
@@ -2739,6 +3282,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         formData.append('valor', valor);
         formData.append('documentos', JSON.stringify(debtsWithCoverage));
         if (paymentFile) formData.append('comprobante', paymentFile);
+        appendToken(formData);
 
         // Guardamos el contenido original del boton para poder restaurarlo despues
         const originalConfirmHTML = modalPaymentConfirm.innerHTML;
@@ -2926,6 +3470,8 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     });
 
     advanceModalConfirm.addEventListener('click', async () => {
+        if (!ensureToken()) return;
+
         const valor = Number(advanceValue.value) || 0;
 
         if (!advanceTipo.value || !advanceDate.value || !advanceAction.value || !advanceSource.value || !advanceFile || !advanceObservations.value || valor <= 0) {
@@ -2959,6 +3505,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         formData.append('observaciones', advanceObservations.value);
         formData.append('valor', valor);
         if (advanceFile) formData.append('comprobante', advanceFile);
+        appendToken(formData);
 
         const originalConfirmHTML = advanceModalConfirm.innerHTML;
 
@@ -3040,6 +3587,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     let conciliationSelectedDebts = [];
     let conciliationSelectedRPs   = [];
 
+    // Usa currentDocs completo: el filtro es solo visual y no afecta qué RP se consideran
     function getRPDocs() {
         return currentDocs.filter((doc) =>
             (doc.DuePrefix || '').toUpperCase().startsWith('RP') && !doc.IsAnnulled
@@ -3172,6 +3720,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     });
 
     conciliationModalConfirm.addEventListener('click', async () => {
+        if (!ensureToken()) return;
 
         if (!conciliationTipo.value || !conciliationDate.value || !conciliationObservations.value) {
             Swal.fire({
@@ -3215,6 +3764,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
             formData.append('observaciones', conciliationObservations.value);
             formData.append('documentos', JSON.stringify(conciliationSelectedDebts));
             formData.append('recibos', JSON.stringify(conciliationSelectedRPs));
+            appendToken(formData);
 
             const response = await fetch('{{ route("siigo.accounts_conciliation") }}', {
                 method: 'POST',
@@ -3265,6 +3815,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     });
 
     // ---- Inicio: se consulta el listado de proveedores al endpoint ----
+    updateTokenButton();
     resetView();
     loadProviders();
 })();

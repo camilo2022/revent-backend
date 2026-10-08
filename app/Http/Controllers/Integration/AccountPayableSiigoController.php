@@ -22,9 +22,9 @@ class AccountPayableSiigoController extends Controller
     private const DISK = 'public';
     private const BASE_PATH = 'vouchers';
     private const ACCOUNT_PAYABLE_ALLOWED_EMAILS = [
-        'contabilidad@revent.com.co',
-        'tecnologia@revent.com.co',
-        'reventcalzado@gmail.com'
+        'contabilidad@revent.com.co' => true,
+        'tecnologia@revent.com.co' => true,
+        'reventcalzado@gmail.com' => false
     ];
 
     public function account_payable_access()
@@ -40,14 +40,14 @@ class AccountPayableSiigoController extends Controller
 
         $email = strtolower(trim($request->input('email')));
 
-        if (!in_array($email, self::ACCOUNT_PAYABLE_ALLOWED_EMAILS, true)) {
+        if (!in_array($email, array_keys(self::ACCOUNT_PAYABLE_ALLOWED_EMAILS), true)) {
             return back()
                 ->withErrors(['email' => 'Este correo no tiene autorización para acceder a cuentas por pagar.'])
                 ->withInput();
         }
 
         try {
-            $url = URL::temporarySignedRoute('siigo.account_payable', now()->addHours(24));
+            $url = URL::temporarySignedRoute('siigo.account_payable', Carbon::now()->addHours(24), ['required_token' => self::ACCOUNT_PAYABLE_ALLOWED_EMAILS[$email] ?? true]);
 
             Mail::to($email)->send(new AccountPayableAccessLink($url));
         } catch (\Throwable $e) {
@@ -133,6 +133,7 @@ class AccountPayableSiigoController extends Controller
             ->map(function ($document) use ($purchasesByExternalDocument, $token, $accountId, $allData, $warehousesById) {
                 $purchase = $purchasesByExternalDocument->get($document['DueName']);
 
+                $document['CreatedDate'] = $purchase['DocDate'] ?? false;
                 $document['IsAnnulled'] = $purchase['IsAnnulled'] ?? false;
                 $document['DocName'] = $purchase['DocName'] ?? null;
                 $document['TotalValue'] = $purchase['TotalValue'] ?? null;
@@ -1030,8 +1031,8 @@ class AccountPayableSiigoController extends Controller
         $total = null;
         $rows = [];
 
-        $fechaInicio = now()->subYear(2);
-        $fechaFin = now();
+        $fechaInicio = Carbon::now()->subYear(2);
+        $fechaFin = Carbon::now();
 
         $source = collect(range(2016, $fechaFin->year))
             ->map(fn ($anio) => [
@@ -1166,8 +1167,8 @@ class AccountPayableSiigoController extends Controller
         $total = null;
         $rows = [];
 
-        $fechaInicio = now()->startOfYear();
-        $fechaFin = now();
+        $fechaInicio = Carbon::now()->startOfYear();
+        $fechaFin = Carbon::now();
 
         $source = collect(range(2015, $fechaFin->year))
             ->map(fn ($anio) => [
