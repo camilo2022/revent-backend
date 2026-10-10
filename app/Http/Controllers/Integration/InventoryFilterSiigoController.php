@@ -8,6 +8,8 @@ use App\Mail\InventroyFilterAccessLink;
 use App\Services\ProductPhotoService;
 use App\Services\SiigoProductsCache;
 use Carbon\Carbon;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -19,6 +21,9 @@ class InventoryFilterSiigoController extends Controller
 {
     private const DISK = ProductPhotoService::DISK;
     private const BASE_PATH = ProductPhotoService::BASE_PATH;
+    private const REPORT_URL = 'https://services.siigo.com/document/api/v1/reports/getreport';
+    private const AUTOCOMPLETE_URL = 'https://services.siigo.com/catalog/api/v1/Autocomplete/GetData';
+
     private string $siigo_base_url = 'https://api.siigo.com';
 
     public function __construct(private ProductPhotoService $photos)
@@ -134,7 +139,7 @@ class InventoryFilterSiigoController extends Controller
 
         $response = Http::withToken($token)
             ->acceptJson()
-            ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
+            ->post(self::REPORT_URL, $body);
 
         if (!$response->successful()) {
             throw new \Exception(
@@ -149,7 +154,284 @@ class InventoryFilterSiigoController extends Controller
         ]);
     }
 
-    /** Devuelve una página de fotos para el carrusel, no toda la galería. */
+    public function inventory_filter_all_warehouses(Request $request)
+    {
+        $validated = $request->validate([
+            'referencia' => ['required', 'string', 'max:100'],
+        ]);
+
+        set_time_limit(180);
+
+        $referencia = mb_strtoupper($this->clean_text(trim($validated['referencia'])));
+
+        $cacheKey = 'INVENTORY_FILTER:ALL_WAREHOUSES:v3:' . $referencia;
+
+        $payload = Cache::get($cacheKey);
+
+        if ($payload === null) {
+            $payload = $this->stock_all_warehouses($referencia);
+
+            if (empty($payload['errores']) && !empty($payload['productos'])) {
+                Cache::put($cacheKey, $payload, now()->addSeconds(60));
+            }
+        }
+
+        return response()->json($payload);
+    }
+
+    private function stock_all_warehouses(string $referencia): array
+    {
+        $siigo = new SiigoInventoryService();
+        $token = $siigo->auth();
+
+        $autocomplete = $this->autocomplete_products($token, $referencia);
+        $items = $autocomplete['items'] ?? [];
+
+        if (empty($items)) {
+            return [
+                'referencia' => $referencia,
+                'productos'  => [],
+                'errores'    => [],
+            ];
+        }
+
+        $errores = [];
+
+        $responses = Http::pool(function (Pool $pool) use ($items, $token) {
+            $requests = [];
+
+            foreach ($items as $id => $descripcion) {
+                $requests[] = $pool->as('p' . $id)
+                    ->withToken($token)
+                    ->acceptJson()
+                    ->timeout(90)
+                    ->post(self::REPORT_URL, $this->report_body((int) $id, $descripcion));
+            }
+
+            return $requests;
+        });
+
+        $porBodega = [];
+
+        foreach ($items as $id => $descripcion) {
+            $r = $responses['p' . $id] ?? null;
+
+            if (!$r instanceof Response || !$r->successful()) {
+                $errores[] = $descripcion;
+                continue;
+            }
+
+            $filas = $r->json('data.Value.Table');
+            $filas = is_array($filas) ? $filas : [];
+
+            foreach ($filas as $fila) {
+                $partes = preg_split('/[-*]/', (string) ($fila['Description'] ?? ''));
+
+                if (mb_strtoupper($this->clean_text(trim($partes[0] ?? ''))) !== $referencia) {
+                    continue;
+                }
+
+                $bodegaId = $fila['productwarehousecode'] ?? null;
+
+                if ($bodegaId === null) {
+                    continue;
+                }
+
+                $nombre = trim((string) ($fila['pwhDescription'] ?? ''));
+
+                if ($nombre === '') {
+                    $cod = (string) ($fila['CodDesWH'] ?? '');
+                    $nombre = trim(str_contains($cod, ' - ') ? explode(' - ', $cod, 2)[1] : $cod);
+                }
+
+                if (str_starts_with(mb_strtoupper($nombre), 'TRANSITO ')) {
+                    continue;
+                }
+
+                $porBodega[$bodegaId]['nombre'] = $nombre;
+                $porBodega[$bodegaId]['filas'][] = $fila;
+            }
+        }
+
+        $resultado = [];
+
+        foreach ($porBodega as $bodegaId => $bodega) {
+            foreach ($this->map_products($bodega['filas']) as $producto) {
+                $producto['id'] = $producto['referencia'] . '@' . $bodegaId;
+                $producto['bodega'] = $bodega['nombre'];
+                $producto['bodega_id'] = $bodegaId;
+
+                $resultado[] = $producto;
+            }
+        }
+
+        usort($resultado, fn ($a, $b) => strcmp($a['bodega'], $b['bodega']));
+
+        return [
+            'referencia' => $referencia,
+            'productos'  => $resultado,
+            'errores'    => $errores,
+        ];
+    }
+
+    private function autocomplete_products(string $token, string $referencia)
+    {
+        $ids = [];
+        $items = [];
+        $descripciones = [];
+        $vistos = [];
+        $numRecordView = 0;
+        $maxIntentos = 10;
+
+        for ($intento = 0; $intento < $maxIntentos; $intento++) {
+            $response = Http::retry(3, 3000, null, false)
+                ->withToken($token)
+                ->timeout(120)
+                ->asJson()
+                ->post(self::AUTOCOMPLETE_URL, [
+                    'type'          => 1,
+                    'browserID'     => '33',
+                    'query'         => $referencia,
+                    'filter'        => 'IsInventoryControl=1',
+                    'numRecordView' => $numRecordView,
+                    'tags'          => (object) [],
+                ]);
+
+            if (!$response->successful()) {
+                throw new \Exception('Error consultando productos: ' . $response->body());
+            }
+
+            $lista = $this->decode_autocomplete($response->body());
+
+            if (empty($lista)) break;
+
+            $nuevos = 0;
+
+            foreach ($lista as $item) {
+                if (!is_array($item)) continue;
+
+                $description = $item['Description'];
+                $id = $item['ProductID'];
+
+                $clave = ($id ?? '') . '|' . $description;
+
+                if (isset($vistos[$clave])) continue;
+
+                $vistos[$clave] = true;
+                $nuevos++;
+
+                $partes = preg_split('/[-*]/', $description);
+                $ref = mb_strtoupper($this->clean_text(trim($partes[0] ?? '')));
+
+                if ($ref !== $referencia || $id === null) continue;
+
+                $ids[] = is_numeric($id) ? (int) $id : $id;
+                $items[(int) $id] = $description;
+            }
+
+            if ($nuevos === 0) break;
+
+            $numRecordView += 10;
+        }
+
+        return [
+            'ids' => array_values(array_unique($ids)),
+            'descripcion' => $descripciones[0] ?? '',
+            'items' => $items
+        ];
+    }
+
+    private function decode_autocomplete(string $body): array
+    {
+        $data = trim($body);
+
+        for ($i = 0; $i < 5 && is_string($data); $i++) {
+            $data = trim($data);
+
+            if ($data === '') {
+                return [];
+            }
+
+            $decoded = json_decode($data, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return [];
+            }
+
+            $data = $decoded;
+        }
+
+        if (!is_array($data)) {
+            return [];
+        }
+
+        foreach (['Data', 'data', 'Items', 'items', 'Results', 'results', 'Value', 'value'] as $key) {
+            if (isset($data[$key]) && is_array($data[$key])) {
+                $data = $data[$key];
+                break;
+            }
+        }
+
+        return array_is_list($data) ? $data : [];
+    }
+
+    private function report_body(int $productId, string $descripcion): array
+    {
+        $filters = [
+            [
+                'Field'        => '_vProduct',
+                'FilterType'   => 6,
+                'OperatorType' => 0,
+                'Value'        => [$productId],
+                'ValueUI'      => $descripcion,
+                'Source'       => '2',
+            ],
+            [
+                'Field'        => 'WarehouseFilter',
+                'FilterType'   => 2,
+                'OperatorType' => 0,
+                'Value'        => [-1],
+                'ValueUI'      => '',
+                'Source'       => '',
+            ],
+            [
+                'Field'        => '_vCutoffDate',
+                'FilterType'   => 5,
+                'OperatorType' => 0,
+                'Value'        => [now()->toISOString()],
+                'ValueUI'      => now()->format('n/j/Y'),
+                'Source'       => 'Account',
+            ],
+            [
+                'Field'        => 'ProductBalanceFilter',
+                'FilterType'   => 7,
+                'OperatorType' => 0,
+                'Value'        => ['0'],
+                'ValueUI'      => 'Con saldo',
+                'Source'       => 'ProductBalancesEnum',
+            ],
+            [
+                'Field'        => 'product',
+                'FilterType'   => 2,
+                'OperatorType' => 0,
+                'Value'        => [-1],
+                'ValueUI'      => '',
+                'Source'       => '',
+            ],
+        ];
+
+        return [
+            'FilterCriterias'    => json_encode($filters, JSON_UNESCAPED_UNICODE),
+            'GetTotalCount'      => false,
+            'GridOrderCriteria'  => null,
+            'Id'                 => 5443,
+            'Params'             => json_encode(['TabID' => '1617', 'pTabID' => '1445', 'rReport' => '1']),
+            'Skip'               => 0,
+            'Sort'               => ' ',
+            'Take'               => 0,
+        ];
+    }
+
     public function inventory_filter_images(Request $request)
     {
         $validated = $request->validate([

@@ -108,7 +108,7 @@
         .search-wrap input { width: 100%; padding-left: 2.4rem; padding-right: 2.2rem; }
         .search-wrap .icon { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: #9ca3af; }
 
-        .search-wrap input:focus, .excel-field-select:focus { outline: none; border-color: #16a34a; background: #fff; }
+        .search-wrap input:focus, .excel-field-select:focus, .excel-field-input:focus { outline: none; border-color: #16a34a; background: #fff; }
 
         .clear-btn {
             position: absolute; right: .6rem; top: 50%; transform: translateY(-50%);
@@ -216,9 +216,21 @@
         .talla-stock { font-size: .68rem; font-weight: 700; margin-top: .1rem; }
 
         .prod-footer {
-            border-top: 1px solid #eef0f2; background: #f9fafb; padding: .7rem 1.2rem; font-size: .74rem; color: #9ca3af;
-            display: flex; justify-content: space-between; align-items: center; margin-top: auto;
+            border-top: 1px solid #eef0f2; background: #f9fafb; padding: .55rem 1.2rem; font-size: .74rem; color: #9ca3af;
+            display: flex; justify-content: space-between; align-items: center; gap: .6rem; margin-top: auto;
         }
+
+        .prod-footer-right { display: flex; align-items: center; gap: .6rem; }
+
+        /* Botón solo ícono: ver en todas las bodegas */
+        .btn-bodegas-icon {
+            width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid #bbf7d0; background: #f0fdf4;
+            color: #15803d; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+            transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .15s ease;
+        }
+
+        .btn-bodegas-icon:hover { background: #16a34a; border-color: #16a34a; color: #fff; transform: translateY(-1px); }
+        .btn-bodegas-icon:active { transform: translateY(0); }
 
         .suggest-box { border-top: 1px solid #fde68a; background: #fffbeb; padding: .85rem 1.2rem 1rem; }
         .suggest-title { display: flex; align-items: center; gap: .4rem; font-size: .76rem; font-weight: 700; color: #92400e; margin-bottom: .55rem; }
@@ -245,6 +257,7 @@
         .status-box { display: flex; align-items: center; gap: .6rem; padding: .9rem 1.1rem; border-radius: 12px; font-size: .85rem; font-weight: 600; margin-bottom: 1.1rem; }
         .status-box.cargando { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
         .status-box.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .status-box.aviso { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
 
         .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(29, 78, 216, .25); border-top-color: #1d4ed8; animation: spin .7s linear infinite; flex-shrink: 0; }
 
@@ -266,12 +279,13 @@
             display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
         }
 
-        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.25rem; border-bottom: 1px solid #eef0f2; }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.25rem; border-bottom: 1px solid #eef0f2; }
         .modal-title { font-size: 1.05rem; font-weight: 700; margin: 0; }
+        .modal-sub { font-size: .78rem; color: #6b7280; margin-top: .15rem; }
 
         .modal-close {
             border: none; background: #f3f4f6; color: #4b5563; width: 32px; height: 32px;
-            border-radius: 999px; font-size: 1rem; cursor: pointer; line-height: 1;
+            border-radius: 999px; font-size: 1rem; cursor: pointer; line-height: 1; flex-shrink: 0;
         }
 
         .modal-close:hover { background: #e5e7eb; }
@@ -286,6 +300,43 @@
         .btn-ghost:hover { background: #f3f4f6; }
         .btn-primary { background: #16a34a; color: #fff; flex: 1; }
         .btn-primary:hover { background: #15803d; }
+
+        /* ---------------------------------------------------------- */
+        /* Modal: inventario en todas las bodegas                     */
+        /* ---------------------------------------------------------- */
+
+        .modal-box.modal-wide { max-width: 1150px; }
+
+        /* Barra de filtros de bodega */
+        .bodegas-filtros {
+            display: flex; flex-wrap: wrap; align-items: center; gap: .6rem;
+            padding: .85rem 1.25rem; border-bottom: 1px solid #eef0f2; background: #fff;
+        }
+
+        .bodegas-filtros .search-wrap { flex: 1 1 240px; }
+        .bodegas-filtros .search-wrap input { width: 100%; }
+        .bodegas-filtros .select-wrap { flex: 0 1 280px; min-width: 180px; }
+
+        .bodegas-filtros .btn-limpiar {
+            border: 1px solid #d1d5db; background: #fff; color: #4b5563; border-radius: 10px;
+            padding: .62rem .9rem; font-size: .8rem; font-weight: 700; cursor: pointer; flex-shrink: 0;
+        }
+
+        .bodegas-filtros .btn-limpiar:hover { background: #f3f4f6; }
+
+        .bodegas-count { margin-left: auto; font-size: .76rem; color: #6b7280; font-weight: 600; white-space: nowrap; }
+
+        .bodegas-body { padding: 1.25rem; overflow-y: auto; flex: 1; background: #f3f4f6; border-radius: 0 0 16px 16px; }
+
+        .bodegas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 1rem; }
+
+        .bodega-tag {
+            display: flex; align-items: center; justify-content: space-between; gap: .6rem;
+            background: #16a34a; color: #fff; padding: .5rem 1.2rem; font-size: .8rem; font-weight: 800;
+        }
+
+        .bodega-tag span:first-child { overflow-wrap: anywhere; }
+        .bodega-tag-total { font-weight: 700; font-size: .72rem; background: rgba(255, 255, 255, .2); padding: .15rem .55rem; border-radius: 999px; white-space: nowrap; }
 
         /* ---------------------------------------------------------- */
         /* Lightbox                                                   */
@@ -342,6 +393,10 @@
             .filter-btn-text { display: none; }
             .filter-btn { padding: 0 .85rem; }
             .modal-body { grid-template-columns: 1fr; }
+            .bodegas-body { padding: .85rem; }
+            .bodegas-filtros { padding: .75rem .85rem; }
+            .bodegas-filtros .select-wrap { flex: 1 1 100%; }
+            .bodegas-count { margin-left: 0; flex: 1 1 100%; }
         }
     </style>
 </head>
@@ -358,6 +413,7 @@
         window.COLOR_GROUPS = @json($color_groups ?? []);
         window.INVENTORY_FILTER_URL = "{{ route('siigo.inventory_filter_search') }}";
         window.INVENTORY_FILTER_IMAGES_URL = "{{ route('siigo.inventory_filter_images') }}";
+        window.INVENTORY_FILTER_ALL_URL = "{{ route('siigo.inventory_filter_all_warehouses') }}";
     </script>
 
 
@@ -604,7 +660,18 @@
                                         {{-- FOOTER --}}
                                         <div class="prod-footer">
                                             <span>Total referencia: <strong x-text="totalProducto(p)"></strong> und.</span>
-                                            <span x-text="p.colores.length + (p.colores.length === 1 ? ' color' : ' colores')"></span>
+
+                                            <div class="prod-footer-right">
+                                                <span x-text="p.colores.length + (p.colores.length === 1 ? ' color' : ' colores')"></span>
+
+                                                <button type="button" class="btn-bodegas-icon" title="Ver en todas las bodegas"
+                                                    aria-label="Ver en todas las bodegas" @click="verTodasBodegas(p)">
+                                                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                                        <polyline points="9 22 9 12 15 12 15 22" />
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
 
                                         {{-- SUGERENCIAS (sin stock en el color elegido) --}}
@@ -715,7 +782,18 @@
 
                                         <div class="prod-footer">
                                             <span>Total referencia: <strong x-text="totalProducto(p)"></strong> und.</span>
-                                            <span x-text="p.colores.length + (p.colores.length === 1 ? ' color' : ' colores')"></span>
+
+                                            <div class="prod-footer-right">
+                                                <span x-text="p.colores.length + (p.colores.length === 1 ? ' color' : ' colores')"></span>
+
+                                                <button type="button" class="btn-bodegas-icon" title="Ver en todas las bodegas"
+                                                    aria-label="Ver en todas las bodegas" @click="verTodasBodegas(p)">
+                                                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                                        <polyline points="9 22 9 12 15 12 15 22" />
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <template x-if="colorActual(p) && totalColor(colorActual(p)) === 0">
@@ -843,6 +921,167 @@
 
 
         {{-- ======================================================
+             MODAL: INVENTARIO EN TODAS LAS BODEGAS
+        ======================================================= --}}
+
+        <template x-if="bodegasModal.open">
+            <div class="modal-overlay" @click.self="cerrarBodegas()" @keydown.window.escape="!lightbox.open && cerrarBodegas()">
+                <div class="modal-box modal-wide">
+
+                    <div class="modal-header">
+                        <div style="min-width:0;">
+                            <h3 class="modal-title" x-text="bodegasModal.referencia + ' · ' + bodegasModal.nombre"></h3>
+                            <div class="modal-sub" x-show="!bodegasModal.cargando && !bodegasModal.error">
+                                <span x-text="bodegasModal.productos.length"></span>
+                                <span x-text="bodegasModal.productos.length === 1 ? 'bodega con stock' : 'bodegas con stock'"></span>
+                                · <span x-text="totalBodegasModal"></span> und. en total
+                            </div>
+                        </div>
+
+                        <button type="button" class="modal-close" @click="cerrarBodegas()">✕</button>
+                    </div>
+
+                    {{-- FILTRO DE BODEGAS: buscador + selector --}}
+                    <template x-if="!bodegasModal.cargando && bodegasModal.productos.length > 1">
+                        <div class="bodegas-filtros">
+
+                            <div class="search-wrap">
+                                <span class="icon">🔍</span>
+                                <input type="text" class="excel-field-input" x-model="bodegasModal.filtro" placeholder="Buscar bodega por nombre...">
+                                <button type="button" class="clear-btn" x-show="bodegasModal.filtro" @click="bodegasModal.filtro = ''">✕</button>
+                            </div>
+
+                            <div class="select-wrap">
+                                <select class="excel-field-select" x-model="bodegasModal.bodega">
+                                    <option value="">Todas las bodegas</option>
+                                    <template x-for="o in opcionesBodegas" :key="o.id">
+                                        <option :value="String(o.id)" x-text="o.nombre + ' (' + o.total + ' und.)'"></option>
+                                    </template>
+                                </select>
+                            </div>
+
+                            <button type="button" class="btn-limpiar" x-show="hayFiltroBodega" @click="limpiarFiltroBodegas()">Limpiar</button>
+
+                            <span class="bodegas-count">
+                                <span x-text="bodegasModalFiltradas.length"></span> de <span x-text="bodegasModal.productos.length"></span> bodegas
+                            </span>
+
+                        </div>
+                    </template>
+
+                    <div class="bodegas-body">
+
+                        {{-- CARGANDO --}}
+                        <template x-if="bodegasModal.cargando">
+                            <div class="status-box cargando">
+                                <span class="spinner"></span>
+                                <span>Consultando todas las bodegas, esto puede tardar unos segundos...</span>
+                            </div>
+                        </template>
+
+                        {{-- ERROR --}}
+                        <template x-if="bodegasModal.error && !bodegasModal.cargando">
+                            <div class="status-box error">
+                                <span>⚠</span>
+                                <span x-text="bodegasModal.error"></span>
+                                <button type="button" class="retry-btn" @click="verTodasBodegas({ referencia: bodegasModal.referencia, nombre: bodegasModal.nombre })">Reintentar</button>
+                            </div>
+                        </template>
+
+                        {{-- BODEGAS QUE NO RESPONDIERON --}}
+                        <template x-if="!bodegasModal.cargando && bodegasModal.errores.length > 0">
+                            <div class="status-box aviso">
+                                <span>⚠</span>
+                                <span x-text="'No se pudo consultar: ' + bodegasModal.errores.join(', ') + '. Los datos pueden estar incompletos.'"></span>
+                            </div>
+                        </template>
+
+                        {{-- SIN STOCK EN NINGUNA BODEGA --}}
+                        <template x-if="!bodegasModal.cargando && !bodegasModal.error && bodegasModal.productos.length === 0">
+                            <div class="empty-state">Esta referencia no tiene stock en ninguna bodega.</div>
+                        </template>
+
+                        {{-- CARDS POR BODEGA --}}
+                        <template x-if="!bodegasModal.cargando && bodegasModal.productos.length > 0">
+                            <div class="bodegas-grid">
+
+                                <template x-for="p in bodegasModalFiltradas" :key="p.id">
+                                    <div class="prod-card">
+
+                                        <div class="bodega-tag">
+                                            <span x-text="'🏬 ' + p.bodega"></span>
+                                            <span class="bodega-tag-total" x-text="totalProducto(p) + ' und.'"></span>
+                                        </div>
+
+                                        <div class="prod-head">
+
+                                            <img class="prod-thumb" :class="{ 'no-zoom': !colorActual(p) }"
+                                                :src="imagenActual(p)" :alt="p.nombre || p.referencia"
+                                                loading="lazy" decoding="async"
+                                                x-on:error="$event.target.src = placeholderThumb"
+                                                @click="colorActual(p) && abrirLightbox(p, indiceColorActual(p))">
+
+                                            <div class="prod-info" @click="colorActual(p) && abrirLightbox(p, indiceColorActual(p))">
+                                                <div class="prod-ref" x-text="p.referencia || ''"></div>
+                                                <div class="prod-nombre" x-text="p.nombre || ''"></div>
+                                                <div class="prod-meta" x-text="(p.categoria || '') + (p.genero ? ' · ' + p.genero : '')"></div>
+                                                <div class="prod-precio" x-text="formatPrecio(p.precio)"></div>
+                                            </div>
+
+                                            <div class="prod-total">
+                                                <div class="prod-total-num" :style="{ color: totalColorActual(p) > 0 ? '#16a34a' : '#dc2626' }" x-text="totalColorActual(p)"></div>
+                                                <div class="prod-total-label">en <span x-text="p.bodega"></span></div>
+                                            </div>
+
+                                        </div>
+
+                                        <template x-if="p.colores.length > 0">
+                                            <div class="color-tabs">
+                                                <template x-for="(c, i) in p.colores" :key="c.nombre + '-' + i">
+                                                    <button type="button" class="color-tab"
+                                                        :class="{ activo: (colorSeleccionado[p.id] ?? 0) === i }"
+                                                        @click="seleccionarColor(p, i)">
+                                                        <span class="color-dot" :class="{ agotado: totalColor(c) === 0 }" :style="{ background: c.hex || '#9CA3AF' }"></span>
+                                                        <span x-text="c.nombre || ''"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="colorActual(p)">
+                                            <div class="tallas-row">
+                                                <template x-for="[talla, qty] in Object.entries(colorActual(p).tallas || {})" :key="talla">
+                                                    <div class="talla-chip" :style="qty > 0 ? { borderColor: nivel(qty).color, background: nivel(qty).color + '14' } : {}">
+                                                        <span class="talla-num" x-text="talla"></span>
+                                                        <span class="talla-stock" :style="{ color: qty > 0 ? nivel(qty).color : '#9ca3af' }" x-text="qty"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+
+                                        <div class="prod-footer">
+                                            <span>Total en la bodega: <strong x-text="totalProducto(p)"></strong> und.</span>
+                                            <span x-text="p.colores.length + (p.colores.length === 1 ? ' color' : ' colores')"></span>
+                                        </div>
+
+                                    </div>
+                                </template>
+
+                                <template x-if="bodegasModalFiltradas.length === 0">
+                                    <div class="empty-state" style="grid-column:1 / -1;">Ninguna bodega coincide con ese filtro.</div>
+                                </template>
+
+                            </div>
+                        </template>
+
+                    </div>
+
+                </div>
+            </div>
+        </template>
+
+
+        {{-- ======================================================
              LIGHTBOX
         ======================================================= --}}
 
@@ -955,6 +1194,7 @@
                 csrfToken: document.querySelector('meta[name="csrf-token"]')?.content || '',
                 filterUrl: window.INVENTORY_FILTER_URL || '',
                 imagesUrl: window.INVENTORY_FILTER_IMAGES_URL || '',
+                allUrl: window.INVENTORY_FILTER_ALL_URL || '',
 
                 placeholderThumb: crearPlaceholder(false),
                 placeholderGrande: crearPlaceholder(true),
@@ -979,6 +1219,13 @@
                 cargando: false,
                 error: null,
 
+                // Modal: inventario de una referencia en todas las bodegas
+                // filtro = texto de búsqueda; bodega = id de bodega elegida en el selector ('' = todas)
+                bodegasModal: {
+                    open: false, referencia: '', nombre: '', cargando: false, error: null,
+                    productos: [], errores: [], filtro: '', bodega: '',
+                },
+
                 lightbox: {
                     open: false, fotos: [], index: 0, referencia: '', nombre: '', colorNombre: '',
                     pagina: 1, porPagina: 12, total: 0, ultimaPagina: 1, cargando: false, error: null,
@@ -994,10 +1241,15 @@
                     this.$watch('macroColor', () => this.aplicarColorAFiltrados());
                     this.$watch('colorEspecifico', () => this.aplicarColorAFiltrados());
 
-                    // Bloquea el scroll del fondo mientras el modal está abierto
-                    this.$watch('filtrosOpen', abierto => {
-                        document.body.style.overflow = abierto ? 'hidden' : '';
-                    });
+                    // Bloquea el scroll del fondo mientras algún modal está abierto
+                    this.$watch('filtrosOpen', () => this.actualizarScrollFondo());
+                    this.$watch('bodegasModal.open', () => this.actualizarScrollFondo());
+
+                },
+
+                actualizarScrollFondo() {
+
+                    document.body.style.overflow = (this.filtrosOpen || this.bodegasModal.open) ? 'hidden' : '';
 
                 },
 
@@ -1135,6 +1387,7 @@
                     this.precioRango = '';
                     this.colorSeleccionado = {};
                     this.filtrosOpen = false;
+                    this.bodegasModal.open = false;
 
                 },
 
@@ -1281,6 +1534,118 @@
                         this.cargando = false;
 
                     }
+
+                },
+
+
+                /* ======================================================
+                   INVENTARIO DE UNA REFERENCIA EN TODAS LAS BODEGAS
+                ======================================================= */
+
+                async verTodasBodegas(p) {
+
+                    if (!p || !p.referencia) return;
+
+                    const referencia = p.referencia;
+
+                    this.bodegasModal = {
+                        open: true, referencia, nombre: p.nombre || '', cargando: true, error: null,
+                        productos: [], errores: [], filtro: '', bodega: '',
+                    };
+
+                    try {
+
+                        const res = await fetch(this.allUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': this.csrfToken,
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: JSON.stringify({ referencia }),
+                        });
+
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+                        const data = await res.json();
+
+                        // Si el usuario cerró o abrió otra referencia mientras tanto, se descarta.
+                        if (!this.bodegasModal.open || this.bodegasModal.referencia !== referencia) return;
+
+                        const lista = Array.isArray(data.productos) ? data.productos : [];
+
+                        this.bodegasModal.productos = lista.map(x => this.normalizarProducto(x));
+                        this.bodegasModal.errores = Array.isArray(data.errores) ? data.errores : [];
+
+                    } catch (e) {
+
+                        console.error('Error consultando todas las bodegas:', e);
+
+                        if (this.bodegasModal.referencia === referencia) {
+                            this.bodegasModal.error = 'No pudimos consultar el inventario en todas las bodegas. Intenta de nuevo.';
+                            this.bodegasModal.productos = [];
+                        }
+
+                    } finally {
+
+                        if (this.bodegasModal.referencia === referencia) this.bodegasModal.cargando = false;
+
+                    }
+
+                },
+
+                cerrarBodegas() {
+
+                    this.bodegasModal.open = false;
+
+                },
+
+                limpiarFiltroBodegas() {
+
+                    this.bodegasModal.filtro = '';
+                    this.bodegasModal.bodega = '';
+
+                },
+
+                get hayFiltroBodega() {
+
+                    return !!(this.bodegasModal.filtro.trim() || this.bodegasModal.bodega);
+
+                },
+
+                // Opciones del selector: una por bodega con stock (ya vienen ordenadas por nombre).
+                get opcionesBodegas() {
+
+                    return this.bodegasModal.productos.map(p => ({
+                        id: p.bodega_id,
+                        nombre: p.bodega,
+                        total: this.totalProducto(p),
+                    }));
+
+                },
+
+                // Combina el selector y el buscador por nombre.
+                get bodegasModalFiltradas() {
+
+                    const q = this.normalizarTexto(this.bodegasModal.filtro);
+                    const sel = this.bodegasModal.bodega;
+
+                    return this.bodegasModal.productos.filter(p => {
+
+                        if (sel && String(p.bodega_id) !== String(sel)) return false;
+
+                        if (q && !this.normalizarTexto(p.bodega).includes(q)) return false;
+
+                        return true;
+
+                    });
+
+                },
+
+                get totalBodegasModal() {
+
+                    return this.bodegasModal.productos.reduce((total, p) => total + this.totalProducto(p), 0);
 
                 },
 
@@ -1864,7 +2229,6 @@
                 },
 
             };
-
         }
 
     </script>

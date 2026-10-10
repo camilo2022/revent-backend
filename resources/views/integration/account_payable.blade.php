@@ -2,1238 +2,1309 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="X-UA-Compatible" content="ie=edge">
-<title>Cuentas por pagar</title>
-<style>
-    * { box-sizing: border-box; }
-
-    body {
-        background: #f3f4f6;
-        font-family: 'Segoe UI', system-ui, sans-serif;
-        margin: 0;
-        padding: 2rem 1rem;
-    }
-
-    .wrapper {
-        max-width: 1500px;
-        margin: 0 auto;
-    }
-
-    .card {
-        background: #ffffff;
-        border: 1px solid #eef0f2;
-        border-radius: 16px;
-        padding: 1.9rem 2.1rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    }
-
-    .title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.3rem;
-    }
-
-    .subtitle {
-        font-size: 0.85rem;
-        color: #6b7280;
-        margin-bottom: 1.5rem;
-    }
-
-    /* ---- Inputs ---- */
-    .field-group {
-        margin-bottom: 1.4rem;
-        position: relative;
-        max-width: 650px;
-    }
-
-    .field-label {
-        display: block;
-        font-size: 0.82rem;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 0.4rem;
-    }
-
-    .combo-input {
-        width: 100%;
-        padding: 0.65rem 0.85rem;
-        font-size: 0.88rem;
-        color: #1f2937;
-        background: #f9fafb;
-        border: 1px solid #d1d5db;
-        border-radius: 10px;
-        transition: border-color 0.2s ease, background 0.2s ease;
-    }
-
-    select.combo-input {
-        padding: 0.65rem 0.85rem;
-        cursor: pointer;
-    }
-
-    .btn-expand-payment {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        margin: 0;
-        border: none;
-        outline: none;
-        background: transparent;
-        color: #64748b;
-        cursor: pointer;
-        border-radius: 50%;
-        transition: all 0.2s ease;
-    }
-
-    .btn-expand-payment:hover {
-        background: #f1f5f9;
-        color: #2563eb;
-    }
-
-    .btn-expand-payment:focus {
-        outline: none;
-        box-shadow: none;
-    }
-
-    .btn-expand-payment .expand-icon {
-        width: 20px;
-        height: 20px;
-        transition: transform 0.2s ease;
-    }
-
-    .combo-input::placeholder { color: #9ca3af; }
-
-    .combo-input:focus {
-        outline: none;
-        border-color: #16a34a;
-        background: #ffffff;
-    }
-
-    /* ---- Tabla de proveedores ---- */
-    .providers-toolbar {
-        display: flex;
-        gap: 0.8rem;
-        margin-bottom: 1.1rem;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-
-    .providers-toolbar .combo-input { max-width: 480px; }
-    .providers-toolbar select.combo-input { max-width: 110px; }
-    .providers-toolbar select#providerTypeFilter.combo-input { max-width: 220px; }
-
-    .btn-sync-providers {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        background: #eef2ff;
-        border: 1px solid #c7d2fe;
-        border-radius: 10px;
-        padding: 0.62rem 0.95rem;
-        font-size: 0.82rem;
-        font-weight: 600;
-        color: #4338ca;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: background 0.2s ease, opacity 0.2s ease;
-    }
-
-    .btn-sync-providers:hover:not(:disabled) { background: #e0e7ff; }
-
-    .btn-sync-providers:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    .btn-sync-providers svg {
-        width: 15px;
-        height: 15px;
-        flex-shrink: 0;
-    }
-
-    /* ---- Botón de token (candado) ---- */
-    .btn-token {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        background: #fff7ed;
-        border: 1px solid #fed7aa;
-        border-radius: 10px;
-        padding: 0.62rem 0.95rem;
-        font-size: 0.82rem;
-        font-weight: 600;
-        color: #c2410c;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: background 0.2s ease;
-    }
-
-    .btn-token:hover { background: #ffedd5; }
-
-    .btn-token svg {
-        width: 15px;
-        height: 15px;
-        flex-shrink: 0;
-    }
-
-    .btn-token.has-token {
-        background: #f0fdf4;
-        border-color: #bbf7d0;
-        color: #166534;
-    }
-
-    .btn-token.has-token:hover { background: #dcfce7; }
-
-    .provider-row { cursor: pointer; }
-    .provider-row:hover td { background: #f0fdf4; }
-    .provider-sub { font-size: 0.72rem; color: #9ca3af; margin-top: 0.1rem; }
-
-    .pagination {
-        display: none;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 0.8rem;
-        margin-top: 1rem;
-        font-size: 0.8rem;
-        color: #6b7280;
-    }
-
-    .pagination-buttons { display: flex; gap: 0.3rem; align-items: center; }
-
-    .page-btn {
-        min-width: 34px;
-        height: 34px;
-        padding: 0 0.5rem;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #374151;
-        cursor: pointer;
-    }
-
-    .page-btn:hover:not(:disabled) {
-        background: #f0fdf4;
-        border-color: #16a34a;
-        color: #16a34a;
-    }
-
-    .page-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
-    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .page-dots { padding: 0 0.3rem; color: #9ca3af; }
-
-    .btn-back {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 0.5rem 0.9rem;
-        font-size: 0.82rem;
-        font-weight: 600;
-        color: #374151;
-        cursor: pointer;
-        margin-bottom: 1.2rem;
-    }
-
-    .btn-back:hover { background: #e5e7eb; }
-
-    /* ---- Toggle "información completa" ---- */
-    .all-data-toggle {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 1.2rem;
-        font-size: 0.82rem;
-        color: #374151;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .all-data-toggle input {
-        width: 16px;
-        height: 16px;
-        cursor: pointer;
-    }
-
-    .all-data-toggle .hint {
-        color: #9ca3af;
-        font-size: 0.75rem;
-    }
-
-    /* ---- Leyenda de clasificación ---- */
-    .legend {
-        display: none;
-        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-        gap: 0.6rem;
-        margin-bottom: 1.1rem;
-        padding: 0.85rem 1rem;
-        background: #f9fafb;
-        border: 1px solid #f1f3f5;
-        border-radius: 10px;
-    }
-
-    .legend.show { display: grid; }
-
-    .legend-item {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 0.4rem;
-        font-size: 0.72rem;
-        color: #374151;
-        white-space: normal;
-        font-weight: bold;
-        text-align: left;
-        min-width: 0;
-    }
-
-    .legend-dot {
-        width: 15px;
-        height: 15px;
-        border-radius: 3px;
-        display: inline-block;
-        flex-shrink: 0;
-    }
-
-    /* ---- Tarjetas resumen ---- */
-    .summary-grid {
-        display: none;
-        grid-template-columns: repeat(6, 1fr);
-        border-radius: 12px;
-        overflow: hidden;
-        margin-bottom: 1.6rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .summary-grid.show { display: grid; }
-
-    .summary-card {
-        padding: 1rem 1.2rem;
-        color: #ffffff;
-    }
-
-    .summary-card .amount {
-        font-size: 1.2rem;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-
-    .summary-card .label {
-        font-size: 0.74rem;
-        opacity: 0.92;
-        margin-top: 0.2rem;
-    }
-
-    .summary-deuda     { background: #283593; }
-    .summary-favor     { background: #303F9F; }
-    .summary-saldo     { background: #3F51B5; }
-    .summary-vencido   { background: #5C6BC0; }
-    .summary-porvencer { background: #7986CB; }
-    .summary-documents { background: #9FA8DA; }
-
-    /* ---- Tabs Documentos / Pagos ---- */
-    .tabs-bar {
-        display: flex;
-        gap: 0.4rem;
-        border-bottom: 1px solid #e5e7eb;
-        margin-bottom: 1.1rem;
-    }
-
-    .tab-btn {
-        background: none;
-        border: none;
-        padding: 0.6rem 1.1rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #6b7280;
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        margin-bottom: -1px;
-        transition: color 0.15s ease, border-color 0.15s ease;
-    }
-
-    .tab-btn:hover { color: #1f2937; }
-
-    .tab-btn.active {
-        color: #16a34a;
-        border-bottom-color: #16a34a;
-    }
-
-    .tab-panel { display: none; }
-    .tab-panel.show { display: block; }
-
-    /* ---- Filtros de documentos ---- */
-    .docs-filters {
-        display: none;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.6rem;
-        margin-bottom: 1rem;
-    }
-
-    .docs-filters.show { display: flex; }
-
-    .docs-filters .combo-input {
-        width: auto;
-        padding: 0.55rem 0.75rem;
-        font-size: 0.82rem;
-    }
-
-    .docs-filters #docsSearch {
-        flex: 1 1 260px;
-        min-width: 200px;
-    }
-
-    .docs-filters select.combo-input { max-width: 230px; }
-    .docs-filters input[type="date"].combo-input { max-width: 160px; }
-
-    .filter-label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #6b7280;
-    }
-
-    .filter-count {
-        font-size: 0.78rem;
-        color: #6b7280;
-        margin-left: auto;
-        white-space: nowrap;
-    }
-
-    .docs-table tbody tr.row-hidden { display: none; }
-
-    .hidden-selected-hint {
-        display: none;
-        color: #fbbf24;
-    }
-
-    /* ---- Loading ---- */
-    .loading-state {
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.9rem;
-        padding: 3.5rem 0;
-    }
-
-    .loading-state.show { display: flex; }
-
-    .spinner {
-        width: 34px;
-        height: 34px;
-        border: 3px solid #e5e7eb;
-        border-top-color: #16a34a;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .loading-text {
-        font-size: 0.85rem;
-        color: #6b7280;
-        font-weight: 500;
-    }
-
-    /* ---- Tablas ---- */
-    .docs-wrap { display: none; }
-    .docs-wrap.show { display: block; }
-
-    .docs-scroll {
-        overflow-x: auto;
-        border: 1px solid #f1f3f5;
-        border-radius: 12px;
-    }
-
-    .docs-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.83rem;
-        min-width: 720px;
-    }
-
-    .docs-table thead th {
-        text-align: left;
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: #9ca3af;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        padding: 0.7rem 0.8rem;
-        background: #f9fafb;
-        border-bottom: 1px solid #f1f3f5;
-        position: sticky;
-        top: 0;
-    }
-
-    .docs-table td {
-        padding: 0.65rem 0.8rem;
-        border-bottom: 1px solid #f1f3f5;
-        color: #374151;
-        vertical-align: middle;
-    }
-
-    .docs-table tbody tr:last-child td { border-bottom: none; }
-    .docs-table tbody tr.selectable { cursor: pointer; }
-    .docs-table tbody tr.selectable:hover { filter: brightness(0.98); }
-
-    /* Columnas que solo existen cuando se pide "información completa" */
-    .docs-table th.col-extra,
-    .docs-table td.col-extra {
-        display: none;
-    }
-
-    .docs-table.show-extra th.col-extra,
-    .docs-table.show-extra td.col-extra {
-        display: table-cell;
-    }
-
-    .obs-text {
-        white-space: pre-line;
-        font-size: 0.7rem;
-        color: #6b7280;
-
-        width: 220px;
-        max-width: 220px;
-        max-height: 120px;
-
-        overflow-y: auto;
-        overflow-x: hidden;
-
-        padding-right: 6px;
-    }
-
-    .obs-text::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    .obs-text::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-
-    .obs-text::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .document-link {
-        color: #2563eb;
-        text-decoration: underline;
-        cursor: pointer;
-    }
-
-    .document-link:hover {
-        color: #1d4ed8;
-    }
-
-    /* Botón de "ver detalle" (ojito) en la tabla de pagos */
-    .btn-icon-eye {
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: #6b7280;
-        padding: 0.3rem;
-        border-radius: 6px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: color 0.15s ease, background 0.15s ease;
-    }
-
-    .btn-icon-eye svg { width: 17px; height: 17px; }
-
-    .btn-icon-eye:hover {
-        color: #16a34a;
-        background: #f0fdf4;
-    }
-
-    /* NOV1 - Faltantes */
-    .row-nov1 { background: #fee2e2; }
-    .row-nov1 .prefix-tag { background: #fca5a5; color: #991b1b; }
-
-    /* NOV2 - Sobrantes */
-    .row-nov2 { background: #dcfce7; }
-    .row-nov2 .prefix-tag { background: #86efac; color: #166534; }
-
-    /* NOV3 - Trocados */
-    .row-nov3 { background: #dbeafe; }
-    .row-nov3 .prefix-tag { background: #93c5fd; color: #1e40af; }
-
-    /* NOV4 - Corrección de factura */
-    .row-nov4 { background: #ffedd5; }
-    .row-nov4 .prefix-tag { background: #fdba74; color: #9a3412; }
-
-    /* NOV5 - Mcia. mal estado / Material o accesorios */
-    .row-nov5 { background: #fef9c3; }
-    .row-nov5 .prefix-tag { background: #fde047; color: #854d0e; }
-
-    /* DES1 - Descuento */
-    .row-des1 { background: #f3e8ff; }
-    .row-des1 .prefix-tag { background: #d8b4fe; color: #6b21a8; }
-
-    /* RP - Recibo de pago */
-    .row-rp { background: #f3f4f6; }
-    .row-rp .prefix-tag { background: #d1d5db; color: #374151; }
-
-    /* ERR1 - Duplicado */
-    .row-err1 { background: #e5e5e5; }
-    .row-err1 .prefix-tag { background: #000000; color: #ffffff; }
-
-    /* ERR2 - Vencimiento erróneo */
-    .row-err2 { background: #efebe9; }
-    .row-err2 .prefix-tag { background: #795548; color: #ffffff; }
-
-    .prefix-tag {
-        display: inline-flex;
-        padding: 0.15rem 0.5rem;
-        border-radius: 6px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        background: #f3f4f6;
-        color: #374151;
-        white-space: nowrap;
-    }
-
-    .badge {
-        display: inline-flex;
-        padding: 0.2rem 0.55rem;
-        border-radius: 999px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .badge-ok        { background: #f0fdf4; color: #166534; }
-    .badge-porvencer { background: #fff7ed; color: #c2410c; }
-    .badge-v1        { background: #fef9c3; color: #854d0e; }
-    .badge-v2        { background: #ffedd5; color: #9a3412; }
-    .badge-v3        { background: #fee2e2; color: #991b1b; }
-    .badge-v4        { background: #fecaca; color: #7f1d1d; }
-    .badge-v5        { background: #e5e7eb; color: #374151; }
-
-    input.row-check {
-        width: 16px;
-        height: 16px;
-        cursor: pointer;
-    }
-
-    input.row-check:disabled {
-        cursor: not-allowed;
-        opacity: 0.3;
-    }
-
-    /* ---- Barra de totales ---- */
-    .totals-bar {
-        display: none;
-        position: sticky;
-        bottom: 1rem;
-        margin-top: 1.3rem;
-        background: #111827;
-        color: #fff;
-        border-radius: 12px;
-        padding: 0.95rem 1.4rem;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 0.8rem;
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
-    }
-
-    .totals-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        flex-wrap: wrap;
-    }
-
-    .totals-bar.show { display: flex; }
-
-    .totals-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.15rem;
-    }
-
-    .totals-bar .count {
-        font-size: 0.8rem;
-        color: #d1d5db;
-    }
-
-    .totals-bar .amount {
-        font-size: 1.15rem;
-        font-weight: 700;
-    }
-
-    .btn-conciliation {
-        background: #2563eb;
-        color: #fff;
-        border: none;
-        padding: 0.65rem 1.2rem;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .btn-conciliation:hover { background: #1d4ed8; }
-
-    .btn-payment {
-        background: #16a34a;
-        color: #fff;
-        border: none;
-        padding: 0.65rem 1.2rem;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .btn-payment:hover { background: #15803d; }
-
-    /* ---- Botón anticipo (naranja) ---- */
-    .btn-advance-wrap {
-        display: none;
-        margin-bottom: 1.3rem;
-    }
-
-    .btn-advance-wrap.show { display: block; }
-
-    .btn-advance {
-        background: #f97316;
-        color: #fff;
-        border: none;
-        padding: 0.65rem 1.2rem;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .btn-advance:hover { background: #ea580c; }
-
-    .empty-state {
-        text-align: center;
-        color: #9ca3af;
-        font-size: 0.85rem;
-        padding: 2.75rem 0;
-    }
-
-    .error-state {
-        text-align: center;
-        color: #dc2626;
-        font-size: 0.85rem;
-        padding: 2.75rem 0;
-    }
-
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #4f46e5;
-        text-decoration: none;
-        margin-top: 1.4rem;
-    }
-
-    .back-link:hover { text-decoration: underline; }
-    .back-link svg { width: 15px; height: 15px; }
-
-    /* ---- Modales ---- */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(17, 24, 39, 0.55);
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        z-index: 100;
-    }
-
-    .modal-overlay.show { display: flex; }
-
-    /* El modal del token se abre por encima de los demás modales */
-    #tokenModalOverlay { z-index: 110; }
-
-    .modal {
-        background: #ffffff;
-        border-radius: 16px;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
-    }
-
-    .modal-document {
-        max-width: 920px;
-        max-height: 90vh;
-    }
-
-    .modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1.2rem 1.5rem;
-        border-bottom: 1px solid #f1f3f5;
-        flex-shrink: 0;
-    }
-
-    .modal-title {
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: #1f2937;
-    }
-
-    .modal-close {
-        background: none;
-        border: none;
-        font-size: 1.4rem;
-        color: #9ca3af;
-        cursor: pointer;
-        line-height: 1;
-        padding: 0.2rem;
-    }
-
-    .modal-close:hover { color: #ef4444; }
-
-    .modal-body {
-        padding: 1.4rem 1.5rem;
-        overflow-y: auto;
-    }
-
-    .modal-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-        margin-bottom: 1.4rem;
-    }
-
-    .modal-grid .field-group {
-        margin-bottom: 0;
-        max-width: none;
-    }
-
-    .modal-table-wrap {
-        border: 1px solid #f1f3f5;
-        border-radius: 10px;
-        overflow: auto;
-        max-height: 260px;
-        margin-bottom: 1rem;
-    }
-
-    .modal-table-wrap table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.82rem;
-    }
-
-    .modal-table-wrap th {
-        text-align: left;
-        font-size: 0.68rem;
-        font-weight: 700;
-        color: #9ca3af;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        padding: 0.6rem 0.7rem;
-        background: #f9fafb;
-        position: sticky;
-        top: 0;
-        border-bottom: 1px solid #f1f3f5;
-    }
-
-    .modal-table-wrap td {
-        padding: 0.55rem 0.7rem;
-        border-bottom: 1px solid #f1f3f5;
-        color: #374151;
-    }
-
-    .modal-table-wrap tbody tr:last-child td { border-bottom: none; }
-
-    .modal-total {
-        display: flex;
-        justify-content: flex-end;
-        align-items: baseline;
-        gap: 0.5rem;
-        font-size: 1rem;
-        color: #1f2937;
-    }
-
-    .modal-total span { font-weight: 700; font-size: 1.15rem; }
-
-    .modal-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.7rem;
-        padding: 1.1rem 1.5rem;
-        border-top: 1px solid #f1f3f5;
-        flex-shrink: 0;
-    }
-
-    .btn-secondary {
-        background: #f3f4f6;
-        color: #374151;
-        border: 1px solid #e5e7eb;
-        padding: 0.65rem 1.2rem;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    .btn-secondary:hover { background: #e5e7eb; }
-
-    .btn-primary {
-        background: #16a34a;
-        color: #fff;
-        border: none;
-        padding: 0.65rem 1.2rem;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    .btn-primary:hover { background: #15803d; }
-
-    /* Botón primario del modal de anticipo, en naranja para diferenciarlo */
-    .btn-primary-advance {
-        background: #f97316;
-    }
-
-    .btn-primary-advance:hover { background: #ea580c; }
-
-    .btn-primary-conciliation {
-        background: #2563eb;
-    }
-
-    .btn-primary-conciliation:hover { background: #1d4ed8; }
-
-    .modal-field-group {
-        margin-bottom: 1.4rem;
-    }
-
-    .modal-field-group textarea.combo-input {
-        width: 100%;
-        resize: vertical;
-        min-height: 70px;
-        font-family: inherit;
-        padding: 0.65rem 0.85rem;
-    }
-
-    /* ---- Dropzone de comprobante ---- */
-    .payment-dropzone {
-        position: relative;
-        border: 2px dashed #cbd5e1;
-        border-radius: 12px;
-        padding: 1.5rem 1rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        background: #f9fafb;
-    }
-
-    .payment-dropzone:hover {
-        border-color: #16a34a;
-        background: #f0fdf4;
-    }
-
-    .payment-dropzone.dragover {
-        border-color: #16a34a;
-        background: #ecfdf5;
-    }
-
-    .payment-dropzone.hidden { display: none; }
-
-    .payment-dropzone-icon {
-        width: 42px;
-        height: 42px;
-        margin: 0 auto 0.6rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #dcfce7;
-        border-radius: 50%;
-    }
-
-    .payment-dropzone-icon svg {
-        width: 22px;
-        height: 22px;
-        stroke: #16a34a;
-    }
-
-    .payment-dropzone-text {
-        font-size: 0.85rem;
-        color: #374151;
-        font-weight: 500;
-    }
-
-    .payment-dropzone-text span {
-        color: #16a34a;
-        text-decoration: underline;
-    }
-
-    .payment-dropzone-hint {
-        font-size: 0.72rem;
-        color: #9ca3af;
-        margin-top: 0.2rem;
-    }
-
-    .payment-file-input { display: none; }
-
-    .payment-file-preview {
-        display: none;
-        align-items: center;
-        gap: 0.85rem;
-        margin-top: 0.7rem;
-        padding: 0.65rem 0.85rem;
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        border-radius: 10px;
-    }
-
-    .payment-file-preview.show { display: flex; }
-
-    .payment-file-preview img {
-        width: 46px;
-        height: 46px;
-        object-fit: cover;
-        border-radius: 8px;
-        flex-shrink: 0;
-        border: 1px solid #d1fae5;
-    }
-
-    .payment-file-info { flex: 1; min-width: 0; }
-
-    .payment-file-name {
-        font-size: 0.82rem;
-        font-weight: 600;
-        color: #1f2937;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .payment-file-size {
-        font-size: 0.72rem;
-        color: #6b7280;
-    }
-
-    .payment-file-remove {
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: #ef4444;
-        font-size: 1.1rem;
-        line-height: 1;
-        padding: 0.2rem;
-        border-radius: 6px;
-        flex-shrink: 0;
-    }
-
-    .payment-file-remove:hover { background: #fee2e2; }
-
-    .payment-file-error {
-        display: none;
-        margin-top: 0.5rem;
-        font-size: 0.78rem;
-        color: #dc2626;
-        background: #fef2f2;
-        border: 1px solid #fecaca;
-        padding: 0.45rem 0.7rem;
-        border-radius: 8px;
-    }
-
-    .payment-file-error.show { display: block; }
-
-    .favor-alert {
-        display: none;
-        align-items: flex-start;
-        gap: 0.7rem;
-        margin-bottom: 1.3rem;
-        padding: 0.85rem 1.1rem;
-        background: #fffbeb;
-        border: 1px solid #fde68a;
-        border-radius: 10px;
-        color: #92400e;
-        font-size: 0.82rem;
-        line-height: 1.4;
-    }
-
-    .favor-alert.show { display: flex; }
-
-    .favor-alert svg {
-        width: 18px;
-        height: 18px;
-        flex-shrink: 0;
-        margin-top: 0.1rem;
-        stroke: #d97706;
-    }
-
-    .favor-alert strong { font-weight: 700; }
-
-    .cover-full { color: #16a34a !important; font-weight: 700; }
-    .cover-partial { color: #c2410c !important; font-weight: 700; }
-    .cover-expired { color: #c20c0c !important; font-weight: 700; }
-    .cover-none { color: #9ca3af !important; font-weight: 600; }
-
-    .conciliation-summary {
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-        align-items: flex-end;
-        font-size: 0.88rem;
-        color: #374151;
-    }
-
-    .conciliation-summary .row {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .conciliation-summary .row strong {
-        font-size: 1rem;
-        color: #1f2937;
-    }
-
-    @media (max-width: 768px) {
-        .wrapper { padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Cuentas por pagar</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            background: #f3f4f6;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+
+        .wrapper {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
 
         .card {
-            padding: 1.3rem 1.1rem;
+            background: #ffffff;
+            border: 1px solid #eef0f2;
+            border-radius: 16px;
+            padding: 1.9rem 2.1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.3rem;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ---- Inputs ---- */
+        .field-group {
+            margin-bottom: 1.4rem;
+            position: relative;
+            max-width: 650px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.4rem;
+        }
+
+        .combo-input {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.88rem;
+            color: #1f2937;
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        select.combo-input {
+            padding: 0.65rem 0.85rem;
+            cursor: pointer;
+        }
+
+        .btn-expand-payment {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            margin: 0;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .btn-expand-payment:hover {
+            background: #f1f5f9;
+            color: #2563eb;
+        }
+
+        .btn-expand-payment:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .btn-expand-payment .expand-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .combo-input::placeholder { color: #9ca3af; }
+
+        .combo-input:focus {
+            outline: none;
+            border-color: #16a34a;
+            background: #ffffff;
+        }
+
+        /* ---- Buscador con ícono + botón Filtros ---- */
+        .search-box {
+            position: relative;
+            flex: 1 1 320px;
+            min-width: 240px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 1rem 0 2.6rem;
+            font-size: 0.88rem;
+            color: #1f2937;
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
             border-radius: 12px;
+            transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .title { font-size: 1.5rem; }
-        .subtitle { font-size: 0.8rem; margin-bottom: 1.2rem; }
+        .search-input::placeholder { color: #9ca3af; }
 
-        .field-group { max-width: 100%; }
-
-        .summary-grid {
-            grid-template-columns: repeat(2, 1fr);
-            border-radius: 10px;
+        .search-input:focus {
+            outline: none;
+            border-color: #16a34a;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
         }
 
-        .summary-card { padding: 0.85rem 0.7rem; }
-        .summary-card .amount { font-size: 1.05rem; }
-        .summary-card .label { font-size: 0.7rem; }
-
-        .legend {
-            grid-template-columns: repeat(3, 1fr);
+        .btn-filters {
+            display: inline-flex;
+            align-items: center;
             gap: 0.5rem;
-            padding: 0.7rem 0.8rem;
+            height: 44px;
+            padding: 0 1.1rem;
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #111827;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s ease, border-color 0.2s ease;
         }
 
-        .legend-item { font-size: 0.66rem; }
-        .legend-dot { width: 12px; height: 12px; }
+        .btn-filters:hover { background: #f9fafb; border-color: #9ca3af; }
+        .btn-filters svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-        .docs-table { min-width: 640px; font-size: 0.8rem; }
-
-        .docs-table thead th {
-            font-size: 0.72rem;
-            padding: 0.6rem 0.6rem;
+        .filters-badge {
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: #16a34a;
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: 700;
         }
 
-        .docs-table td { padding: 0.55rem 0.6rem; }
+        /* ---- Filas de dos o tres campos dentro de los modales de filtros ---- */
+        .modal-filters { max-width: 720px; max-height: 90vh; }
+        .modal-grid .span-2 { grid-column: 1 / -1; }
 
-        .totals-bar {
-            flex-direction: column;
-            align-items: stretch;
+        .filtro-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr;
             gap: 0.7rem;
-            bottom: 0.5rem;
+            align-items: end;
+        }
+
+        .filtro-inline { display: flex; flex-direction: column; }
+        .filtro-inline .field-label { margin-bottom: 0.4rem; }
+
+        /* ---- Tabla de proveedores ---- */
+        .providers-toolbar {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 1.1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .providers-toolbar select.combo-input { max-width: 110px; }
+
+        .btn-sync-providers {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
             border-radius: 10px;
-            padding: 0.8rem 1.1rem;
+            padding: 0.62rem 0.95rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #4338ca;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s ease, opacity 0.2s ease;
         }
 
-        .totals-bar .amount { font-size: 1.05rem; }
-        .btn-payment { width: 100%; }
-        .btn-advance { width: 100%; }
-        .btn-conciliation { width: 100%; }
+        .btn-sync-providers:hover:not(:disabled) { background: #e0e7ff; }
 
-        .modal-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (max-width: 480px) {
-        body { padding: 1rem 0.6rem; }
-
-        .summary-grid { grid-template-columns: repeat(2, 1fr); }
-        .summary-card .amount { font-size: 0.95rem; }
-
-        .combo-input { font-size: 0.85rem; }
-
-        .docs-table { min-width: 560px; }
-
-        .legend { grid-template-columns: repeat(2, 1fr); }
-
-        .modal-grid { grid-template-columns: 1fr; }
-        .modal-body { padding: 1.1rem 1.1rem; }
-        .modal-footer { padding: 1rem 1.1rem; flex-direction: column-reverse; }
-        .btn-primary, .btn-secondary { width: 100%; }
-
-        .legend {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 0.5rem;
-            padding: 0.7rem 0.8rem;
+        .btn-sync-providers:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        .legend-item {
-            font-size: 0.66rem;
-            min-width: 0;
-            overflow-wrap: break-word;
-        }
-
-        .legend-dot {
-            width: 12px;
-            height: 12px;
+        .btn-sync-providers svg {
+            width: 15px;
+            height: 15px;
             flex-shrink: 0;
         }
 
-        .tabs-bar { gap: 0.2rem; }
-        .tab-btn { padding: 0.55rem 0.8rem; font-size: 0.8rem; }
-
-        .providers-toolbar { flex-direction: column; align-items: stretch; }
-        .providers-toolbar .combo-input,
-        .providers-toolbar select.combo-input,
-        .providers-toolbar select#providerTypeFilter.combo-input { max-width: 100%; }
-        .btn-sync-providers { width: 100%; justify-content: center; }
-        .btn-token { width: 100%; justify-content: center; }
-
-        .docs-filters .combo-input,
-        .docs-filters select.combo-input,
-        .docs-filters input[type="date"].combo-input { width: 100%; max-width: 100%; }
-        .filter-count { margin-left: 0; }
-    }
-
-    .btn-sync-providers .spinning {
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        from {
-            transform: rotate(0deg);
+        /* ---- Botón de token (candado) ---- */
+        .btn-token {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 10px;
+            padding: 0.62rem 0.95rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #c2410c;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s ease;
         }
 
-        to {
-            transform: rotate(360deg);
+        .btn-token:hover { background: #ffedd5; }
+
+        .btn-token svg {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
         }
-    }
-</style>
+
+        .btn-token.has-token {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+
+        .btn-token.has-token:hover { background: #dcfce7; }
+
+        .provider-row { cursor: pointer; }
+        .provider-row:hover td { background: #f0fdf4; }
+        .provider-sub { font-size: 0.72rem; color: #9ca3af; margin-top: 0.1rem; }
+
+        .pagination {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .pagination-buttons { display: flex; gap: 0.3rem; align-items: center; }
+
+        .page-btn {
+            min-width: 34px;
+            height: 34px;
+            padding: 0 0.5rem;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #f0fdf4;
+            border-color: #16a34a;
+            color: #16a34a;
+        }
+
+        .page-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .page-dots { padding: 0 0.3rem; color: #9ca3af; }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            margin-bottom: 1.2rem;
+        }
+
+        .btn-back:hover { background: #e5e7eb; }
+
+        /* ---- Toggle "información completa" ---- */
+        .all-data-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+            font-size: 0.82rem;
+            color: #374151;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .all-data-toggle input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .all-data-toggle .hint {
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+
+        /* ---- Leyenda de clasificación ---- */
+        .legend {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 0.6rem;
+            margin-bottom: 1.1rem;
+            padding: 0.85rem 1rem;
+            background: #f9fafb;
+            border: 1px solid #f1f3f5;
+            border-radius: 10px;
+        }
+
+        .legend.show { display: grid; }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.4rem;
+            font-size: 0.72rem;
+            color: #374151;
+            white-space: normal;
+            font-weight: bold;
+            text-align: left;
+            min-width: 0;
+        }
+
+        .legend-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        /* ---- Tarjetas resumen ---- */
+        .summary-grid {
+            display: none;
+            grid-template-columns: repeat(6, 1fr);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1.6rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .summary-grid.show { display: grid; }
+
+        .summary-card {
+            padding: 1rem 1.2rem;
+            color: #ffffff;
+        }
+
+        .summary-card .amount {
+            font-size: 1.2rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .summary-card .label {
+            font-size: 0.74rem;
+            opacity: 0.92;
+            margin-top: 0.2rem;
+        }
+
+        .summary-deuda     { background: #283593; }
+        .summary-favor     { background: #303F9F; }
+        .summary-saldo     { background: #3F51B5; }
+        .summary-vencido   { background: #5C6BC0; }
+        .summary-porvencer { background: #7986CB; }
+        .summary-documents { background: #9FA8DA; }
+
+        /* ---- Tabs Documentos / Pagos ---- */
+        .tabs-bar {
+            display: flex;
+            gap: 0.4rem;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1.1rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.6rem 1.1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .tab-btn:hover { color: #1f2937; }
+
+        .tab-btn.active {
+            color: #16a34a;
+            border-bottom-color: #16a34a;
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.show { display: block; }
+
+        /* ---- Barra de búsqueda de documentos (los filtros están en el modal) ---- */
+        .docs-filters {
+            display: none;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .docs-filters.show { display: flex; }
+
+        .filter-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .filter-count {
+            font-size: 0.78rem;
+            color: #6b7280;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        .docs-table tbody tr.row-hidden { display: none; }
+
+        .hidden-selected-hint {
+            display: none;
+            color: #fbbf24;
+        }
+
+        /* ---- Loading ---- */
+        .loading-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.9rem;
+            padding: 3.5rem 0;
+        }
+
+        .loading-state.show { display: flex; }
+
+        .spinner {
+            width: 34px;
+            height: 34px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #16a34a;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-text {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        /* ---- Tablas ---- */
+        .docs-wrap { display: none; }
+        .docs-wrap.show { display: block; }
+
+        .docs-scroll {
+            overflow-x: auto;
+            border: 1px solid #f1f3f5;
+            border-radius: 12px;
+        }
+
+        .docs-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.83rem;
+            min-width: 720px;
+        }
+
+        .docs-table thead th {
+            text-align: left;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 0.7rem 0.8rem;
+            background: #f9fafb;
+            border-bottom: 1px solid #f1f3f5;
+            position: sticky;
+            top: 0;
+        }
+
+        .docs-table td {
+            padding: 0.65rem 0.8rem;
+            border-bottom: 1px solid #f1f3f5;
+            color: #374151;
+            vertical-align: middle;
+        }
+
+        .docs-table tbody tr:last-child td { border-bottom: none; }
+        .docs-table tbody tr.selectable { cursor: pointer; }
+        .docs-table tbody tr.selectable:hover { filter: brightness(0.98); }
+
+        /* Columnas que solo existen cuando se pide "información completa" */
+        .docs-table th.col-extra,
+        .docs-table td.col-extra {
+            display: none;
+        }
+
+        .docs-table.show-extra th.col-extra,
+        .docs-table.show-extra td.col-extra {
+            display: table-cell;
+        }
+
+        .obs-text {
+            white-space: pre-line;
+            font-size: 0.7rem;
+            color: #6b7280;
+
+            width: 220px;
+            max-width: 220px;
+            max-height: 120px;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            padding-right: 6px;
+        }
+
+        .obs-text::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .obs-text::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .obs-text::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .document-link {
+            color: #2563eb;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .document-link:hover {
+            color: #1d4ed8;
+        }
+
+        /* Botón de "ver detalle" (ojito) en la tabla de pagos */
+        .btn-icon-eye {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0.3rem;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s ease, background 0.15s ease;
+        }
+
+        .btn-icon-eye svg { width: 17px; height: 17px; }
+
+        .btn-icon-eye:hover {
+            color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        /* NOV1 - Faltantes */
+        .row-nov1 { background: #fee2e2; }
+        .row-nov1 .prefix-tag { background: #fca5a5; color: #991b1b; }
+
+        /* NOV2 - Sobrantes */
+        .row-nov2 { background: #dcfce7; }
+        .row-nov2 .prefix-tag { background: #86efac; color: #166534; }
+
+        /* NOV3 - Trocados */
+        .row-nov3 { background: #dbeafe; }
+        .row-nov3 .prefix-tag { background: #93c5fd; color: #1e40af; }
+
+        /* NOV4 - Corrección de factura */
+        .row-nov4 { background: #ffedd5; }
+        .row-nov4 .prefix-tag { background: #fdba74; color: #9a3412; }
+
+        /* NOV5 - Mcia. mal estado / Material o accesorios */
+        .row-nov5 { background: #fef9c3; }
+        .row-nov5 .prefix-tag { background: #fde047; color: #854d0e; }
+
+        /* DES1 - Descuento */
+        .row-des1 { background: #f3e8ff; }
+        .row-des1 .prefix-tag { background: #d8b4fe; color: #6b21a8; }
+
+        /* RP - Recibo de pago */
+        .row-rp { background: #f3f4f6; }
+        .row-rp .prefix-tag { background: #d1d5db; color: #374151; }
+
+        /* ERR1 - Duplicado */
+        .row-err1 { background: #e5e5e5; }
+        .row-err1 .prefix-tag { background: #000000; color: #ffffff; }
+
+        /* ERR2 - Vencimiento erróneo */
+        .row-err2 { background: #efebe9; }
+        .row-err2 .prefix-tag { background: #795548; color: #ffffff; }
+
+        .prefix-tag {
+            display: inline-flex;
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: #f3f4f6;
+            color: #374151;
+            white-space: nowrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-ok        { background: #f0fdf4; color: #166534; }
+        .badge-porvencer { background: #fff7ed; color: #c2410c; }
+        .badge-v1        { background: #fef9c3; color: #854d0e; }
+        .badge-v2        { background: #ffedd5; color: #9a3412; }
+        .badge-v3        { background: #fee2e2; color: #991b1b; }
+        .badge-v4        { background: #fecaca; color: #7f1d1d; }
+        .badge-v5        { background: #e5e7eb; color: #374151; }
+
+        input.row-check {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        input.row-check:disabled {
+            cursor: not-allowed;
+            opacity: 0.3;
+        }
+
+        /* ---- Barra de totales ---- */
+        .totals-bar {
+            display: none;
+            position: sticky;
+            bottom: 1rem;
+            margin-top: 1.3rem;
+            background: #111827;
+            color: #fff;
+            border-radius: 12px;
+            padding: 0.95rem 1.4rem;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+        }
+
+        .totals-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .totals-bar.show { display: flex; }
+
+        .totals-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .totals-bar .count {
+            font-size: 0.8rem;
+            color: #d1d5db;
+        }
+
+        .totals-bar .amount {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .btn-conciliation {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-conciliation:hover { background: #1d4ed8; }
+
+        .btn-payment {
+            background: #16a34a;
+            color: #fff;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-payment:hover { background: #15803d; }
+
+        /* ---- Botón anticipo (naranja) ---- */
+        .btn-advance-wrap {
+            display: none;
+            margin-bottom: 1.3rem;
+        }
+
+        .btn-advance-wrap.show { display: block; }
+
+        .btn-advance {
+            background: #f97316;
+            color: #fff;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-advance:hover { background: #ea580c; }
+
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            padding: 2.75rem 0;
+        }
+
+        .error-state {
+            text-align: center;
+            color: #dc2626;
+            font-size: 0.85rem;
+            padding: 2.75rem 0;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #4f46e5;
+            text-decoration: none;
+            margin-top: 1.4rem;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+        .back-link svg { width: 15px; height: 15px; }
+
+        /* ---- Modales ---- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.55);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 100;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        /* El modal del token se abre por encima de los demás modales */
+        #tokenModalOverlay { z-index: 110; }
+
+        .modal {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-document {
+            max-width: 920px;
+            max-height: 90vh;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid #f1f3f5;
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: #9ca3af;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0.2rem;
+        }
+
+        .modal-close:hover { color: #ef4444; }
+
+        .modal-body {
+            padding: 1.4rem 1.5rem;
+            overflow-y: auto;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.4rem;
+        }
+
+        .modal-grid .field-group {
+            margin-bottom: 0;
+            max-width: none;
+        }
+
+        .modal-table-wrap {
+            border: 1px solid #f1f3f5;
+            border-radius: 10px;
+            overflow: auto;
+            max-height: 260px;
+            margin-bottom: 1rem;
+        }
+
+        .modal-table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        .modal-table-wrap th {
+            text-align: left;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 0.6rem 0.7rem;
+            background: #f9fafb;
+            position: sticky;
+            top: 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .modal-table-wrap td {
+            padding: 0.55rem 0.7rem;
+            border-bottom: 1px solid #f1f3f5;
+            color: #374151;
+        }
+
+        .modal-table-wrap tbody tr:last-child td { border-bottom: none; }
+
+        .modal-total {
+            display: flex;
+            justify-content: flex-end;
+            align-items: baseline;
+            gap: 0.5rem;
+            font-size: 1rem;
+            color: #1f2937;
+        }
+
+        .modal-total span { font-weight: 700; font-size: 1.15rem; }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.7rem;
+            padding: 1.1rem 1.5rem;
+            border-top: 1px solid #f1f3f5;
+            flex-shrink: 0;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            padding: 0.65rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover { background: #e5e7eb; }
+
+        .btn-primary {
+            background: #16a34a;
+            color: #fff;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover { background: #15803d; }
+
+        /* Botón primario del modal de anticipo, en naranja para diferenciarlo */
+        .btn-primary-advance {
+            background: #f97316;
+        }
+
+        .btn-primary-advance:hover { background: #ea580c; }
+
+        .btn-primary-conciliation {
+            background: #2563eb;
+        }
+
+        .btn-primary-conciliation:hover { background: #1d4ed8; }
+
+        .modal-field-group {
+            margin-bottom: 1.4rem;
+        }
+
+        .modal-field-group textarea.combo-input {
+            width: 100%;
+            resize: vertical;
+            min-height: 70px;
+            font-family: inherit;
+            padding: 0.65rem 0.85rem;
+        }
+
+        /* ---- Dropzone de comprobante ---- */
+        .payment-dropzone {
+            position: relative;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f9fafb;
+        }
+
+        .payment-dropzone:hover {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .payment-dropzone.dragover {
+            border-color: #16a34a;
+            background: #ecfdf5;
+        }
+
+        .payment-dropzone.hidden { display: none; }
+
+        .payment-dropzone-icon {
+            width: 42px;
+            height: 42px;
+            margin: 0 auto 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #dcfce7;
+            border-radius: 50%;
+        }
+
+        .payment-dropzone-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: #16a34a;
+        }
+
+        .payment-dropzone-text {
+            font-size: 0.85rem;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .payment-dropzone-text span {
+            color: #16a34a;
+            text-decoration: underline;
+        }
+
+        .payment-dropzone-hint {
+            font-size: 0.72rem;
+            color: #9ca3af;
+            margin-top: 0.2rem;
+        }
+
+        .payment-file-input { display: none; }
+
+        .payment-file-preview {
+            display: none;
+            align-items: center;
+            gap: 0.85rem;
+            margin-top: 0.7rem;
+            padding: 0.65rem 0.85rem;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+        }
+
+        .payment-file-preview.show { display: flex; }
+
+        .payment-file-preview img {
+            width: 46px;
+            height: 46px;
+            object-fit: cover;
+            border-radius: 8px;
+            flex-shrink: 0;
+            border: 1px solid #d1fae5;
+        }
+
+        .payment-file-info { flex: 1; min-width: 0; }
+
+        .payment-file-name {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #1f2937;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .payment-file-size {
+            font-size: 0.72rem;
+            color: #6b7280;
+        }
+
+        .payment-file-remove {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #ef4444;
+            font-size: 1.1rem;
+            line-height: 1;
+            padding: 0.2rem;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .payment-file-remove:hover { background: #fee2e2; }
+
+        .payment-file-error {
+            display: none;
+            margin-top: 0.5rem;
+            font-size: 0.78rem;
+            color: #dc2626;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 0.45rem 0.7rem;
+            border-radius: 8px;
+        }
+
+        .payment-file-error.show { display: block; }
+
+        .favor-alert {
+            display: none;
+            align-items: flex-start;
+            gap: 0.7rem;
+            margin-bottom: 1.3rem;
+            padding: 0.85rem 1.1rem;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            color: #92400e;
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        .favor-alert.show { display: flex; }
+
+        .favor-alert svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+            stroke: #d97706;
+        }
+
+        .favor-alert strong { font-weight: 700; }
+
+        .cover-full { color: #16a34a !important; font-weight: 700; }
+        .cover-partial { color: #c2410c !important; font-weight: 700; }
+        .cover-expired { color: #c20c0c !important; font-weight: 700; }
+        .cover-none { color: #9ca3af !important; font-weight: 600; }
+
+        .conciliation-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            align-items: flex-end;
+            font-size: 0.88rem;
+            color: #374151;
+        }
+
+        .conciliation-summary .row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .conciliation-summary .row strong {
+            font-size: 1rem;
+            color: #1f2937;
+        }
+
+        @media (max-width: 768px) {
+            .wrapper { padding: 0; }
+
+            .card {
+                padding: 1.3rem 1.1rem;
+                border-radius: 12px;
+            }
+
+            .title { font-size: 1.5rem; }
+            .subtitle { font-size: 0.8rem; margin-bottom: 1.2rem; }
+
+            .field-group { max-width: 100%; }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+                border-radius: 10px;
+            }
+
+            .summary-card { padding: 0.85rem 0.7rem; }
+            .summary-card .amount { font-size: 1.05rem; }
+            .summary-card .label { font-size: 0.7rem; }
+
+            .legend {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+                padding: 0.7rem 0.8rem;
+            }
+
+            .legend-item { font-size: 0.66rem; }
+            .legend-dot { width: 12px; height: 12px; }
+
+            .docs-table { min-width: 640px; font-size: 0.8rem; }
+
+            .docs-table thead th {
+                font-size: 0.72rem;
+                padding: 0.6rem 0.6rem;
+            }
+
+            .docs-table td { padding: 0.55rem 0.6rem; }
+
+            .totals-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.7rem;
+                bottom: 0.5rem;
+                border-radius: 10px;
+                padding: 0.8rem 1.1rem;
+            }
+
+            .totals-bar .amount { font-size: 1.05rem; }
+            .btn-payment { width: 100%; }
+            .btn-advance { width: 100%; }
+            .btn-conciliation { width: 100%; }
+
+            .modal-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 640px) {
+            .filtro-row { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 1rem 0.6rem; }
+
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .summary-card .amount { font-size: 0.95rem; }
+
+            .combo-input { font-size: 0.85rem; }
+
+            .docs-table { min-width: 560px; }
+
+            .legend { grid-template-columns: repeat(2, 1fr); }
+
+            .modal-grid { grid-template-columns: 1fr; }
+            .modal-body { padding: 1.1rem 1.1rem; }
+            .modal-footer { padding: 1rem 1.1rem; flex-direction: column-reverse; }
+            .btn-primary, .btn-secondary { width: 100%; }
+
+            .legend {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.5rem;
+                padding: 0.7rem 0.8rem;
+            }
+
+            .legend-item {
+                font-size: 0.66rem;
+                min-width: 0;
+                overflow-wrap: break-word;
+            }
+
+            .legend-dot {
+                width: 12px;
+                height: 12px;
+                flex-shrink: 0;
+            }
+
+            .tabs-bar { gap: 0.2rem; }
+            .tab-btn { padding: 0.55rem 0.8rem; font-size: 0.8rem; }
+
+            .providers-toolbar { flex-direction: column; align-items: stretch; }
+            .providers-toolbar select.combo-input { max-width: 100%; }
+            .btn-sync-providers { width: 100%; justify-content: center; }
+            .btn-token { width: 100%; justify-content: center; }
+
+            .search-box { flex: 1 1 100%; }
+            .btn-filters { width: 100%; justify-content: center; }
+            .filter-count { margin-left: 0; }
+        }
+
+        .btn-sync-providers .spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -1246,17 +1317,37 @@
             <div class="subtitle">Selecciona un proveedor para gestionar sus documentos y pagos.</div>
 
             <div class="providers-toolbar">
-                <input
-                    type="text"
-                    id="providerSearch"
-                    class="combo-input"
-                    placeholder="Filtrar por nombre o identificación..."
-                    autocomplete="off"
-                >
-                <select id="providerTypeFilter" class="combo-input">
-                    <option value="">Todos los tipos</option>
-                </select>
-                <select id="providerPageSize" class="combo-input">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="searchGradProviders" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#06b6d4"/>
+                                <stop offset="100%" stop-color="#a855f7"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="10.5" cy="10.5" r="6.5" stroke="url(#searchGradProviders)" stroke-width="2.6"/>
+                        <line x1="15.5" y1="15.5" x2="21" y2="21" stroke="url(#searchGradProviders)" stroke-width="2.8" stroke-linecap="round"/>
+                    </svg>
+                    <input
+                        type="text"
+                        id="providerSearch"
+                        class="search-input"
+                        placeholder="Busca por nombre o identificación..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <button type="button" class="btn-filters" id="btnProvidersFilters" aria-haspopup="dialog" aria-controls="providersFiltersModal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="4" y1="6" x2="20" y2="6"/>
+                        <line x1="7" y1="12" x2="17" y2="12"/>
+                        <line x1="10" y1="18" x2="14" y2="18"/>
+                    </svg>
+                    Filtros
+                    <span class="filters-badge" id="providersFiltersBadge" style="display:none;">0</span>
+                </button>
+
+                <select id="providerPageSize" class="combo-input" title="Registros por página">
                     <option value="10">10</option>
                     <option value="25">25</option>
                     <option value="50">50</option>
@@ -1387,49 +1478,37 @@
                 <!-- ---- Panel: Documentos ---- -->
                 <div class="tab-panel show" id="panelDocumentos">
 
-                    <!-- Filtros (solo ocultan filas, no las eliminan) -->
+                    <!-- Buscador + botón Filtros (los filtros solo ocultan filas, no las eliminan) -->
                     <div class="docs-filters" id="docsFilters">
-                        <input
-                            type="text"
-                            id="docsSearch"
-                            class="combo-input"
-                            placeholder="Buscar en los documentos..."
-                            autocomplete="off"
-                        >
+                        <div class="search-box">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="searchGradDocs" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stop-color="#06b6d4"/>
+                                        <stop offset="100%" stop-color="#a855f7"/>
+                                    </linearGradient>
+                                </defs>
+                                <circle cx="10.5" cy="10.5" r="6.5" stroke="url(#searchGradDocs)" stroke-width="2.6"/>
+                                <line x1="15.5" y1="15.5" x2="21" y2="21" stroke="url(#searchGradDocs)" stroke-width="2.8" stroke-linecap="round"/>
+                            </svg>
+                            <input
+                                type="text"
+                                id="docsSearch"
+                                class="search-input"
+                                placeholder="Buscar en los documentos..."
+                                autocomplete="off"
+                            >
+                        </div>
 
-                        <select id="docsTypeFilter" class="combo-input" title="Filtrar por tipo">
-                            <option value="">Todos los tipos</option>
-                        </select>
-
-                        <select id="docsColorFilter" class="combo-input" title="Filtrar por clasificación">
-                            <option value="">Todas las clasificaciones</option>
-                            <option value="__none__">⚪ Sin clasificar</option>
-
-                            <option value="NOV1">🔴 NOV1 · Faltantes</option>
-                            <option value="NOV2">🟢 NOV2 · Sobrantes</option>
-                            <option value="NOV3">🔵 NOV3 · Trocados</option>
-                            <option value="NOV4">🟠 NOV4 · Corrección de factura</option>
-                            <option value="NOV5">🟡 NOV5 · Mercancía mal estado</option>
-
-                            <option value="DES1">🟣 DES1 · Descuento</option>
-                            <option value="RP">⚪ RP · Recibo de pago</option>
-
-                            <option value="ERR1">⚫ ERR1 · Duplicado</option>
-                            <option value="ERR2">🟤 ERR2 · Vencimiento erróneo</option>
-                        </select>
-
-                        <select id="docsDateField" class="combo-input" title="Fecha a filtrar">
-                            <option value="DueDate">Fecha de vencimiento</option>
-                            <option value="CreatedDate">Fecha de creación</option>
-                        </select>
-
-                        <span class="filter-label">Desde</span>
-                        <input type="date" id="docsDateFrom" class="combo-input">
-
-                        <span class="filter-label">Hasta</span>
-                        <input type="date" id="docsDateTo" class="combo-input">
-
-                        <button type="button" class="btn-secondary" id="docsFiltersClear" style="padding:0.5rem 0.9rem;">Limpiar</button>
+                        <button type="button" class="btn-filters" id="btnDocsFilters" aria-haspopup="dialog" aria-controls="docsFiltersModal">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="4" y1="6" x2="20" y2="6"/>
+                                <line x1="7" y1="12" x2="17" y2="12"/>
+                                <line x1="10" y1="18" x2="14" y2="18"/>
+                            </svg>
+                            Filtros
+                            <span class="filters-badge" id="docsFiltersBadge" style="display:none;">0</span>
+                        </button>
 
                         <span class="filter-count" id="docsFilterCount"></span>
                     </div>
@@ -1516,6 +1595,98 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         Volver a acciones disponibles
     </a>
+</div>
+
+<!-- ---- Modal: Filtros de proveedores ---- -->
+<div class="modal-overlay" id="providersFiltersModal" role="dialog" aria-modal="true" aria-labelledby="providersFiltersTitle">
+    <div class="modal" style="max-width:460px;">
+        <div class="modal-header">
+            <div class="modal-title" id="providersFiltersTitle">Filtros de proveedores</div>
+            <button type="button" class="modal-close" id="providersFiltersClose" aria-label="Cerrar">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="field-group" style="max-width:none; margin-bottom:0;">
+                <label class="field-label" for="providerTypeFilter">Tipo de proveedor</label>
+                <select id="providerTypeFilter" class="combo-input">
+                    <option value="">Todos los tipos</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="providersFiltersClear">Limpiar</button>
+            <button type="button" class="btn-primary" id="providersFiltersApply">Ver resultados</button>
+        </div>
+    </div>
+</div>
+
+<!-- ---- Modal: Filtros de documentos ---- -->
+<div class="modal-overlay" id="docsFiltersModal" role="dialog" aria-modal="true" aria-labelledby="docsFiltersTitle">
+    <div class="modal modal-filters">
+        <div class="modal-header">
+            <div class="modal-title" id="docsFiltersTitle">Filtros de documentos</div>
+            <button type="button" class="modal-close" id="docsFiltersClose" aria-label="Cerrar">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-grid" style="margin-bottom:0;">
+
+                <div class="field-group">
+                    <label class="field-label" for="docsTypeFilter">Tipo de documento</label>
+                    <select id="docsTypeFilter" class="combo-input" title="Filtrar por tipo">
+                        <option value="">Todos los tipos</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="docsColorFilter">Clasificación</label>
+                    <select id="docsColorFilter" class="combo-input" title="Filtrar por clasificación">
+                        <option value="">Todas las clasificaciones</option>
+                        <option value="__none__">⚪ Sin clasificar</option>
+
+                        <option value="NOV1">🔴 NOV1 · Faltantes</option>
+                        <option value="NOV2">🟢 NOV2 · Sobrantes</option>
+                        <option value="NOV3">🔵 NOV3 · Trocados</option>
+                        <option value="NOV4">🟠 NOV4 · Corrección de factura</option>
+                        <option value="NOV5">🟡 NOV5 · Mercancía mal estado</option>
+
+                        <option value="DES1">🟣 DES1 · Descuento</option>
+                        <option value="RP">⚪ RP · Recibo de pago</option>
+
+                        <option value="ERR1">⚫ ERR1 · Duplicado</option>
+                        <option value="ERR2">🟤 ERR2 · Vencimiento erróneo</option>
+                    </select>
+                </div>
+
+                <div class="field-group span-2">
+                    <label class="field-label">Rango de fechas</label>
+                    <div class="filtro-row">
+                        <select id="docsDateField" class="combo-input" title="Fecha a filtrar">
+                            <option value="DueDate">Fecha de vencimiento</option>
+                            <option value="CreatedDate">Fecha de creación</option>
+                        </select>
+
+                        <div class="filtro-inline">
+                            <label class="field-label" for="docsDateFrom">Desde</label>
+                            <input type="date" id="docsDateFrom" class="combo-input">
+                        </div>
+
+                        <div class="filtro-inline">
+                            <label class="field-label" for="docsDateTo">Hasta</label>
+                            <input type="date" id="docsDateTo" class="combo-input">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="docsFiltersClear">Limpiar</button>
+            <button type="button" class="btn-primary" id="docsFiltersApply">Ver resultados</button>
+        </div>
+    </div>
 </div>
 
 <!-- ---- Modal: Detalle de pago ---- -->
@@ -1875,6 +2046,14 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     const detailProviderName       = document.getElementById('detailProviderName');
     const detailProviderId         = document.getElementById('detailProviderId');
 
+    // Modal de filtros de proveedores
+    const providersFiltersModal    = document.getElementById('providersFiltersModal');
+    const btnProvidersFilters      = document.getElementById('btnProvidersFilters');
+    const providersFiltersClose    = document.getElementById('providersFiltersClose');
+    const providersFiltersApply    = document.getElementById('providersFiltersApply');
+    const providersFiltersClear    = document.getElementById('providersFiltersClear');
+    const providersFiltersBadge    = document.getElementById('providersFiltersBadge');
+
     // ---- Token (candado + modal) ----
     const btnToken          = document.getElementById('btnToken');
     const btnTokenShackle   = document.getElementById('btnTokenShackle');
@@ -1916,6 +2095,13 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     const docsFilterEmpty          = document.getElementById('docsFilterEmpty');
     const selHiddenWrap            = document.getElementById('selHiddenWrap');
     const selHiddenEl              = document.getElementById('selHidden');
+
+    // Modal de filtros de documentos
+    const docsFiltersModal         = document.getElementById('docsFiltersModal');
+    const btnDocsFilters           = document.getElementById('btnDocsFilters');
+    const docsFiltersClose         = document.getElementById('docsFiltersClose');
+    const docsFiltersApply         = document.getElementById('docsFiltersApply');
+    const docsFiltersBadge         = document.getElementById('docsFiltersBadge');
 
     // Tabs Documentos / Pagos
     const tabDocumentos            = document.getElementById('tabDocumentos');
@@ -1960,6 +2146,34 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
 
     const ALLOWED_IMAGE_EXT = ['jpg', 'jpeg', 'png'];
     const MAX_IMAGE_MB = 8;
+
+    // =====================================================================
+    // Modales de filtros (proveedores y documentos): abrir / cerrar
+    // =====================================================================
+    function bindFilterModal(overlay, openBtn, closeBtns) {
+        openBtn.addEventListener('click', () => overlay.classList.add('show'));
+
+        closeBtns.forEach((btn) => {
+            btn.addEventListener('click', () => overlay.classList.remove('show'));
+        });
+
+        // Clic fuera de la caja cierra el modal
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('show');
+        });
+    }
+
+    bindFilterModal(providersFiltersModal, btnProvidersFilters, [providersFiltersClose, providersFiltersApply]);
+    bindFilterModal(docsFiltersModal, btnDocsFilters, [docsFiltersClose, docsFiltersApply]);
+
+    function pluralResults(n) {
+        return `Ver ${n} ${n === 1 ? 'resultado' : 'resultados'}`;
+    }
+
+    function setBadge(badgeEl, count) {
+        badgeEl.textContent = count;
+        badgeEl.style.display = count ? 'inline-flex' : 'none';
+    }
 
     // =====================================================================
     // Token requerido: candado, modal y helpers
@@ -2339,6 +2553,10 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
             ? `Mostrando ${start + 1}-${start + items.length} de ${list.length}`
             : '0 resultados';
 
+        // Botón "Filtros" (contador) y "Ver N resultados" del modal
+        setBadge(providersFiltersBadge, providerTypeFilter.value ? 1 : 0);
+        providersFiltersApply.textContent = pluralResults(list.length);
+
         renderPagination(totalPages);
     }
 
@@ -2401,6 +2619,14 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     });
 
     providerTypeFilter.addEventListener('change', () => {
+        providerPage = 1;
+        renderProviders();
+    });
+
+    // Limpiar (modal de proveedores): reinicia el tipo y también el texto del buscador
+    providersFiltersClear.addEventListener('click', () => {
+        searchInput.value = '';
+        providerTypeFilter.value = '';
         providerPage = 1;
         renderProviders();
     });
@@ -2978,6 +3204,14 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
 
         docsFilterEmpty.style.display = (total && visible === 0) ? 'block' : 'none';
 
+        // Botón "Filtros" (contador) y "Ver N resultados" del modal
+        let activeFilters = 0;
+        if (type) activeFilters++;
+        if (color) activeFilters++;
+        if (from || to) activeFilters++;
+        setBadge(docsFiltersBadge, activeFilters);
+        docsFiltersApply.textContent = pluralResults(visible);
+
         updateTotals();
     }
 
@@ -2986,6 +3220,7 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         el.addEventListener('change', applyDocFilters);
     });
 
+    // Limpiar (modal de documentos): reinicia filtros y también el texto del buscador
     docsFiltersClear.addEventListener('click', () => {
         resetDocFilterValues();
         applyDocFilters();
@@ -3217,6 +3452,9 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
             closeTokenModal();
             return;
         }
+
+        if (providersFiltersModal.classList.contains('show')) providersFiltersModal.classList.remove('show');
+        if (docsFiltersModal.classList.contains('show')) docsFiltersModal.classList.remove('show');
 
         if (modalOverlay.classList.contains('show')) closePaymentModal();
         if (advanceModalOverlay.classList.contains('show')) closeAdvanceModal();
