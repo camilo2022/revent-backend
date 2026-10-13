@@ -741,6 +741,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 63 => ['name' => 'NUESTRO CARTAGO', 'transito' => 89, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
                 66 => ['name' => 'GUACARI SINCELEJO', 'transito' => 90, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
                 69 => ['name' => 'NUESTRO BOGOTÁ', 'transito' => 91, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
+                93 => ['name' => 'MALL PLAZA CARTAGENA', 'transito' => 94, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
             ],
             'TRANSITO' => [
                 67 => ['name' => 'TRANSITO P R I N C I P A L', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
@@ -767,6 +768,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 89 => ['name' => 'TRANSITO NUESTRO CARTAGO', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
                 90 => ['name' => 'TRANSITO GUACARI SINCELEJO', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
                 91 => ['name' => 'TRANSITO NUESTRO BOGOTÁ', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
+                94 => ['name' => 'TRANSITO MALL PLAZA CARTAGENA', 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
             ]
         ];
     }
