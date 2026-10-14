@@ -92,6 +92,7 @@
         .icon-tienda { background: #2563eb; }
         .icon-recepcion { background: #ea580c; }
         .icon-pendientes { background: #0d9488; }
+        .icon-documentos { background: #65a30d; }
 
         .report-body {
             flex: 1;
@@ -140,6 +141,7 @@
         .report-card:has(.icon-tienda) .report-action { color: #2563eb; }
         .report-card:has(.icon-recepcion) .report-action { color: #ea580c; }
         .report-card:has(.icon-pendientes) .report-action { color: #0d9488; }
+        .report-card:has(.icon-documentos) .report-action { color: #65a30d; }
 
         .report-action svg {
             width: 14px;
@@ -401,6 +403,27 @@
             <div class="report-footer">
                 <span class="report-action">
                     Ver pendientes
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
+        
+        <a href="{{ route('siigo.search_document') }}" class="report-card">
+            <div class="report-icon icon-documentos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h6"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <circle cx="17" cy="17" r="3"/>
+                    <line x1="21" y1="21" x2="19.1" y2="19.1"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Consulta de Documentos</div>
+                <div class="report-desc">Busca un documento de Siigo por tipo y código, y descarga el PDF de las notas de traslado con fotos.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Consultar documento
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </span>
             </div>

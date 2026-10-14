@@ -12,6 +12,7 @@ use App\Http\Controllers\Integration\MasiveTransferSiigoController;
 use App\Http\Controllers\Integration\ProductTraceabilitySiigoController;
 use App\Http\Controllers\Integration\MasivePurchaseOrderSiigoController;
 use App\Http\Controllers\Integration\PhotoProductSiigoController;
+use App\Http\Controllers\Integration\SearchDocumentSiigoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -82,6 +83,10 @@ Route::post('/siigo/invoice_purchase_order/access', [InvoicePurchaseOrderSiigoCo
 Route::get('/siigo/invoice_purchase_order', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order'])->middleware('signed')->name('siigo.invoice_purchase_order');
 Route::get('/siigo/invoice_purchase_order/documents', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_documents'])->name('siigo.invoice_purchase_order_documents');
 Route::get('/siigo/invoice_purchase_order_missing_download', [InvoicePurchaseOrderSiigoController::class, 'invoice_purchase_order_missing_download'])->name('siigo.invoice_purchase_order_missing_download');
+
+Route::get('/siigo/search_document', [SearchDocumentSiigoController::class, 'search_document'])->name('siigo.search_document');
+Route::get('/siigo/search_document/search', [SearchDocumentSiigoController::class, 'search_document_search'])->name('siigo.search_document_search');
+Route::get('/siigo/search_document/NT/pdf', [SearchDocumentSiigoController::class, 'search_document_NT_pdf'])->name('siigo.search_document_NT_pdf');
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);

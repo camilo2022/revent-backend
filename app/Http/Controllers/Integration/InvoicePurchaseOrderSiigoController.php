@@ -490,13 +490,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
      * para no tener que mantener la misma consulta paginada al reporte
      * de Siigo duplicada en dos lugares.
      */
-    private function report(
-        string $token,
-        string $typeTransactionValue,
-        string $typeTransactionLabel,
-        ?Carbon $fecha_inicio = null,
-        ?Carbon $fecha_fin = null
-    ): Collection {
+    private function report(string $token, string $typeTransactionValue, string $typeTransactionLabel, ?Carbon $fecha_inicio = null, ?Carbon $fecha_fin = null): Collection {
         $take = 100;
         $skip = 0;
         $total = null;
@@ -817,9 +811,6 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
         $rows = $purchaseOrders->flatMap(function ($order) {
 
-            // FILTRO 1:
-            // Solo procesar las OC que aparecen en el filtro
-            // "Faltantes" del frontend.
             $requestedTotal = (float) ($order['TotalQuantity'] ?? 0);
             $receivedTotal = (float) ($order['TotalConfirmed'] ?? 0);
 
@@ -827,46 +818,37 @@ class InvoicePurchaseOrderSiigoController extends Controller
                 return collect();
             }
 
-            // FILTRO 2:
-            // Dentro de las OC seleccionadas, mostrar únicamente
-            // las referencias que no tienen facturas asociadas.
             return collect($order['Items'] ?? [])
-                ->filter(function ($item) {
-                    return collect($item['Invoices'] ?? [])->isEmpty();
+                ->groupBy(function ($item) {
+                    return mb_strtoupper(trim($item['Reference'] ?? '')) . '|' . mb_strtoupper(trim($item['Color'] ?? ''));
                 })
+                ->filter(function ($group) {
+                    return $group->sum(fn ($item) => (float) ($item['Confirmed'] ?? 0)) <= 0;
+                })
+                ->flatten(1)
                 ->map(function ($item) use ($order) {
 
                     $requested = (float) ($item['Quantity'] ?? 0);
                     $received = (float) ($item['Confirmed'] ?? 0);
 
                     $date = $order['DocDate'] ?? null;
-
+                    
                     return [
-                        // Orden de compra
-                        $order['DocName'],
-
-                        // Proveedor
-                        $order['FullName'],
-                        $order['CompanyName'],
-                        $order['Identification'],
-
-                        // Fecha de la orden
-                        $date ? Carbon::parse($date)->format('d/m/Y') : '',
-
-                        // Descripción de la referencia
-                        $item['LongDescription'] ?? $item['Description'],
-
-                        // Datos del producto
-                        $item['Reference'],
-                        $item['Model'],
-                        $item['Color'],
-                        $item['Size'],
-                        $item['Warehouse'],
-
-                        // Cantidades
-                        $requested,
-                        $received,
-                        max(0, $requested - $received),
+                        'DocName' => $order['DocName'],
+                        'FullName' => $order['FullName'],
+                        'CompanyName' => $order['CompanyName'],
+                        'Identification' => $order['Identification'],
+                        'Date' => $date ? Carbon::parse($date)->format('d/m/Y') : '',
+                        'Description' => $item['LongDescription'] ?? $item['Description'] ?? '',
+                        'Reference' => $item['Reference'] ?? '',
+                        'Model' => $item['Model'] ?? '',
+                        'Color' => $item['Color'] ?? '',
+                        'Size' => $item['Size'] ?? '',
+                        'Warehouse' => $item['Warehouse'] ?? '',
+                        'Requested' => $requested,
+                        'Received' => $received,
+                        'Pending' => max(0, $requested - $received),
+                        'ACEntryID' => $order['ACEntryID'] ?? null,
                     ];
                 });
         })->values()->all();
