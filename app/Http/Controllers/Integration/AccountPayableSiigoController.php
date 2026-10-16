@@ -947,6 +947,93 @@ class AccountPayableSiigoController extends Controller
         ]);
     }
 
+    public function account_payable_payments_weekly(Request $request)
+    {
+        $request->validate([
+            'date_from' => 'nullable|date_format:Y-m-d|required_with:date_to',
+            'date_to'   => 'nullable|date_format:Y-m-d|required_with:date_from|after_or_equal:date_from',
+        ]);
+
+        ini_set('memory_limit', '-1');
+        set_time_limit(0);
+
+        Carbon::setLocale('es');
+
+        // Sin fechas: todo el año hasta hoy
+        $from = $request->filled('date_from')
+            ? Carbon::createFromFormat('Y-m-d', $request->input('date_from'))->startOfDay()
+            : Carbon::now()->startOfYear();
+
+        $to = $request->filled('date_to')
+            ? Carbon::createFromFormat('Y-m-d', $request->input('date_to'))->endOfDay()
+            : Carbon::now();
+
+        $token = (new SiigoInventoryService())->auth();
+
+        $payments = $this->payments_documents($token, null, $from, $to);
+
+        $weeks = collect($payments)
+            ->filter(fn ($payment) => !empty($payment['DocDate']))
+            ->groupBy(fn ($payment) => Carbon::parse($payment['DocDate'])->startOfWeek(Carbon::MONDAY)->format('Y-m-d'))
+            ->sortKeysDesc()
+            ->map(function ($weekPayments, $monday) use ($from, $to) {
+                $weekStart = Carbon::createFromFormat('Y-m-d', $monday)->startOfDay();
+
+                // La primera y la última semana se recortan al rango consultado
+                $start = $weekStart->copy()->max($from->copy()->startOfDay());
+                $end = $weekStart->copy()->addDays(6)->min($to->copy()->startOfDay());
+
+                $label = $start->isSameDay($end)
+                    ? ucfirst($start->translatedFormat('D j M'))
+                    : ucfirst($start->translatedFormat('D j M')) . ' – ' . ucfirst($end->translatedFormat('D j M'));
+
+                $providers = $weekPayments
+                    ->groupBy(fn ($payment) => $payment['AccountID'] ?? $payment['Identification'])
+                    ->map(function ($providerPayments) {
+                        $first = $providerPayments->first();
+
+                        $items = $providerPayments
+                            ->sortBy('DocDate')
+                            ->values()
+                            ->map(function ($payment) {
+                                // Total pagado = valor pagado + anticipo
+                                $payment['Total'] = (float) ($payment['TotalValue'] ?? 0) + (float) ($payment['TotalAdvance'] ?? 0);
+                                $payment['Link'] = "https://siigonube.siigo.com/#/paymentsv2/1016/view/{$payment['ACEntryID']}";
+
+                                return $payment;
+                            });
+
+                        return [
+                            'proveedor' => $first['FullName'] ?? '',
+                            'identificacion' => $first['Identification'] ?? '',
+                            'cantidad' => $items->count(),
+                            'total' => $items->sum('Total'),
+                            'pagos' => $items->toArray(),
+                        ];
+                    })
+                    ->sortByDesc('total')
+                    ->values();
+
+                return [
+                    'semana' => $weekStart->isoWeek(),
+                    'desde' => $start->format('Y-m-d'),
+                    'hasta' => $end->format('Y-m-d'),
+                    'label' => $label,
+                    'cantidad' => $providers->sum('cantidad'),
+                    'total' => $providers->sum('total'),
+                    'proveedores' => $providers->toArray(),
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        return response()->json([
+            'desde' => $from->format('Y-m-d'),
+            'hasta' => $to->format('Y-m-d'),
+            'weeks' => $weeks,
+        ]);
+    }
+
     private function accounts_payable_documents(string $token, int $accountId)
     {
         $take = 100;
@@ -1160,22 +1247,24 @@ class AccountPayableSiigoController extends Controller
         return $rows;
     }
 
-    private function payments_documents(string $token, int $accountId)
+    private function payments_documents(string $token, ?int $accountId = null, ?Carbon $fechaInicio = null, ?Carbon $fechaFin = null)
     {
-        $take = 100;
+        $take = 50;
         $skip = 0;
         $total = null;
         $rows = [];
 
-        $fechaInicio = Carbon::now()->startOfYear();
-        $fechaFin = Carbon::now();
+        $fechaInicio = $fechaInicio ?? Carbon::now()->startOfYear();
+        $fechaFin = $fechaFin ?? Carbon::now();
 
         $source = collect(range(2015, $fechaFin->year))
-            ->map(fn ($anio) => [
-                'id' => $anio,
-                'StartDate' => "{$anio}0101",
-                'EndDate' => "{$anio}1231",
-            ])
+            ->map(function ($anio) {
+                return [
+                    'id' => $anio,
+                    'StartDate' => "{$anio}0101",
+                    'EndDate' => "{$anio}1231",
+                ];
+            })
             ->values()
             ->toArray();
 
@@ -1185,25 +1274,36 @@ class AccountPayableSiigoController extends Controller
                     'Field' => '_vTypeTransaction',
                     'FilterType' => 7,
                     'OperatorType' => 0,
-                    'Value' => ['1'],
-                    'ValueUI' => 'Pagos',
-                    'Source' => 'PurchasesTransactionEnum',
+                    'Value' => ['-1'],
+                    'ValueUI' => '',
+                    'Source' => 'PaymentsAndVoucherMovement',
                 ],
                 [
                     'Field' => '_vProvider',
                     'FilterType' => 68,
                     'OperatorType' => 0,
-                    'Value' => [$accountId, false, 'AccountID'],
+                    'Value' => $accountId
+                        ? [$accountId, false, 'AccountID']
+                        : [],
                     'ValueUI' => '',
                     'Source' => 'Account',
                 ],
                 [
-                    'Field' => '_vDocDate',
-                    'FilterType' => 76,
+                    'Field' => '_vCostCenter',
+                    'FilterType' => 6,
+                    'OperatorType' => 0,
+                    'Value' => [],
+                    'ValueUI' => '',
+                    'Source' => '6',
+                ],
+                [
+                    'Field' => '_vElabDate',
+                    'FilterType' => 75,
                     'OperatorType' => 0,
                     'Value' => [
                         $fechaInicio->format('Ymd'),
                         $fechaFin->format('Ymd'),
+                        null,
                     ],
                     'ValueUI' => $fechaInicio->format('Y/m/d')
                         . ' - '
@@ -1211,39 +1311,25 @@ class AccountPayableSiigoController extends Controller
                     'Source' => $source,
                 ],
                 [
-                    'Field' => '_vUser',
+                    'Field' => '_vCreateBy',
                     'FilterType' => 6,
                     'OperatorType' => 0,
                     'Value' => [],
                     'ValueUI' => '',
                     'Source' => '12',
                 ],
-                [
-                    'Field' => '_vProviderInvoice',
-                    'FilterType' => 6,
-                    'OperatorType' => 0,
-                    'Value' => [],
-                    'ValueUI' => '',
-                    'Source' => '64',
-                ],
-                [
-                    'Field' => '_vESiigoStatus',
-                    'FilterType' => 7,
-                    'OperatorType' => 0,
-                    'Value' => ['-1'],
-                    'ValueUI' => '',
-                    'Source' => 'DianStateFilterEnum',
-                ],
             ];
 
             $body = [
-                'Id' => 5451,
+                'Id' => 5452,
                 'Skip' => $skip,
                 'Take' => $take,
                 'Sort' => ' ',
                 'FilterCriterias' => json_encode($filterCriterias),
                 'Params' => json_encode([
-                    'TabID' => '1408',
+                    'TabID' => '1620',
+                    'pTabID' => '1620',
+                    'rReport' => '1',
                 ]),
                 'GetTotalCount' => $total === null,
                 'GridOrderCriteria' => null,
@@ -1273,7 +1359,10 @@ class AccountPayableSiigoController extends Controller
                 ->acceptJson()
                 ->timeout(600)
                 ->connectTimeout(30)
-                ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
+                ->post(
+                    'https://services.siigo.com/document/api/v1/reports/getreport',
+                    $body
+                );
 
             if (!$response->successful()) {
                 throw new \Exception(

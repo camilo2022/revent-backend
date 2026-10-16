@@ -18,6 +18,10 @@
             page-break-inside: avoid;
         }
 
+        .images-section {
+            margin-top: 25px;
+        }
+
         .images-section .images-title {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 18px;
@@ -26,6 +30,7 @@
             margin: 0 0 12px;
             padding-bottom: 8px;
             border-bottom: 1px solid #ccc;
+            page-break-after: avoid;
         }
 
         .images-section .images-table {
@@ -74,7 +79,7 @@
 
     {!! $siigoBody !!}
 
-    <div class="images-section" style="page-break-before: always;">
+    <div class="images-section">
         <div class="images-title">Imágenes por referencia</div>
 
         <table class="images-table">

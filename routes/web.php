@@ -62,6 +62,7 @@ Route::get('/siigo/account_payable/access', [AccountPayableSiigoController::clas
 Route::post('/siigo/account_payable/access', [AccountPayableSiigoController::class, 'account_payable_send_access_link'])->middleware('throttle:5,1')->name('siigo.account_payable_send_access_link');
 Route::get('/siigo/account_payable', [AccountPayableSiigoController::class, 'account_payable'])->middleware('signed')->name('siigo.account_payable');
 Route::get('/siigo/accounts_payable_providers', [AccountPayableSiigoController::class, 'accounts_payable_providers'])->name('siigo.accounts_payable_providers');
+Route::get('/siigo/account_payable/payments_weekly', [AccountPayableSiigoController::class, 'account_payable_payments_weekly'])->name('siigo.account_payable.payments_weekly');
 Route::get('/siigo/account_payable/{accountId}/documents', [AccountPayableSiigoController::class, 'account_payable_documents'])->name('siigo.account_payable.documents');
 Route::get('/siigo/payment_html/{acEntryId}', [AccountPayableSiigoController::class, 'payment_html'])->name('siigo.payment_html');
 Route::post('/siigo/accounts_payment', [AccountPayableSiigoController::class, 'accounts_payment'])->name('siigo.accounts_payment');

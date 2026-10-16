@@ -982,6 +982,11 @@
 
         .btn-primary:hover { background: #15803d; }
 
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         /* Botón primario del modal de anticipo, en naranja para diferenciarlo */
         .btn-primary-advance {
             background: #f97316;
@@ -1158,6 +1163,72 @@
 
         .favor-alert strong { font-weight: 700; }
 
+        /* ---- Aviso informativo (azul) ---- */
+        .info-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7rem;
+            margin-bottom: 1.3rem;
+            padding: 0.85rem 1.1rem;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            color: #1e3a8a;
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+
+        .info-alert svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+            stroke: #2563eb;
+        }
+
+        .info-alert strong { font-weight: 700; }
+        .info-alert ul { margin: 0.35rem 0 0; padding-left: 1.1rem; }
+        .info-alert li { margin-bottom: 0.15rem; }
+
+        /* ---- Pagos por semana (todos los proveedores) ---- */
+        .weekly-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 0.8rem;
+            margin-bottom: 1.1rem;
+        }
+
+        .weekly-toolbar .filtro-inline .combo-input { min-width: 170px; }
+
+        .weekly-toolbar .btn-primary,
+        .weekly-toolbar .btn-secondary {
+            height: 44px;
+            white-space: nowrap;
+        }
+
+        .weekly-summary {
+            margin-bottom: 0.9rem;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .weekly-summary strong { color: #1f2937; }
+
+        .week-row td { background: #f9fafb; font-weight: 700; }
+        .week-provider-row td { background: #ffffff; font-weight: 600; }
+
+        .weekly-details-row > td,
+        .weekly-provider-details-row > td {
+            padding: 0 0 0 1.5rem;
+            background: #ffffff;
+        }
+
+        .weekly-details-row .docs-table,
+        .weekly-provider-details-row .docs-table {
+            min-width: 0;
+        }
+
         .cover-full { color: #16a34a !important; font-weight: 700; }
         .cover-partial { color: #c2410c !important; font-weight: 700; }
         .cover-expired { color: #c20c0c !important; font-weight: 700; }
@@ -1289,6 +1360,9 @@
             .search-box { flex: 1 1 100%; }
             .btn-filters { width: 100%; justify-content: center; }
             .filter-count { margin-left: 0; }
+
+            .weekly-toolbar { flex-direction: column; align-items: stretch; }
+            .weekly-toolbar .filtro-inline .combo-input { min-width: 0; width: 100%; }
         }
 
         .btn-sync-providers .spinning {
@@ -1311,93 +1385,170 @@
 <div class="wrapper">
     <div class="card">
 
-        <!-- ===== VISTA 1: listado de proveedores ===== -->
+        <!-- ===== VISTA 1: proveedores / pagos por semana ===== -->
         <div id="providersView">
             <div class="title">Cuentas por pagar</div>
-            <div class="subtitle">Selecciona un proveedor para gestionar sus documentos y pagos.</div>
+            <div class="subtitle">Selecciona un proveedor para gestionar sus documentos y pagos, o consulta los pagos realizados por semana.</div>
 
-            <div class="providers-toolbar">
-                <div class="search-box">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <defs>
-                            <linearGradient id="searchGradProviders" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stop-color="#06b6d4"/>
-                                <stop offset="100%" stop-color="#a855f7"/>
-                            </linearGradient>
-                        </defs>
-                        <circle cx="10.5" cy="10.5" r="6.5" stroke="url(#searchGradProviders)" stroke-width="2.6"/>
-                        <line x1="15.5" y1="15.5" x2="21" y2="21" stroke="url(#searchGradProviders)" stroke-width="2.8" stroke-linecap="round"/>
-                    </svg>
-                    <input
-                        type="text"
-                        id="providerSearch"
-                        class="search-input"
-                        placeholder="Busca por nombre o identificación..."
-                        autocomplete="off"
-                    >
+            <div class="tabs-bar" id="mainTabsBar">
+                <button type="button" class="tab-btn active" id="mainTabProviders">Proveedores</button>
+                <button type="button" class="tab-btn" id="mainTabPayments">Pagos</button>
+            </div>
+
+            <!-- ---- Panel: Proveedores ---- -->
+            <div class="tab-panel show" id="mainPanelProviders">
+
+                <div class="providers-toolbar">
+                    <div class="search-box">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="searchGradProviders" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#06b6d4"/>
+                                    <stop offset="100%" stop-color="#a855f7"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="10.5" cy="10.5" r="6.5" stroke="url(#searchGradProviders)" stroke-width="2.6"/>
+                            <line x1="15.5" y1="15.5" x2="21" y2="21" stroke="url(#searchGradProviders)" stroke-width="2.8" stroke-linecap="round"/>
+                        </svg>
+                        <input
+                            type="text"
+                            id="providerSearch"
+                            class="search-input"
+                            placeholder="Busca por nombre o identificación..."
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <button type="button" class="btn-filters" id="btnProvidersFilters" aria-haspopup="dialog" aria-controls="providersFiltersModal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="4" y1="6" x2="20" y2="6"/>
+                            <line x1="7" y1="12" x2="17" y2="12"/>
+                            <line x1="10" y1="18" x2="14" y2="18"/>
+                        </svg>
+                        Filtros
+                        <span class="filters-badge" id="providersFiltersBadge" style="display:none;">0</span>
+                    </button>
+
+                    <select id="providerPageSize" class="combo-input" title="Registros por página">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <button type="button" class="btn-sync-providers" id="btnSyncProviders">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"/>
+                            <polyline points="1 20 1 14 7 14"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                    </button>
+                    <button type="button" class="btn-token" id="btnToken" style="display:none;" title="Ingresar token">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path id="btnTokenShackle" d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                        </svg>
+                    </button>
                 </div>
 
-                <button type="button" class="btn-filters" id="btnProvidersFilters" aria-haspopup="dialog" aria-controls="providersFiltersModal">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <line x1="4" y1="6" x2="20" y2="6"/>
-                        <line x1="7" y1="12" x2="17" y2="12"/>
-                        <line x1="10" y1="18" x2="14" y2="18"/>
+                <div class="loading-state" id="providersLoading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Cargando proveedores...</div>
+                </div>
+
+                <div class="error-state" id="providersError" style="display:none;">
+                    No se pudieron cargar los proveedores.
+                    <button type="button" class="btn-secondary" id="providersRetry" style="margin-left:.6rem;">Reintentar</button>
+                </div>
+
+                <div class="docs-scroll" id="providersScroll" style="display:none;">
+                    <table class="docs-table" style="min-width: 820px;">
+                        <thead>
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>Identificación</th>
+                                <th>Tipo</th>
+                                <th style="text-align:right;">Por vencer</th>
+                                <th style="text-align:right;">Vencido</th>
+                                <th style="text-align:right;">A favor</th>
+                                <th style="text-align:right;">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="providersBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="providersPagination">
+                    <span id="providersInfo"></span>
+                    <div class="pagination-buttons" id="providersPages"></div>
+                </div>
+
+            </div>
+
+            <!-- ---- Panel: Pagos (todos los proveedores, agrupados por semana) ---- -->
+            <div class="tab-panel" id="mainPanelPayments">
+
+                <div class="info-alert">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
                     </svg>
-                    Filtros
-                    <span class="filters-badge" id="providersFiltersBadge" style="display:none;">0</span>
-                </button>
+                    <div>
+                        <strong>¿Cómo funciona esta consulta?</strong>
+                        <ul>
+                            <li>Trae los recibos de pago de <strong>todos los proveedores</strong>. Si no eliges fechas, consulta <strong>desde el 1 de enero del año actual hasta hoy</strong>.</li>
+                            <li>Si eliges fechas debes indicar <strong>ambas</strong> (desde y hasta). Si llenas solo una, la consulta no se realiza.</li>
+                            <li>Los pagos se agrupan por <strong>semana</strong> (de lunes a domingo; la primera y la última semana del rango pueden estar incompletas) y, dentro de cada semana, por <strong>proveedor</strong>.</li>
+                            <li>El total de cada pago suma el valor pagado más los anticipos.</li>
+                            <li>Despliega una semana para ver los proveedores que se pagaron y despliega un proveedor para ver cada recibo de pago.</li>
+                            <li>Consultar un rango amplio (por ejemplo, todo el año) puede tardar varios minutos.</li>
+                        </ul>
+                    </div>
+                </div>
 
-                <select id="providerPageSize" class="combo-input" title="Registros por página">
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-                <button type="button" class="btn-sync-providers" id="btnSyncProviders">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="23 4 23 10 17 10"/>
-                        <polyline points="1 20 1 14 7 14"/>
-                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                    </svg>
-                </button>
-                <button type="button" class="btn-token" id="btnToken" style="display:none;" title="Ingresar token">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                        <path id="btnTokenShackle" d="M7 11V7a5 5 0 0 1 9.9-1"/>
-                    </svg>
-                </button>
-            </div>
+                <div class="weekly-toolbar">
+                    <div class="filtro-inline">
+                        <label class="field-label" for="weeklyDateFrom">Desde</label>
+                        <input type="date" id="weeklyDateFrom" class="combo-input">
+                    </div>
 
-            <div class="loading-state" id="providersLoading">
-                <div class="spinner"></div>
-                <div class="loading-text">Cargando proveedores...</div>
-            </div>
+                    <div class="filtro-inline">
+                        <label class="field-label" for="weeklyDateTo">Hasta</label>
+                        <input type="date" id="weeklyDateTo" class="combo-input">
+                    </div>
 
-            <div class="error-state" id="providersError" style="display:none;">
-                No se pudieron cargar los proveedores.
-                <button type="button" class="btn-secondary" id="providersRetry" style="margin-left:.6rem;">Reintentar</button>
-            </div>
+                    <button type="button" class="btn-primary" id="btnWeeklySearch">Consultar pagos</button>
+                    <button type="button" class="btn-secondary" id="btnWeeklyClear">Limpiar</button>
+                </div>
 
-            <div class="docs-scroll" id="providersScroll" style="display:none;">
-                <table class="docs-table" style="min-width: 820px;">
-                    <thead>
-                        <tr>
-                            <th>Proveedor</th>
-                            <th>Identificación</th>
-                            <th>Tipo</th>
-                            <th style="text-align:right;">Por vencer</th>
-                            <th style="text-align:right;">Vencido</th>
-                            <th style="text-align:right;">A favor</th>
-                            <th style="text-align:right;">Saldo</th>
-                        </tr>
-                    </thead>
-                    <tbody id="providersBody"></tbody>
-                </table>
-            </div>
+                <div class="empty-state" id="weeklyEmpty">
+                    Presiona <strong>Consultar pagos</strong> para ver los pagos agrupados por semana.
+                </div>
 
-            <div class="pagination" id="providersPagination">
-                <span id="providersInfo"></span>
-                <div class="pagination-buttons" id="providersPages"></div>
+                <div class="loading-state" id="weeklyLoading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">Espera un momento, consultando los pagos de todos los proveedores...</div>
+                </div>
+
+                <div class="error-state" id="weeklyError" style="display:none;"></div>
+
+                <div class="weekly-summary" id="weeklySummary" style="display:none;"></div>
+
+                <div class="docs-scroll" id="weeklyScroll" style="display:none;">
+                    <table class="docs-table" style="min-width: 820px;">
+                        <thead>
+                            <tr>
+                                <th style="width:44px;"></th>
+                                <th>Semana</th>
+                                <th>Proveedores</th>
+                                <th>Pagos</th>
+                                <th style="text-align:right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="weeklyBody"></tbody>
+                    </table>
+                </div>
+
             </div>
         </div>
 
@@ -2017,6 +2168,7 @@
 const PROVIDERS_URL = "{{ route('siigo.accounts_payable_providers') }}";
 const DOCUMENTS_URL_TEMPLATE = "{{ route('siigo.account_payable.documents', ['accountId' => '__ID__']) }}";
 const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }}";
+const WEEKLY_PAYMENTS_URL = "{{ route('siigo.account_payable.payments_weekly') }}";
 
 
 
@@ -2045,6 +2197,24 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     const btnBackToProviders       = document.getElementById('btnBackToProviders');
     const detailProviderName       = document.getElementById('detailProviderName');
     const detailProviderId         = document.getElementById('detailProviderId');
+
+    // Pestañas de la vista principal (Proveedores / Pagos por semana)
+    const mainTabProviders         = document.getElementById('mainTabProviders');
+    const mainTabPayments          = document.getElementById('mainTabPayments');
+    const mainPanelProviders       = document.getElementById('mainPanelProviders');
+    const mainPanelPayments        = document.getElementById('mainPanelPayments');
+
+    // Pagos por semana (todos los proveedores)
+    const weeklyDateFrom           = document.getElementById('weeklyDateFrom');
+    const weeklyDateTo             = document.getElementById('weeklyDateTo');
+    const btnWeeklySearch          = document.getElementById('btnWeeklySearch');
+    const btnWeeklyClear           = document.getElementById('btnWeeklyClear');
+    const weeklyEmpty              = document.getElementById('weeklyEmpty');
+    const weeklyLoading            = document.getElementById('weeklyLoading');
+    const weeklyError              = document.getElementById('weeklyError');
+    const weeklySummary            = document.getElementById('weeklySummary');
+    const weeklyScroll             = document.getElementById('weeklyScroll');
+    const weeklyBody               = document.getElementById('weeklyBody');
 
     // Modal de filtros de proveedores
     const providersFiltersModal    = document.getElementById('providersFiltersModal');
@@ -2329,12 +2499,14 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     let providersRequestToken = 0; // evita que una respuesta vieja pise la lista de proveedores
     let requestToken = 0;          // idem, para documentos
     let paymentsRequestToken = 0;  // idem, para la pestaña de pagos
+    let weeklyRequestToken = 0;    // idem, para los pagos por semana
     let currentProvider = null;
     let currentDocs = [];    // documentos actualmente renderizados en la tabla principal
     let docMeta = [];        // errores calculados por documento (paralelo a currentDocs)
     let docSearchIndex = []; // texto buscable por documento (paralelo a currentDocs)
     let selectedDocs = [];   // documentos elegidos al abrir el modal de pago
     let paymentsData = null; // null = aún no se ha cargado para el proveedor actual
+    let weeklyData = [];     // semanas -> proveedores -> pagos (pestaña "Pagos" de la vista principal)
     let activeTab = 'documentos';
 
     // Prefijos que colorean la fila (clasificación de novedades)
@@ -2388,6 +2560,12 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         const d = new Date(value);
         if (isNaN(d)) return value;
         return d.toLocaleDateString('es-CO');
+    }
+
+    // Convierte "2026-01-31" en "31/01/2026" sin pasar por Date (evita desfases de zona horaria)
+    function formatIsoDate(iso) {
+        const [y, m, d] = String(iso || '').split('-');
+        return (y && m && d) ? `${d}/${m}/${y}` : '-';
     }
 
     function formatQuantity(value) {
@@ -2712,6 +2890,19 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     });
 
     // =====================================================================
+    // Pestañas de la vista principal: Proveedores / Pagos (por semana)
+    // =====================================================================
+    function switchMainTab(tab) {
+        mainTabProviders.classList.toggle('active', tab === 'providers');
+        mainTabPayments.classList.toggle('active', tab === 'payments');
+        mainPanelProviders.classList.toggle('show', tab === 'providers');
+        mainPanelPayments.classList.toggle('show', tab === 'payments');
+    }
+
+    mainTabProviders.addEventListener('click', () => switchMainTab('providers'));
+    mainTabPayments.addEventListener('click', () => switchMainTab('payments'));
+
+    // =====================================================================
     // Navegación lista <-> detalle
     // =====================================================================
     function showDetailView(provider) {
@@ -2969,6 +3160,8 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
                             <tr>
                                 <th>Tipo</th>
                                 <th>Documento</th>
+                                <th>Forma de Pago</th>
+                                <th style="width: 30%;">Observacion</th>
                                 <th style="min-width:110px;">Fecha</th>
                                 <th>Valor</th>
                                 <th>Estado</th>
@@ -2988,6 +3181,8 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
                                             </a>`
                                         : (escapeHtml(payment.DocName) || '-')}
                                     </td>
+                                    <td>${escapeHtml(payment.PayFormat || '')}</td>
+                                    <td>${escapeHtml(payment.Observations || '')}</td>
                                     <td>${formatDate(payment.DocDate)}</td>
                                     <td style="text-align:right;">${formatMoney(payment.TotalValue)}</td>
                                     <td>${payment.IsAnnulled
@@ -3034,22 +3229,9 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         }
     });
 
-    paymentsBody.addEventListener('click', async (e) => {
-
-        const btn = e.target.closest('.btn-icon-eye');
-
-        if (!btn || !paymentsData) return;
-
-        const periodIndex = Number(btn.dataset.periodIndex);
-        const paymentIndex = Number(btn.dataset.paymentIndex);
-        const periodo = paymentsData[periodIndex];
-
-        if (!periodo || !periodo.detalles) return;
-
-        const payment = periodo.detalles[paymentIndex];
-
-        if (!payment) return;
-
+    // Abre el modal con el detalle (HTML de Siigo) de un recibo de pago.
+    // Lo usan la pestaña de pagos del proveedor y la de pagos por semana.
+    async function openPaymentDetail(payment) {
         paymentDetailModalTitle.textContent = `Detalle · ${payment.DocName || ''}`;
         paymentDetailModalOverlay.classList.add('show');
         paymentDetailIframe.srcdoc = `<p style=" font-family:sans-serif; padding:1rem; color:#6b7280; text-align:center; ">Cargando detalle...</p>`;
@@ -3072,6 +3254,24 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
         } catch (error) {
             paymentDetailIframe.srcdoc = `<p style=" font-family:sans-serif; padding:1rem; color:#dc2626;">Error al cargar el detalle del documento.</p>`;
         }
+    }
+
+    paymentsBody.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-icon-eye');
+
+        if (!btn || !paymentsData) return;
+
+        const periodIndex = Number(btn.dataset.periodIndex);
+        const paymentIndex = Number(btn.dataset.paymentIndex);
+        const periodo = paymentsData[periodIndex];
+
+        if (!periodo || !periodo.detalles) return;
+
+        const payment = periodo.detalles[paymentIndex];
+
+        if (!payment) return;
+
+        openPaymentDetail(payment);
     });
 
     paymentDetailModalClose.addEventListener('click', () => paymentDetailModalOverlay.classList.remove('show'));
@@ -3079,6 +3279,266 @@ const PAYMENT_URL = "{{ route('siigo.payment_html', ['acEntryId' => '__ID__']) }
     paymentDetailModalOverlay.addEventListener('click', (e) => {
         if (e.target === paymentDetailModalOverlay) paymentDetailModalOverlay.classList.remove('show');
     });
+
+    // =====================================================================
+    // Pagos por semana (todos los proveedores): semana -> proveedor -> pagos
+    // =====================================================================
+    const CHEVRON_ICON = `
+        <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 5l7 7-7 7"/>
+        </svg>
+    `;
+
+    const EYE_ICON = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+        </svg>
+    `;
+
+    async function weeklyErrorMessage(response) {
+        try {
+            const err = await response.json();
+            if (err.errors) return Object.values(err.errors)[0][0];
+            if (err.message) return err.message;
+        } catch (parseError) {
+            // respuesta sin JSON: se usa el mensaje genérico
+        }
+
+        return 'No se pudieron cargar los pagos. Intenta de nuevo.';
+    }
+
+    async function loadWeeklyPayments() {
+        const from = weeklyDateFrom.value;
+        const to = weeklyDateTo.value;
+
+        // Se envían ambas fechas o ninguna
+        if ((from && !to) || (!from && to)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Fechas incompletas',
+                text: 'Debes indicar la fecha inicial y la final, o dejar ambas vacías para consultar todo el año.',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        if (from && to && from > to) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Rango inválido',
+                text: 'La fecha inicial no puede ser mayor que la final.',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        const myToken = ++weeklyRequestToken;
+
+        weeklyEmpty.style.display = 'none';
+        weeklyError.style.display = 'none';
+        weeklySummary.style.display = 'none';
+        weeklyScroll.style.display = 'none';
+        weeklyBody.innerHTML = '';
+        weeklyLoading.classList.add('show');
+        btnWeeklySearch.disabled = true;
+
+        let url = WEEKLY_PAYMENTS_URL;
+        if (from && to) {
+            url += (url.includes('?') ? '&' : '?')
+                + 'date_from=' + encodeURIComponent(from)
+                + '&date_to=' + encodeURIComponent(to);
+        }
+
+        try {
+            const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+
+            if (myToken !== weeklyRequestToken) return;
+
+            if (!response.ok) {
+                weeklyError.textContent = await weeklyErrorMessage(response);
+                weeklyError.style.display = 'block';
+                return;
+            }
+
+            const data = await response.json();
+
+            if (myToken !== weeklyRequestToken) return;
+
+            weeklyData = data.weeks || [];
+            renderWeekly(data);
+        } catch (err) {
+            if (myToken !== weeklyRequestToken) return;
+
+            weeklyData = [];
+            weeklyError.textContent = 'No se pudieron cargar los pagos. Intenta de nuevo.';
+            weeklyError.style.display = 'block';
+        } finally {
+            if (myToken === weeklyRequestToken) {
+                weeklyLoading.classList.remove('show');
+                btnWeeklySearch.disabled = false;
+            }
+        }
+    }
+
+    function renderWeekly(data) {
+        const weeks = data.weeks || [];
+
+        const totalPayments = weeks.reduce((sum, w) => sum + (Number(w.cantidad) || 0), 0);
+        const totalAmount = weeks.reduce((sum, w) => sum + (Number(w.total) || 0), 0);
+
+        weeklySummary.innerHTML = `Del <strong>${formatIsoDate(data.desde)}</strong> al <strong>${formatIsoDate(data.hasta)}</strong>`
+            + ` · <strong>${weeks.length}</strong> semana(s)`
+            + ` · <strong>${totalPayments}</strong> pago(s)`
+            + ` · Total <strong>${formatMoney(totalAmount)}</strong>`;
+        weeklySummary.style.display = 'block';
+
+        if (!weeks.length) {
+            weeklyBody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay pagos en el rango consultado.</td></tr>';
+            weeklyScroll.style.display = 'block';
+            return;
+        }
+
+        weeklyBody.innerHTML = weeks.map((week, w) => `
+            <tr class="week-row">
+                <td>
+                    <button type="button" class="btn-expand-payment" data-target="weekly-week-${w}" title="Mostrar proveedores" aria-label="Mostrar proveedores">
+                        ${CHEVRON_ICON}
+                    </button>
+                </td>
+                <td>Semana ${escapeHtml(week.semana)} · ${escapeHtml(week.label)}</td>
+                <td>${week.proveedores.length}</td>
+                <td>${week.cantidad}</td>
+                <td style="text-align:right;">${formatMoney(week.total)}</td>
+            </tr>
+
+            <tr id="weekly-week-${w}" class="weekly-details-row" style="display:none;">
+                <td colspan="5">
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th style="width:44px;"></th>
+                                <th>Proveedor</th>
+                                <th>Identificación</th>
+                                <th>Pagos</th>
+                                <th style="text-align:right;">Total</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            ${week.proveedores.map((provider, p) => `
+                                <tr class="week-provider-row">
+                                    <td>
+                                        <button type="button" class="btn-expand-payment" data-target="weekly-provider-${w}-${p}" title="Mostrar pagos" aria-label="Mostrar pagos">
+                                            ${CHEVRON_ICON}
+                                        </button>
+                                    </td>
+                                    <td>${escapeHtml(provider.proveedor)}</td>
+                                    <td>${escapeHtml(provider.identificacion)}</td>
+                                    <td>${provider.cantidad}</td>
+                                    <td style="text-align:right;">${formatMoney(provider.total)}</td>
+                                </tr>
+
+                                <tr id="weekly-provider-${w}-${p}" class="weekly-provider-details-row" style="display:none;">
+                                    <td colspan="5">
+                                        <table class="docs-table payment-documents-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tipo</th>
+                                                    <th>Documento</th>
+                                                    <th>Forma de Pago</th>
+                                                    <th style="width: 30%;">Observacion</th>
+                                                    <th style="min-width:110px;">Fecha</th>
+                                                    <th>Valor</th>
+                                                    <th>Estado</th>
+                                                    <th style="width:60px;text-align:center;">
+                                                        Ver
+                                                    </th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+                                                ${provider.pagos.map((payment, i) => `
+                                                    <tr class="${payment.IsAnnulled ? 'row-nov1' : ''}">
+                                                        <td><span class="prefix-tag">${escapeHtml(payment.DocClass || '')}</span></td>
+                                                        <td>${payment.Link
+                                                            ? `<a href="${escapeHtml(payment.Link)}" target="_blank" rel="noopener noreferrer" class="document-link">
+                                                                    ${escapeHtml(payment.DocName || '-')}
+                                                                </a>`
+                                                            : (escapeHtml(payment.DocName) || '-')}
+                                                        </td>
+                                                        <td>${escapeHtml(payment.PayFormat || '')}</td>
+                                                        <td>${escapeHtml(payment.Observations || '')}</td>
+                                                        <td>${formatDate(payment.DocDate)}</td>
+                                                        <td style="text-align:right;">${formatMoney(payment.Total)}</td>
+                                                        <td>${payment.IsAnnulled
+                                                            ? '<span class="badge badge-v5">Anulado</span>'
+                                                            : '<span class="badge badge-ok">Activo</span>'
+                                                        }</td>
+                                                        <td style="text-align:center;">
+                                                            <button type="button" class="btn-icon-eye" data-week="${w}" data-provider="${p}" data-payment="${i}" title="Ver detalle">
+                                                                ${EYE_ICON}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        `).join('');
+
+        weeklyScroll.style.display = 'block';
+    }
+
+    // Un solo listener para desplegar semanas / proveedores y abrir el detalle de un pago
+    weeklyBody.addEventListener('click', (e) => {
+        const eye = e.target.closest('.btn-icon-eye');
+
+        if (eye) {
+            const provider = weeklyData[Number(eye.dataset.week)]?.proveedores?.[Number(eye.dataset.provider)];
+            const payment = provider?.pagos?.[Number(eye.dataset.payment)];
+
+            if (payment) openPaymentDetail(payment);
+            return;
+        }
+
+        const expandBtn = e.target.closest('.btn-expand-payment');
+        if (!expandBtn) return;
+
+        const target = document.getElementById(expandBtn.dataset.target);
+        if (!target) return;
+
+        const isHidden = target.style.display === 'none';
+        target.style.display = isHidden ? 'table-row' : 'none';
+
+        const icon = expandBtn.querySelector('.expand-icon');
+        if (icon) icon.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+    });
+
+    function resetWeekly() {
+        weeklyRequestToken++; // invalida una consulta en curso
+
+        weeklyDateFrom.value = '';
+        weeklyDateTo.value = '';
+        weeklyData = [];
+        weeklyBody.innerHTML = '';
+
+        weeklyScroll.style.display = 'none';
+        weeklySummary.style.display = 'none';
+        weeklyError.style.display = 'none';
+        weeklyLoading.classList.remove('show');
+        weeklyEmpty.style.display = 'block';
+        btnWeeklySearch.disabled = false;
+    }
+
+    btnWeeklySearch.addEventListener('click', loadWeeklyPayments);
+    btnWeeklyClear.addEventListener('click', resetWeekly);
 
     // =====================================================================
     // Documentos: render + filtros (los filtros solo ocultan filas)
