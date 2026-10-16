@@ -10,6 +10,30 @@ class SiigoInventoryService
     private string $username;
     private string $accessKey;
 
+    private const STORE_CODES = [
+        'ALEGRA'            => 'G2',
+        'PUNTO DE VENTA'    => 'P7',
+        'MAYALES'           => 'M3',
+        'REVENT'            => 'R1',
+        'OCEAN MALL'        => 'P2',
+        'NUESTRO MONTERIA'  => 'P1',
+        'ALAMEDAS'          => 'P3',
+        'PORTAL'            => 'M2',
+        'PLAZA DEL SOL'     => 'M8',
+        'WEB'               => 'G1',
+        'CASTELLANA'        => 'G4',
+        'UNICO BQ'          => 'G3',
+        'CARNAVAL'          => 'P4',
+        'GUATAPURI'         => 'M7',
+        'VENTURA PLAZA'     => 'M6',
+        'FABRICATO'         => 'M5',
+        'UNICO CALI'        => 'M1',
+        'CARIBE PLAZA 2'    => 'G5',
+        'MAYORCA'           => 'M4',
+        'GRAN MANZANA'      => 'I3',
+        'NUESTRO ATLANTICO' => 'P6',
+    ];
+
     public function __construct()
     {
         $this->baseUrl  = config('services.siigo.base_url');
@@ -185,70 +209,49 @@ class SiigoInventoryService
         }
     }
 
+    private function fetchWarehouses(string $token): array
+    {
+        $response = Http::withHeaders([
+            'Content-Type'  => 'application/json',
+            'Authorization' => $token,
+            'Partner-Id'    => 'consultadeFacturas',
+        ])->get("{$this->baseUrl}/v1/warehouses");
+
+        if (! $response->successful()) {
+            throw new \Exception($response->body());
+        }
+
+        return $response->json();
+    }
+
     public function stores(): array
     {
-        return [
-            2 => ['name' => 'P R I N C I P A L', 'code' => 'S/C', 'status' => 'APROBADO'],
-            3 => ['name' => 'ALEGRA', 'code' => 'G2', 'status' => 'APROBADO'],
-            4 => ['name' => 'PUNTO DE VENTA', 'code' => 'P7', 'status' => 'APROBADO'],
-            9 => ['name' => 'MAYALES', 'code' => 'M3', 'status' => 'APROBADO'],
-            13 => ['name' => 'PROD FABRICA', 'code' => 'S/C', 'status' => 'APROBADO'],
-            15 => ['name' => 'REVENT', 'code' => 'R1', 'status' => 'APROBADO'],
-            16 => ['name' => 'MATERIA PRIMA', 'code' => 'S/C', 'status' => 'APROBADO'],
-            17 => ['name' => 'OCEAN MALL', 'code' => 'P2', 'status' => 'APROBADO'],
-            19 => ['name' => 'NUESTRO MONTERIA', 'code' => 'P1', 'status' => 'APROBADO'],
-            22 => ['name' => 'ALAMEDAS', 'code' => 'P3', 'status' => 'APROBADO'],
-            24 => ['name' => 'PORTAL', 'code' => 'M2', 'status' => 'APROBADO'],
-            27 => ['name' => 'CARIBE PLAZA 1', 'code' => 'S/C', 'status' => 'APROBADO'],
-            28 => ['name' => 'PLAZA DEL SOL', 'code' => 'M8', 'status' => 'APROBADO'],
-            31 => ['name' => 'WEB', 'code' => 'G1', 'status' => 'APROBADO'],
-            32 => ['name' => 'CASTELLANA', 'code' => 'G4', 'status' => 'APROBADO'],
-            33 => ['name' => 'UNICO BQ', 'code' => 'G3', 'status' => 'APROBADO'],
-            34 => ['name' => 'CREAR ENSAMBLES', 'code' => 'S/C', 'status' => 'APROBADO'],
-            35 => ['name' => 'Credito de Calzado', 'code' => 'S/C', 'status' => 'APROBADO'],
-            36 => ['name' => 'ECOMMERCE', 'code' => 'S/C', 'status' => 'APROBADO'],
-            37 => ['name' => 'CARNAVAL', 'code' => 'P4', 'status' => 'APROBADO'],
-            44 => ['name' => 'INSTAGRAM', 'code' => 'S/C', 'status' => 'APROBADO'],
-            45 => ['name' => 'GARANTIAS', 'code' => 'S/C', 'status' => 'APROBADO'],
-            46 => ['name' => 'GUATAPURI', 'code' => 'M7', 'status' => 'APROBADO'],
-            47 => ['name' => 'TEMPORADA 2025', 'code' => 'S/C', 'status' => 'APROBADO'],
-            49 => ['name' => 'VENTURA PLAZA', 'code' => 'M6', 'status' => 'APROBADO'],
-            50 => ['name' => 'FABRICATO', 'code' => 'M5', 'status' => 'APROBADO'],
-            51 => ['name' => 'UNICO CALI', 'code' => 'M1', 'status' => 'APROBADO'],
-            56 => ['name' => 'CARIBE PLAZA 2', 'code' => 'G5', 'status' => 'APROBADO'],
-            57 => ['name' => 'MAYORCA', 'code' => 'M4', 'status' => 'APROBADO'],
-            58 => ['name' => 'GRAN MANZANA', 'code' => 'I3', 'status' => 'APROBADO'],
-            59 => ['name' => 'NUESTRO ATLANTICO', 'code' => 'P6', 'status' => 'APROBADO'],
-            62 => ['name' => 'NUESTRO URABÁ', 'code' => 'S/C', 'status' => 'APROBADO'],
-            63 => ['name' => 'NUESTRO CARTAGO', 'code' => 'S/C', 'status' => 'APROBADO'],
-            66 => ['name' => 'GUACARI SINCELEJO', 'code' => 'S/C', 'status' => 'APROBADO'],
-            93 => ['name' => 'MALL PLAZA CARTAGENA', 'code' => 'S/C', 'status' => 'APROBADO'],
-            67 => ['name' => 'P R I N C I P A L', 'code' => 'S/C', 'status' => 'TRANSITO'],
-            68 => ['name' => 'REVENT', 'code' => 'R1', 'status' => 'TRANSITO'],
-            69 => ['name' => 'NUESTRO BOGOTÁ', 'code' => 'S/C', 'status' => 'APROBADO'],
-            70 => ['name' => 'ALEGRA', 'code' => 'G2', 'status' => 'TRANSITO'],
-            71 => ['name' => 'MAYALES', 'code' => 'M3', 'status' => 'TRANSITO'],
-            72 => ['name' => 'OCEAN MALL', 'code' => 'P2', 'status' => 'TRANSITO'],
-            73 => ['name' => 'NUESTRO MONTERIA', 'code' => 'P1', 'status' => 'TRANSITO'],
-            74 => ['name' => 'ALAMEDAS', 'code' => 'P3', 'status' => 'TRANSITO'],
-            75 => ['name' => 'PORTAL', 'code' => 'M2', 'status' => 'TRANSITO'],
-            76 => ['name' => 'PLAZA DEL SOL', 'code' => 'M8', 'status' => 'TRANSITO'],
-            77 => ['name' => 'CASTELLANA', 'code' => 'G4', 'status' => 'TRANSITO'],
-            78 => ['name' => 'UNICO BQ', 'code' => 'G3', 'status' => 'TRANSITO'],
-            79 => ['name' => 'CARNAVAL', 'code' => 'P4', 'status' => 'TRANSITO'],
-            80 => ['name' => 'GUATAPURI', 'code' => 'M7', 'status' => 'TRANSITO'],
-            81 => ['name' => 'VENTURA PLAZA', 'code' => 'M6', 'status' => 'TRANSITO'],
-            82 => ['name' => 'FABRICATO', 'code' => 'M5', 'status' => 'TRANSITO'],
-            83 => ['name' => 'UNICO CALI', 'code' => 'M1', 'status' => 'TRANSITO'],
-            84 => ['name' => 'CARIBE PLAZA 2', 'code' => 'G5', 'status' => 'TRANSITO'],
-            85 => ['name' => 'MAYORCA', 'code' => 'M4', 'status' => 'TRANSITO'],
-            86 => ['name' => 'GRAN MANZANA', 'code' => 'I3', 'status' => 'TRANSITO'],
-            87 => ['name' => 'NUESTRO ATLANTICO', 'code' => 'P6', 'status' => 'TRANSITO'],
-            88 => ['name' => 'NUESTRO URABÁ', 'code' => 'S/C', 'status' => 'TRANSITO'],
-            89 => ['name' => 'NUESTRO CARTAGO', 'code' => 'S/C', 'status' => 'TRANSITO'],
-            90 => ['name' => 'GUACARI SINCELEJO', 'code' => 'S/C', 'status' => 'TRANSITO'],
-            91 => ['name' => 'NUESTRO BOGOTÁ', 'code' => 'S/C', 'status' => 'TRANSITO'],
-            94 => ['name' => 'MALL PLAZA CARTAGENA', 'code' => 'S/C', 'status' => 'TRANSITO'],
-        ];
+        $token = $this->auth();
+        
+        return collect($this->fetchWarehouses($token))
+            ->map(function ($item) {
+                $item = (array) $item;
+
+                $rawName    = trim(preg_replace('/\s+/u', ' ', $item['name']));
+                $esTransito = (bool) preg_match('/^TRANSITO\s+/iu', $rawName);
+                $name       = $esTransito
+                    ? trim(preg_replace('/^TRANSITO\s+/iu', '', $rawName))
+                    : $rawName;
+
+                return [
+                    'id'     => $item['id'],
+                    'name'   => $name,
+                    'code'   => self::STORE_CODES[mb_strtoupper($name)] ?? 'S/C',
+                    'status' => $esTransito ? 'TRANSITO' : 'APROBADO',
+                ];
+            })
+            ->mapWithKeys(fn ($store) => [
+                $store['id'] => [
+                    'name'   => $store['name'],
+                    'code'   => $store['code'],
+                    'status' => $store['status'],
+                ],
+            ])
+            ->toArray();
     }
 }
