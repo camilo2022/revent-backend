@@ -3160,8 +3160,6 @@ const WEEKLY_PAYMENTS_URL = "{{ route('siigo.account_payable.payments_weekly') }
                             <tr>
                                 <th>Tipo</th>
                                 <th>Documento</th>
-                                <th>Forma de Pago</th>
-                                <th style="width: 30%;">Observacion</th>
                                 <th style="min-width:110px;">Fecha</th>
                                 <th>Valor</th>
                                 <th>Estado</th>
@@ -3181,8 +3179,6 @@ const WEEKLY_PAYMENTS_URL = "{{ route('siigo.account_payable.payments_weekly') }
                                             </a>`
                                         : (escapeHtml(payment.DocName) || '-')}
                                     </td>
-                                    <td>${escapeHtml(payment.PayFormat || '')}</td>
-                                    <td>${escapeHtml(payment.Observations || '')}</td>
                                     <td>${formatDate(payment.DocDate)}</td>
                                     <td style="text-align:right;">${formatMoney(payment.TotalValue)}</td>
                                     <td>${payment.IsAnnulled
@@ -3446,8 +3442,6 @@ const WEEKLY_PAYMENTS_URL = "{{ route('siigo.account_payable.payments_weekly') }
                                                 <tr>
                                                     <th>Tipo</th>
                                                     <th>Documento</th>
-                                                    <th>Forma de Pago</th>
-                                                    <th style="width: 30%;">Observacion</th>
                                                     <th style="min-width:110px;">Fecha</th>
                                                     <th>Valor</th>
                                                     <th>Estado</th>
@@ -3467,8 +3461,6 @@ const WEEKLY_PAYMENTS_URL = "{{ route('siigo.account_payable.payments_weekly') }
                                                                 </a>`
                                                             : (escapeHtml(payment.DocName) || '-')}
                                                         </td>
-                                                        <td>${escapeHtml(payment.PayFormat || '')}</td>
-                                                        <td>${escapeHtml(payment.Observations || '')}</td>
                                                         <td>${formatDate(payment.DocDate)}</td>
                                                         <td style="text-align:right;">${formatMoney(payment.Total)}</td>
                                                         <td>${payment.IsAnnulled

@@ -1249,7 +1249,7 @@ class AccountPayableSiigoController extends Controller
 
     private function payments_documents(string $token, ?int $accountId = null, ?Carbon $fechaInicio = null, ?Carbon $fechaFin = null)
     {
-        $take = 50;
+        $take = 100;
         $skip = 0;
         $total = null;
         $rows = [];
@@ -1274,9 +1274,9 @@ class AccountPayableSiigoController extends Controller
                     'Field' => '_vTypeTransaction',
                     'FilterType' => 7,
                     'OperatorType' => 0,
-                    'Value' => ['-1'],
-                    'ValueUI' => '',
-                    'Source' => 'PaymentsAndVoucherMovement',
+                    'Value' => ['1'],
+                    'ValueUI' => 'Pagos',
+                    'Source' => 'PurchasesTransactionEnum',
                 ],
                 [
                     'Field' => '_vProvider',
@@ -1289,21 +1289,12 @@ class AccountPayableSiigoController extends Controller
                     'Source' => 'Account',
                 ],
                 [
-                    'Field' => '_vCostCenter',
-                    'FilterType' => 6,
-                    'OperatorType' => 0,
-                    'Value' => [],
-                    'ValueUI' => '',
-                    'Source' => '6',
-                ],
-                [
-                    'Field' => '_vElabDate',
-                    'FilterType' => 75,
+                    'Field' => '_vDocDate',
+                    'FilterType' => 76,
                     'OperatorType' => 0,
                     'Value' => [
                         $fechaInicio->format('Ymd'),
                         $fechaFin->format('Ymd'),
-                        null,
                     ],
                     'ValueUI' => $fechaInicio->format('Y/m/d')
                         . ' - '
@@ -1311,25 +1302,39 @@ class AccountPayableSiigoController extends Controller
                     'Source' => $source,
                 ],
                 [
-                    'Field' => '_vCreateBy',
+                    'Field' => '_vUser',
                     'FilterType' => 6,
                     'OperatorType' => 0,
                     'Value' => [],
                     'ValueUI' => '',
                     'Source' => '12',
                 ],
+                [
+                    'Field' => '_vProviderInvoice',
+                    'FilterType' => 6,
+                    'OperatorType' => 0,
+                    'Value' => [],
+                    'ValueUI' => '',
+                    'Source' => '64',
+                ],
+                [
+                    'Field' => '_vESiigoStatus',
+                    'FilterType' => 7,
+                    'OperatorType' => 0,
+                    'Value' => ['-1'],
+                    'ValueUI' => '',
+                    'Source' => 'DianStateFilterEnum',
+                ],
             ];
 
             $body = [
-                'Id' => 5452,
+                'Id' => 5451,
                 'Skip' => $skip,
                 'Take' => $take,
                 'Sort' => ' ',
                 'FilterCriterias' => json_encode($filterCriterias),
                 'Params' => json_encode([
-                    'TabID' => '1620',
-                    'pTabID' => '1620',
-                    'rReport' => '1',
+                    'TabID' => '1408',
                 ]),
                 'GetTotalCount' => $total === null,
                 'GridOrderCriteria' => null,
