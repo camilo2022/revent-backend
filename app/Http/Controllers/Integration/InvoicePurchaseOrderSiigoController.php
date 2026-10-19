@@ -809,6 +809,16 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
         $purchaseOrders = collect($data['purchase_orders'] ?? []);
 
+        $purchaseOrders = $purchaseOrders->whereNotIn('DocName', [
+            'OC-1-9050', 'OC-1-8994', 'OC-1-9027', 'OC-1-9806', 'OC-1-9808', 'OC-1-9810', 'OC-1-9811', 'OC-1-9802', 'OC-1-9809', 'OC-1-9807', 'OC-1-9813', 'OC-1-9804',
+            'OC-1-9803', 'OC-1-9812', 'OC-1-9805', 'OC-1-10752', 'OC-1-11325', 'OC-1-11327', 'OC-1-11318', 'OC-1-11330', 'OC-1-12659', 'OC-1-12397', 'OC-1-10821',
+            'OC-1-10816', 'OC-1-10812', 'OC-1-10813', 'OC-1-10819', 'OC-1-10817', 'OC-1-10822', 'OC-1-10823', 'OC-1-12174', 'OC-1-10815', 'OC-1-10832', 'OC-1-10824',
+            'OC-1-10825', 'OC-1-10829', 'OC-1-10826', 'OC-1-10830', 'OC-1-10834', 'OC-1-10912', 'OC-1-10911', 'OC-1-10913', 'OC-1-10880', 'OC-1-10907', 'OC-1-10874',
+            'OC-1-10873', 'OC-1-10876', 'OC-1-10875', 'OC-1-10910', 'OC-1-10908', 'OC-1-10906', 'OC-1-10905', 'OC-1-10878', 'OC-1-10877', 'OC-1-10904', 'OC-1-10909',
+            'OC-1-10914', 'OC-1-10915', 'OC-1-10916', 'OC-1-10879', 'OC-1-9369', 'OC-1-9414', 'OC-1-9476', 'OC-1-9422', 'OC-1-9424', 'OC-1-9443', 'OC-1-9653', 'OC-1-9652',
+            'OC-1-9654', 'OC-1-9642', 'OC-1-9650', 'OC-1-9640', 'OC-1-9649', 'OC-1-9660', 'OC-1-9659', 'OC-1-9661', 'OC-1-9658', 'OC-1-9635', 'OC-1-10571', 'OC-1-10574'
+        ]);
+
         $rows = $purchaseOrders->flatMap(function ($order) {
 
             $requestedTotal = (float) ($order['TotalQuantity'] ?? 0);
@@ -832,7 +842,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
                     $received = (float) ($item['Confirmed'] ?? 0);
 
                     $date = $order['DocDate'] ?? null;
-                    
+
                     return [
                         'DocName' => $order['DocName'],
                         'FullName' => $order['FullName'],
