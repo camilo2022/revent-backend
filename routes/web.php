@@ -88,6 +88,7 @@ Route::get('/siigo/invoice_purchase_order_missing_download', [InvoicePurchaseOrd
 Route::get('/siigo/search_document', [SearchDocumentSiigoController::class, 'search_document'])->name('siigo.search_document');
 Route::get('/siigo/search_document/search', [SearchDocumentSiigoController::class, 'search_document_search'])->name('siigo.search_document_search');
 Route::get('/siigo/search_document/NT/pdf', [SearchDocumentSiigoController::class, 'search_document_NT_pdf'])->name('siigo.search_document_NT_pdf');
+Route::get('/siigo/search_document/OC/pdf', [SearchDocumentSiigoController::class, 'search_document_OC_pdf'])->name('siigo.search_document_OC_pdf');
 
 Route::get('/exports/download/{file}', function (string $file) {
     abort_if(!preg_match('/^[\w\-]+\.xlsx$/', $file), 404);

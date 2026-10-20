@@ -4,33 +4,40 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Services\SiigoInventoryService;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\SiigoPurchaseOCPdfService;
+use App\Services\SiigoTransferNTPdfService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Symfony\Component\DomCrawler\Crawler;
 
 class SearchDocumentSiigoController extends Controller
 {
+    /**
+     * token: regex que debe cumplir el token de cada tipo; el grupo 1 es el JWT
+     * con el que se valida el usuario en Siigo.
+     */
     private const DOCUMENT_TYPES = [
-        /*19 => [
-            'name'  => 'ORDEN DE COMPRA',
-            'route' => 'siigo.search_document_search',
-        ],*/
+        19 => [
+            'name'       => 'ORDEN DE COMPRA',
+            'route'      => 'siigo.search_document_OC_pdf',
+            'token'      => '/(?=.*\.ASPXAUTH=[^;\s]+).*?TKNSGRDDREVENTCALZADOSAS=(eyJ[\w-]+\.[\w-]+\.[\w-]+)/s',
+            'token_hint' => 'Cookie completa de Siigo (TKNSGRDDREVENTCALZADOSAS=...; .ASPXAUTH=...).',
+        ],
         23 => [
-            'name'  => 'NOTA DE TRASLADO',
-            'route' => 'siigo.search_document_NT_pdf',
+            'name'       => 'NOTA DE TRASLADO',
+            'route'      => 'siigo.search_document_NT_pdf',
+            'token'      => '/^(eyJ[\w-]+\.[\w-]+\.[\w-]+)$/',
+            'token_hint' => 'Solo el token JWT (empieza por eyJ...).',
         ],
     ];
 
-    private const TRANSFER_NOTE = 23;
+    private const TRANSFER_NOTE = SiigoTransferNTPdfService::TRANSFER_NOTE;
+    private const PURCHASE_ORDER = SiigoPurchaseOCPdfService::PURCHASE_ORDER;
 
-    private const DISK = 'public';
-    private const BASE_PATH = 'products';
-    private const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp'];
-    private const IMAGE_MAX_WIDTH = 600;
+    public function __construct(
+        private SiigoTransferNTPdfService $transferNote,
+        private SiigoPurchaseOCPdfService $purchaseOrder
+    ) {
+    }
 
     public function search_document()
     {
@@ -47,27 +54,33 @@ class SearchDocumentSiigoController extends Controller
             'token' => 'required|string',
         ]);
 
-        if ($response = $this->unauthorized($request)) {
-            return $response;
-        }
-
         $queryType = $this->resolve_query_type($request->input('type'));
 
         if ($queryType === null) {
             return $this->unsupported_type();
         }
 
+        if ($response = $this->unauthorized($request, $queryType)) {
+            return $response;
+        }
+
         $siigoToken = (new SiigoInventoryService())->auth();
 
-        $document = $this->find_document($siigoToken, trim($request->input('query')), $queryType);
+        $document = $this->transferNote->find_document($siigoToken, trim($request->input('query')), $queryType);
 
         if (!$document) {
             return response()->json(['document' => null]);
         }
 
         if ($queryType === self::TRANSFER_NOTE) {
-            $document['Items'] = $this->parse_transfer_items(
-                $this->transfer_note_html($siigoToken, $document['ACEntryID'])
+            $document['Items'] = $this->transferNote->parse_transfer_items(
+                $this->transferNote->transfer_note_html($siigoToken, $document['ACEntryID'])
+            );
+        }
+
+        if ($queryType === self::PURCHASE_ORDER) {
+            $document['Items'] = $this->purchaseOrder->parse_purchase_items(
+                $this->purchaseOrder->purchase_order_html($request->input('token'), $document)
             );
         }
 
@@ -82,10 +95,6 @@ class SearchDocumentSiigoController extends Controller
             'token' => 'required|string',
         ]);
 
-        if ($response = $this->unauthorized($request)) {
-            return $response;
-        }
-
         if ($this->resolve_query_type($request->input('type')) !== self::TRANSFER_NOTE) {
             return response()->json([
                 'success' => false,
@@ -93,284 +102,68 @@ class SearchDocumentSiigoController extends Controller
             ], 422);
         }
 
+        if ($response = $this->unauthorized($request, self::TRANSFER_NOTE)) {
+            return $response;
+        }
+
         $siigoToken = (new SiigoInventoryService())->auth();
 
-        $document = $this->find_document($siigoToken, trim($request->input('query')), self::TRANSFER_NOTE);
+        $document = $this->transferNote->find_document($siigoToken, trim($request->input('query')), self::TRANSFER_NOTE);
 
         if (!$document) {
             return response()->json(['document' => null], 404);
         }
 
-        $html = $this->transfer_note_html($siigoToken, $document['ACEntryID']);
+        $pdf = $this->transferNote->transfer_note_pdf($siigoToken, $document);
 
-        if (!$html) {
+        if (!$pdf) {
             return response()->json([
                 'success' => false,
                 'error'   => 'No se pudo obtener la vista del documento en Siigo.',
             ], 502);
         }
 
-        $items = $this->parse_transfer_items($html);
-        [$siigoStyle, $siigoBody] = $this->split_siigo_html($html);
-        
-        return Pdf::loadView('integration.search_document_NT_pdf', [
-                'document'   => $document,
-                'siigoStyle' => $siigoStyle,
-                'siigoBody'  => $siigoBody,
-                'groups'     => $this->image_groups($items),
-            ])
-            ->setPaper('a4', 'portrait')
-            ->setOptions([
-                'isRemoteEnabled' => true,
-                'dpi'             => 135,
-            ])
-            ->download('nota_traslado_' . $document['Code'] . '.pdf');
+        return $pdf->download($this->transferNote->pdf_filename($document));
     }
 
-    private function find_document(string $siigoToken, string $query, int $queryType): ?array
+    public function search_document_OC_pdf(Request $request)
     {
-        $response = Http::withToken($siigoToken)
-            ->asJson()
-            ->post('https://services.siigo.com/cross/api/v2/quicksearch', [
-                'quicksearch' => [
-                    'queryString'     => $query,
-                    'queryType'       => $queryType,
-                    'typeQuickSearch' => 0,
-                ],
-            ]);
+        $request->validate([
+            'query' => 'required|string',
+            'type'  => 'required',
+            'token' => 'required|string',
+        ]);
 
-        if (!$response->successful()) {
-            return null;
+        if ($this->resolve_query_type($request->input('type')) !== self::PURCHASE_ORDER) {
+            return response()->json([
+                'success' => false,
+                'error'   => 'El PDF solo está disponible para órdenes de compra (19).',
+            ], 422);
         }
 
-        $data = $response->json('result.data', $response->json('data', []));
+        if ($response = $this->unauthorized($request, self::PURCHASE_ORDER)) {
+            return $response;
+        }
 
-        $document = collect($data)->first(function ($item) use ($query) {
-            return strcasecmp(trim((string) data_get($item, 'codeEntity')), $query) === 0;
-        });
+        $siigoToken = (new SiigoInventoryService())->auth();
+
+        $document = $this->transferNote->find_document($siigoToken, trim($request->input('query')), self::PURCHASE_ORDER);
 
         if (!$document) {
-            return null;
+            return response()->json(['document' => null], 404);
         }
 
-        $url = (string) data_get($document, 'urlEntity');
+        // El monolito se consulta con la cookie completa que mandó el usuario
+        $pdf = $this->purchaseOrder->purchase_order_pdf($request->input('token'), $document);
 
-        $acEntryId = data_get($document, 'documentID');
-
-        if (!$acEntryId) {
-            if (preg_match('/ERPDocumentID=(\d+)/', $url, $m)) {
-                $acEntryId = $m[1];
-            } elseif (preg_match('/\/(\d+)\/?$/', $url, $m)) {
-                $acEntryId = $m[1];
-            }
+        if (!$pdf) {
+            return response()->json([
+                'success' => false,
+                'error'   => 'No se pudo obtener la vista del documento en Siigo. Revisa que la cookie no haya expirado.',
+            ], 502);
         }
 
-        return [
-            'ACEntryID'   => $acEntryId,
-            'Code'        => data_get($document, 'codeEntity'),
-            'Description' => data_get($document, 'description'),
-            'Url'         => $url,
-            'QueryType'   => $queryType,
-            'Raw'         => $document,
-        ];
-    }
-
-    private function transfer_note_html(string $siigoToken, $acEntryId): ?string
-    {
-        $response = Http::withToken($siigoToken)
-            ->get('https://services.siigo.com/isiigo2ACDocumentAPI/api/v1/Documents/ACEntryHtmlViewAllResponse', [
-                'ACEntryID' => $acEntryId,
-                'OverWrite' => 'true',
-            ]);
-
-        if (!$response->successful()) {
-            return null;
-        }
-
-        return $response->json('response') ?? $response->json('result.response');
-    }
-
-    private function parse_transfer_items(?string $html): array
-    {
-        if (!$html) {
-            return [];
-        }
-
-        $rows = (new Crawler($html))
-            ->filterXPath('//table[contains(@class,"TableDocumentDetail")]/tbody/tr')
-            ->each(function (Crawler $row) {
-                $cells = $row->children();
-
-                if ($cells->count() < 7) {
-                    return null;
-                }
-
-                $text = fn (int $i) => trim(str_replace("\xC2\xA0", ' ', $cells->eq($i)->text('')));
-
-                $longDescription = $text(2);
-                $parts = array_map('trim', preg_split('/[-*]/', $longDescription, -1, PREG_SPLIT_NO_EMPTY));
-                $count = count($parts);
-                $valid = $count === 5 || $count === 4;
-
-                return [
-                    'ProductCode'          => $text(1),
-                    'Description'          => $longDescription,
-                    'LongDescription'      => $longDescription,
-                    'WarehouseOrigin'      => $text(4),
-                    'WarehouseDestination' => $text(5),
-
-                    'Reference' => $valid ? $parts[0] : null,
-                    'Color'     => $valid ? $parts[1] : null,
-                    'Category'  => $valid ? $parts[$count - 2] : null,
-                    'Size'      => $valid ? $parts[$count - 1] : null,
-
-                    'Quantity'  => (float) str_replace(',', '', $text(6)),
-                ];
-            });
-
-        return array_values(array_filter($rows));
-    }
-
-    private function split_siigo_html(string $html): array
-    {
-        preg_match('/<style[^>]*>(.*?)<\/style>/is', $html, $style);
-        preg_match('/<body[^>]*>(.*)<\/body>/is', $html, $bodyMatch);
-
-        $css = $style[1] ?? '';
-        $body = $bodyMatch[1] ?? $html;
-
-        // CSS: sin @charset, sin el envoltorio display:table / height:100% (dompdf no lo parte entre páginas) y sin flotantes
-        $css = str_replace('@charset "UTF-8";', '', $css);
-        $css = preg_replace('/\.invoice-(?:box|container-left|container-right)\s*\{[^}]*\}/', '', $css) ?? $css;
-        $css = str_replace(['height:100%;', 'height:inherit;'], '', $css);
-        $css = str_replace(['float: left;', 'float: right;'], 'float: none;', $css);
-
-        // Body: sin la tira lateral "Elaborado con Siigo" y sin la tabla anidada de la cantidad
-        $body = preg_replace('/<div class="invoice-container-right">.*?<\/table><\/div>/is', '', $body) ?? $body;
-        $body = preg_replace('/<table width=[\'"]100%[\'"]>\s*<td><\/td>\s*<td[^>]*>(.*?)<\/td>\s*<\/table>/is', '$1', $body) ?? $body;
-
-        return [$css, $body];
-    }
-
-    private function image_groups(array $items): Collection
-    {
-        $disk = Storage::disk(self::DISK);
-
-        $referenceDirs = collect($disk->directories(self::BASE_PATH))
-            ->mapWithKeys(fn ($dir) => [$this->normalize(basename($dir)) => $dir]);
-
-        return collect($items)
-            ->filter(fn ($item) => !empty($item['Reference']))
-            ->groupBy(fn ($item) => $this->normalize($item['Reference']))
-            ->flatMap(function ($referenceItems) use ($disk, $referenceDirs) {
-                $reference = $referenceItems->first()['Reference'];
-                $refDir = $referenceDirs->get($this->normalize($reference));
-
-                $colors = $referenceItems
-                    ->groupBy(fn ($item) => $this->normalize($item['Color']))
-                    ->map(fn ($colorItems) => [
-                        'Color' => $colorItems->first()['Color'],
-                        'Sizes' => $colorItems->map(fn ($i) => ['Size' => $i['Size'], 'Quantity' => $i['Quantity']])->values()->all(),
-                        'Total' => $colorItems->sum('Quantity'),
-                    ])
-                    ->values();
-
-                $cards = [];
-                $shared = [];
-
-                foreach ($colors as $color) {
-                    $image = $refDir ? $this->color_folder_image($disk, $refDir, $color['Color']) : null;
-
-                    if ($image) {
-                        // El color tiene su propia carpeta con foto
-                        $cards[] = [
-                            'Reference' => $reference,
-                            'Colors'    => [$color],
-                            'Total'     => $color['Total'],
-                            'Image'     => $image,
-                        ];
-                    } else {
-                        $shared[] = $color;
-                    }
-                }
-
-                // Colores sin carpeta propia: una sola tarjeta con la foto raíz de la referencia
-                if ($shared) {
-                    $cards[] = [
-                        'Reference' => $reference,
-                        'Colors'    => $shared,
-                        'Total'     => collect($shared)->sum('Total'),
-                        'Image'     => $refDir ? $this->first_image($disk, $refDir) : null,
-                    ];
-                }
-
-                return $cards;
-            })
-            ->values();
-    }
-
-    private function color_folder_image($disk, string $refDir, ?string $color): ?string
-    {
-        $colorDir = collect($disk->directories($refDir))
-            ->first(fn ($dir) => $this->normalize(basename($dir)) === $this->normalize($color));
-
-        return $colorDir ? $this->first_image($disk, $colorDir) : null;
-    }
-
-    private function first_image($disk, string $dir): ?string
-    {
-        $files = collect($disk->files($dir))
-            ->filter(fn ($file) => in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), self::IMAGE_EXT, true))
-            ->sort(SORT_NATURAL)
-            ->values();
-
-        foreach ($files as $file) {
-            if ($source = $this->image_source($disk, $file)) {
-                return $source;
-            }
-        }
-
-        return null;
-    }
-
-    private function image_source($disk, string $file): ?string
-    {
-        $path = $disk->path($file);
-
-        if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) !== 'webp') {
-            return $path;
-        }
-
-        if (!function_exists('imagecreatefromwebp')) {
-            return null;
-        }
-
-        $image = @imagecreatefromwebp($path);
-
-        if (!$image) {
-            return null;
-        }
-
-        $width = imagesx($image);
-        $height = imagesy($image);
-        $newWidth = min($width, self::IMAGE_MAX_WIDTH);
-        $newHeight = (int) round($height * $newWidth / $width);
-
-        // Fondo blanco por si el webp trae transparencia
-        $canvas = imagecreatetruecolor($newWidth, $newHeight);
-        imagefill($canvas, 0, 0, imagecolorallocate($canvas, 255, 255, 255));
-        imagecopyresampled($canvas, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-
-        ob_start();
-        imagejpeg($canvas, null, 85);
-        $jpeg = ob_get_clean();
-
-        return 'data:image/jpeg;base64,' . base64_encode($jpeg);
-    }
-
-    private function normalize(?string $value): string
-    {
-        return Str::upper(Str::ascii(trim((string) $value)));
+        return $pdf->download($this->purchaseOrder->pdf_filename($document));
     }
 
     private function resolve_query_type($type): ?int
@@ -389,9 +182,28 @@ class SearchDocumentSiigoController extends Controller
         ], 422);
     }
 
-    private function unauthorized(Request $request)
+    /**
+     * Saca el JWT del token según el regex del tipo; null si no cumple el formato.
+     */
+    private function extraer_token(string $token, int $type): ?string
     {
-        $usuario = $this->validar_usuario($request->input('token'));
+        preg_match(self::DOCUMENT_TYPES[$type]['token'], trim($token), $matches);
+
+        return $matches[1] ?? null;
+    }
+
+    private function unauthorized(Request $request, int $type)
+    {
+        $jwt = $this->extraer_token($request->input('token'), $type);
+
+        if (!$jwt) {
+            return response()->json([
+                'success' => false,
+                'error'   => 'Formato de token inválido para ' . self::DOCUMENT_TYPES[$type]['name'] . '. ' . self::DOCUMENT_TYPES[$type]['token_hint'],
+            ], 422);
+        }
+
+        $usuario = $this->validar_usuario($jwt);
 
         if ($usuario['success']) {
             return null;

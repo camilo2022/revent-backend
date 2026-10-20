@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Nota de traslado {{ $document['Code'] }}</title>
+    <title>{{ $document['Code'] }}</title>
 
     <style>
         {{-- Estilos originales de Siigo (ya limpiados en el controller) --}}

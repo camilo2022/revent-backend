@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Mail\MasivePurchaseOrderProviderSiigo;
 use App\Mail\MasivePurchaseOrderSiigo;
 use App\Services\SiigoInventoryService;
+use App\Services\SiigoPurchaseOCPdfService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,7 +30,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
     private const BASE_PATH = 'products';
 
     /**
-     * El proceso hace varias llamadas HTTP a Siigo + sleep(30) entre
+     * El proceso hace varias llamadas HTTP a Siigo + sleep(45) entre
      * órdenes, así que le damos bastante margen.
      */
     public int $timeout = 7200;
@@ -72,6 +73,14 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         }
 
         $token = $this->extraer_token($cookie);
+
+        if (empty($token)) {
+            $this->notificarResultado([[
+                'Row' => 'COOKIE',
+                'Error' => 'La cookie no trae el token TKNSGRDDREVENTCALZADOSAS. Copia la cookie completa de Siigo',
+            ]]);
+            return;
+        }
 
         $purchase_order_type_id = $config['tipo'];
 
@@ -149,17 +158,17 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
                     'Row' => 'CENTRO COSTO',
                     'Error' => 'El centro de costo es obligatorio',
                 ];
-            }
-
-            $cost_centers = collect($this->cost_centers())->keyBy('id')->all();
-
-            if (!isset($cost_centers[$config['centro_costo']])) {
-                $errors[] = [
-                    'Row' => 'CENTRO COSTO',
-                    'Error' => 'El centro de costo no es valido',
-                ];
             } else {
-                $cost_center = $cost_centers[$config['centro_costo']];
+                $cost_centers = collect($this->cost_centers())->keyBy('id')->all();
+
+                if (!isset($cost_centers[$config['centro_costo']])) {
+                    $errors[] = [
+                        'Row' => 'CENTRO COSTO',
+                        'Error' => 'El centro de costo no es valido',
+                    ];
+                } else {
+                    $cost_center = $cost_centers[$config['centro_costo']];
+                }
             }
         }
 
@@ -266,6 +275,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
                     'tipo' => $tipo,
                     'documento' => $info['documento'],
                     'url' => $info['url'],
+                    'pdf' => $this->generar_pdf_orden_compra($cookie, $orden_compra['documento_id'], $info['documento']),
                 ];
 
                 sleep(45);
@@ -285,7 +295,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error('ImportMasiveTransferSiigoJob falló', [
+        Log::error('ImportMasivePurchaseOrderSiigoJob falló', [
             'email' => $this->email,
             'error' => $exception->getMessage(),
         ]);
@@ -299,6 +309,29 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
                 ],
             ]
         ));
+    }
+
+    /**
+     * Genera el mismo PDF de la ruta siigo/search_document/OC/pdf y lo guarda para adjuntarlo en los correos.
+     * Si falla no detiene el proceso (la orden ya quedó creada en Siigo): el correo sale sin el PDF.
+     */
+    private function generar_pdf_orden_compra(string $cookie, int|string|null $erp_document_id, ?string $documento): ?array
+    {
+        if (empty($erp_document_id)) {
+            return null;
+        }
+
+        try {
+            return app(SiigoPurchaseOCPdfService::class)->store_purchase_order_pdf($cookie, $erp_document_id, $documento);
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo generar el PDF de la orden de compra', [
+                'erp_document_id' => $erp_document_id,
+                'documento' => $documento,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
     private function obtener_archivos(string $referencia): Collection
@@ -337,7 +370,6 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
                 ->get('https://monolithprod.siigo.com/REVENTCALZADOSAS/Default.aspx', [
                     'TabID' => 1671,
                     'ERPDocumentID' => $erp_document_id,
-                    'pTabID' => 1408,
                 ]);
 
             if (!$response->successful()) {

@@ -180,31 +180,34 @@
             <div class="excel-upload-title">Buscar documento Siigo</div>
 
             <div class="excel-upload-subtitle">
-                Selecciona el tipo de documento y escribe el código. Esto generará un pdf con la información 
+                Selecciona el tipo de documento y escribe el código. Esto generará un pdf con la información
                 del documento en Siigo y las imagenes de los productos que contiene.
             </div>
 
             <form id="searchForm" autocomplete="off">
 
                 <div class="excel-field-group">
-                    <label for="token" class="excel-field-label">
-                        Token <span class="required-mark">*</span>
-                    </label>
-                    <input type="text" id="token" class="excel-field-input" required autofocus>
-                </div>
-
-                <div class="excel-field-group">
                     <label for="type" class="excel-field-label">
                         Tipo de documento <span class="required-mark">*</span>
                     </label>
-                    <select id="type" class="excel-field-input" required>
+                    <select id="type" class="excel-field-input" required autofocus>
                         <option value="">Selecciona...</option>
                         @foreach ($document_types as $index => $type)
-                            <option value="{{ $index }}" data-url="{{ route($type['route']) }}">
+                            <option value="{{ $index }}" data-url="{{ route($type['route']) }}" data-token-hint="{{ $type['token_hint'] }}">
                                 {{ $index }} - {{ $type['name'] }}
                             </option>
                         @endforeach
                     </select>
+                </div>
+
+                <div class="excel-field-group">
+                    <label for="token" class="excel-field-label">
+                        Token <span class="required-mark">*</span>
+                    </label>
+                    <input type="text" id="token" class="excel-field-input" required>
+                    <div class="excel-field-hint" id="tokenHint">
+                        Selecciona primero el tipo de documento.
+                    </div>
                 </div>
 
                 <div class="excel-field-group">
@@ -237,6 +240,7 @@
         (function () {
             const form = document.getElementById('searchForm');
             const tokenInput = document.getElementById('token');
+            const tokenHint = document.getElementById('tokenHint');
             const typeInput = document.getElementById('type');
             const queryInput = document.getElementById('query');
             const submitBtn = document.getElementById('submitBtn');
@@ -257,6 +261,14 @@
                 link.remove();
                 setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
             }
+
+            // Cada tipo pide un formato de token distinto (NT: JWT, OC: cookie completa)
+            typeInput.addEventListener('change', function () {
+                const option = typeInput.selectedOptions[0];
+                tokenHint.textContent = option && option.dataset.tokenHint
+                    ? option.dataset.tokenHint
+                    : 'Selecciona primero el tipo de documento.';
+            });
 
             form.addEventListener('submit', async function (event) {
                 event.preventDefault();
@@ -286,7 +298,6 @@
                         headers: { 'Accept': 'application/json, application/pdf' },
                     });
 
-                    console.log('Consulta:', Object.fromEntries(params));
                     console.log('Ruta:', url);
                     console.log('Status:', response.status);
 
@@ -301,7 +312,16 @@
                         return;
                     }
 
-                    console.log('Respuesta:', await response.json());
+                    const data = await response.json();
+                    console.log('Respuesta:', data);
+
+                    if (data.error) {
+                        showError(data.error);
+                    } else if (data.message) {
+                        showError(data.message);
+                    } else if (data.document === null) {
+                        showError('No se encontró el documento en Siigo.');
+                    }
                 } catch (error) {
                     console.error('Error en la consulta:', error);
                     showError('No se pudo realizar la consulta. Revisa la consola para más detalle.');
