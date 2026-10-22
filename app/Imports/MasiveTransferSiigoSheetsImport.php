@@ -11,7 +11,6 @@ class MasiveTransferSiigoSheetsImport implements WithMultipleSheets, SkipsUnknow
     {
         return [
             'traslado' => new MasiveTransferSiigoImport(),
-            'traslado_observaciones' => new MasiveTransferObservationsSiigoImport(),
             'traslado_detalles' => new MasiveTransferDetailsSiigoImport()
         ];
     }

@@ -130,8 +130,6 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             return;
         }
 
-        $observaciones = $this->observaciones_por_traslado($config['tipo']);
-
         $detalles = $this->agrupar_duplicados($this->transfer['traslado_detalles']->toArray());
 
         $errors = array_merge($errors, $this->validar_permiso_bodega($detalles, $user));
@@ -149,7 +147,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
         if (empty($errors)) {
             foreach ($this->separar_traslados($detalles) as $grupo) {
-                [$traslado, $validate] = $this->traslado($token, $grupo, $config, $observaciones);
+                [$traslado, $validate] = $this->traslado($token, $grupo, $config);
 
                 if (!empty($validate)) {
                     $errors = array_merge($errors, $validate);
@@ -247,55 +245,6 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         return is_numeric($fecha)
             ? Date::excelToDateTimeObject($fecha)->format('Y-m-d')
             : Carbon::parse($fecha)->format('Y-m-d');
-    }
-
-    /* -----------------------------------------------------------------
-     | Hoja "traslado_observaciones"
-     | ----------------------------------------------------------------- */
-
-    /**
-     * Devuelve [ "salida|entrada" => "observación" ].
-     * En traslados de tránsito la bodega de entrada se reemplaza por su bodega de tránsito,
-     * así la llave coincide con la que queda en los detalles después de validar_bodega_transito().
-     */
-    private function observaciones_por_traslado(string $tipo): array
-    {
-        $observaciones = [];
-
-        foreach ($this->transfer['traslado_observaciones'] ?? [] as $fila) {
-            $fila = $fila instanceof Collection ? $fila->toArray() : (array) $fila;
-
-            $salida = $this->codigo_bodega($fila['bodega_salida'] ?? null);
-            $entrada = $this->codigo_bodega($fila['bodega_entrada'] ?? null);
-            $observacion = trim((string) ($fila['observacion'] ?? ''));
-
-            if ($salida === '' || $entrada === '' || $observacion === '') {
-                continue;
-            }
-
-            if ($tipo == 'TRANSITO') {
-                $entrada = $this->codigo_bodega(self::BODEGAS['DIRECTO'][$entrada]['transito'] ?? $entrada);
-            }
-
-            $llave = $this->llave_traslado($salida, $entrada);
-
-            $observaciones[$llave] = isset($observaciones[$llave])
-                ? $observaciones[$llave] . ' - ' . $observacion
-                : $observacion;
-        }
-
-        return $observaciones;
-    }
-
-    private function observacion_traslado(array $config, array $observaciones, array $detalles): string
-    {
-        $primero = $detalles[0];
-        $llave = $this->llave_traslado($primero['WarehouseCode'], $primero['DestinationWarehouseCode']);
-
-        return collect([$config['observacion'] ?? '', $observaciones[$llave] ?? ''])
-            ->map(fn ($texto) => trim((string) $texto))
-            ->filter()
-            ->implode(' - ');
     }
 
     /* -----------------------------------------------------------------
@@ -527,12 +476,12 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
      | Creación del traslado en Siigo
      | ----------------------------------------------------------------- */
 
-    private function traslado(string $token, array $detalles, array $config, array $observaciones): array
+    private function traslado(string $token, array $detalles, array $config): array
     {
         $body = $this->payload_traslado(
             $detalles,
             Carbon::parse($config['fecha'])->format('Ymd'),
-            $this->observacion_traslado($config, $observaciones, $detalles)
+            trim((string) ($config['observacion'] ?? ''))
         );
 
         for ($intento = 1; ; $intento++) {
@@ -571,7 +520,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 'preview'          => self::SIIGO_NUBE . "/#/inventories/1372/{$id}",
                 'preview_download' => self::SIIGO_NUBE . "/#/inventories/1372/{$id}/true",
                 'approved'         => $config['tipo'] == 'TRANSITO'
-                    ? $this->generar_excel_aprobar_traslado_transito($document['DocName'], $detalles, $observaciones)
+                    ? $this->generar_excel_aprobar_traslado_transito($document['DocName'], $detalles)
                     : null,
                 'pdf'              => $this->generar_pdf_traslado($document['DocName'], $id),
                 'data'             => [
@@ -639,7 +588,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         ];
     }
 
-    private function generar_excel_aprobar_traslado_transito(string $document, array $detalles, array $observaciones): array
+    private function generar_excel_aprobar_traslado_transito(string $document, array $detalles): array
     {
         $bodega_salida = $detalles[0]['DestinationWarehouseCode'];
         $bodega_entrada = collect(self::BODEGAS['DIRECTO'])->search(fn ($bodega) => $bodega['transito'] == $bodega_salida);
@@ -650,14 +599,6 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             'validar_disponible' => 'SI',
             'tipo'               => 'DIRECTO',
             'observacion'        => "APROBACION DE TRASLADO DE TRANSITO: {$document}",
-        ]];
-
-        // La observación propia del traslado viaja al Excel de aprobación para que se conserve al confirmarlo
-        $observacion = $observaciones[$this->llave_traslado($detalles[0]['WarehouseCode'], $bodega_salida)] ?? '';
-        $traslado_observaciones = $observacion === '' ? [] : [[
-            'bodega_salida'  => $bodega_salida,
-            'bodega_entrada' => $bodega_entrada,
-            'observacion'    => $observacion,
         ]];
 
         $traslado_detalles = array_map(fn ($detalle) => [
@@ -671,7 +612,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         $filename = "transfer_{$document}_" . now()->format('Y_m_d_His') . '.xlsx';
         $path = "exports/{$filename}";
 
-        Excel::store(new MasiveTransferSiigoMultiSheetExport($traslado, $traslado_observaciones, $traslado_detalles), $path, 'public');
+        Excel::store(new MasiveTransferSiigoMultiSheetExport($traslado, $traslado_detalles), $path, 'public');
 
         return [
             'name'         => $bodega_salida . ' - ' . self::BODEGAS['TRANSITO'][$bodega_salida]['name'] . ' a ' . $bodega_entrada . ' - ' . self::BODEGAS['DIRECTO'][$bodega_entrada]['name'],
@@ -753,16 +694,6 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
     private function bodega($codigo): ?array
     {
         return self::BODEGAS['DIRECTO'][$codigo] ?? self::BODEGAS['TRANSITO'][$codigo] ?? null;
-    }
-
-    private function codigo_bodega($codigo): string
-    {
-        return is_numeric($codigo) ? (string) (int) $codigo : trim((string) $codigo);
-    }
-
-    private function llave_traslado($salida, $entrada): string
-    {
-        return $this->codigo_bodega($salida) . '|' . $this->codigo_bodega($entrada);
     }
 
     private function error_general(string $row, string $error): array
