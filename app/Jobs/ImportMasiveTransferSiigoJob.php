@@ -75,6 +75,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             66 => ['name' => 'GUACARI SINCELEJO', 'transito' => 90, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
             69 => ['name' => 'NUESTRO BOGOTÁ', 'transito' => 91, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
             93 => ['name' => 'MALL PLAZA CARTAGENA', 'transito' => 94, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+            10093 => ['name' => 'IMPORTADO', 'transito' => null, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
         ],
         'TRANSITO' => [
             67 => ['name' => 'TRANSITO P R I N C I P A L', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
