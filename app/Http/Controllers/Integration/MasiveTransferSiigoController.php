@@ -26,7 +26,7 @@ class MasiveTransferSiigoController extends Controller
         $token = $siigo->auth();
         $warehouses = $this->warehouses($token);
 
-        return Excel::download(new MasiveTransferSiigoMultiSheetExport([], [], [], $warehouses), "formato_traslado.xlsx");
+        return Excel::download(new MasiveTransferSiigoMultiSheetExport([], [], $warehouses), "formato_traslado.xlsx");
     }
 
     public function masive_transfer_upload(Request $request)
