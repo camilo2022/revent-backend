@@ -72,7 +72,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             59 => ['name' => 'NUESTRO ATLANTICO', 'transito' => 87, 'users' => [597, 1089, 941, 885, 11585, 11586, 11587, 11588, 11589, 11595], 'emails' => ['nuestroatlantico@revent.com.co']],
             62 => ['name' => 'NUESTRO URABÁ', 'transito' => 88, 'users' => [597, 1089, 941, 21648], 'emails' => ['nuestrouraba@revent.com.co']],
             63 => ['name' => 'NUESTRO CARTAGO', 'transito' => 89, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            66 => ['name' => 'GUACARI SINCELEJO', 'transito' => 90, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
+            66 => ['name' => 'GUACARI SINCELEJO', 'transito' => 90, 'users' => [597, 1089, 941], 'emails' => ['guacari@revent.com.co']],
             69 => ['name' => 'NUESTRO BOGOTÁ', 'transito' => 91, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
             93 => ['name' => 'MALL PLAZA CARTAGENA', 'transito' => 94, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
             10093 => ['name' => 'IMPORTADO', 'transito' => null, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
@@ -100,7 +100,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             87 => ['name' => 'TRANSITO NUESTRO ATLANTICO', 'users' => [597, 1089, 941, 885, 11585, 11586, 11587, 11588, 11589, 11595], 'emails' => ['nuestroatlantico@revent.com.co']],
             88 => ['name' => 'TRANSITO NUESTRO URABÁ', 'users' => [597, 1089, 941, 21648], 'emails' => ['nuestrouraba@revent.com.co']],
             89 => ['name' => 'TRANSITO NUESTRO CARTAGO', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            90 => ['name' => 'TRANSITO GUACARI SINCELEJO', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
+            90 => ['name' => 'TRANSITO GUACARI SINCELEJO', 'users' => [597, 1089, 941], 'emails' => ['guacari@revent.com.co']],
             91 => ['name' => 'TRANSITO NUESTRO BOGOTÁ', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
             94 => ['name' => 'TRANSITO MALL PLAZA CARTAGENA', 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
         ]
