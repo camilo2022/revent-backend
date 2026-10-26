@@ -5,21 +5,27 @@ namespace App\Http\Controllers\Integration;
 use App\Exports\ProductTraceabilitySiigoExport;
 use App\Http\Controllers\Controller;
 use App\Imports\ProductTraceabilitySiigoImport;
-use App\Services\SiigoInventoryService;
+use App\Services\Siigo\SiigoCatalogService;
+use App\Services\Siigo\SiigoClient;
+use App\Services\Siigo\SiigoLinks;
+use App\Services\Siigo\SiigoReportService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductTraceabilitySiigoController extends Controller
 {
-    private string $siigo_base_url = 'https://api.siigo.com';
+    public function __construct(
+        private SiigoClient $client,
+        private SiigoCatalogService $catalog,
+        private SiigoReportService $reports
+    ) {
+    }
 
     public function product_traceability()
     {
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
-        $warehouses = $this->warehouses($token);
+        $token = $this->client->token();
+        $warehouses = $this->catalog->warehouses($token);
 
         return view('integration.product_traceability', compact('warehouses'));
     }
@@ -29,9 +35,8 @@ class ProductTraceabilitySiigoController extends Controller
         ini_set('memory_limit', '-1');
         set_time_limit(0);
 
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
-        $warehouses = $this->warehouses($token);
+        $token = $this->client->token();
+        $warehouses = $this->catalog->warehouses($token);
 
         $request->validate([
             'warehouse_id' => 'required|string|in:' . collect($warehouses)->pluck('id')->join(','),
@@ -51,15 +56,15 @@ class ProductTraceabilitySiigoController extends Controller
                 $url_hyperlink = '';
 
                 if(str_starts_with($item->Voucher, 'FV-')){
-                    $url_hyperlink = "https://siigonube.siigo.com/#/invoice/843/{$item->VoucherID}";
+                    $url_hyperlink = SiigoLinks::salesInvoice($item->VoucherID);
                 } else if (str_starts_with($item->Voucher, 'FC-')){
-                    $url_hyperlink = "https://siigonube.siigo.com/#/purchase/1008/{$item->VoucherID}";
+                    $url_hyperlink = SiigoLinks::purchaseInvoice($item->VoucherID);
                 } else if (str_starts_with($item->Voucher, 'NT-')){
-                    $url_hyperlink = "https://siigonube.siigo.com/#/inventories/1372/{$item->VoucherID}";
+                    $url_hyperlink = SiigoLinks::transferNote($item->VoucherID);
                 } else if (str_starts_with($item->Voucher, 'A-')){
-                    $url_hyperlink = "https://siigonube.siigo.com/#/inventories/1542/{$item->VoucherID}";
+                    $url_hyperlink = SiigoLinks::inventoryEntry($item->VoucherID);
                 } else if (str_starts_with($item->Voucher, 'NC-')){
-                    $url_hyperlink = "https://siigonube.siigo.com/#/credit-note/1017/{$item->VoucherID}";
+                    $url_hyperlink = SiigoLinks::creditNote($item->VoucherID);
                 }
                 $item->UrlHyperLink = $url_hyperlink;
                 return $item;
@@ -199,36 +204,6 @@ class ProductTraceabilitySiigoController extends Controller
             'AddOns' => [],
         ];
 
-        $response = Http::withToken($token)
-            ->acceptJson()
-            ->timeout(600)
-            ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
-
-        if (!$response->successful()) {
-            throw new \Exception(
-                'Error consultando movimientos de productos: ' . $response->body()
-            );
-        }
-
-        $data = $response->json('data.Value.Table');
-
-        return $data;
-    }
-
-    private function warehouses(string $token)
-    {
-        $response = Http::withHeaders([
-            'Content-Type'  => 'application/json',
-            'Authorization' => $token,
-            'Partner-Id' => 'consultadeFacturas',
-        ])->get("{$this->siigo_base_url}/v1/warehouses");
-
-        if (! $response->successful()) {
-            throw new \Exception($response->body());
-        }
-
-        $data = $response->json();
-
-        return $data;
+        return $this->reports->table($body, 'Error consultando movimientos de productos: ', $token);
     }
 }

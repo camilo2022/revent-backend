@@ -3,7 +3,7 @@
 
 namespace App\Jobs;
 
-use App\Services\SiigoInventoryService;
+use App\Services\Siigo\SiigoClient;
 use App\Services\SiigoPurchaseOrderCacheService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -50,10 +50,9 @@ class WarmSiigoPurchaseOrderCacheJob implements ShouldQueue
     ) {
     }
 
-    public function handle(SiigoPurchaseOrderCacheService $cacheService): void
+    public function handle(SiigoPurchaseOrderCacheService $cacheService, SiigoClient $siigo): void
     {
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
+        $token = $siigo->token();
 
         $fecha_inicio = Carbon::parse($this->from)->startOfDay();
         $fecha_fin = Carbon::parse($this->to)->endOfDay();

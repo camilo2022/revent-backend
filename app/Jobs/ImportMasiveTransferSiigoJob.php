@@ -4,6 +4,9 @@ namespace App\Jobs;
 
 use App\Exports\MasiveTransferSiigoMultiSheetExport;
 use App\Mail\MasiveTransferSiigoMail;
+use App\Services\Siigo\SiigoClient;
+use App\Services\Siigo\SiigoLinks;
+use App\Services\Siigo\SiigoRetryPolicy;
 use App\Services\SiigoTransferNTPdfService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -13,9 +16,9 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
@@ -26,11 +29,14 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
     public int $tries = 1;
     public int $timeout = 3600;
 
-    private const SIIGO_SERVICES = 'https://services.siigo.com';
-    private const SIIGO_NUBE = 'https://siigonube.siigo.com';
+    // Rutas (relativas al host de servicios definido en config/siigo.php).
+    private const PATH_TRANSFER_SAVE = '/ACEntryApi/api/v1/WarehouseTransfer/Save/';
+    private const PATH_TRANSFER_VIEW = '/ACEntryApi/api/v1/WarehouseTransfer/GetDataView';
 
-    private const SEGUNDOS_ENTRE_TRASLADOS = 45;
-    private const MAX_INTENTOS_TRASLADO = 3;
+    /** Disco privado y carpeta temporal de los archivos que solo viajan adjuntos en el correo. */
+    private const TMP_DISK = 'local';
+    private const TMP_PATH = 'tmp/siigo';
+
     private const PAGINAS_BUSQUEDA_PRODUCTO = 3;
 
     private const VISTA_SALIDA = 'email.masive-transfer-exit-siigo';
@@ -38,71 +44,71 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
     private const BODEGAS = [
         'DIRECTO' => [
-            -1 => ['name' => 'SIN ASIGNAR', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            2  => ['name' => 'P R I N C I P A L', 'transito' => 67, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            3  => ['name' => 'ALEGRA', 'transito' => 70, 'users' => [597, 1089, 941, 735, 742, 816, 823, 824, 873, 875, 878, 879, 880, 883, 884, 957, 972, 975, 979, 997, 1002, 1003, 1049, 1062, 1065, 1068, 1114, 1128, 1163, 1164, 1182, 1223, 1237, 1238, 1242, 1251, 1279, 1280, 1314, 1348, 1350, 1362, 11571, 11579, 11581, 11591], 'emails' => ['parquealegra@revent.com.co']],
-            4  => ['name' => 'PUNTO DE VENTA', 'transito' => null, 'users' => [597, 1089, 941, 877], 'emails' => ['operaciones@revent.com.co']],
-            9  => ['name' => 'MAYALES', 'transito' => 71, 'users' => [597, 1089, 941, 948, 951, 952, 978, 1005, 1016, 1059, 1115, 1116, 1126, 1127, 1171, 1175, 1176, 1177, 1179, 1216, 1258, 1291, 1309, 1310, 1311, 1361, 1370, 1372, 1391, 1452, 1471, 1472, 1520, 11578], 'emails' => ['mayales@revent.com.co']],
-            13 => ['name' => 'PROD FABRICA', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            15 => ['name' => 'REVENT', 'transito' => 68, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            16 => ['name' => 'MATERIA PRIMA', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            17 => ['name' => 'OCEAN MALL', 'transito' => 72, 'users' => [597, 1089, 941, 1087, 1183, 1197, 1200, 1201, 1224, 1263, 1264, 1390, 1442, 1530, 11572, 11573], 'emails' => ['reventoceanmall@gmail.com', 'oceanmall@revent.com.co']],
-            19 => ['name' => 'NUESTRO MONTERIA', 'transito' => 73, 'users' => [597, 1089, 941, 982, 983, 984, 985, 987, 989, 994, 1015, 1017, 1026, 1029, 1056, 1057, 1074, 1095, 1096, 1098, 1099, 1104, 1117, 1121, 1135, 1159, 1217, 1219, 1347, 1455, 1470, 11559, 11560, 11602], 'emails' => ['nuestro@revent.com.co']],
-            22 => ['name' => 'ALAMEDAS', 'transito' => 74, 'users' => [597, 1089, 941, 986, 992, 1034, 1061, 1064, 1092, 1097, 1157, 1162, 1165, 1232, 1288, 1373, 1382, 1408, 1409, 1469, 1533, 11561], 'emails' => ['alamedas@revent.com.co']],
-            24 => ['name' => 'PORTAL', 'transito' => 75, 'users' => [597, 1089, 941, 732, 792, 865, 871, 887, 888, 891, 893, 894, 896, 897, 898, 899, 938, 959, 971, 998, 1001, 1027, 1063, 1072, 1123, 1131, 1132, 1180, 1188, 1226, 1228, 1278, 1295, 1296, 1315, 1318, 1319, 1331, 1351, 1364, 1365, 1378, 1461, 1462, 1463, 1481, 1497, 1508, 1512, 1523, 11574, 11575, 11576, 11598], 'emails' => ['portaldelprado@revent.com.co']],
-            27 => ['name' => 'CARIBE PLAZA 1', 'transito' => null, 'users' => [597, 1089, 941, 1366], 'emails' => ['caribeplaza@revent.com.co']],
-            28 => ['name' => 'PLAZA DEL SOL', 'transito' => 76, 'users' => [597, 1089, 941, 780, 930, 1181, 1221, 1261, 1268, 1298, 1328, 1385, 1400, 1430, 1438, 1454, 1467, 1480, 11592], 'emails' => ['plazadelsol@revent.com.co']],
+            -1 => ['name' => 'SIN ASIGNAR', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            2  => ['name' => 'P R I N C I P A L', 'transito' => 67, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            3  => ['name' => 'ALEGRA', 'transito' => 70, 'users' => [597, 1089, 941, 735, 742, 816, 823, 824, 873, 875, 878, 879, 880, 883, 884, 957, 972, 975, 979, 997, 1002, 1003, 1049, 1062, 1065, 1068, 1114, 1128, 1163, 1164, 1182, 1223, 1237, 1238, 1242, 1251, 1279, 1280, 1314, 1348, 1350, 1362, 11571, 11579, 11581, 11591], 'emails' => ['parquealegra']],
+            4  => ['name' => 'PUNTO DE VENTA', 'transito' => null, 'users' => [597, 1089, 941, 877], 'emails' => ['operaciones']],
+            9  => ['name' => 'MAYALES', 'transito' => 71, 'users' => [597, 1089, 941, 948, 951, 952, 978, 1005, 1016, 1059, 1115, 1116, 1126, 1127, 1171, 1175, 1176, 1177, 1179, 1216, 1258, 1291, 1309, 1310, 1311, 1361, 1370, 1372, 1391, 1452, 1471, 1472, 1520, 11578], 'emails' => ['mayales']],
+            13 => ['name' => 'PROD FABRICA', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            15 => ['name' => 'REVENT', 'transito' => 68, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            16 => ['name' => 'MATERIA PRIMA', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            17 => ['name' => 'OCEAN MALL', 'transito' => 72, 'users' => [597, 1089, 941, 1087, 1183, 1197, 1200, 1201, 1224, 1263, 1264, 1390, 1442, 1530, 11572, 11573], 'emails' => ['reventoceanmall@gmail.com', 'oceanmall']],
+            19 => ['name' => 'NUESTRO MONTERIA', 'transito' => 73, 'users' => [597, 1089, 941, 982, 983, 984, 985, 987, 989, 994, 1015, 1017, 1026, 1029, 1056, 1057, 1074, 1095, 1096, 1098, 1099, 1104, 1117, 1121, 1135, 1159, 1217, 1219, 1347, 1455, 1470, 11559, 11560, 11602], 'emails' => ['nuestro']],
+            22 => ['name' => 'ALAMEDAS', 'transito' => 74, 'users' => [597, 1089, 941, 986, 992, 1034, 1061, 1064, 1092, 1097, 1157, 1162, 1165, 1232, 1288, 1373, 1382, 1408, 1409, 1469, 1533, 11561], 'emails' => ['alamedas']],
+            24 => ['name' => 'PORTAL', 'transito' => 75, 'users' => [597, 1089, 941, 732, 792, 865, 871, 887, 888, 891, 893, 894, 896, 897, 898, 899, 938, 959, 971, 998, 1001, 1027, 1063, 1072, 1123, 1131, 1132, 1180, 1188, 1226, 1228, 1278, 1295, 1296, 1315, 1318, 1319, 1331, 1351, 1364, 1365, 1378, 1461, 1462, 1463, 1481, 1497, 1508, 1512, 1523, 11574, 11575, 11576, 11598], 'emails' => ['portaldelprado']],
+            27 => ['name' => 'CARIBE PLAZA 1', 'transito' => null, 'users' => [597, 1089, 941, 1366], 'emails' => ['caribeplaza']],
+            28 => ['name' => 'PLAZA DEL SOL', 'transito' => 76, 'users' => [597, 1089, 941, 780, 930, 1181, 1221, 1261, 1268, 1298, 1328, 1385, 1400, 1430, 1438, 1454, 1467, 1480, 11592], 'emails' => ['plazadelsol']],
             31 => ['name' => 'WEB', 'transito' => null, 'users' => [597, 1089, 941, 940, 980, 1146], 'emails' => ['paginawebrevent@gmail.com']],
-            32 => ['name' => 'CASTELLANA', 'transito' => 77, 'users' => [597, 1089, 941, 926, 1021, 1035, 1040, 1042, 1044, 1046, 1051, 1052, 1053, 1054, 1055, 1058, 1066, 1070, 1073, 1075, 1082, 1085, 1091, 1102, 1106, 1133, 1134, 1142, 1152, 1153, 1154, 1167, 1173, 1174, 1184, 1185, 1187, 1195, 1196, 1202, 1225, 1227, 1229, 1230, 1265, 1266, 1267, 1275, 1276, 1277, 1299, 1307, 1308, 1317, 1352, 1419, 1444, 1483, 1488, 1492, 1494, 1515, 1516, 1517, 1534, 11569, 11570], 'emails' => ['castellana@revent.com.co']],
-            33 => ['name' => 'UNICO BQ', 'transito' => 78, 'users' => [597, 1089, 941, 1124, 740, 813, 882, 1018, 1122, 1212, 1220, 1222, 1252, 1256, 1259, 1260, 1273, 1274, 1281, 1282, 1283, 1284, 1285, 1286, 1289, 1305, 1312, 1313, 1320, 1321, 1357, 1360, 1375, 1379, 1403, 1424, 1449, 1451, 1460, 1511, 1514, 1524, 11562], 'emails' => ['unico@revent.com.co']],
-            34 => ['name' => 'CREAR ENSAMBLES', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            35 => ['name' => 'Credito de Calzado', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            36 => ['name' => 'ECOMMERCE', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            37 => ['name' => 'CARNAVAL', 'transito' => 79, 'users' => [597, 1089, 941, 810, 886, 1145, 1147, 1148, 1150, 1151, 1160, 1203, 1233, 1257, 1297, 1324, 1325, 1429, 1466, 1532, 11563, 11565], 'emails' => ['carnaval@revent.com.co']],
-            44 => ['name' => 'INSTAGRAM', 'transito' => null, 'users' => [597, 1089, 941, 1547], 'emails' => ['operaciones@revent.com.co']],
-            45 => ['name' => 'GARANTIAS', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            46 => ['name' => 'GUATAPURI', 'transito' => 80, 'users' => [597, 1089, 941, 1037, 1060, 1166, 1170, 1178, 1255, 1271, 1292, 1304, 1329, 1330, 1356, 1384, 1439, 1445, 1473, 1474, 1475, 1504, 11580], 'emails' => ['guatapuri@revent.com.co']],
-            47 => ['name' => 'TEMPORADA 2025', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            49 => ['name' => 'VENTURA PLAZA', 'transito' => 81, 'users' => [597, 1192, 1089, 941, 1344, 1345, 1371, 1383, 1495, 1556, 11556], 'emails' => ['venturaplaza@revent.com.co']],
-            50 => ['name' => 'FABRICATO', 'transito' => 82, 'users' => [597, 1089, 941, 1332, 1333, 1334, 1335, 1336, 1337, 1338, 1339, 1340, 1341, 1342, 1343, 1346, 1349, 1380, 1387, 1388, 1416, 1418, 1423, 1443, 1468, 1476, 1489, 1490, 1509, 1526, 1527, 1535, 1538, 11557, 11597, 1089, 941], 'emails' => ['fabricato@revent.com.co']],
-            51 => ['name' => 'UNICO CALI', 'transito' => 83, 'users' => [597, 1089, 941, 1205, 1206, 1207, 1209, 1210, 1211, 1213, 1235, 1239, 1240, 1241, 1244, 1245, 1269, 1270, 1300, 1322, 1353, 1359, 1386, 1411, 1412, 1413, 1421, 1433, 1435, 1477, 1496, 1536, 11590], 'emails' => ['unicocali@revent.com.co']],
-            56 => ['name' => 'CARIBE PLAZA 2', 'transito' => 84, 'users' => [597, 1089, 941, 1366], 'emails' => ['caribeplaza@revent.com.co']],
-            57 => ['name' => 'MAYORCA', 'transito' => 85, 'users' => [597, 1089, 941, 1537, 1542, 1543, 1544, 1545, 1546, 1548, 1549, 1552, 1554, 1555, 11558, 11568, 11577, 11582], 'emails' => ['mayorca@revent.com.co']],
-            58 => ['name' => 'GRAN MANZANA', 'transito' => 86, 'users' => [597, 1089, 941, 1498, 1500, 1501, 1502, 1503, 1513, 1531, 11584], 'emails' => ['granmanzana@revent.com.co']],
-            59 => ['name' => 'NUESTRO ATLANTICO', 'transito' => 87, 'users' => [597, 1089, 941, 885, 11585, 11586, 11587, 11588, 11589, 11595], 'emails' => ['nuestroatlantico@revent.com.co']],
-            62 => ['name' => 'NUESTRO URABÁ', 'transito' => 88, 'users' => [597, 1089, 941, 21648], 'emails' => ['nuestrouraba@revent.com.co']],
-            63 => ['name' => 'NUESTRO CARTAGO', 'transito' => 89, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            66 => ['name' => 'GUACARI SINCELEJO', 'transito' => 90, 'users' => [597, 1089, 941, 21649], 'emails' => ['guacari@revent.com.co']],
-            69 => ['name' => 'NUESTRO BOGOTÁ', 'transito' => 91, 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            93 => ['name' => 'MALL PLAZA CARTAGENA', 'transito' => 94, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
-            10093 => ['name' => 'IMPORTADO', 'transito' => null, 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+            32 => ['name' => 'CASTELLANA', 'transito' => 77, 'users' => [597, 1089, 941, 926, 1021, 1035, 1040, 1042, 1044, 1046, 1051, 1052, 1053, 1054, 1055, 1058, 1066, 1070, 1073, 1075, 1082, 1085, 1091, 1102, 1106, 1133, 1134, 1142, 1152, 1153, 1154, 1167, 1173, 1174, 1184, 1185, 1187, 1195, 1196, 1202, 1225, 1227, 1229, 1230, 1265, 1266, 1267, 1275, 1276, 1277, 1299, 1307, 1308, 1317, 1352, 1419, 1444, 1483, 1488, 1492, 1494, 1515, 1516, 1517, 1534, 11569, 11570], 'emails' => ['castellana']],
+            33 => ['name' => 'UNICO BQ', 'transito' => 78, 'users' => [597, 1089, 941, 1124, 740, 813, 882, 1018, 1122, 1212, 1220, 1222, 1252, 1256, 1259, 1260, 1273, 1274, 1281, 1282, 1283, 1284, 1285, 1286, 1289, 1305, 1312, 1313, 1320, 1321, 1357, 1360, 1375, 1379, 1403, 1424, 1449, 1451, 1460, 1511, 1514, 1524, 11562], 'emails' => ['unico']],
+            34 => ['name' => 'CREAR ENSAMBLES', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            35 => ['name' => 'Credito de Calzado', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            36 => ['name' => 'ECOMMERCE', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            37 => ['name' => 'CARNAVAL', 'transito' => 79, 'users' => [597, 1089, 941, 810, 886, 1145, 1147, 1148, 1150, 1151, 1160, 1203, 1233, 1257, 1297, 1324, 1325, 1429, 1466, 1532, 11563, 11565], 'emails' => ['carnaval']],
+            44 => ['name' => 'INSTAGRAM', 'transito' => null, 'users' => [597, 1089, 941, 1547], 'emails' => ['operaciones']],
+            45 => ['name' => 'GARANTIAS', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            46 => ['name' => 'GUATAPURI', 'transito' => 80, 'users' => [597, 1089, 941, 1037, 1060, 1166, 1170, 1178, 1255, 1271, 1292, 1304, 1329, 1330, 1356, 1384, 1439, 1445, 1473, 1474, 1475, 1504, 11580], 'emails' => ['guatapuri']],
+            47 => ['name' => 'TEMPORADA 2025', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            49 => ['name' => 'VENTURA PLAZA', 'transito' => 81, 'users' => [597, 1192, 1089, 941, 1344, 1345, 1371, 1383, 1495, 1556, 11556], 'emails' => ['venturaplaza']],
+            50 => ['name' => 'FABRICATO', 'transito' => 82, 'users' => [597, 1089, 941, 1332, 1333, 1334, 1335, 1336, 1337, 1338, 1339, 1340, 1341, 1342, 1343, 1346, 1349, 1380, 1387, 1388, 1416, 1418, 1423, 1443, 1468, 1476, 1489, 1490, 1509, 1526, 1527, 1535, 1538, 11557, 11597, 1089, 941], 'emails' => ['fabricato']],
+            51 => ['name' => 'UNICO CALI', 'transito' => 83, 'users' => [597, 1089, 941, 1205, 1206, 1207, 1209, 1210, 1211, 1213, 1235, 1239, 1240, 1241, 1244, 1245, 1269, 1270, 1300, 1322, 1353, 1359, 1386, 1411, 1412, 1413, 1421, 1433, 1435, 1477, 1496, 1536, 11590], 'emails' => ['unicocali']],
+            56 => ['name' => 'CARIBE PLAZA 2', 'transito' => 84, 'users' => [597, 1089, 941, 1366], 'emails' => ['caribeplaza']],
+            57 => ['name' => 'MAYORCA', 'transito' => 85, 'users' => [597, 1089, 941, 1537, 1542, 1543, 1544, 1545, 1546, 1548, 1549, 1552, 1554, 1555, 11558, 11568, 11577, 11582], 'emails' => ['mayorca']],
+            58 => ['name' => 'GRAN MANZANA', 'transito' => 86, 'users' => [597, 1089, 941, 1498, 1500, 1501, 1502, 1503, 1513, 1531, 11584], 'emails' => ['granmanzana']],
+            59 => ['name' => 'NUESTRO ATLANTICO', 'transito' => 87, 'users' => [597, 1089, 941, 885, 11585, 11586, 11587, 11588, 11589, 11595], 'emails' => ['nuestroatlantico']],
+            62 => ['name' => 'NUESTRO URABÁ', 'transito' => 88, 'users' => [597, 1089, 941, 21648], 'emails' => ['nuestrouraba']],
+            63 => ['name' => 'NUESTRO CARTAGO', 'transito' => 89, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            66 => ['name' => 'GUACARI SINCELEJO', 'transito' => 90, 'users' => [597, 1089, 941, 21649], 'emails' => ['guacari']],
+            69 => ['name' => 'NUESTRO BOGOTÁ', 'transito' => 91, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            93 => ['name' => 'MALL PLAZA CARTAGENA', 'transito' => 94, 'users' => [597], 'emails' => ['operaciones']],
+            10093 => ['name' => 'IMPORTADO', 'transito' => null, 'users' => [597], 'emails' => ['operaciones']],
         ],
         'TRANSITO' => [
-            67 => ['name' => 'TRANSITO P R I N C I P A L', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            68 => ['name' => 'TRANSITO REVENT', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            70 => ['name' => 'TRANSITO ALEGRA', 'users' => [597, 1089, 941, 735, 742, 816, 823, 824, 873, 875, 878, 879, 880, 883, 884, 957, 972, 975, 979, 997, 1002, 1003, 1049, 1062, 1065, 1068, 1114, 1128, 1163, 1164, 1182, 1223, 1237, 1238, 1242, 1251, 1279, 1280, 1314, 1348, 1350, 1362, 11571, 11579, 11581, 11591], 'emails' => ['parquealegra@revent.com.co']],
-            71 => ['name' => 'TRANSITO MAYALES', 'users' => [597, 1089, 941, 948, 951, 952, 978, 1005, 1016, 1059, 1115, 1116, 1126, 1127, 1171, 1175, 1176, 1177, 1179, 1216, 1258, 1291, 1309, 1310, 1311, 1361, 1370, 1372, 1391, 1452, 1471, 1472, 1520, 11578], 'emails' => ['mayales@revent.com.co']],
-            72 => ['name' => 'TRANSITO OCEAN MALL', 'users' => [597, 1089, 941, 1087, 1183, 1197, 1200, 1201, 1224, 1263, 1264, 1390, 1442, 1530, 11572, 11573], 'emails' => ['reventoceanmall@gmail.com', 'oceanmall@revent.com.co']],
-            73 => ['name' => 'TRANSITO NUESTRO MONTERIA', 'users' => [597, 1089, 941, 982, 983, 984, 985, 987, 989, 994, 1015, 1017, 1026, 1029, 1056, 1057, 1074, 1095, 1096, 1098, 1099, 1104, 1117, 1121, 1135, 1159, 1217, 1219, 1347, 1455, 1470, 11559, 11560, 11602], 'emails' => ['nuestro@revent.com.co']],
-            74 => ['name' => 'TRANSITO ALAMEDAS', 'users' => [597, 1089, 941, 986, 992, 1034, 1061, 1064, 1092, 1097, 1157, 1162, 1165, 1232, 1288, 1373, 1382, 1408, 1409, 1469, 1533, 11561], 'emails' => ['alamedas@revent.com.co']],
-            75 => ['name' => 'TRANSITO PORTAL', 'users' => [597, 1089, 941, 732, 792, 865, 871, 887, 888, 891, 893, 894, 896, 897, 898, 899, 938, 959, 971, 998, 1001, 1027, 1063, 1072, 1123, 1131, 1132, 1180, 1188, 1226, 1228, 1278, 1295, 1296, 1315, 1318, 1319, 1331, 1351, 1364, 1365, 1378, 1461, 1462, 1463, 1481, 1497, 1508, 1512, 1523, 11574, 11575, 11576, 11598], 'emails' => ['portaldelprado@revent.com.co']],
-            76 => ['name' => 'TRANSITO PLAZA DEL SOL', 'users' => [597, 1089, 941, 780, 930, 1181, 1221, 1261, 1268, 1298, 1328, 1385, 1400, 1430, 1438, 1454, 1467, 1480, 11592], 'emails' => ['plazadelsol@revent.com.co']],
-            77 => ['name' => 'TRANSITO CASTELLANA', 'users' => [597, 1089, 941, 926, 1021, 1035, 1040, 1042, 1044, 1046, 1051, 1052, 1053, 1054, 1055, 1058, 1066, 1070, 1073, 1075, 1082, 1085, 1091, 1102, 1106, 1133, 1134, 1142, 1152, 1153, 1154, 1167, 1173, 1174, 1184, 1185, 1187, 1195, 1196, 1202, 1225, 1227, 1229, 1230, 1265, 1266, 1267, 1275, 1276, 1277, 1299, 1307, 1308, 1317, 1352, 1419, 1444, 1483, 1488, 1492, 1494, 1515, 1516, 1517, 1534, 11569, 11570], 'emails' => ['castellana@revent.com.co']],
-            78 => ['name' => 'TRANSITO UNICO BQ', 'users' => [597, 1089, 941, 1124, 740, 813, 882, 1018, 1122, 1212, 1220, 1222, 1252, 1256, 1259, 1260, 1273, 1274, 1281, 1282, 1283, 1284, 1285, 1286, 1289, 1305, 1312, 1313, 1320, 1321, 1357, 1360, 1375, 1379, 1403, 1424, 1449, 1451, 1460, 1511, 1514, 1524, 11562], 'emails' => ['unico@revent.com.co']],
-            79 => ['name' => 'TRANSITO CARNAVAL', 'users' => [597, 1089, 941, 810, 886, 1145, 1147, 1148, 1150, 1151, 1160, 1203, 1233, 1257, 1297, 1324, 1325, 1429, 1466, 1532, 11563, 11565], 'emails' => ['carnaval@revent.com.co']],
-            80 => ['name' => 'TRANSITO GUATAPURI', 'users' => [597, 1089, 941, 1037, 1060, 1166, 1170, 1178, 1255, 1271, 1292, 1304, 1329, 1330, 1356, 1384, 1439, 1445, 1473, 1474, 1475, 1504, 11580], 'emails' => ['guatapuri@revent.com.co']],
-            81 => ['name' => 'TRANSITO VENTURA PLAZA', 'users' => [597, 1192, 1089, 941, 1344, 1345, 1371, 1383, 1495, 1556, 11556], 'emails' => ['venturaplaza@revent.com.co']],
-            82 => ['name' => 'TRANSITO FABRICATO', 'users' => [597, 1089, 941, 1332, 1333, 1334, 1335, 1336, 1337, 1338, 1339, 1340, 1341, 1342, 1343, 1346, 1349, 1380, 1387, 1388, 1416, 1418, 1423, 1443, 1468, 1476, 1489, 1490, 1509, 1526, 1527, 1535, 1538, 11557, 11597, 1089, 941], 'emails' => ['fabricato@revent.com.co']],
-            83 => ['name' => 'TRANSITO UNICO CALI', 'users' => [597, 1089, 941, 1205, 1206, 1207, 1209, 1210, 1211, 1213, 1235, 1239, 1240, 1241, 1244, 1245, 1269, 1270, 1300, 1322, 1353, 1359, 1386, 1411, 1412, 1413, 1421, 1433, 1435, 1477, 1496, 1536, 11590], 'emails' => ['unicocali@revent.com.co']],
-            84 => ['name' => 'TRANSITO CARIBE PLAZA 2', 'users' => [597, 1089, 941, 1366], 'emails' => ['caribeplaza@revent.com.co']],
-            85 => ['name' => 'TRANSITO MAYORCA', 'users' => [597, 1089, 941, 1537, 1542, 1543, 1544, 1545, 1546, 1548, 1549, 1552, 1554, 1555, 11558, 11568, 11577, 11582], 'emails' => ['mayorca@revent.com.co']],
-            86 => ['name' => 'TRANSITO GRAN MANZANA', 'users' => [597, 1089, 941, 1498, 1500, 1501, 1502, 1503, 1513, 1531, 11584], 'emails' => ['granmanzana@revent.com.co']],
-            87 => ['name' => 'TRANSITO NUESTRO ATLANTICO', 'users' => [597, 1089, 941, 885, 11585, 11586, 11587, 11588, 11589, 11595], 'emails' => ['nuestroatlantico@revent.com.co']],
-            88 => ['name' => 'TRANSITO NUESTRO URABÁ', 'users' => [597, 1089, 941, 21648], 'emails' => ['nuestrouraba@revent.com.co']],
-            89 => ['name' => 'TRANSITO NUESTRO CARTAGO', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            90 => ['name' => 'TRANSITO GUACARI SINCELEJO', 'users' => [597, 1089, 941, 21649], 'emails' => ['guacari@revent.com.co']],
-            91 => ['name' => 'TRANSITO NUESTRO BOGOTÁ', 'users' => [597, 1089, 941], 'emails' => ['operaciones@revent.com.co']],
-            94 => ['name' => 'TRANSITO MALL PLAZA CARTAGENA', 'users' => [597], 'emails' => ['operaciones@revent.com.co']],
+            67 => ['name' => 'TRANSITO P R I N C I P A L', 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            68 => ['name' => 'TRANSITO REVENT', 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            70 => ['name' => 'TRANSITO ALEGRA', 'users' => [597, 1089, 941, 735, 742, 816, 823, 824, 873, 875, 878, 879, 880, 883, 884, 957, 972, 975, 979, 997, 1002, 1003, 1049, 1062, 1065, 1068, 1114, 1128, 1163, 1164, 1182, 1223, 1237, 1238, 1242, 1251, 1279, 1280, 1314, 1348, 1350, 1362, 11571, 11579, 11581, 11591], 'emails' => ['parquealegra']],
+            71 => ['name' => 'TRANSITO MAYALES', 'users' => [597, 1089, 941, 948, 951, 952, 978, 1005, 1016, 1059, 1115, 1116, 1126, 1127, 1171, 1175, 1176, 1177, 1179, 1216, 1258, 1291, 1309, 1310, 1311, 1361, 1370, 1372, 1391, 1452, 1471, 1472, 1520, 11578], 'emails' => ['mayales']],
+            72 => ['name' => 'TRANSITO OCEAN MALL', 'users' => [597, 1089, 941, 1087, 1183, 1197, 1200, 1201, 1224, 1263, 1264, 1390, 1442, 1530, 11572, 11573], 'emails' => ['reventoceanmall@gmail.com', 'oceanmall']],
+            73 => ['name' => 'TRANSITO NUESTRO MONTERIA', 'users' => [597, 1089, 941, 982, 983, 984, 985, 987, 989, 994, 1015, 1017, 1026, 1029, 1056, 1057, 1074, 1095, 1096, 1098, 1099, 1104, 1117, 1121, 1135, 1159, 1217, 1219, 1347, 1455, 1470, 11559, 11560, 11602], 'emails' => ['nuestro']],
+            74 => ['name' => 'TRANSITO ALAMEDAS', 'users' => [597, 1089, 941, 986, 992, 1034, 1061, 1064, 1092, 1097, 1157, 1162, 1165, 1232, 1288, 1373, 1382, 1408, 1409, 1469, 1533, 11561], 'emails' => ['alamedas']],
+            75 => ['name' => 'TRANSITO PORTAL', 'users' => [597, 1089, 941, 732, 792, 865, 871, 887, 888, 891, 893, 894, 896, 897, 898, 899, 938, 959, 971, 998, 1001, 1027, 1063, 1072, 1123, 1131, 1132, 1180, 1188, 1226, 1228, 1278, 1295, 1296, 1315, 1318, 1319, 1331, 1351, 1364, 1365, 1378, 1461, 1462, 1463, 1481, 1497, 1508, 1512, 1523, 11574, 11575, 11576, 11598], 'emails' => ['portaldelprado']],
+            76 => ['name' => 'TRANSITO PLAZA DEL SOL', 'users' => [597, 1089, 941, 780, 930, 1181, 1221, 1261, 1268, 1298, 1328, 1385, 1400, 1430, 1438, 1454, 1467, 1480, 11592], 'emails' => ['plazadelsol']],
+            77 => ['name' => 'TRANSITO CASTELLANA', 'users' => [597, 1089, 941, 926, 1021, 1035, 1040, 1042, 1044, 1046, 1051, 1052, 1053, 1054, 1055, 1058, 1066, 1070, 1073, 1075, 1082, 1085, 1091, 1102, 1106, 1133, 1134, 1142, 1152, 1153, 1154, 1167, 1173, 1174, 1184, 1185, 1187, 1195, 1196, 1202, 1225, 1227, 1229, 1230, 1265, 1266, 1267, 1275, 1276, 1277, 1299, 1307, 1308, 1317, 1352, 1419, 1444, 1483, 1488, 1492, 1494, 1515, 1516, 1517, 1534, 11569, 11570], 'emails' => ['castellana']],
+            78 => ['name' => 'TRANSITO UNICO BQ', 'users' => [597, 1089, 941, 1124, 740, 813, 882, 1018, 1122, 1212, 1220, 1222, 1252, 1256, 1259, 1260, 1273, 1274, 1281, 1282, 1283, 1284, 1285, 1286, 1289, 1305, 1312, 1313, 1320, 1321, 1357, 1360, 1375, 1379, 1403, 1424, 1449, 1451, 1460, 1511, 1514, 1524, 11562], 'emails' => ['unico']],
+            79 => ['name' => 'TRANSITO CARNAVAL', 'users' => [597, 1089, 941, 810, 886, 1145, 1147, 1148, 1150, 1151, 1160, 1203, 1233, 1257, 1297, 1324, 1325, 1429, 1466, 1532, 11563, 11565], 'emails' => ['carnaval']],
+            80 => ['name' => 'TRANSITO GUATAPURI', 'users' => [597, 1089, 941, 1037, 1060, 1166, 1170, 1178, 1255, 1271, 1292, 1304, 1329, 1330, 1356, 1384, 1439, 1445, 1473, 1474, 1475, 1504, 11580], 'emails' => ['guatapuri']],
+            81 => ['name' => 'TRANSITO VENTURA PLAZA', 'users' => [597, 1192, 1089, 941, 1344, 1345, 1371, 1383, 1495, 1556, 11556], 'emails' => ['venturaplaza']],
+            82 => ['name' => 'TRANSITO FABRICATO', 'users' => [597, 1089, 941, 1332, 1333, 1334, 1335, 1336, 1337, 1338, 1339, 1340, 1341, 1342, 1343, 1346, 1349, 1380, 1387, 1388, 1416, 1418, 1423, 1443, 1468, 1476, 1489, 1490, 1509, 1526, 1527, 1535, 1538, 11557, 11597, 1089, 941], 'emails' => ['fabricato']],
+            83 => ['name' => 'TRANSITO UNICO CALI', 'users' => [597, 1089, 941, 1205, 1206, 1207, 1209, 1210, 1211, 1213, 1235, 1239, 1240, 1241, 1244, 1245, 1269, 1270, 1300, 1322, 1353, 1359, 1386, 1411, 1412, 1413, 1421, 1433, 1435, 1477, 1496, 1536, 11590], 'emails' => ['unicocali']],
+            84 => ['name' => 'TRANSITO CARIBE PLAZA 2', 'users' => [597, 1089, 941, 1366], 'emails' => ['caribeplaza']],
+            85 => ['name' => 'TRANSITO MAYORCA', 'users' => [597, 1089, 941, 1537, 1542, 1543, 1544, 1545, 1546, 1548, 1549, 1552, 1554, 1555, 11558, 11568, 11577, 11582], 'emails' => ['mayorca']],
+            86 => ['name' => 'TRANSITO GRAN MANZANA', 'users' => [597, 1089, 941, 1498, 1500, 1501, 1502, 1503, 1513, 1531, 11584], 'emails' => ['granmanzana']],
+            87 => ['name' => 'TRANSITO NUESTRO ATLANTICO', 'users' => [597, 1089, 941, 885, 11585, 11586, 11587, 11588, 11589, 11595], 'emails' => ['nuestroatlantico']],
+            88 => ['name' => 'TRANSITO NUESTRO URABÁ', 'users' => [597, 1089, 941, 21648], 'emails' => ['nuestrouraba']],
+            89 => ['name' => 'TRANSITO NUESTRO CARTAGO', 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            90 => ['name' => 'TRANSITO GUACARI SINCELEJO', 'users' => [597, 1089, 941, 21649], 'emails' => ['guacari']],
+            91 => ['name' => 'TRANSITO NUESTRO BOGOTÁ', 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            94 => ['name' => 'TRANSITO MALL PLAZA CARTAGENA', 'users' => [597], 'emails' => ['operaciones']],
         ]
     ];
 
@@ -111,7 +117,20 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         $this->onQueue('masive-transfers');
     }
 
+    /** Traslados creados en esta ejecución; sus archivos temporales se borran siempre al terminar. */
+    private array $traslados_generados = [];
+
     public function handle(): void
+    {
+        try {
+            $this->procesar();
+        } finally {
+            // Los archivos (PDF y Excel) solo existen para adjuntarlos al correo: se borran aunque algo falle.
+            $this->eliminar_archivos_temporales();
+        }
+    }
+
+    private function procesar(): void
     {
         $traslados = [];
 
@@ -156,15 +175,31 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
                 }
 
                 $traslados[] = $traslado;
+                $this->traslados_generados[] = $traslado;
 
                 $this->notificar_bodega($traslado['data']['bodega_salida_data'], $traslado, self::VISTA_SALIDA);
                 $this->notificar_bodega($traslado['data']['bodega_ingreso_data'], $traslado, self::VISTA_ENTRADA, adjuntar_excel: true);
 
-                sleep(self::SEGUNDOS_ENTRE_TRASLADOS);
+                // Siigo marca como duplicado dos creaciones seguidas: se espera antes del siguiente traslado.
+                app(SiigoRetryPolicy::class)->pauseBetweenDocuments();
             }
         }
 
         $this->notificar_resultado($traslados, $errors);
+    }
+
+    /** Borra los PDF y Excel temporales de todos los traslados creados en esta ejecución. */
+    private function eliminar_archivos_temporales(): void
+    {
+        foreach ($this->traslados_generados as $traslado) {
+            foreach ([$traslado['pdf'] ?? null, $traslado['approved'] ?? null] as $archivo) {
+                if (!empty($archivo['disk']) && !empty($archivo['path'])) {
+                    Storage::disk($archivo['disk'])->delete($archivo['path']);
+                }
+            }
+        }
+
+        $this->traslados_generados = [];
     }
 
     public function failed(\Throwable $exception): void
@@ -485,27 +520,28 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             trim((string) ($config['observacion'] ?? ''))
         );
 
+        $retry = app(SiigoRetryPolicy::class);
+
         for ($intento = 1; ; $intento++) {
-            $response = Http::withToken($token)
+            // Sin reintento HTTP automatico: reenviar un Save podria crear traslados duplicados.
+            $response = app(SiigoClient::class)->services($token)
                 ->asJson()
                 ->connectTimeout(60)
                 ->timeout(300)
-                ->post(self::SIIGO_SERVICES . '/ACEntryApi/api/v1/WarehouseTransfer/Save/', $body);
+                ->post(self::PATH_TRANSFER_SAVE, $body);
 
             if ($response->successful()) {
                 break;
             }
 
-            if (str_contains($response->body(), 'duplicidad') && $intento < self::MAX_INTENTOS_TRASLADO) {
+            // Falso duplicado: Siigo lo marca si recibe dos creaciones en el mismo segundo.
+            if ($retry->shouldRetryDuplicate($response->body(), $intento)) {
                 Log::warning('traslado reintentando por posible duplicidad', ['intento' => $intento]);
-                sleep(self::SEGUNDOS_ENTRE_TRASLADOS);
+                $retry->waitBeforeDuplicateRetry();
                 continue;
             }
 
-            $segundos = self::SEGUNDOS_ENTRE_TRASLADOS;
-            $intentosTexto = $intento > 1
-                ? "Se intentó {$intento} veces (con espera de {$segundos} segundos entre cada intento) y el error persistió."
-                : 'Se intentó 1 vez.';
+            $intentosTexto = $retry->attemptsText($intento, 'el error persistió.');
 
             return [[], [$this->error_general('ERROR DESCONOCIDO - TRASLADO', "{$intentosTexto} Respuesta de Siigo: " . $response->body())]];
         }
@@ -518,8 +554,8 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
         return [
             [
-                'preview'          => self::SIIGO_NUBE . "/#/inventories/1372/{$id}",
-                'preview_download' => self::SIIGO_NUBE . "/#/inventories/1372/{$id}/true",
+                'preview'          => SiigoLinks::transferNote($id),
+                'preview_download' => SiigoLinks::transferNote($id) . '/true',
                 'approved'         => $config['tipo'] == 'TRANSITO'
                     ? $this->generar_excel_aprobar_traslado_transito($document['DocName'], $detalles)
                     : null,
@@ -611,14 +647,16 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         ], $detalles);
 
         $filename = "transfer_{$document}_" . now()->format('Y_m_d_His') . '.xlsx';
-        $path = "exports/{$filename}";
+        $path = self::TMP_PATH . "/{$filename}";
 
-        Excel::store(new MasiveTransferSiigoMultiSheetExport($traslado, $traslado_detalles), $path, 'public');
+        // Archivo temporal en disco privado: solo se adjunta al correo y luego se borra.
+        Excel::store(new MasiveTransferSiigoMultiSheetExport($traslado, $traslado_detalles), $path, self::TMP_DISK);
 
         return [
             'name'         => $bodega_salida . ' - ' . self::BODEGAS['TRANSITO'][$bodega_salida]['name'] . ' a ' . $bodega_entrada . ' - ' . self::BODEGAS['DIRECTO'][$bodega_entrada]['name'],
-            'download_url' => route('exports.download', ['file' => $filename]),
-            'disk'         => 'public',
+            // Ya no se publica en storage/public: el Excel viaja solo como adjunto.
+            'download_url' => null,
+            'disk'         => self::TMP_DISK,
             'path'         => $path,
             'file'         => $filename,
         ];
@@ -650,14 +688,13 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
     {
         return $this->siigo($token)
             ->timeout(120)
-            ->post(self::SIIGO_SERVICES . '/catalog/api/v1/Autocomplete/GetData', $body);
+            ->post(config('siigo.endpoints.services.autocomplete'), $body);
     }
 
     private function consultar_documento(string $token, string|int $id): array
     {
         $response = $this->siigo($token)
-            ->acceptJson()
-            ->get(self::SIIGO_SERVICES . '/ACEntryApi/api/v1/WarehouseTransfer/GetDataView', ['id' => $id]);
+            ->get(self::PATH_TRANSFER_VIEW, ['id' => $id]);
 
         if (!$response->successful()) {
             throw new \Exception($response->body());
@@ -668,11 +705,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
     private function obtener_datos_usuario(string $token): array
     {
-        $response = Http::retry(3, 3000)->withHeaders([
-            'Authorization' => $token,
-            'Accept'        => '*/*',
-            'Referer'       => self::SIIGO_NUBE . '/',
-        ])->get(self::SIIGO_SERVICES . '/cross/globalstate/api/v1/Settings/LoadSettings');
+        $response = app(SiigoClient::class)->userSettings($token);
 
         if (!$response->successful()) {
             return [[], [$this->error_general('TOKEN', 'El token no sirve o expiró, genera uno nuevo')]];
@@ -685,7 +718,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
     private function siigo(string $token): PendingRequest
     {
-        return Http::retry(3, 3000)->withToken($token)->asJson();
+        return app(SiigoClient::class)->services($token)->retry(3, 3000)->asJson();
     }
 
     /* -----------------------------------------------------------------
@@ -694,7 +727,20 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
     private function bodega($codigo): ?array
     {
-        return self::BODEGAS['DIRECTO'][$codigo] ?? self::BODEGAS['TRANSITO'][$codigo] ?? null;
+        $bodega = self::BODEGAS['DIRECTO'][$codigo] ?? self::BODEGAS['TRANSITO'][$codigo] ?? null;
+
+        if ($bodega === null) {
+            return null;
+        }
+
+        // En BODEGAS los correos del dominio de la empresa se guardan solo con la parte local.
+        $domain = config('siigo.mail.domain');
+        $bodega['emails'] = array_map(
+            fn (string $email) => str_contains($email, '@') ? $email : "{$email}@{$domain}",
+            $bodega['emails'] ?? []
+        );
+
+        return $bodega;
     }
 
     private function error_general(string $row, string $error): array

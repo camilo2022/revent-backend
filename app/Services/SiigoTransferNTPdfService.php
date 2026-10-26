@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\Siigo\SiigoClient;
+use App\Services\Siigo\SiigoDocumentService;
+use App\Services\Siigo\SiigoLinks;
 use Barryvdh\DomPDF\PDF as DomPdf;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\DomCrawler\Crawler;
@@ -27,13 +29,21 @@ class SiigoTransferNTPdfService
     private const PDF_DISK = 'local';
     private const PDF_PATH = 'siigo/notas_traslado';
 
+    private const HTML_VIEW_PATH = '/isiigo2ACDocumentAPI/api/v1/Documents/ACEntryHtmlViewAllResponse';
+
+    public function __construct(
+        private SiigoClient $client,
+        private SiigoDocumentService $documents
+    ) {
+    }
+
     /**
      * Genera el PDF de la nota de traslado y lo guarda en disco.
      * Devuelve ['disk', 'path', 'file'] o null si Siigo no devolvió el documento.
      */
     public function store_transfer_note_pdf(string $documentCode, string|int|null $acEntryId = null): ?array
     {
-        $siigoToken = (new SiigoInventoryService())->auth();
+        $siigoToken = $this->client->token();
 
         $document = $this->find_document($siigoToken, trim($documentCode), self::TRANSFER_NOTE);
 
@@ -95,21 +105,11 @@ class SiigoTransferNTPdfService
 
     public function find_document(string $siigoToken, string $query, int $queryType): ?array
     {
-        $response = Http::withToken($siigoToken)
-            ->asJson()
-            ->post('https://services.siigo.com/cross/api/v2/quicksearch', [
-                'quicksearch' => [
-                    'queryString'     => $query,
-                    'queryType'       => $queryType,
-                    'typeQuickSearch' => 0,
-                ],
-            ]);
+        $data = $this->documents->quicksearch($siigoToken, $query, $queryType);
 
-        if (!$response->successful()) {
+        if ($data === null) {
             return null;
         }
-
-        $data = $response->json('result.data', $response->json('data', []));
 
         $document = collect($data)->first(function ($item) use ($query) {
             return strcasecmp(trim((string) data_get($item, 'codeEntity')), $query) === 0;
@@ -143,8 +143,8 @@ class SiigoTransferNTPdfService
 
     public function transfer_note_html(string $siigoToken, $acEntryId): ?string
     {
-        $response = Http::withToken($siigoToken)
-            ->get('https://services.siigo.com/isiigo2ACDocumentAPI/api/v1/Documents/ACEntryHtmlViewAllResponse', [
+        $response = $this->client->services($siigoToken)
+            ->get(self::HTML_VIEW_PATH, [
                 'ACEntryID' => $acEntryId,
                 'OverWrite' => 'true',
             ]);
@@ -199,7 +199,7 @@ class SiigoTransferNTPdfService
 
     private function document_from_id(string|int $acEntryId, string $documentCode): array
     {
-        $url = "https://siigonube.siigo.com/#/inventories/1372/{$acEntryId}";
+        $url = SiigoLinks::transferNote($acEntryId);
 
         return [
             'ACEntryID'   => $acEntryId,

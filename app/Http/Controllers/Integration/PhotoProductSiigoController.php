@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Services\ProductPhotoService;
+use App\Services\Siigo\SiigoClient;
+use App\Services\Siigo\SiigoUserService;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -26,13 +27,15 @@ class PhotoProductSiigoController extends Controller
     private const MAX_TOTAL_IMAGE_BYTES = 524288000; // 500 MB descomprimidos
     private const MAX_ZIP_ENTRIES = 5000;
 
-    private const SIIGO_CATALOG_URL = 'https://services.siigo.com/catalog/api';
     private const SIIGO_PAGE_SIZE = 100;
     private const SIIGO_MAX_PAGES = 1; // tope de seguridad para la paginación
     private const SIIGO_TIMEOUT = 60;
 
-    public function __construct(private ProductPhotoService $photos)
-    {
+    public function __construct(
+        private ProductPhotoService $photos,
+        private SiigoClient $client,
+        private SiigoUserService $siigoUsers
+    ) {
     }
 
     public function product_photo()
@@ -690,7 +693,7 @@ class PhotoProductSiigoController extends Controller
 
     private function validar_usuario_permitido(string $token): array
     {
-        $usuario = $this->obtener_datos_usuario($token);
+        $usuario = $this->siigoUsers->fromToken($token);
 
         if (!$usuario['success']) {
             return [
@@ -709,41 +712,6 @@ class PhotoProductSiigoController extends Controller
         return [
             'success' => true,
             'data' => $usuario['data'],
-        ];
-    }
-
-    private function obtener_datos_usuario(string $token): array
-    {
-        $response = Http::withHeaders([
-            'Authorization' => $token,
-        ])->get('https://services.siigo.com/cross/globalstate/api/v1/Settings/LoadSettings');
-
-        if (!$response->successful()) {
-            return [
-                'success' => false,
-                'data' => [],
-                'message' => 'Error de autenticación',
-            ];
-        }
-
-        $data = $response->json();
-
-        if (!isset($data['userID'], $data['userName'], $data['UserOptions']['userPrincipalName'])) {
-            return [
-                'success' => false,
-                'data' => [],
-                'message' => 'La respuesta de Siigo no contiene los datos esperados del usuario.',
-            ];
-        }
-
-        return [
-            'success' => true,
-            'data' => [
-                'id' => (int) $data['userID'],
-                'user' => $data['userName'],
-                'name' => $data['UserOptions']['userPrincipalName'],
-            ],
-            'message' => 'Usuario encontrado exitosamente',
         ];
     }
 
@@ -839,9 +807,12 @@ class PhotoProductSiigoController extends Controller
 
     private function siigo_http(string $token): PendingRequest
     {
-        return Http::withHeaders(['Authorization' => $token])
-            ->acceptJson()
-            ->timeout(self::SIIGO_TIMEOUT);
+        return $this->client->servicesAs($token)->timeout(self::SIIGO_TIMEOUT);
+    }
+
+    private function catalog_path(): string
+    {
+        return config('siigo.endpoints.services.catalog');
     }
 
     /** Busca en Siigo todos los productos (todas las páginas) que coincidan con el texto. */
@@ -852,7 +823,7 @@ class PhotoProductSiigoController extends Controller
         $page = 1;
 
         do {
-            $response = $this->siigo_http($token)->get(self::SIIGO_CATALOG_URL . '/product', [
+            $response = $this->siigo_http($token)->get($this->catalog_path() . '/product', [
                 'page' => $page,
                 'pageSize' => self::SIIGO_PAGE_SIZE,
                 'filters' => json_encode(['ProductSearch' => $search, 'Type' => '0,1']),
@@ -888,7 +859,7 @@ class PhotoProductSiigoController extends Controller
     private function siigo_listar_archivos(string $token, int $productId): array
     {
         $response = $this->siigo_http($token)->get(
-            self::SIIGO_CATALOG_URL . '/FileStorage/File/list',
+            $this->catalog_path() . '/FileStorage/File/list',
             $this->siigo_parametros_archivo($productId)
         );
 
@@ -904,7 +875,7 @@ class PhotoProductSiigoController extends Controller
     private function siigo_eliminar_archivos(string $token, int $productId): void
     {
         // DELETE con los parámetros en el query string, como lo hace Siigo.
-        $url = self::SIIGO_CATALOG_URL . '/FileStorage/File/list?'
+        $url = $this->catalog_path() . '/FileStorage/File/list?'
             . http_build_query($this->siigo_parametros_archivo($productId));
 
         $response = $this->siigo_http($token)->delete($url);
@@ -920,7 +891,7 @@ class PhotoProductSiigoController extends Controller
 
         $response = $this->siigo_http($token)
             ->attach('File', $jpgContents, $fileName, ['Content-Type' => 'image/jpeg'])
-            ->post(self::SIIGO_CATALOG_URL . '/FileStorage/File', [
+            ->post($this->catalog_path() . '/FileStorage/File', [
                 'ReferenceType' => 0,
                 'ReferenceCode' => $productId,
                 'FileName' => $fileName,

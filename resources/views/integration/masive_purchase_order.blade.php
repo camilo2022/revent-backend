@@ -1,21 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.integration')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Orden de compra masivos</title>
-     <style>
+@section('title', 'Orden de compra masivos')
+
+@push('styles')
+<style>
         * { box-sizing: border-box; }
 
-        body {
-            background: #f3f4f6;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 2rem 1rem;
-        }
 
         .excel-upload-wrapper {
             max-width: 580px;
@@ -440,11 +430,10 @@
             border-radius: 6px;
             border: 1px solid #e5e7eb;
         }
-    </style>
-</head>
+</style>
+@endpush
 
-<body>
-
+@section('content')
     <div class="excel-upload-wrapper">
 
         <!-- Formulario 1: descargar el formato según el tipo de orden de compra -->
@@ -582,7 +571,6 @@
             Volver a acciones disponibles
         </a>
     </div>
-</body>
 
 <script>
     (function() {
@@ -766,5 +754,4 @@
         });
     })();
 </script>
-
-</html>
+@endsection

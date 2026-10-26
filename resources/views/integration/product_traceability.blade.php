@@ -1,20 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.integration')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Trazabilidad de referencias</title>
-    <style>
+@section('title', 'Trazabilidad de referencias')
+
+@push('styles')
+<style>
         * { box-sizing: border-box; }
 
-        body {
-            background: #f3f4f6;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 2rem 1rem;
-        }
 
         .excel-upload-wrapper {
             max-width: 580px;
@@ -358,11 +349,10 @@
         .excel-download-btn:disabled {
             background: #d1d5db;
         }
-    </style>
-</head>
+</style>
+@endpush
 
-<body>
-
+@section('content')
     <div class="excel-upload-wrapper">
         <div class="excel-upload-card">
 
@@ -478,8 +468,6 @@
         </a>
     </div>
 
-</body>
-
 <script>
     (function () {
         const dropzone = document.getElementById('excelDropzone');
@@ -567,5 +555,4 @@
         }
     })();
 </script>
-
-</html>
+@endsection

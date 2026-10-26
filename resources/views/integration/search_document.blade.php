@@ -1,20 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
+@extends('layouts.integration')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Buscar documento Siigo</title>
-    <style>
+@section('title', 'Buscar documento Siigo')
+
+@push('styles')
+<style>
         * { box-sizing: border-box; }
 
-        body {
-            background: #f3f4f6;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 2rem 1rem;
-        }
 
         .excel-upload-wrapper {
             max-width: 580px;
@@ -169,11 +160,10 @@
             width: 15px;
             height: 15px;
         }
-    </style>
-</head>
+</style>
+@endpush
 
-<body>
-
+@section('content')
     <div class="excel-upload-wrapper">
         <div class="excel-upload-card">
 
@@ -333,6 +323,4 @@
             });
         })();
     </script>
-</body>
-
-</html>
+@endsection

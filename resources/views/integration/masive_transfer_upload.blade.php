@@ -1,20 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Traslado masivo en proceso</title>
+@extends('layouts.integration')
 
-    <style>
+@section('title', 'Traslado masivo en proceso')
+
+@push('styles')
+<style>
         * { box-sizing: border-box; }
 
-        body {
-            background: #f3f4f6;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 2rem 1rem;
-        }
 
         .result-wrapper {
             max-width: 580px;
@@ -149,10 +140,10 @@
             width: 15px;
             height: 15px;
         }
-    </style>
-</head>
-<body>
+</style>
+@endpush
 
+@section('content')
 <div class="result-wrapper">
 
     {{-- ================= BLOQUE DE PROCESAMIENTO ================= --}}
@@ -232,6 +223,4 @@
     </a>
 
 </div>
-
-</body>
-</html>
+@endsection

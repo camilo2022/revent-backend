@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Integration\Siigo\SyncUnicoRequest;
 use App\Jobs\SyncUnicoSiigoJob;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class SiigoController extends Controller
 {
     use ApiMessage, ApiResponser;
 
-    public function sync(Request $request)
+    public function sync(SyncUnicoRequest $request)
     {
         SyncUnicoSiigoJob::dispatch([
             'created_start' => $request->input('created_start', Carbon::now()->startOfMonth()->startOfDay()->format('Y-m-d H:i:s')),

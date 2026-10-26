@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Services\ProductPhotoService;
-use App\Services\SiigoInventoryService;
+use App\Services\Siigo\SiigoClient;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -30,7 +30,6 @@ class SyncReferencePhotosSiigoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private const CATALOG_URL = 'https://services.siigo.com/catalog/api';
     private const PHOTO_DISK = ProductPhotoService::DISK;
     private const PHOTO_BASE_PATH = ProductPhotoService::BASE_PATH;
 
@@ -65,10 +64,10 @@ class SyncReferencePhotosSiigoJob implements ShouldQueue
         ];
     }
 
-    public function handle(): void
+    public function handle(SiigoClient $siigo): void
     {
         $this->startedAt = time();
-        $this->token = (new SiigoInventoryService())->auth();
+        $this->token = $siigo->token();
 
         $stats = ['subido' => 0, 'omitido' => 0, 'sin_foto_local' => 0, 'error' => 0, 'reencolado' => 0];
         $jpgByColor = [];
@@ -167,7 +166,7 @@ class SyncReferencePhotosSiigoJob implements ShouldQueue
         $response = $send($this->token);
 
         if ($response->status() === 401) {
-            $this->token = (new SiigoInventoryService())->auth();
+            $this->token = app(SiigoClient::class)->token(true);
             $response = $send($this->token);
         }
 
@@ -176,11 +175,10 @@ class SyncReferencePhotosSiigoJob implements ShouldQueue
 
     private function siigoProductHasPhoto(int $productId): bool
     {
-        $response = $this->siigoRequest(fn (string $token) => Http::withToken($token)
-            ->acceptJson()
+        $response = $this->siigoRequest(fn (string $token) => app(SiigoClient::class)->services($token)
             ->timeout(30)
             ->retry(2, 2000, throw: false)
-            ->get(self::CATALOG_URL . '/FileStorage/File/list', [
+            ->get(config('siigo.endpoints.services.catalog') . '/FileStorage/File/list', [
                 'referenceCode' => $productId,
                 'referenceType' => 0,
                 'storageStrategy' => 1,
@@ -199,12 +197,11 @@ class SyncReferencePhotosSiigoJob implements ShouldQueue
     {
         $fileName = (int) (microtime(true) * 1000) . '.jpg';
 
-        $response = $this->siigoRequest(fn (string $token) => Http::withToken($token)
-            ->acceptJson()
+        $response = $this->siigoRequest(fn (string $token) => app(SiigoClient::class)->services($token)
             ->timeout(60)
             ->retry(2, 2000, throw: false)
             ->attach('File', $jpgContents, $fileName, ['Content-Type' => 'image/jpeg'])
-            ->post(self::CATALOG_URL . '/FileStorage/File', [
+            ->post(config('siigo.endpoints.services.catalog') . '/FileStorage/File', [
                 'ReferenceType' => 0,
                 'ReferenceCode' => $productId,
                 'FileName' => $fileName,

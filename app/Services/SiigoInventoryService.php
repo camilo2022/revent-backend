@@ -2,13 +2,12 @@
 
 namespace App\Services;
 
+use App\Services\Siigo\SiigoAuth;
 use Illuminate\Support\Facades\Http;
 
 class SiigoInventoryService
 {
     private string $baseUrl;
-    private string $username;
-    private string $accessKey;
 
     private const STORE_CODES = [
         'ALEGRA'            => 'G2',
@@ -36,26 +35,12 @@ class SiigoInventoryService
 
     public function __construct()
     {
-        $this->baseUrl  = config('services.siigo.base_url');
-        $this->username = config('services.siigo.username');
-        $this->accessKey = config('services.siigo.access_key');
+        $this->baseUrl = config('siigo.urls.api');
     }
 
     public function auth(): string
     {
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'Partner-Id' => 'consultadeFacturas',
-        ])->post("{$this->baseUrl}/auth", [
-            'username' => $this->username,
-            'access_key' => $this->accessKey,
-        ]);
-
-        if (!$response->successful()) {
-            throw new \Exception($response->body());
-        }
-
-        return $response->json('access_token');
+        return app(SiigoAuth::class)->token();
     }
 
     public function getPurchases(string $token, array $filters = []): array
@@ -74,7 +59,7 @@ class SiigoInventoryService
             $response = Http::retry(5, 10000)->withHeaders([
                 'Content-Type' => 'application/json',
                 'Authorization' => $token,
-                'Partner-Id' => 'consultadeFacturas',
+                'Partner-Id' => config('siigo.partner_id'),
             ])->get($url);
 
             if ($response->status() === 429) {
@@ -153,7 +138,7 @@ class SiigoInventoryService
             $response = Http::retry(5, 10000)->withHeaders([
                 'Content-Type' => 'application/json',
                 'Authorization' => $token,
-                'Partner-Id' => 'consultadeFacturas',
+                'Partner-Id' => config('siigo.partner_id'),
             ])->get($url);
 
             if ($response->status() === 429) {
@@ -214,7 +199,7 @@ class SiigoInventoryService
         $response = Http::withHeaders([
             'Content-Type'  => 'application/json',
             'Authorization' => $token,
-            'Partner-Id'    => 'consultadeFacturas',
+            'Partner-Id'    => config('siigo.partner_id'),
         ])->get("{$this->baseUrl}/v1/warehouses");
 
         if (! $response->successful()) {

@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Mail\SyncUnicoSiigoMail;
+use App\Services\Siigo\SiigoClient;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -20,16 +21,6 @@ class SyncUnicoSiigoJob implements ShouldQueue
 
     public int $timeout = 3600;
     public int $tries = 1;
-
-    private string $siigo_base_url = 'https://api.siigo.com';
-    private string $siigo_username = 'reventgestion@gmail.com';
-    private string $siigo_access_key = 'NWIwZTQ3ZmUtZjg0ZS00YzU0LWJlZjYtNzliMGIyOWIxMzk2Oj0/aTw2UDlxWFo=';
-
-    private string $unico_base_url = 'https://api.unicoanalytics.com.co';
-    private string $unico_name = 'locatario_revent';
-    private string $unico_password = 'sV5vNCku8[&0';
-
-    private string $fidelizacion_url = 'https://fidelizacionapi.uniapps.com.co/api/fidelizacion/contact/find-contact-list';
 
     private array $unico_summary = [
         'enviadas' => 0,
@@ -83,7 +74,7 @@ class SyncUnicoSiigoJob implements ShouldQueue
     private function notify_result(bool $success, array $details): void
     {
         try {
-            Mail::to(['tecnologia@revent.com.co'])->send(new SyncUnicoSiigoMail($success, $details));
+            Mail::to([config('siigo.mail.technology')])->send(new SyncUnicoSiigoMail($success, $details));
         } catch (\Throwable $mailException) {
             Log::warning('No se pudo enviar notificación de SyncUnicoSiigoJob', [
                 'error' => $mailException->getMessage(),
@@ -93,19 +84,7 @@ class SyncUnicoSiigoJob implements ShouldQueue
 
     private function auth_siigo(): string
     {
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'Partner-Id'   => 'consultadeFacturas',
-        ])->post("{$this->siigo_base_url}/auth", [
-            'username'   => $this->siigo_username,
-            'access_key' => $this->siigo_access_key,
-        ]);
-
-        if (! $response->successful()) {
-            throw new Exception('Error autenticando en Siigo: ' . $response->body());
-        }
-
-        return $response->json('access_token');
+        return app(SiigoClient::class)->token();
     }
 
     private function invoices_siigo(string $token_siigo, string $token_unico, array $filters = []): array
@@ -130,16 +109,13 @@ class SyncUnicoSiigoJob implements ShouldQueue
             fn ($value) => $value !== null && $value !== ''
         );
 
-        $url = "{$this->siigo_base_url}/v1/invoices?" . http_build_query($queryParams);
+        $siigo = app(SiigoClient::class);
+        $url = config('siigo.endpoints.api.invoices') . '?' . http_build_query($queryParams);
 
         $allPurchases = [];
 
         do {
-            $response = Http::retry(5, 10000)->withHeaders([
-                'Content-Type'  => 'application/json',
-                'Authorization' => $token_siigo,
-                'Partner-Id'    => 'consultadeFacturas',
-            ])->get($url);
+            $response = $siigo->api($token_siigo)->get($url);
 
             if ($response->status() === 429) {
                 sleep(1);
@@ -161,7 +137,7 @@ class SyncUnicoSiigoJob implements ShouldQueue
 
             $url = $data['_links']['next']['href'] ?? null;
 
-            if ($url) usleep(500000);
+            if ($url) usleep(config('siigo.http.page_pause_us'));
 
             unset($data, $response);
         } while ($url);
@@ -252,9 +228,9 @@ class SyncUnicoSiigoJob implements ShouldQueue
     {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json'
-        ])->post("{$this->unico_base_url}/api/v1/api-users/auth/login", [
-            'name'   => $this->unico_name,
-            'password' => $this->unico_password,
+        ])->post(config('services.unico.base_url') . '/api/v1/api-users/auth/login', [
+            'name'   => config('services.unico.name'),
+            'password' => config('services.unico.password'),
         ]);
 
         if (! $response->successful()) {
@@ -268,7 +244,7 @@ class SyncUnicoSiigoJob implements ShouldQueue
     {
         $response = Http::withToken($token)
             ->acceptJson()
-            ->post("{$this->unico_base_url}/api/v1/api-users/purchases", [
+            ->post(config('services.unico.base_url') . '/api/v1/api-users/purchases', [
                 'purchases' => $purchases,
             ]);
 
@@ -304,7 +280,7 @@ class SyncUnicoSiigoJob implements ShouldQueue
             return [];
         }
 
-        $response = Http::acceptJson()->post($this->fidelizacion_url, [
+        $response = Http::acceptJson()->post(config('services.unico.fidelizacion_url'), [
             'cedulas' => $documents,
         ]);
 

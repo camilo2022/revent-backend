@@ -1,20 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Órdenes de compra</title>
-    <style>
+@extends('layouts.integration')
+
+@section('title', 'Órdenes de compra')
+
+@push('styles')
+<style>
         * { box-sizing: border-box; }
 
-        body {
-            background: #f3f4f6;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 2rem 1rem;
-        }
 
         .wrapper { max-width: 95%; margin: 0 auto; }
 
@@ -459,7 +450,7 @@
         .back-link svg { width: 15px; height: 15px; }
 
         @media (max-width: 768px) {
-            body { padding: 1rem 0.6rem; }
+            .rv-page { padding: 1rem 0.6rem; }
             .card { padding: 1.3rem 1.1rem; border-radius: 12px; }
             .title { font-size: 1.3rem; }
             .summary-grid { grid-template-columns: repeat(2, 1fr); }
@@ -647,10 +638,10 @@
             .modal-body { grid-template-columns: 1fr; }
             .filtro-row { grid-template-columns: 1fr; }
         }
-    </style>
-</head>
-<body>
+</style>
+@endpush
 
+@section('content')
 <div class="wrapper">
     <div class="card">
 
@@ -1656,6 +1647,4 @@
     loadPurchaseOrders();
 })();
 </script>
-
-</body>
-</html>
+@endsection

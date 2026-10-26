@@ -6,14 +6,15 @@ use App\Exports\MasiveTransferSiigoMultiSheetExport;
 use App\Http\Controllers\Controller;
 use App\Imports\MasiveTransferSiigoSheetsImport;
 use App\Jobs\ImportMasiveTransferSiigoJob;
-use App\Services\SiigoInventoryService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use App\Services\Siigo\SiigoClient;
+use App\Http\Requests\Integration\MasiveTransfer\MasiveTransferUploadRequest;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MasiveTransferSiigoController extends Controller
 {
-    private string $siigo_base_url = 'https://api.siigo.com';
+    public function __construct(private SiigoClient $siigo)
+    {
+    }
 
     public function masive_transfer()
     {
@@ -22,22 +23,13 @@ class MasiveTransferSiigoController extends Controller
 
     public function masive_transfer_format()
     {
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
-        $warehouses = $this->warehouses($token);
+        $warehouses = $this->warehouses();
 
         return Excel::download(new MasiveTransferSiigoMultiSheetExport([], [], $warehouses), "formato_traslado.xlsx");
     }
 
-    public function masive_transfer_upload(Request $request)
+    public function masive_transfer_upload(MasiveTransferUploadRequest $request)
     {
-        $request->validate([
-            'file'  => 'required|file|mimes:xlsx,xls',
-            'email' => ['required', 'email', 'regex:/^[a-zA-Z0-9._%+-]+@revent\.com\.co$/'],
-        ], [
-            'email.regex' => 'El correo :input debe pertenecer al dominio @revent.com.co',
-        ]);
-
         $email = $request->input('email');
 
         $transfer = Excel::toCollection(new MasiveTransferSiigoSheetsImport, $request->file('file'));
@@ -47,13 +39,9 @@ class MasiveTransferSiigoController extends Controller
         return view('integration.masive_transfer_upload', compact('email'));
     }
 
-    private function warehouses(string $token)
+    private function warehouses()
     {
-        $response = Http::withHeaders([
-            'Content-Type'  => 'application/json',
-            'Authorization' => $token,
-            'Partner-Id' => 'consultadeFacturas',
-        ])->get("{$this->siigo_base_url}/v1/warehouses");
+        $response = $this->siigo->api()->get(config('siigo.endpoints.api.warehouses'));
 
         if (! $response->successful()) {
             throw new \Exception($response->body());

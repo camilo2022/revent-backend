@@ -1,20 +1,17 @@
-<!DOCTYPE html>
-<html lang="es">
+@extends('layouts.integration')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+@section('title', 'Consulta de inventario')
+@section('page_class', 'rv-page--flush')
 
-    <title>Consulta de inventario</title>
+@push('head')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js" defer></script>
+@endpush
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.5/cdn.min.js" defer></script>
-
-    <style>
+@push('styles')
+<style>
         * { box-sizing: border-box; }
 
-        body { background: #f3f4f6; font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; color: #1f2937; }
+        body { color: #1f2937; }
 
         /* ---------------------------------------------------------- */
         /* Pantalla 1: elegir tienda                                  */
@@ -398,11 +395,10 @@
             .bodegas-filtros .select-wrap { flex: 1 1 100%; }
             .bodegas-count { margin-left: 0; flex: 1 1 100%; }
         }
-    </style>
-</head>
+</style>
+@endpush
 
-<body>
-
+@section('content')
     {{-- ==========================================================
          DATOS DESDE LARAVEL
     =========================================================== --}}
@@ -2232,7 +2228,4 @@
         }
 
     </script>
-
-</body>
-
-</html>
+@endsection

@@ -1,20 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Ordenes de compra masivo en proceso</title>
+@extends('layouts.integration')
 
-    <style>
+@section('title', 'Ordenes de compra masivo en proceso')
+
+@push('styles')
+<style>
         * { box-sizing: border-box; }
 
-        body {
-            background: #f3f4f6;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 2rem 1rem;
-        }
 
         .result-wrapper {
             max-width: 580px;
@@ -149,10 +140,10 @@
             width: 15px;
             height: 15px;
         }
-    </style>
-</head>
-<body>
+</style>
+@endpush
 
+@section('content')
 <div class="result-wrapper">
 
     {{-- ================= BLOQUE DE PROCESAMIENTO ================= --}}
@@ -220,7 +211,7 @@
                 Serás notificado en:
                 <div class="email-highlight">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                    compras@revent.com.co
+                    compras@{{ config('siigo.mail.domain') }}
                 </div>
             </div>
         </div>
@@ -248,6 +239,4 @@
     </a>
 
 </div>
-
-</body>
-</html>
+@endsection

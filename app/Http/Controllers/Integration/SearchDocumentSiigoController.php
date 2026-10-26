@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
-use App\Services\SiigoInventoryService;
+use App\Services\Siigo\SiigoClient;
+use App\Services\Siigo\SiigoUserService;
 use App\Services\SiigoPurchaseOCPdfService;
 use App\Services\SiigoTransferNTPdfService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class SearchDocumentSiigoController extends Controller
 {
@@ -35,7 +35,9 @@ class SearchDocumentSiigoController extends Controller
 
     public function __construct(
         private SiigoTransferNTPdfService $transferNote,
-        private SiigoPurchaseOCPdfService $purchaseOrder
+        private SiigoPurchaseOCPdfService $purchaseOrder,
+        private SiigoClient $client,
+        private SiigoUserService $users
     ) {
     }
 
@@ -64,7 +66,7 @@ class SearchDocumentSiigoController extends Controller
             return $response;
         }
 
-        $siigoToken = (new SiigoInventoryService())->auth();
+        $siigoToken = $this->client->token();
 
         $document = $this->transferNote->find_document($siigoToken, trim($request->input('query')), $queryType);
 
@@ -106,7 +108,7 @@ class SearchDocumentSiigoController extends Controller
             return $response;
         }
 
-        $siigoToken = (new SiigoInventoryService())->auth();
+        $siigoToken = $this->client->token();
 
         $document = $this->transferNote->find_document($siigoToken, trim($request->input('query')), self::TRANSFER_NOTE);
 
@@ -145,7 +147,7 @@ class SearchDocumentSiigoController extends Controller
             return $response;
         }
 
-        $siigoToken = (new SiigoInventoryService())->auth();
+        $siigoToken = $this->client->token();
 
         $document = $this->transferNote->find_document($siigoToken, trim($request->input('query')), self::PURCHASE_ORDER);
 
@@ -203,7 +205,7 @@ class SearchDocumentSiigoController extends Controller
             ], 422);
         }
 
-        $usuario = $this->validar_usuario($jwt);
+        $usuario = $this->users->fromToken($jwt);
 
         if ($usuario['success']) {
             return null;
@@ -213,49 +215,5 @@ class SearchDocumentSiigoController extends Controller
             'success' => false,
             'error'   => $usuario['message'],
         ], 401);
-    }
-
-    private function validar_usuario(string $token): array
-    {
-        $usuario = $this->obtener_datos_usuario($token);
-
-        if (!$usuario['success']) {
-            return [
-                'success' => false,
-                'message' => $usuario['message'],
-            ];
-        }
-
-        return [
-            'success' => true,
-            'data'    => $usuario['data'],
-        ];
-    }
-
-    private function obtener_datos_usuario(string $token): array
-    {
-        $response = Http::withHeaders([
-            'Authorization' => $token,
-        ])->get('https://services.siigo.com/cross/globalstate/api/v1/Settings/LoadSettings');
-
-        if (!$response->successful()) {
-            return [
-                'success' => false,
-                'data'    => [],
-                'message' => 'Error de autenticacion',
-            ];
-        }
-
-        $data = $response->json();
-
-        return [
-            'success' => true,
-            'data'    => [
-                'id'   => $data['userID'],
-                'user' => $data['userName'],
-                'name' => $data['UserOptions']['userPrincipalName'],
-            ],
-            'message' => 'Usuario encontrado exitosamente',
-        ];
     }
 }

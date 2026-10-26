@@ -4,7 +4,12 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Mail\InvoicePurchaseOrderAccessLink;
-use App\Services\SiigoInventoryService;
+use App\Http\Controllers\Integration\Concerns\SendsAccessLink;
+use App\Services\Siigo\SiigoCatalogService;
+use App\Services\Siigo\SiigoClient;
+use App\Services\Siigo\SiigoDocumentService;
+use App\Services\Siigo\SiigoLinks;
+use App\Services\Siigo\SiigoUserService;
 use App\Services\SiigoPurchaseOrderCacheService;
 use App\Exports\InvoicePurchaseOrderMissingExport;
 use Carbon\Carbon;
@@ -14,9 +19,7 @@ use App\Services\SiigoProductsCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -26,11 +29,17 @@ class InvoicePurchaseOrderSiigoController extends Controller
 {
     private const DISK = 'public';
     private const BASE_PATH = 'evidences';
-    private const INVOICE_PURCHASE_ORDER_ALLOWED_EMAILS = [
-        'tecnologia@revent.com.co',
-        'operaciones@revent.com.co',
-        'recepciondeoc@revent.com.co'
-    ];
+
+    use SendsAccessLink;
+
+    public function __construct(
+        private SiigoClient $client,
+        private SiigoUserService $siigoUsers,
+        private SiigoCatalogService $catalog,
+        private SiigoDocumentService $siigoDocuments,
+        private SiigoPurchaseOrderCacheService $purchaseCache
+    ) {
+    }
 
     public function invoice_purchase_order_reception()
     {
@@ -40,7 +49,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
     public function invoice_purchase_order_search(Request $request)
     {
         $token = $request->input('token');
-        $usuario = $this->validar_usuario($token);
+        $usuario = $this->siigoUsers->fromToken($token);
 
         if (!$usuario['success']) {
             return response()->json([
@@ -49,26 +58,15 @@ class InvoicePurchaseOrderSiigoController extends Controller
             ], 401);
         }
 
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
+        $token = $this->client->token();
 
-        $response = Http::withToken($token)
-            ->asJson()
-            ->post('https://services.siigo.com/cross/api/v2/quicksearch', [
-                'quicksearch' => [
-                    'queryString' => $request->input('query'),
-                    'queryType' => 19,
-                    'typeQuickSearch' => 0,
-                ],
-            ]);
+        $data = $this->siigoDocuments->quicksearch($token, (string) $request->input('query'), 19);
 
-        if (!$response->successful()) {
+        if ($data === null) {
             return response()->json([
                 'invoice_purchase_order' => null,
             ]);
         }
-
-        $data = $response->json('result.data', []);
 
         $purchase_order = collect($data)->first(function ($item) use ($request) {
             return data_get($item, 'codeEntity') === $request->input('query');
@@ -94,8 +92,8 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
         $cacheKey = "OC-ID-{$acEntryId}";
 
-        $warehouses = $this->warehouses($token);
-        $invoice_purchase_order = $this->fetch_detail($token, $acEntryId, $cacheKey);
+        $warehouses = $this->catalog->warehousesById($token);
+        $invoice_purchase_order = $this->purchaseCache->fetchDetail($token, (int) $acEntryId, $cacheKey);
         $invoice_purchase_order['Items'] = $this->parse_items($invoice_purchase_order, $warehouses);
 
         return response()->json([
@@ -109,7 +107,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
         // seguir procesando/validando un payload que puede traer varias
         // imágenes de hasta 8MB cada una.
         $token = $request->input('token');
-        $usuario = $this->validar_usuario($token);
+        $usuario = $this->siigoUsers->fromToken($token);
 
         if (!$usuario['success']) {
             return response()->json([
@@ -204,7 +202,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
             $imagenes[] = Storage::disk(self::DISK)->url("{$path}/{$filename}");
         }
 
-        Mail::to(['recepciondeoc@revent.com.co'])->send(
+        Mail::to([config('siigo.mail.purchase_reception')])->send(
             new InvoicePurchaseOrderConfirmedSiigo($data, $usuario, $imagenes)
         );
 
@@ -221,31 +219,13 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order_send_access_link(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
-
-        $email = strtolower(trim($request->input('email')));
-
-        if (!in_array($email, self::INVOICE_PURCHASE_ORDER_ALLOWED_EMAILS, true)) {
-            return back()
-                ->withErrors(['email' => 'Este correo no tiene autorización para acceder a ordenes de compra.'])
-                ->withInput();
-        }
-
-        try {
-            $url = URL::temporarySignedRoute('siigo.invoice_purchase_order', now()->addHours(24));
-
-            Mail::to($email)->send(new InvoicePurchaseOrderAccessLink($url));
-        } catch (\Throwable $e) {
-            report($e);
-
-            return back()
-                ->withErrors(['email' => 'No fue posible enviar el enlace de acceso. Intenta nuevamente en unos minutos.'])
-                ->withInput();
-        }
-
-        return back()->with('status', 'Te enviamos el enlace de acceso a ' . $email . '. Revisa tu bandeja de entrada (y spam).');
+        return $this->sendAccessLink(
+            $request,
+            config('siigo.access.invoice_purchase_order'),
+            'siigo.invoice_purchase_order',
+            'ordenes de compra',
+            fn (string $url) => new InvoicePurchaseOrderAccessLink($url)
+        );
     }
 
     public function invoice_purchase_order()
@@ -257,10 +237,9 @@ class InvoicePurchaseOrderSiigoController extends Controller
     {
         ini_set('memory_limit', '-1');
 
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
-        $users = $this->users($token);
-        $warehouses = $this->warehouses($token);
+        $token = $this->client->token();
+        $users = $this->catalog->usersById($token);
+        $warehouses = $this->catalog->warehousesById($token);
         $productsByCode = app(SiigoProductsCache::class)->keyedByProductId();
 
         // Cache: histórico | En vivo: solo hoy
@@ -272,7 +251,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
         // Facturas históricas: solo caché. Facturas de hoy: consulta en vivo.
         $invoices_cached = $this->cachedDocumentsByDay('FC', $fecha_inicio, $ayer);
-        $invoices_today = $this->purchase_invoices($token, $hoy_inicio, $hoy_fin);
+        $invoices_today = $this->purchaseCache->purchaseInvoices($token, $hoy_inicio, $hoy_fin);
         $invoices = $invoices_cached->merge($invoices_today)->unique('ACEntryID')->values();
 
         $invoice_details = $this->details($token, $invoices->pluck('ACEntryID'), 'FC-ID', $invoices_today->pluck('ACEntryID'));
@@ -290,7 +269,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
                     return $item;
                 })->values()->all();
 
-                $invoice['Link'] = "https://siigonube.siigo.com/#/purchase/1008/{$invoice['ACEntryID']}";
+                $invoice['Link'] = SiigoLinks::purchaseInvoice($invoice['ACEntryID']);
 
                 return $invoice;
             })
@@ -298,7 +277,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
         // Órdenes históricas: solo caché. Órdenes de hoy: consulta en vivo.
         $orders_cached = $this->cachedDocumentsByDay('OC', $fecha_inicio, $ayer);
-        $orders_today = $this->purchase_orders($token, $hoy_inicio, $hoy_fin);
+        $orders_today = $this->purchaseCache->purchaseOrders($token, $hoy_inicio, $hoy_fin);
         $orders = $orders_cached->merge($orders_today)->unique('ACEntryID')->values();
 
         $order_details = $this->details($token, $orders->pluck('ACEntryID'), 'OC-ID', $orders_today->pluck('ACEntryID'));
@@ -418,7 +397,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
                 ->map(fn ($code) => $code . ' - ' . ($warehouses->get($code)['name'] ?? ''))
                 ->implode(', ');
 
-            $order['Link'] = "https://siigonube.siigo.com/#/asp/" . base64_encode("Default.aspx?TabID=1671&ERPDocumentID={$order['ACEntryID']}") . "?TabID=1671";
+            $order['Link'] = SiigoLinks::purchaseOrder($order['ACEntryID']);
 
             return $order;
         });
@@ -474,158 +453,6 @@ class InvoicePurchaseOrderSiigoController extends Controller
             ->all();
     }
 
-    private function purchase_orders(string $token, ?Carbon $fecha_inicio = null, ?Carbon $fecha_fin = null): Collection
-    {
-        return $this->report($token, '4', 'Orden de compra', $fecha_inicio, $fecha_fin);
-    }
-
-    private function purchase_invoices(string $token, ?Carbon $fecha_inicio = null, ?Carbon $fecha_fin = null): Collection
-    {
-        return $this->report($token, '0', 'Compra', $fecha_inicio, $fecha_fin);
-    }
-
-    /**
-     * purchase_orders() y purchase_invoices() eran dos métodos casi
-     * idénticos (~150 líneas cada uno) donde lo único que cambiaba era
-     * el valor/etiqueta de "_vTypeTransaction". Quedan unificados acá
-     * para no tener que mantener la misma consulta paginada al reporte
-     * de Siigo duplicada en dos lugares.
-     */
-    private function report(string $token, string $typeTransactionValue, string $typeTransactionLabel, ?Carbon $fecha_inicio = null, ?Carbon $fecha_fin = null): Collection {
-        $take = 100;
-        $skip = 0;
-        $total = null;
-        $rows = [];
-
-        $fecha_inicio = $fecha_inicio ?? Carbon::now()->subMonth();
-        $fecha_fin = $fecha_fin ?? Carbon::now();
-
-        $source = collect(range(2015, $fecha_fin->year))
-            ->map(fn ($anio) => [
-                'id' => $anio,
-                'StartDate' => "{$anio}0101",
-                'EndDate' => "{$anio}1231",
-            ])
-            ->values()
-            ->toArray();
-
-        do {
-            $filterCriterias = [
-                [
-                    'Field' => '_vTypeTransaction',
-                    'FilterType' => 7,
-                    'OperatorType' => 0,
-                    'Value' => [$typeTransactionValue],
-                    'ValueUI' => $typeTransactionLabel,
-                    'Source' => 'PurchasesTransactionEnum',
-                ],
-                [
-                    'Field' => '_vProvider',
-                    'FilterType' => 68,
-                    'OperatorType' => 0,
-                    'Value' => [],
-                    'ValueUI' => '',
-                    'Source' => 'Account',
-                ],
-                [
-                    'Field' => '_vDocDate',
-                    'FilterType' => 76,
-                    'OperatorType' => 0,
-                    'Value' => [
-                        $fecha_inicio->format('Ymd'),
-                        $fecha_fin->format('Ymd'),
-                    ],
-                    'ValueUI' => $fecha_inicio->format('Y/m/d')
-                        . ' - '
-                        . $fecha_fin->format('Y/m/d'),
-                    'Source' => $source,
-                ],
-                [
-                    'Field' => '_vUser',
-                    'FilterType' => 6,
-                    'OperatorType' => 0,
-                    'Value' => [],
-                    'ValueUI' => '',
-                    'Source' => '12',
-                ],
-                [
-                    'Field' => '_vProviderInvoice',
-                    'FilterType' => 6,
-                    'OperatorType' => 0,
-                    'Value' => [],
-                    'ValueUI' => '',
-                    'Source' => '64',
-                ],
-                [
-                    'Field' => '_vESiigoStatus',
-                    'FilterType' => 7,
-                    'OperatorType' => 0,
-                    'Value' => ['-1'],
-                    'ValueUI' => '',
-                    'Source' => 'DianStateFilterEnum',
-                ],
-            ];
-
-            $body = [
-                'Id' => 5451,
-                'Skip' => $skip,
-                'Take' => $take,
-                'Sort' => ' ',
-                'FilterCriterias' => json_encode($filterCriterias),
-                'Params' => json_encode([
-                    'TabID' => '1408',
-                ]),
-                'GetTotalCount' => $total === null,
-                'GridOrderCriteria' => null,
-                'AddOns' => [
-                    [
-                        'name' => 'POS Web',
-                        'state' => true,
-                        'tenantId' => '0x00000000000000000000000000605286',
-                        'type' => 1,
-                        'module' => 5,
-                        'dateActive' => '09/19/2026 08:55:44.118',
-                        'posActiveCashiers' => [
-                            'baseCashiers' => 1,
-                            'aditionalCashiers' => 28,
-                        ],
-                        'documentBase' => 0,
-                        'readOnly' => null,
-                        'subState' => 1,
-                        'updateType' => 1,
-                        'complements' => null,
-                        'payrollComplements' => null,
-                    ],
-                ],
-            ];
-
-            $response = Http::withToken($token)
-                ->acceptJson()
-                ->timeout(600)
-                ->connectTimeout(30)
-                ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
-
-            if (!$response->successful()) {
-                throw new \Exception(
-                    "Error consultando reporte ({$typeTransactionLabel}): " . $response->body()
-                );
-            }
-
-            if ($total === null) {
-                $total = (int) $response->json('totalCount');
-            }
-
-            $page = $response->json('data.Value.Table') ?? [];
-
-            $rows = array_merge($rows, $page);
-
-            $skip += $take;
-
-        } while ($skip < $total);
-
-        return collect($rows);
-    }
-
     private function cachedDocumentsByDay(string $type, Carbon $from, Carbon $to): Collection
     {
         $days = collect(CarbonPeriod::create($from->copy()->startOfDay(), $to->copy()->startOfDay()))
@@ -662,142 +489,11 @@ class InvoicePurchaseOrderSiigoController extends Controller
             }
 
             if ($fetchMissingIds->has((string) $id)) {
-                return [$id => $this->fetch_detail($token, (int) $id, $key)];
+                return [$id => $this->purchaseCache->fetchDetail($token, (int) $id, $key)];
             }
 
             return [$id => []];
         });
-    }
-
-    private function fetch_detail(string $token, int $acEntryId, string $cacheKey)
-    {
-        $response = Http::withToken($token)
-            ->acceptJson()
-            ->timeout(600)
-            ->get('https://services.siigo.com/ACEntryApi/api/v2/Purchase/GetItem', [
-                'id' => $acEntryId,
-            ]);
-
-        if (!$response->successful()) {
-            throw new \Exception(
-                "Error consultando detalle {$cacheKey}: " . $response->body()
-            );
-        }
-
-        $data = $response->json();
-
-        if (empty($data)) {
-            Cache::put($cacheKey, [], now()->addHour());
-
-            return [];
-        }
-
-        Cache::forever($cacheKey, $data);
-
-        return $data;
-    }
-
-    private function warehouses(string $token)
-    {
-        $response = Http::retry(5, 10000)->withHeaders([
-            'Content-Type'  => 'application/json',
-            'Authorization' => $token,
-            'Partner-Id'    => 'consultadeFacturas',
-        ])->get("https://api.siigo.com/v1/warehouses");
-
-        if (! $response->successful()) {
-            throw new \Exception($response->body());
-        }
-
-        $data = $response->json();
-
-        return collect($data)->keyBy('id')
-            ->put(-1, [
-                'id' => -1,
-                'name' => 'SIN ASIGNAR',
-            ]);
-    }
-
-    private function users(string $token)
-    {
-        $page = 1;
-        $page_size = 100;
-        $total_pages = null;
-        $users = [];
-
-        do {
-            $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
-                'Content-Type' => 'application/json',
-                'Authorization' => $token,
-                'Partner-Id' => 'consultadeFacturas',
-            ])->get("https://api.siigo.com/v1/users", [
-                'page' => $page,
-                'page_size' => $page_size,
-            ]);
-
-            if (! $response->successful()) {
-                throw new \Exception($response->body());
-            }
-
-            $data = $response->json();
-
-            if (!empty($data['results'])) {
-                $users = array_merge($users, $data['results']);
-            }
-
-            if ($total_pages === null) {
-                $pagination = $data['pagination'];
-                $total_pages = (int) ceil($pagination['total_results'] / $pagination['page_size']);
-            }
-
-            $page++;
-        } while ($page <= $total_pages);
-
-        return $users = collect($users)->keyBy('id');
-    }
-
-    private function validar_usuario(string $token): array
-    {
-        $usuario = $this->obtener_datos_usuario($token);
-
-        if (!$usuario['success']) {
-            return [
-                'success' => false,
-                'message' => $usuario['message'],
-            ];
-        }
-
-        return [
-            'success' => true,
-            'data' => $usuario['data'],
-        ];
-    }
-
-    private function obtener_datos_usuario(string $token)
-    {
-        $response = Http::withHeaders([
-            'Authorization' => $token,
-        ])->get('https://services.siigo.com/cross/globalstate/api/v1/Settings/LoadSettings');
-
-        if (!$response->successful()) {
-            return [
-                'success' => false,
-                'data' => [],
-                'message' => 'Error de autenticacion'
-            ];
-        }
-
-        $data = $response->json();
-
-        return [
-            'success' => true,
-            'data' => [
-                'id' => $data['userID'],
-                'user' => $data['userName'],
-                'name' => $data['UserOptions']['userPrincipalName'],
-            ],
-            'message' => 'Usuario encontrado exitosamente'
-        ];
     }
 
     public function invoice_purchase_order_missing_download()

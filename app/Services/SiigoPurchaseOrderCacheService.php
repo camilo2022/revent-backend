@@ -3,11 +3,12 @@
 
 namespace App\Services;
 
+use App\Services\Siigo\SiigoClient;
+use App\Services\Siigo\SiigoDocumentService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -20,6 +21,12 @@ use Illuminate\Support\Facades\Log;
  */
 class SiigoPurchaseOrderCacheService
 {
+    public function __construct(
+        private SiigoClient $client,
+        private SiigoDocumentService $documents
+    ) {
+    }
+
     /**
      * Órdenes de compra (tipo transacción 4) entre dos fechas, directo a Siigo.
      */
@@ -143,18 +150,7 @@ class SiigoPurchaseOrderCacheService
      */
     public function fetchDetail(string $token, int $acEntryId, string $cacheKey)
     {
-        $response = Http::withToken($token)
-            ->acceptJson()
-            ->timeout(600)
-            ->get('https://services.siigo.com/ACEntryApi/api/v2/Purchase/GetItem', [
-                'id' => $acEntryId,
-            ]);
-
-        if (!$response->successful()) {
-            throw new \Exception("Error consultando detalle {$cacheKey}: " . $response->body());
-        }
-
-        $data = $response->json();
+        $data = $this->documents->purchaseItem($token, $acEntryId, $cacheKey);
 
         if (empty($data)) {
             Cache::put($cacheKey, [], now()->addHour());
@@ -299,11 +295,7 @@ class SiigoPurchaseOrderCacheService
                 ],
             ];
 
-            $response = Http::withToken($token)
-                ->acceptJson()
-                ->timeout(600)
-                ->connectTimeout(30)
-                ->post('https://services.siigo.com/document/api/v1/reports/getreport', $body);
+            $response = $this->client->report($token, $body);
 
             if (!$response->successful()) {
                 throw new \Exception("Error consultando reporte ({$typeTransactionLabel}): " . $response->body());

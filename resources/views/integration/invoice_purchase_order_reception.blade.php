@@ -1,22 +1,14 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Recepcion de orden de compra</title>
-    <style>
+@extends('layouts.integration')
+
+@section('title', 'Recepcion de orden de compra')
+
+@push('styles')
+<style>
 
         * {
             box-sizing: border-box;
         }
 
-        body {
-            background: #f3f4f6;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 2rem 1rem;
-        }
 
         .excel-upload-wrapper {
             max-width: 960px;
@@ -781,9 +773,7 @@
 
         @media (max-width: 700px) {
 
-            body {
-                padding: 1rem 0.5rem;
-            }
+            .rv-page { padding: 1rem 0.5rem; }
 
             .excel-upload-wrapper {
                 margin: 0.5rem auto;
@@ -817,11 +807,10 @@
             }
 
         }
+</style>
+@endpush
 
-    </style>
-</head>
-
-<body>
+@section('content')
 <div class="excel-upload-wrapper">
 
     <!-- =========================================================
@@ -3103,7 +3092,4 @@
 })();
 
 </script>
-
-</body>
-
-</html>
+@endsection

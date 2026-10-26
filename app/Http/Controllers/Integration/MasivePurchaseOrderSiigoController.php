@@ -6,13 +6,17 @@ use App\Exports\MasivePurchaseOrderSiigoMultiSheetExport;
 use App\Http\Controllers\Controller;
 use App\Imports\MasivePurchaseOrderSiigoSheetsImport;
 use App\Jobs\ImportMasivePurchaseOrderSiigoJob;
-use App\Services\SiigoInventoryService;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Http\Request;
+use App\Services\Siigo\SiigoClient;
+use App\Http\Requests\Integration\MasivePurchaseOrder\MasivePurchaseOrderFormatRequest;
+use App\Http\Requests\Integration\MasivePurchaseOrder\MasivePurchaseOrderUploadRequest;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MasivePurchaseOrderSiigoController extends Controller
 {
+    public function __construct(private SiigoClient $siigo)
+    {
+    }
+
     public function masive_purchase_order()
     {
         $purchase_order_types = [
@@ -25,7 +29,7 @@ class MasivePurchaseOrderSiigoController extends Controller
         return view('integration.masive_purchase_order', compact('purchase_order_types'));
     }
 
-    public function masive_purchase_order_format(Request $request)
+    public function masive_purchase_order_format(MasivePurchaseOrderFormatRequest $request)
     {
         $cookie = $request->input('cookie');
         $token = $this->extraer_token($cookie);
@@ -53,14 +57,8 @@ class MasivePurchaseOrderSiigoController extends Controller
         return Excel::download(new MasivePurchaseOrderSiigoMultiSheetExport($purchase_order_type, $filters, $warehouses, $cost_centers, $list_taxes, $type_details), "formato_{$purchase_order_type->ERPDocClass}_{$purchase_order_type->ERPDocCode}.xlsx");
     }
 
-    public function masive_purchase_order_upload(Request $request)
+    public function masive_purchase_order_upload(MasivePurchaseOrderUploadRequest $request)
     {
-        $request->validate([
-            'file'  => 'required|file|mimes:xlsx,xls',
-            'email' => ['required', 'email'],
-            'referencia' => 'required|string',
-        ]);
-
         $referencia = $request->input('referencia');
 
         $email = $request->input('email');
@@ -74,13 +72,9 @@ class MasivePurchaseOrderSiigoController extends Controller
 
     private function purchase_order_type(string $token, string $cookie, string|int $purchase_order_type_id)
     {
-        $response = Http::withToken($token)->withHeaders([
-                'Cookie' => $cookie,
-            ])
-            ->timeout(600)
-            ->withoutRedirecting()
+        $response = $this->siigo->monolith($token, $cookie)
             ->asMultipart()
-            ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Components/ERP/Business/ERPDocHandler.ashx', [
+            ->post(config('siigo.endpoints.monolith.erp_doc_handler'), [
                 ['name' => 'Process', 'contents' => '3'],
                 ['name' => 'ERPDocumentTypeID', 'contents' => $purchase_order_type_id],
                 ['name' => 'ERPDocType', 'contents' => '0'],
@@ -93,13 +87,9 @@ class MasivePurchaseOrderSiigoController extends Controller
 
     private function list_taxes(string $token, string $cookie)
     {
-        $response = Http::withToken($token)->withHeaders([
-                'Cookie' => $cookie,
-            ])
-            ->timeout(600)
-            ->withoutRedirecting()
+        $response = $this->siigo->monolith($token, $cookie)
             ->asMultipart()
-            ->post('https://monolithprod.siigo.com/REVENTCALZADOSAS/Components/ERP/Business/ERPDocHandler.ashx', [
+            ->post(config('siigo.endpoints.monolith.erp_doc_handler'), [
                 ['name' => 'Process', 'contents' => '2'],
                 ['name' => 'ERPDocType', 'contents' => '0'],
                 ['name' => 'IsExpense', 'contents' => '1'],
@@ -127,14 +117,7 @@ class MasivePurchaseOrderSiigoController extends Controller
 
     private function cost_centers(): array
     {
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
-
-        $response = Http::retry(5, 10000)->withHeaders([
-            'Content-Type'  => 'application/json',
-            'Authorization' => $token,
-            'Partner-Id'    => 'consultadeFacturas',
-        ])->get("https://api.siigo.com/v1/cost-centers");
+        $response = $this->siigo->api()->get(config('siigo.endpoints.api.cost_centers'));
 
         if (! $response->successful()) {
             throw new \Exception($response->body());
@@ -147,14 +130,7 @@ class MasivePurchaseOrderSiigoController extends Controller
 
     private function warehouses(): array
     {
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
-
-        $response = Http::retry(5, 10000)->withHeaders([
-            'Content-Type'  => 'application/json',
-            'Authorization' => $token,
-            'Partner-Id'    => 'consultadeFacturas',
-        ])->get("https://api.siigo.com/v1/warehouses");
+        $response = $this->siigo->api()->get(config('siigo.endpoints.api.warehouses'));
 
         if (! $response->successful()) {
             throw new \Exception($response->body());

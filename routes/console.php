@@ -21,3 +21,5 @@ Schedule::command('siigo:sync-unico-scheduled')->hourly()->between('08:00', '22:
 Schedule::command('siigo:warm-purchase-cache')->dailyAt('00:00');
 
 Schedule::command('siigo:cache-products-scheduled')->dailyAt('02:30');
+
+Schedule::command('siigo:purge-exports')->daily();

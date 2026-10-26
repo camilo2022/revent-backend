@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Services\ProductPhotoService;
-use App\Services\SiigoInventoryService;
+use App\Services\Siigo\SiigoClient;
 use App\Services\SiigoProductsCache;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,7 +11,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -23,7 +22,6 @@ class CacheProductsSiigoJob implements ShouldQueue
     private const FILTERS = '{"SortBy":"Description.asc","Type":"0,1"}';
     private const MAX_PAGES_SAFETY = 1000;
 
-    private const CATALOG_URL = 'https://services.siigo.com/catalog/api';
     private const PHOTO_DISK = ProductPhotoService::DISK;
     private const PHOTO_BASE_PATH = ProductPhotoService::BASE_PATH;
     private const PHOTO_REFERENCE_REGEX = '/^[A-ZÑ0-9_]+$/u';
@@ -43,13 +41,12 @@ class CacheProductsSiigoJob implements ShouldQueue
     private array $photoCandidates = [];
     private array $referenceFolders = [];
 
-    public function handle(): void
+    public function handle(SiigoClient $siigo): void
     {
         $this->photoCandidates = [];
         $this->referenceFolders = [];
 
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
+        $token = $siigo->token();
         $page = 1;
         $totalPages = null;
         $totalResults = null;
@@ -140,11 +137,10 @@ class CacheProductsSiigoJob implements ShouldQueue
 
     private function fetchPage(string $token, int $page): array
     {
-        $response = Http::withToken($token)
-            ->acceptJson()
+        $response = app(SiigoClient::class)->services($token)
             ->timeout(60)
             ->retry(5, 10000)
-            ->get(self::CATALOG_URL . '/product', [
+            ->get(config('siigo.endpoints.services.catalog') . '/product', [
                 'page' => $page,
                 'pageSize' => self::PAGE_SIZE,
                 'filters' => self::FILTERS,

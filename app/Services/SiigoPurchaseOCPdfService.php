@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\Siigo\SiigoClient;
 use Barryvdh\DomPDF\PDF as DomPdf;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -18,12 +19,13 @@ class SiigoPurchaseOCPdfService
 {
     public const PURCHASE_ORDER = 19;
 
-    private const MONOLITH_URL = 'https://monolithprod.siigo.com/REVENTCALZADOSAS/';
-
     private const PDF_DISK = 'local';
     private const PDF_PATH = 'siigo/ordenes_compra';
 
-    public function __construct(private SiigoTransferNTPdfService $transferNote)
+    public function __construct(
+        private SiigoTransferNTPdfService $transferNote,
+        private SiigoClient $client
+    )
     {
     }
 
@@ -64,7 +66,7 @@ class SiigoPurchaseOCPdfService
             'ACEntryID'   => $erpDocumentId,
             'Code'        => $documentCode,
             'Description' => null,
-            'Url'         => 'Default.aspx?TabID=1671&ERPDocumentID=' . $erpDocumentId,
+            'Url'         => $this->default_path($erpDocumentId),
             'QueryType'   => self::PURCHASE_ORDER,
             'Raw'         => [],
         ];
@@ -94,8 +96,8 @@ class SiigoPurchaseOCPdfService
 
     public function purchase_order_html(string $cookie, array $document): ?string
     {
-        $path = $document['Url'] ?: 'Default.aspx?TabID=1671&ERPDocumentID=' . $document['ACEntryID'];
-        $url = rtrim(config('services.siigo.monolith_url', self::MONOLITH_URL), '/') . '/' . ltrim($path, '/');
+        $path = $document['Url'] ?: $this->default_path($document['ACEntryID']);
+        $url = $this->client->url('monolith', $path);
 
         // Se acepta la cookie tal cual se copia del navegador, con o sin el prefijo "Cookie:"
         $cookie = trim(preg_replace('/^cookie:\s*/i', '', trim($cookie)));
@@ -117,6 +119,13 @@ class SiigoPurchaseOCPdfService
         }
 
         return $this->extract_voucher($response->body());
+    }
+
+    private function default_path(string|int $erpDocumentId): string
+    {
+        return ltrim(config('siigo.endpoints.monolith.default'), '/')
+            . '?TabID=' . config('siigo.links.purchase_order_tab')
+            . '&ERPDocumentID=' . $erpDocumentId;
     }
 
     /**

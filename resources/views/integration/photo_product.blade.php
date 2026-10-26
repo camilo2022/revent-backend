@@ -1,22 +1,11 @@
-<!-- resources/views/integration/photo_product.blade.php -->
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.integration')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Fotos de producto</title>
-    <style>
+@section('title', 'Fotos de producto')
+
+@push('styles')
+<style>
         * { box-sizing: border-box; }
 
-        body {
-            background: #f3f4f6;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 2rem 1rem;
-        }
 
         .excel-upload-wrapper {
             max-width: 90%;
@@ -427,11 +416,10 @@
         .folder-meta { font-size: 0.7rem; color: #9ca3af; }
 
         .explorer-dropzone { padding: 1.25rem 1rem; margin-top: 1rem; }
-    </style>
-</head>
+</style>
+@endpush
 
-<body>
-
+@section('content')
     <div class="excel-upload-wrapper">
 
         <div class="excel-upload-card">
@@ -611,8 +599,6 @@
             Volver a acciones disponibles
         </a>
     </div>
-
-</body>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
@@ -1650,5 +1636,4 @@
         }
     })();
 </script>
-
-</html>
+@endsection

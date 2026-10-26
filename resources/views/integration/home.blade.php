@@ -1,20 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Acciones disponibles</title>
+@extends('layouts.integration')
 
-    <style>
+@section('title', 'Acciones disponibles')
+
+@push('styles')
+<style>
         * { box-sizing: border-box; }
 
-        body {
-            background: #f3f4f6;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            margin: 0;
-            padding: 2rem 1rem;
-        }
 
         .wrapper {
             max-width: 90%;
@@ -152,10 +143,10 @@
         .report-card:hover .report-action svg {
             transform: translateX(2px);
         }
-    </style>
-</head>
-<body>
+</style>
+@endpush
 
+@section('content')
 <div class="wrapper">
 
     <div class="page-header">
@@ -431,6 +422,4 @@
     </div>
 
 </div>
-
-</body>
-</html>
+@endsection

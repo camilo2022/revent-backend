@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
-use App\Services\SiigoInventoryService;
+use App\Http\Controllers\Integration\Concerns\SendsAccessLink;
 use App\Mail\InventroyFilterAccessLink;
 use App\Services\ProductPhotoService;
+use App\Services\Siigo\SiigoCatalogService;
+use App\Services\Siigo\SiigoClient;
+use App\Services\Siigo\SiigoReportService;
 use App\Services\SiigoProductsCache;
 use Carbon\Carbon;
 use Illuminate\Http\Client\Pool;
@@ -13,21 +16,21 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
 
 class InventoryFilterSiigoController extends Controller
 {
     private const DISK = ProductPhotoService::DISK;
     private const BASE_PATH = ProductPhotoService::BASE_PATH;
-    private const REPORT_URL = 'https://services.siigo.com/document/api/v1/reports/getreport';
-    private const AUTOCOMPLETE_URL = 'https://services.siigo.com/catalog/api/v1/Autocomplete/GetData';
 
-    private string $siigo_base_url = 'https://api.siigo.com';
+    use SendsAccessLink;
 
-    public function __construct(private ProductPhotoService $photos)
-    {
+    public function __construct(
+        private ProductPhotoService $photos,
+        private SiigoClient $client,
+        private SiigoCatalogService $catalog,
+        private SiigoReportService $reports
+    ) {
     }
 
     public function inventory_filter_access()
@@ -41,39 +44,22 @@ class InventoryFilterSiigoController extends Controller
             'email' => 'required|email',
         ]);
 
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
+        // Pueden entrar los usuarios (vendedores) de Siigo y el correo de tecnología
+        $allowed = [...$this->catalog->userEmails($this->client->token()), config('siigo.mail.technology')];
 
-        $email = strtolower(trim($request->input('email')));
-
-        $sellers = $this->sellers($token);
-
-        if (!in_array($email, $sellers, true)) {
-            return back()
-                ->withErrors(['email' => 'Este correo no tiene autorización para acceder a filtro de inventarios.'])
-                ->withInput();
-        }
-
-        try {
-            $url = URL::temporarySignedRoute('siigo.inventory_filter', now()->addHours(24));
-
-            Mail::to($email)->send(new InventroyFilterAccessLink($url));
-        } catch (\Throwable $e) {
-            report($e);
-
-            return back()
-                ->withErrors(['email' => 'No fue posible enviar el enlace de acceso. Intenta nuevamente en unos minutos.'])
-                ->withInput();
-        }
-
-        return back()->with('status', 'Te enviamos el enlace de acceso a ' . $email . '. Revisa tu bandeja de entrada (y spam).');
+        return $this->sendAccessLink(
+            $request,
+            $allowed,
+            'siigo.inventory_filter',
+            'filtro de inventarios',
+            fn (string $url) => new InventroyFilterAccessLink($url)
+        );
     }
 
     public function inventory_filter(Request $request)
     {
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
-        $warehouses = $this->warehouses($token);
+        $token = $this->client->token();
+        $warehouses = $this->catalog->warehousesWithTransit($token);
         $color_groups = $this->color_groups();
 
         return view('integration.inventory_filter', compact('warehouses', 'color_groups'));
@@ -81,8 +67,7 @@ class InventoryFilterSiigoController extends Controller
 
     public function inventory_filter_search(Request $request)
     {
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
+        $token = $this->client->token();
 
         $filters = [
             [
@@ -137,17 +122,7 @@ class InventoryFilterSiigoController extends Controller
             'Take'               => 0,
         ];
 
-        $response = Http::withToken($token)
-            ->acceptJson()
-            ->post(self::REPORT_URL, $body);
-
-        if (!$response->successful()) {
-            throw new \Exception(
-                'Error consultando inventario: ' . $response->body()
-            );
-        }
-
-        $data = $response->json('data.Value.Table');
+        $data = $this->reports->table($body, 'Error consultando inventario: ', $token);
 
         return response()->json([
             'productos' => $this->map_products($data),
@@ -181,8 +156,7 @@ class InventoryFilterSiigoController extends Controller
 
     private function stock_all_warehouses(string $referencia): array
     {
-        $siigo = new SiigoInventoryService();
-        $token = $siigo->auth();
+        $token = $this->client->token();
 
         $autocomplete = $this->autocomplete_products($token, $referencia);
         $items = $autocomplete['items'] ?? [];
@@ -205,7 +179,7 @@ class InventoryFilterSiigoController extends Controller
                     ->withToken($token)
                     ->acceptJson()
                     ->timeout(90)
-                    ->post(self::REPORT_URL, $this->report_body((int) $id, $descripcion));
+                    ->post($this->reports->url(), $this->report_body((int) $id, $descripcion));
             }
 
             return $requests;
@@ -288,7 +262,7 @@ class InventoryFilterSiigoController extends Controller
                 ->withToken($token)
                 ->timeout(120)
                 ->asJson()
-                ->post(self::AUTOCOMPLETE_URL, [
+                ->post($this->client->url('services', config('siigo.endpoints.services.autocomplete')), [
                     'type'          => 1,
                     'browserID'     => '33',
                     'query'         => $referencia,
@@ -626,57 +600,6 @@ class InventoryFilterSiigoController extends Controller
         });
     }
 
-    private function warehouses(string $token)
-    {
-        $response = Http::withHeaders([
-            'Content-Type'  => 'application/json',
-            'Authorization' => $token,
-            'Partner-Id' => 'consultadeFacturas',
-        ])->get("{$this->siigo_base_url}/v1/warehouses");
-
-        if (! $response->successful()) {
-            throw new \Exception($response->body());
-        }
-
-        $data = $response->json();
-
-        return $this->processWarehouses($data);
-    }
-
-    private function processWarehouses(array $data): array
-    {
-        $items = collect($data)->map(function ($item) {
-            return (array) $item;
-        });
-
-        $nombresConTransito = $items
-            ->filter(fn ($item) => str_starts_with(trim($item['name']), 'TRANSITO '))
-            ->map(fn ($item) => trim(str_replace('TRANSITO ', '', $item['name'])))
-            ->map(fn ($nombre) => mb_strtoupper(trim($nombre)))
-            ->unique()
-            ->values();
-
-        $result = $items
-            ->filter(fn ($item) => ! str_starts_with(trim($item['name']), 'TRANSITO '))
-            ->map(function ($item) use ($nombresConTransito) {
-                $nombreNormalizado = mb_strtoupper(trim($item['name']));
-
-                $item['transito'] = $nombresConTransito->contains($nombreNormalizado);
-
-                return $item;
-            })
-            ->values()
-            ->toArray();
-
-        array_unshift($result, [
-            'id' => -1,
-            'name' => 'SIN ASIGNAR',
-            'transito' => false,
-        ]);
-
-        return $result;
-    }
-
     private function clean_text(string $texto): string
     {
         $texto = strtr($texto, [
@@ -703,51 +626,5 @@ class InventoryFilterSiigoController extends Controller
         $color = preg_replace('/[^A-Z0-9]/', '', $color);
 
         return $color;
-    }
-
-    private function sellers(string $token)
-    {
-        $page = 1;
-        $pageSize = 100;
-        $totalPages = null;
-        $sellers = [];
-
-        do {
-            $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
-                'Content-Type' => 'application/json',
-                'Authorization' => $token,
-                'Partner-Id' => 'consultadeFacturas',
-            ])->get("{$this->siigo_base_url}/v1/users", [
-                'page' => $page,
-                'page_size' => $pageSize,
-            ]);
-
-            if ($response->status() === 429) {
-                sleep(1);
-                continue;
-            }
-
-            if (! $response->successful()) {
-                throw new \Exception($response->body());
-            }
-
-            $data = $response->json();
-
-            if (!empty($data['results'])) {
-                $sellers = array_merge($sellers, $data['results']);
-            }
-
-            if ($totalPages === null) {
-                $pagination = $data['pagination'];
-                $totalPages = (int) ceil($pagination['total_results'] / $pagination['page_size']);
-            }
-
-            $page++;
-
-        } while ($page <= $totalPages);
-
-        $sellers = collect($sellers)->pluck('email')->toArray();
-
-        return [...$sellers, 'tecnologia@revent.com.co'];
     }
 }

@@ -35,10 +35,11 @@ return [
         ],
     ],
 
-    'siigo' => [
-        'base_url' => env('SIIGO_BASE_URL'),
-        'username' => env('SIIGO_USERNAME'),
-        'access_key' => env('SIIGO_ACCESS_KEY'),
+    'unico' => [
+        'base_url' => env('UNICO_BASE_URL', 'https://api.unicoanalytics.com.co'),
+        'name' => env('UNICO_NAME'),
+        'password' => env('UNICO_PASSWORD'),
+        'fidelizacion_url' => env('UNICO_FIDELIZACION_URL', 'https://fidelizacionapi.uniapps.com.co/api/fidelizacion/contact/find-contact-list'),
     ],
 
 ];

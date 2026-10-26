@@ -14,15 +14,23 @@ class ExportInventorySiigoMail extends Mailable
         public bool $success,
         public ?string $filename = null,
         public ?string $downloadUrl = null,
-        public ?string $errorMessage = null
+        public ?string $errorMessage = null,
+        public ?string $attachmentPath = null,
+        public ?string $attachmentName = null
     ) {}
 
     public function build()
     {
-        return $this
+        $mail = $this
             ->subject($this->success
                 ? "Exportación de inventario lista: {$this->filename}"
                 : 'Error en exportación de inventario Siigo')
             ->view('email.export-inventory-siigo');
+
+        if ($this->attachmentPath) {
+            $mail->attach($this->attachmentPath, ['as' => $this->attachmentName ?? $this->filename]);
+        }
+
+        return $mail;
     }
 }

@@ -2,36 +2,35 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\DispatchesSiigoExport;
 use App\Jobs\ExportInventorySiigoJob;
-use Illuminate\Console\Command;
 
-class ExportInventorySiigoScheduled extends Command
+class ExportInventorySiigoScheduled extends DispatchesSiigoExport
 {
     protected $signature = 'siigo:export-inventory-scheduled';
 
     protected $description = 'Ejecuta la exportación automática de inventario Siigo (cron)';
 
+    protected function job(): string
+    {
+        return ExportInventorySiigoJob::class;
+    }
+
+    protected function emails(): array
+    {
+        return config('siigo.mail.inventory');
+    }
+
+    /** Se despacha un job por cada signo de inventario (positivo y negativo). */
+    protected function filters(): array
+    {
+        return ['page_size' => 100, 'type' => 'Product'];
+    }
+
     public function handle(): int
     {
-        $emails = [
-            'operaciones@revent.com.co',
-            'ingenieria@revent.com.co',
-            'leanmanagement@revent.com.co',
-            'tecnologia@revent.com.co',
-            'auditoria@revent.com.co',
-            'inventario@revent.com.co'
-        ];
-
-        $baseFilters = [
-            'page_size' => 100,
-            'type' => 'Product',
-        ];
-
         foreach ([true, false] as $positive) {
-            ExportInventorySiigoJob::dispatch(
-                [...$baseFilters, 'positive' => $positive],
-                $emails
-            );
+            $this->job()::dispatch([...$this->filters(), 'positive' => $positive], $this->emails());
         }
 
         return self::SUCCESS;

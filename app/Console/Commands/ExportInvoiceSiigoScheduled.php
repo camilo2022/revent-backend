@@ -2,40 +2,19 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\DispatchesSiigoExport;
 use App\Jobs\ExportInvoiceSiigoJob;
-use Carbon\Carbon;
-use Illuminate\Console\Command;
 
-class ExportInvoiceSiigoScheduled extends Command
+class ExportInvoiceSiigoScheduled extends DispatchesSiigoExport
 {
     protected $signature = 'siigo:export-invoice-scheduled';
 
     protected $description = 'Ejecuta la exportación automática de facturas Siigo del mes en curso (cron)';
 
-    public function handle(): int
+    protected string $successMessage = '✅ Job de exportación de facturas Siigo despachado correctamente.';
+
+    protected function job(): string
     {
-        $emails = [
-            'operaciones@revent.com.co',
-            'ingenieria@revent.com.co',
-            'leanmanagement@revent.com.co',
-            'tecnologia@revent.com.co'
-        ];
-
-        $date = Carbon::now();
-
-        $filters = [
-            'created_start' => $date->copy()->startOfMonth()->startOfDay()->format('Y-m-d H:i:s'),
-            'created_end' => $date->copy()->endOfMonth()->endOfDay()->format('Y-m-d H:i:s'),
-            'page_size' => 100,
-        ];
-
-        ExportInvoiceSiigoJob::dispatch(
-            $filters,
-            $emails
-        );
-
-        $this->info('✅ Job de exportación de facturas Siigo despachado correctamente.');
-
-        return self::SUCCESS;
+        return ExportInvoiceSiigoJob::class;
     }
 }

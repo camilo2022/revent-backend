@@ -1,0 +1,477 @@
+/*
+ * Estilos comunes del modulo de integracion (layout layouts/integration.blade.php).
+ * Identidad visual unica: formularios, tarjetas, alertas, botones, menu.
+ */
+* { box-sizing: border-box; }
+
+body {
+    background: #f3f4f6;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---- Contenedor de pagina (antes: padding del body) ---- */
+.rv-page {
+    padding: 2rem 1rem;
+}
+.rv-page--flush {
+    padding: 0;
+}
+
+/* ---- Barra superior y menu ---- */
+.rv-topbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.rv-topbar-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 1rem;
+}
+.rv-brand {
+    flex-shrink: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1f2937;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.rv-brand span { color: #16a34a; }
+.rv-nav {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    flex: 1;
+    scrollbar-width: thin;
+}
+.rv-nav-link {
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #4b5563;
+    text-decoration: none;
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.rv-nav-link:hover { background: #f3f4f6; color: #111827; }
+.rv-nav-link.active { background: #f0fdf4; color: #16a34a; }
+
+* { box-sizing: border-box; }
+
+
+.excel-upload-wrapper {
+    max-width: 580px;
+    margin: 2rem auto;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.excel-upload-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eef0f2;
+}
+
+.excel-upload-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.35rem;
+}
+
+.excel-upload-subtitle {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 1.25rem;
+}
+
+.excel-field-group {
+    margin-bottom: 1.1rem;
+}
+
+.excel-field-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.4rem;
+}
+
+.excel-field-label .required-mark {
+    color: #dc2626;
+}
+
+.excel-field-input,
+.excel-field-select {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.88rem;
+    color: #1f2937;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.excel-field-select {
+    width: 100%;
+    cursor: pointer;
+}
+
+.excel-field-input::placeholder {
+    color: #9ca3af;
+}
+
+.excel-field-input:focus,
+.excel-field-select:focus {
+    outline: none;
+    border-color: #16a34a;
+    background: #ffffff;
+}
+
+.excel-field-input:disabled {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.excel-field-hint {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 0.3rem;
+}
+
+/* ---- Emails dinámicos ---- */
+.email-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.email-row .excel-field-input {
+    width: 100%;
+    flex: 1;
+}
+
+.email-remove-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.email-remove-btn:hover {
+    background: #fee2e2;
+}
+
+.email-remove-btn svg {
+    width: 15px;
+    height: 15px;
+    stroke: #dc2626;
+}
+
+.email-remove-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.email-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #16a34a;
+    background: #f0fdf4;
+    border: 1px dashed #86efac;
+    border-radius: 8px;
+    padding: 0.5rem 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-top: 0.2rem;
+}
+
+.email-add-btn:hover {
+    background: #dcfce7;
+}
+
+.email-add-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: #16a34a;
+}
+
+/* ---- Tabs modo de fecha ---- */
+.mode-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.1rem;
+    background: #f3f4f6;
+    padding: 0.3rem;
+    border-radius: 10px;
+}
+
+.mode-tab {
+    flex: 1;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #6b7280;
+    padding: 0.5rem 0.6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    user-select: none;
+}
+
+.mode-tab.active {
+    background: #ffffff;
+    color: #16a34a;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.mode-panel {
+    display: none;
+}
+
+.mode-panel.active {
+    display: block;
+}
+
+/* ---- Rango de fechas ---- */
+.date-range-group {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.date-range-group .excel-field-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* ---- Secciones ---- */
+.section-divider {
+    border: none;
+    border-top: 1px solid #f1f3f5;
+    margin: 1.4rem 0;
+}
+
+.section-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.8rem;
+}
+
+.excel-submit-btn {
+    width: 100%;
+    margin-top: 1.25rem;
+    padding: 0.75rem;
+    background: #16a34a;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.excel-submit-btn:hover {
+    background: #15803d;
+}
+
+.excel-submit-btn:active {
+    transform: scale(0.98);
+}
+
+.excel-error {
+    display: none;
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+}
+
+.excel-error.show {
+    display: block;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4f46e5;
+    text-decoration: none;
+    margin-top: 1.4rem;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.back-link svg {
+    width: 15px;
+    height: 15px;
+}
+
+/* ---- Variantes de formulario (acceso por correo) ---- */
+.excel-upload-wrapper--narrow { max-width: 480px; }
+
+.excel-field-input.is-invalid {
+    border-color: #fca5a5;
+}
+
+.excel-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-spinner {
+    display: none;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    vertical-align: -2px;
+    animation: btn-spin 0.7s linear infinite;
+}
+.excel-submit-btn.is-loading .btn-spinner { display: inline-block; }
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+.excel-status {
+    margin-bottom: 1.1rem;
+    font-size: 0.8rem;
+    color: #166534;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    padding: 0.6rem 0.85rem;
+    border-radius: 8px;
+}
+
+.result-wrapper {
+    max-width: 580px;
+    margin: 2rem auto;
+}
+
+.result-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    padding: 1.1rem 1.4rem;
+    margin-bottom: 1.5rem;
+}
+
+.result-banner-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #16a34a;
+    border-radius: 50%;
+}
+
+.result-banner-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: #fff;
+}
+
+.result-banner-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #14532d;
+}
+
+.result-banner-subtitle {
+    font-size: 0.82rem;
+    color: #166534;
+}
+
+.info-card {
+    background: #ffffff;
+    border: 1px solid #eef0f2;
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.info-card-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.9rem;
+}
+
+.email-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.email-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.8rem;
+    background: #f9fafb;
+    border: 1px solid #f1f3f5;
+    border-radius: 10px;
+}
+
+.email-item-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eff6ff;
+    border-radius: 8px;
+}
+
+.email-item-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke: #1d4ed8;
+}
+
+.email-item-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+    word-break: break-all;
+}
+
