@@ -29,6 +29,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
     private const INVOICE_PURCHASE_ORDER_ALLOWED_EMAILS = [
         'tecnologia@revent.com.co',
         'operaciones@revent.com.co',
+        'recepciondeoc@revent.com.co'
     ];
 
     public function invoice_purchase_order_reception()
@@ -203,7 +204,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
             $imagenes[] = Storage::disk(self::DISK)->url("{$path}/{$filename}");
         }
 
-        Mail::to(['operaciones@revent.com.co'])->send(
+        Mail::to(['recepciondeoc@revent.com.co'])->send(
             new InvoicePurchaseOrderConfirmedSiigo($data, $usuario, $imagenes)
         );
 
