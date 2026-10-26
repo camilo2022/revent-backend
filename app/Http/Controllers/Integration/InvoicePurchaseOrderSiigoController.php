@@ -16,7 +16,9 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use App\Mail\InvoicePurchaseOrderConfirmedSiigo;
 use App\Services\SiigoProductsCache;
-use Illuminate\Http\Request;
+use App\Http\Requests\Integration\InvoicePurchaseOrder\ConfirmedRequest;
+use App\Http\Requests\Integration\InvoicePurchaseOrder\SearchRequest;
+use App\Http\Requests\Integration\InvoicePurchaseOrder\SendAccessLinkRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
@@ -43,10 +45,10 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order_reception()
     {
-        return view('integration.invoice_purchase_order_reception');
+        return view('integration.invoice_purchase_order.reception');
     }
 
-    public function invoice_purchase_order_search(Request $request)
+    public function invoice_purchase_order_search(SearchRequest $request)
     {
         $token = $request->input('token');
         $usuario = $this->siigoUsers->fromToken($token);
@@ -101,11 +103,10 @@ class InvoicePurchaseOrderSiigoController extends Controller
         ]);
     }
 
-    public function invoice_purchase_order_confirmed(Request $request)
+    public function invoice_purchase_order_confirmed(ConfirmedRequest $request)
     {
-        // Validamos el token primero: si no es válido, no tiene sentido
-        // seguir procesando/validando un payload que puede traer varias
-        // imágenes de hasta 8MB cada una.
+        // El formato del payload y de las imágenes ya lo validó ConfirmedRequest;
+        // aquí se comprueba el token antes de guardar nada.
         $token = $request->input('token');
         $usuario = $this->siigoUsers->fromToken($token);
 
@@ -116,79 +117,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
             ], 401);
         }
 
-        try {
-            $request->validate([
-                'receivingData' => ['required', 'string'],
-                'imagenes' => ['required', 'array', 'min:1'],
-                'imagenes.*' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:8192'],
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => collect($e->errors())->flatten()->first() ?? 'Datos inválidos.',
-                'errors' => $e->errors(),
-            ], 422);
-        }
-
         $data = json_decode($request->input('receivingData'), true);
-
-        if (!is_array($data)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Los datos de recepción no tienen un formato válido.',
-                'errors' => [
-                    'receivingData' => ['Los datos de recepción no tienen un formato válido.']
-                ]
-            ], 422);
-        }
-
-        $validator = Validator::make($data, [
-            'Order' => ['required', 'array'],
-            'Order.ACEntryID' => ['required'],
-            'Order.DocName' => ['required', 'string'],
-            'Order.DocDate' => ['required', 'string'],
-            'Order.Observations' => ['nullable', 'string'],
-            'Order.Warehouse' => ['nullable', 'string'],
-
-            'Items' => ['nullable', 'array'],
-
-            'Totals' => ['nullable', 'array'],
-            'Totals.Requested' => ['nullable', 'numeric'],
-            'Totals.Receiving' => ['nullable', 'numeric'],
-            'Totals.Pending' => ['nullable', 'numeric'],
-
-            'Checklist' => ['required', 'array'],
-            'Checklist.cajas_master' => ['required', 'boolean'],
-            'Checklist.sellos' => ['required', 'boolean'],
-            'Checklist.estado_cajas' => ['required', 'boolean'],
-            'Checklist.documentos' => ['required', 'boolean'],
-            'Checklist.empaque' => ['required', 'boolean'],
-            'Checklist.stickers' => ['required', 'boolean'],
-            'Checklist.producto' => ['required', 'boolean'],
-            'Checklist.exactitud' => ['required', 'boolean'],
-            'Checklist.variacion_diseno' => ['required', 'boolean'],
-            'Checklist.firma' => ['required', 'boolean'],
-            'Checklist.reporte_whatsapp' => ['required', 'boolean'],
-            'Checklist.respaldo_whatsapp' => ['required', 'boolean'],
-            'Checklist.alerta' => ['required', 'boolean'],
-            'Checklist.venta' => ['required', 'boolean'],
-            'Checklist.referencias_recibidas' => ['nullable', 'string'],
-            'Checklist.observaciones' => ['required', 'string'],
-
-            'Checklist.responsable' => ['required', 'array'],
-            'Checklist.responsable.nombre' => ['required', 'string', 'max:150'],
-            'Checklist.responsable.cargo' => ['required', 'string', 'max:150'],
-            'Checklist.responsable.departamento' => ['required', 'string', 'max:150'],
-            'Checklist.responsable.celular' => ['nullable', 'string', 'max:30'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => collect($validator->errors())->flatten()->first() ?? 'Datos inválidos.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
 
         $imagenes = [];
 
@@ -214,10 +143,10 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order_access()
     {
-        return view('integration.invoice_purchase_order_access');
+        return view('integration.invoice_purchase_order.access');
     }
 
-    public function invoice_purchase_order_send_access_link(Request $request)
+    public function invoice_purchase_order_send_access_link(SendAccessLinkRequest $request)
     {
         return $this->sendAccessLink(
             $request,
@@ -230,7 +159,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
 
     public function invoice_purchase_order()
     {
-        return view('integration.invoice_purchase_order');
+        return view('integration.invoice_purchase_order.index');
     }
 
     public function invoice_purchase_order_documents()

@@ -25,7 +25,7 @@ class AccountPayablePaymentProviderSiigo extends Mailable
     {
         $mail = $this
             ->subject('Comprobante de pago REVENT CALZADO S.A.S.')
-            ->view('email.account-payable-payment-provider-siigo');
+            ->view('email.account_payable.payment');
 
         if ($this->attachmentPath) {
             $mail->attach($this->attachmentPath, ['as' => $this->attachmentName]);

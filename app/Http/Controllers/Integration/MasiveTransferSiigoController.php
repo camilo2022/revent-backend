@@ -18,7 +18,7 @@ class MasiveTransferSiigoController extends Controller
 
     public function masive_transfer()
     {
-        return view('integration.masive_transfer');
+        return view('integration.masive_transfer.index');
     }
 
     public function masive_transfer_format()
@@ -36,7 +36,7 @@ class MasiveTransferSiigoController extends Controller
 
         ImportMasiveTransferSiigoJob::dispatch($transfer, $email);
 
-        return view('integration.masive_transfer_upload', compact('email'));
+        return view('integration.masive_transfer.upload', compact('email'));
     }
 
     private function warehouses()

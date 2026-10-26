@@ -17,6 +17,6 @@ class AccountPayableAccessLink extends Mailable
     {
         return $this
             ->subject('Acceso a Cuentas por pagar REVENT CALZADO S.A.S.')
-            ->view('email.account-payable-access-link');
+            ->view('email.access.account_payable');
     }
 }

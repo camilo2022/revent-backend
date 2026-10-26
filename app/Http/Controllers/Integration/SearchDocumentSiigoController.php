@@ -7,7 +7,10 @@ use App\Services\Siigo\SiigoClient;
 use App\Services\Siigo\SiigoUserService;
 use App\Services\SiigoPurchaseOCPdfService;
 use App\Services\SiigoTransferNTPdfService;
-use Illuminate\Http\Request;
+use App\Http\Requests\Integration\SearchDocument\PurchaseOrderPdfRequest;
+use App\Http\Requests\Integration\SearchDocument\SearchDocumentRequest;
+use App\Http\Requests\Integration\SearchDocument\SearchRequest;
+use App\Http\Requests\Integration\SearchDocument\TransferNotePdfRequest;
 
 class SearchDocumentSiigoController extends Controller
 {
@@ -43,19 +46,13 @@ class SearchDocumentSiigoController extends Controller
 
     public function search_document()
     {
-        return view('integration.search_document', [
+        return view('integration.search_document.index', [
             'document_types' => self::DOCUMENT_TYPES,
         ]);
     }
 
-    public function search_document_search(Request $request)
+    public function search_document_search(SearchRequest $request)
     {
-        $request->validate([
-            'query' => 'required|string',
-            'type'  => 'required',
-            'token' => 'required|string',
-        ]);
-
         $queryType = $this->resolve_query_type($request->input('type'));
 
         if ($queryType === null) {
@@ -89,14 +86,8 @@ class SearchDocumentSiigoController extends Controller
         return response()->json(['document' => $document]);
     }
 
-    public function search_document_NT_pdf(Request $request)
+    public function search_document_NT_pdf(TransferNotePdfRequest $request)
     {
-        $request->validate([
-            'query' => 'required|string',
-            'type'  => 'required',
-            'token' => 'required|string',
-        ]);
-
         if ($this->resolve_query_type($request->input('type')) !== self::TRANSFER_NOTE) {
             return response()->json([
                 'success' => false,
@@ -128,14 +119,8 @@ class SearchDocumentSiigoController extends Controller
         return $pdf->download($this->transferNote->pdf_filename($document));
     }
 
-    public function search_document_OC_pdf(Request $request)
+    public function search_document_OC_pdf(PurchaseOrderPdfRequest $request)
     {
-        $request->validate([
-            'query' => 'required|string',
-            'type'  => 'required',
-            'token' => 'required|string',
-        ]);
-
         if ($this->resolve_query_type($request->input('type')) !== self::PURCHASE_ORDER) {
             return response()->json([
                 'success' => false,
@@ -194,7 +179,7 @@ class SearchDocumentSiigoController extends Controller
         return $matches[1] ?? null;
     }
 
-    private function unauthorized(Request $request, int $type)
+    private function unauthorized(SearchDocumentRequest $request, int $type)
     {
         $jwt = $this->extraer_token($request->input('token'), $type);
 

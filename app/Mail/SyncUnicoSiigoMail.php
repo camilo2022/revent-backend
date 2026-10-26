@@ -20,6 +20,6 @@ class SyncUnicoSiigoMail extends Mailable
         return $this->subject($this->success
                 ? 'Sync Unico/Siigo: Completado'
                 : 'Sync Unico/Siigo: Error')
-            ->view('email.sync-unico-siigo');
+            ->view('email.sync_unico');
     }
 }

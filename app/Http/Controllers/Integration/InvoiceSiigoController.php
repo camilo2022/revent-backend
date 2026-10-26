@@ -13,11 +13,11 @@ class InvoiceSiigoController extends Controller
 
     public function export_invoice()
     {
-        return view('integration.export_invoice');
+        return view('integration.exports.invoice.form');
     }
 
     public function export_invoice_download(InvoiceExportRequest $request)
     {
-        return $this->dispatchDateRangeExport($request, ExportInvoiceSiigoJob::class, 'integration.export_invoice_download');
+        return $this->dispatchDateRangeExport($request, ExportInvoiceSiigoJob::class, 'integration.exports.invoice.result');
     }
 }

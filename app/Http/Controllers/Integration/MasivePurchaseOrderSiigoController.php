@@ -26,7 +26,7 @@ class MasivePurchaseOrderSiigoController extends Controller
             30480 => 'OC-4-O.C. Materia Prima',
         ];
 
-        return view('integration.masive_purchase_order', compact('purchase_order_types'));
+        return view('integration.masive_purchase_order.index', compact('purchase_order_types'));
     }
 
     public function masive_purchase_order_format(MasivePurchaseOrderFormatRequest $request)
@@ -67,7 +67,7 @@ class MasivePurchaseOrderSiigoController extends Controller
 
         ImportMasivePurchaseOrderSiigoJob::dispatch($order, $email, $referencia);
 
-        return view('integration.masive_purchase_order_upload', compact('email'));
+        return view('integration.masive_purchase_order.upload', compact('email'));
     }
 
     private function purchase_order_type(string $token, string $cookie, string|int $purchase_order_type_id)

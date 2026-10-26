@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
-    xmlns:o="urn:schemas-microsoft-com:office:office">
+@extends('layouts.email')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Órdenes de compra - REVENT CALZADO S.A.S.</title>
-    <!--[if mso]>
+@section('title', 'Órdenes de compra - REVENT CALZADO S.A.S.')
+
+@push('styles')
+<!--[if mso]>
 <noscript>
 <xml>
 <o:OfficeDocumentSettings>
@@ -94,9 +90,9 @@
             white-space: nowrap;
         }
     </style>
-</head>
+@endpush
 
-<body style="margin:0; padding:0; background-color:#f3f4f6; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+@section('content')
     @php
         $conPdf = collect($ordenes_compra)->contains(fn($o) => !empty($o['pdf']));
     @endphp
@@ -266,7 +262,4 @@
             </td>
         </tr>
     </table>
-
-</body>
-
-</html>
+@endsection

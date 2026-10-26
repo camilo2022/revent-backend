@@ -85,7 +85,7 @@ class SiigoTransferNTPdfService
         $items = $this->parse_transfer_items($html);
         [$siigoStyle, $siigoBody] = $this->split_siigo_html($html);
 
-        return Pdf::loadView('integration.search_document_pdf', [
+        return Pdf::loadView('integration.search_document.pdf', [
                 'document'   => $document,
                 'siigoStyle' => $siigoStyle,
                 'siigoBody'  => $siigoBody,

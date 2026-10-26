@@ -25,7 +25,7 @@ class ExportPurchaseSiigoMail extends Mailable
             ->subject($this->success
                 ? "Exportación de compras lista: {$this->filename}"
                 : 'Error en exportación de compras Siigo')
-            ->view('email.export-purchase-siigo');
+            ->view('email.exports.purchase');
 
         if ($this->attachmentPath) {
             $mail->attach($this->attachmentPath, ['as' => $this->attachmentName ?? $this->filename]);

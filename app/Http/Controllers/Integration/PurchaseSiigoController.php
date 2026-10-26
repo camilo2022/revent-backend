@@ -13,11 +13,11 @@ class PurchaseSiigoController extends Controller
 
     public function export_purchase()
     {
-        return view('integration.export_purchase');
+        return view('integration.exports.purchase.form');
     }
 
     public function export_purchase_download(PurchaseExportRequest $request)
     {
-        return $this->dispatchDateRangeExport($request, ExportPurchaseSiigoJob::class, 'integration.export_purchase_download');
+        return $this->dispatchDateRangeExport($request, ExportPurchaseSiigoJob::class, 'integration.exports.purchase.result');
     }
 }

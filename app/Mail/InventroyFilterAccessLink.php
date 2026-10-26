@@ -17,6 +17,6 @@ class InventroyFilterAccessLink extends Mailable
     {
         return $this
             ->subject('Acceso a Filtro de inventarios REVENT CALZADO S.A.S.')
-            ->view('email.inventory-filter-access-link');
+            ->view('email.access.inventory_filter');
     }
 }

@@ -15,14 +15,18 @@
 
             <div class="filename">{{ $filename }}</div>
 
-            <div>
-                <a href="{{ $downloadUrl }}" class="btn">⬇ Descargar archivo</a>
-            </div>
+            @if (!empty($downloadUrl))
+                <div>
+                    <a href="{{ $downloadUrl }}" class="btn">⬇ Descargar archivo</a>
+                </div>
 
-            <p style="margin-top: 20px; font-size: 12px; color: #999;">
-                Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
-                <a href="{{ $downloadUrl }}" style="color: #2e7d32; word-break: break-all;">{{ $downloadUrl }}</a>
-            </p>
+                <p style="margin-top: 20px; font-size: 12px; color: #999;">
+                    Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                    <a href="{{ $downloadUrl }}" style="color: #2e7d32; word-break: break-all;">{{ $downloadUrl }}</a>
+                </p>
+            @else
+                <p>El archivo va adjunto a este correo.</p>
+            @endif
         @else
             <p>Ocurrió un error al generar la exportación de {{ $label }} Siigo.</p>
 

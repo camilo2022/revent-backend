@@ -19,6 +19,6 @@ class InvoicePurchaseOrderConfirmedSiigo extends Mailable
     {
         return $this
             ->subject('Confirmacion de recepcion de orden de compra REVENT CALZADO S.A.S.')
-            ->view('email.invoice-purchase-order-confirmed');
+            ->view('email.invoice_purchase_order.confirmed');
     }
 }

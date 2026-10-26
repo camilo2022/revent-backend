@@ -1,11 +1,8 @@
-<!-- resources/views/email/comprobante-pago-siigo.blade.php -->
-<!DOCTYPE html>
-<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>Comprobante de anticipo - REVENT CALZADO S.A.S.</title>
+@extends('layouts.email')
+
+@section('title', 'Comprobante de pago - REVENT CALZADO S.A.S.')
+
+@push('styles')
 <!--[if mso]>
 <noscript>
 <xml>
@@ -15,9 +12,9 @@
 </xml>
 </noscript>
 <![endif]-->
-</head>
-<body style="margin:0; padding:0; background-color:#f3f4f6; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+@endpush
 
+@section('content')
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;">
     <tr>
         <td align="center" style="padding:24px 12px;">
@@ -38,7 +35,7 @@
                             REVENT CALZADO S.A.S.
                         </p>
                         <p style="margin:0; font-size:19px; font-weight:bold; color:#ffffff; line-height:1.3;">
-                            Comprobante de anticipo {{ $voucher['DocName'] ?? '' }}
+                            Comprobante de pago {{ $voucher['DocName'] ?? '' }}
                         </p>
                     </td>
                 </tr>
@@ -64,9 +61,9 @@
                         </p>
 
                         <p style="margin:0 0 16px 0; font-size:14px; color:#374151; line-height:1.6;">
-                            A continuación, le remitimos detalle de soporte de anticipo
+                            A continuación, le remitimos detalle de soporte de pago
                             @if(!empty($voucher_id))
-                                <a href="https://siigonube.siigo.com/#/paymentsv2/1016/view/{{ $voucher_id }}" target="_blank" style="color:#1d4ed8; font-weight:bold; text-decoration:none;">
+                                <a href="{{ config('siigo.urls.nube') }}/#/paymentsv2/1016/view/{{ $voucher_id }}" target="_blank" style="color:#1d4ed8; font-weight:bold; text-decoration:none;">
                                     {{ $voucher['DocName'] ?? '' }}
                                 </a>
                             @else
@@ -74,16 +71,10 @@
                             @endif según anexos.
                         </p>
 
-                        @if(!empty($url))
-                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 16px;">
-                            <tr>
-                                <td align="center" style="padding:4px;">
-                                    <img src="{{ $url }}" alt="Comprobante de anticipo {{ $voucher['DocName'] ?? '' }}" width="280"
-                                        style="display:block; width:280px; max-width:100%; height:auto; object-fit:contain; border:1px solid #eef0f2; border-radius:8px;"
-                                    >
-                                </td>
-                            </tr>
-                        </table>
+                        @if(!empty($attachmentPath))
+                        <p style="margin:0 0 16px 0; font-size:13px; color:#6b7280; line-height:1.6; text-align:center;">
+                            El comprobante de pago va adjunto a este correo.
+                        </p>
                         @endif
 
                         <p style="margin:0; font-size:14px; color:#374151; line-height:1.6;">
@@ -96,6 +87,7 @@
 
                 <tr><td style="height:16px; line-height:16px; font-size:0;">&nbsp;</td></tr>
 
+                <!-- Detalle de recibos aplicados al pago -->
                 <tr>
                     <td style="background-color:#ffffff; border:1px solid #eef0f2; border-radius:12px; padding:16px 20px 8px 20px; font-family:Segoe UI, Arial, sans-serif;">
 
@@ -106,6 +98,67 @@
                         @endif
 
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+                            @php $totalAplicadoDocs = 0; @endphp
+
+                            @foreach ($documentos as $item)
+                            @php
+                                $doc = $item['doc'] ?? [];
+                                $saldo = $item['saldo'] ?? ($doc['Saldo'] ?? 0);
+                                $aplicado = $item['covered'] ?? 0;
+                                $pendiente = max($saldo - $aplicado, 0);
+                                $totalAplicadoDocs += $aplicado;
+
+                                // OJO: aqui asumo que la "fecha recibo" es $doc['DueDate'].
+                                // Si el campo real es otro, solo cambia esta linea.
+                                $fechareciboRaw = $doc['DueDate'] ?? null;
+                                $fechareciboCorta = $fechareciboRaw ? \Carbon\Carbon::parse($fechareciboRaw)->format('d/m/y') : '-';
+
+                                $ordenCompra = $doc['PurchaseEntry']['docName'] ?? null;
+                                $ordenCompra = !empty($ordenCompra) ? $ordenCompra : '-';
+
+                                $pares = $doc['PurchaseEntryDetail']['Quantity'] ?? 0;
+                                $bodega = $doc['PurchaseEntryDetail']['WarehouseCodes'] ?? '';
+                                $documentoDoc = $doc['DocName'] ?? '-';
+
+                                $cubiertoCompleto = $pendiente <= 0;
+                                $badgeBg = $cubiertoCompleto ? '#dcfce7' : '#ffedd5';
+                                $badgeColor = $cubiertoCompleto ? '#166534' : '#9a3412';
+                            @endphp
+                            <tr>
+                                <td style="padding:11px 0; border-bottom:1px solid #f1f3f5;">
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td valign="middle" style="font-family:Segoe UI, Arial, sans-serif;">
+                                                <span style="font-size:13px; font-weight:bold; color:#111827;">
+                                                    {{ $doc['DueName'] ?? '' }} - {{ $bodega }} - ({{ $documentoDoc }})
+                                                </span>
+                                                <div style="font-size:11px; color:#9ca3af; margin-top:2px;">
+                                                    {{ $fechareciboCorta }} &middot; O.C.: {{ $ordenCompra }} &middot; Pares: {{ $pares }}
+                                                </div>
+                                            </td>
+                                            <td align="right" valign="middle" style="white-space:nowrap; padding-left:12px;">
+                                                <span style="display:inline-block; background-color:{{ $badgeBg }}; color:{{ $badgeColor }}; font-size:12px; font-weight:bold; font-family:Segoe UI, Arial, sans-serif; padding:5px 10px; border-radius:999px; white-space:nowrap;">
+                                                    ${{ number_format($aplicado, 0, ',', '.') }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" style="padding-top:4px; font-family:Segoe UI, Arial, sans-serif; font-size:11px; color:#6b7280;">
+                                                Valor factura: <strong style="color:#374151;">${{ number_format($saldo, 0, ',', '.') }}</strong>
+                                                &middot; Aplicado: <strong style="color:#166534;">${{ number_format($aplicado, 0, ',', '.') }}</strong>
+                                                &middot; Pendiente:
+                                                <strong style="color: {{ $pendiente > 0 ? '#b91c1c' : '#166534' }};">
+                                                    ${{ number_format($pendiente, 0, ',', '.') }}
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            @endforeach
+
+                            <!-- Fila resumen del pago -->
                             <tr>
                                 <td style="padding:11px 0;">
                                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -114,7 +167,7 @@
                                                 {{ $voucher['CreatedByDate'] ?? '' }}
                                             </td>
                                             <td align="right" valign="middle" style="font-family:Segoe UI, Arial, sans-serif; font-size:13px; color:#111827; font-weight:bold; white-space:nowrap; padding-left:12px;">
-                                                ${{ number_format($voucher['TotalValue'], 0, ',', '.') }}
+                                                ${{ number_format($totalAplicadoDocs, 0, ',', '.') }}
                                             </td>
                                         </tr>
                                     </table>
@@ -124,7 +177,7 @@
                         </table>
 
                         <p style="margin:4px 0 8px 0; font-size:12px; color:#166534; text-align:left;">
-                            Recibo aplicado al anticipo del día {{ $voucher['CreatedByDate'] ?? '' }}
+                            Recibos aplicados al pago del día {{ $voucher['CreatedByDate'] ?? '' }}
                         </p>
 
                     </td>
@@ -165,6 +218,4 @@
         </td>
     </tr>
 </table>
-
-</body>
-</html>
+@endsection

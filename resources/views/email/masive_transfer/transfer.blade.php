@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
-    xmlns:o="urn:schemas-microsoft-com:office:office">
+@extends('layouts.email')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Resultado de traslados masivos</title>
-    <!--[if mso]>
+@section('title', 'Resultado de traslados masivos')
+
+@push('styles')
+<!--[if mso]>
 <noscript>
 <xml>
 <o:OfficeDocumentSettings>
@@ -155,9 +151,9 @@
             font-family: Segoe UI, Arial, sans-serif;
         }
     </style>
-</head>
+@endpush
 
-<body style="margin:0; padding:0; background-color:#f3f4f6; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+@section('content')
     @php
         $bodega = fn($codigo, $data) => $data ? $codigo . ' - ' . $data['name'] : '-';
         $hayTraslados = isset($traslados) && count($traslados) > 0;
@@ -371,7 +367,7 @@
                                                         <td align="right" style="text-align:right;"><a
                                                                 href="{{ $traslado['preview'] }}" target="_blank"
                                                                 class="lk">&#128065; Ver</a>
-                                                            @if (!is_null($traslado['approved'] ?? null))
+                                                            @if (!empty($traslado['approved']['download_url'] ?? null))
                                                                 &nbsp;
                                                                 <a href="{{ $traslado['approved']['download_url'] }}"
                                                                     class="lk3">&#8681; Excel</a>
@@ -424,7 +420,4 @@
             </td>
         </tr>
     </table>
-
-</body>
-
-</html>
+@endsection

@@ -25,7 +25,7 @@ class ExportInventorySiigoMail extends Mailable
             ->subject($this->success
                 ? "Exportación de inventario lista: {$this->filename}"
                 : 'Error en exportación de inventario Siigo')
-            ->view('email.export-inventory-siigo');
+            ->view('email.exports.inventory');
 
         if ($this->attachmentPath) {
             $mail->attach($this->attachmentPath, ['as' => $this->attachmentName ?? $this->filename]);

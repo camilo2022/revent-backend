@@ -56,4 +56,6 @@ trait SendsAccessLink
                 ->withInput();
         }
 
-        return back()->with('status', 'Te enviamos el enlace de acceso a ' . $email . '. Revisa tu
+        return back()->with('status', 'Te enviamos el enlace de acceso a ' . $email . '. Revisa tu bandeja de entrada (y spam).');
+    }
+}

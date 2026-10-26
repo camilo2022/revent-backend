@@ -17,7 +17,7 @@ class MasiveTransferSiigoMail extends Mailable
     public function __construct(
         public array $traslados,
         public array $errors = [],
-        public string $template_view = 'email.masive-transfer-siigo',
+        public string $template_view = 'email.masive_transfer.transfer',
         public bool $adjuntar_pdf = false,
         public bool $adjuntar_excel = false,
     ) {}

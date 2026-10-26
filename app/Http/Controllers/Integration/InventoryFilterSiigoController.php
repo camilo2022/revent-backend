@@ -13,7 +13,10 @@ use App\Services\SiigoProductsCache;
 use Carbon\Carbon;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
-use Illuminate\Http\Request;
+use App\Http\Requests\Integration\InventoryFilter\AllWarehousesRequest;
+use App\Http\Requests\Integration\InventoryFilter\ImagesRequest;
+use App\Http\Requests\Integration\InventoryFilter\SearchRequest;
+use App\Http\Requests\Integration\InventoryFilter\SendAccessLinkRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -35,15 +38,11 @@ class InventoryFilterSiigoController extends Controller
 
     public function inventory_filter_access()
     {
-        return view('integration.inventory_filter_access');
+        return view('integration.inventory_filter.access');
     }
 
-    public function inventory_filter_send_access_link(Request $request)
+    public function inventory_filter_send_access_link(SendAccessLinkRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
-
         // Pueden entrar los usuarios (vendedores) de Siigo y el correo de tecnología
         $allowed = [...$this->catalog->userEmails($this->client->token()), config('siigo.mail.technology')];
 
@@ -56,16 +55,16 @@ class InventoryFilterSiigoController extends Controller
         );
     }
 
-    public function inventory_filter(Request $request)
+    public function inventory_filter()
     {
         $token = $this->client->token();
         $warehouses = $this->catalog->warehousesWithTransit($token);
         $color_groups = $this->color_groups();
 
-        return view('integration.inventory_filter', compact('warehouses', 'color_groups'));
+        return view('integration.inventory_filter.index', compact('warehouses', 'color_groups'));
     }
 
-    public function inventory_filter_search(Request $request)
+    public function inventory_filter_search(SearchRequest $request)
     {
         $token = $this->client->token();
 
@@ -129,11 +128,9 @@ class InventoryFilterSiigoController extends Controller
         ]);
     }
 
-    public function inventory_filter_all_warehouses(Request $request)
+    public function inventory_filter_all_warehouses(AllWarehousesRequest $request)
     {
-        $validated = $request->validate([
-            'referencia' => ['required', 'string', 'max:100'],
-        ]);
+        $validated = $request->validated();
 
         set_time_limit(180);
 
@@ -406,13 +403,9 @@ class InventoryFilterSiigoController extends Controller
         ];
     }
 
-    public function inventory_filter_images(Request $request)
+    public function inventory_filter_images(ImagesRequest $request)
     {
-        $validated = $request->validate([
-            'referencia' => ['required', 'string', 'max:100'],
-            'page' => ['nullable', 'integer', 'min:1'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:12'],
-        ]);
+        $validated = $request->validated();
 
         $referencia = $this->clean_text(strtoupper(trim($validated['referencia'])));
 

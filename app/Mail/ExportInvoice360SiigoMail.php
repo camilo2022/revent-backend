@@ -25,7 +25,7 @@ class ExportInvoice360SiigoMail extends Mailable
             ->subject($this->success
                 ? "Exportación de facturas 360 lista: {$this->filename}"
                 : 'Error en exportación de facturas 360 Siigo')
-            ->view('email.export-invoice-360-siigo');
+            ->view('email.exports.invoice_360');
 
         if ($this->attachmentPath) {
             $mail->attach($this->attachmentPath, ['as' => $this->attachmentName ?? $this->filename]);

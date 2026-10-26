@@ -40,7 +40,7 @@ class SiigoPurchaseOCPdfService
         $items = $this->parse_purchase_items($html);
         [$siigoStyle, $siigoBody] = $this->transferNote->split_siigo_html($html);
 
-        return Pdf::loadView('integration.search_document_pdf', [
+        return Pdf::loadView('integration.search_document.pdf', [
                 'document'   => $document,
                 'siigoStyle' => $siigoStyle,
                 'siigoBody'  => $siigoBody,

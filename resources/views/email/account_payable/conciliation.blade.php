@@ -1,11 +1,8 @@
-<!-- resources/views/email/comprobante-pago-siigo.blade.php -->
-<!DOCTYPE html>
-<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>Comprobante de cruce de saldos - REVENT CALZADO S.A.S.</title>
+@extends('layouts.email')
+
+@section('title', 'Comprobante de cruce de saldos - REVENT CALZADO S.A.S.')
+
+@push('styles')
 <!--[if mso]>
 <noscript>
 <xml>
@@ -15,9 +12,9 @@
 </xml>
 </noscript>
 <![endif]-->
-</head>
-<body style="margin:0; padding:0; background-color:#f3f4f6; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+@endpush
 
+@section('content')
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;">
     <tr>
         <td align="center" style="padding:24px 12px;">
@@ -66,7 +63,7 @@
                         <p style="margin:0 0 16px 0; font-size:14px; color:#374151; line-height:1.6;">
                             A continuación, le remitimos detalle del cruce contable
                             @if(!empty($voucher_id))
-                                <a href="https://siigonube.siigo.com/#/journal-entry/1569/{{ $voucher_id }}" target="_blank" style="color:#1d4ed8; font-weight:bold; text-decoration:none;">
+                                <a href="{{ config('siigo.urls.nube') }}/#/journal-entry/1569/{{ $voucher_id }}" target="_blank" style="color:#1d4ed8; font-weight:bold; text-decoration:none;">
                                     {{ $voucher['name'] ?? '' }}
                                 </a>
                             @else
@@ -308,6 +305,4 @@
         </td>
     </tr>
 </table>
-
-</body>
-</html>
+@endsection

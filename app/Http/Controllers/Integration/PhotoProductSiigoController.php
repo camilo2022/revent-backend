@@ -3,6 +3,15 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Integration\PhotoProduct\BulkUploadRequest;
+use App\Http\Requests\Integration\PhotoProduct\DeleteRequest;
+use App\Http\Requests\Integration\PhotoProduct\ExplorerCreateFolderRequest;
+use App\Http\Requests\Integration\PhotoProduct\ExplorerDeleteRequest;
+use App\Http\Requests\Integration\PhotoProduct\ExplorerRequest;
+use App\Http\Requests\Integration\PhotoProduct\ExplorerUploadRequest;
+use App\Http\Requests\Integration\PhotoProduct\SearchRequest;
+use App\Http\Requests\Integration\PhotoProduct\SiigoSyncRequest;
+use App\Http\Requests\Integration\PhotoProduct\UploadRequest;
 use App\Services\ProductPhotoService;
 use App\Services\Siigo\SiigoClient;
 use App\Services\Siigo\SiigoUserService;
@@ -22,7 +31,6 @@ class PhotoProductSiigoController extends Controller
     private const DISK = ProductPhotoService::DISK;
     private const BASE_PATH = ProductPhotoService::BASE_PATH;
     private const ALLOWED_USER_IDS = [597];
-    private const MAX_ZIP_SIZE_KB = 512000; // 500 MB
     private const MAX_IMAGE_SIZE_BYTES = 10485760; // 10 MB por imagen
     private const MAX_TOTAL_IMAGE_BYTES = 524288000; // 500 MB descomprimidos
     private const MAX_ZIP_ENTRIES = 5000;
@@ -40,15 +48,11 @@ class PhotoProductSiigoController extends Controller
 
     public function product_photo()
     {
-        return view('integration.photo_product');
+        return view('integration.product_photo.index');
     }
 
-    public function product_photo_search(Request $request)
+    public function product_photo_search(SearchRequest $request)
     {
-        $request->validate([
-            'referencia' => 'required|string',
-        ]);
-
         $referencia = $this->sanitize_referencia($request->input('referencia'));
         $path = self::BASE_PATH . "/{$referencia}";
 
@@ -75,15 +79,8 @@ class PhotoProductSiigoController extends Controller
         ]);
     }
 
-    public function product_photo_upload(Request $request)
+    public function product_photo_upload(UploadRequest $request)
     {
-        $request->validate([
-            'token' => 'required|string',
-            'referencia' => 'required|string',
-            'photos' => 'required|array|min:1',
-            'photos.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
-        ]);
-
         $usuario = $this->validar_usuario_permitido($request->input('token'));
 
         if (!$usuario['success']) {
@@ -138,12 +135,8 @@ class PhotoProductSiigoController extends Controller
     // ------------------------------------------------------------------
 
     /** Lista carpetas e imágenes de una ruta. Solo lectura, no requiere token. */
-    public function product_photo_explorer(Request $request)
+    public function product_photo_explorer(ExplorerRequest $request)
     {
-        $request->validate([
-            'path' => 'nullable|string|max:200',
-        ]);
-
         $info = $this->photos->resolverRuta($request->input('path'));
 
         if (!$info) {
@@ -166,14 +159,8 @@ class PhotoProductSiigoController extends Controller
     }
 
     /** Crea un producto (en products) o una carpeta de color (dentro de un producto). */
-    public function product_photo_explorer_create_folder(Request $request)
+    public function product_photo_explorer_create_folder(ExplorerCreateFolderRequest $request)
     {
-        $request->validate([
-            'token' => 'required|string',
-            'path' => 'nullable|string|max:200',
-            'name' => 'required|string|max:100',
-        ]);
-
         if ($denied = $this->autorizar($request)) {
             return $denied;
         }
@@ -202,15 +189,8 @@ class PhotoProductSiigoController extends Controller
      * Si la carpeta es de un color (REFERENCIA/COLOR), la primera foto subida
      * reemplaza la foto de los productos de ese color en Siigo.
      */
-    public function product_photo_explorer_upload(Request $request)
+    public function product_photo_explorer_upload(ExplorerUploadRequest $request)
     {
-        $request->validate([
-            'token' => 'required|string',
-            'path' => 'required|string|max:200',
-            'photos' => 'required|array|min:1',
-            'photos.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
-        ]);
-
         if ($denied = $this->autorizar($request)) {
             return $denied;
         }
@@ -294,14 +274,8 @@ class PhotoProductSiigoController extends Controller
     }
 
     /** Elimina una foto de la carpeta actual (producto o color). */
-    public function product_photo_explorer_delete(Request $request)
+    public function product_photo_explorer_delete(ExplorerDeleteRequest $request)
     {
-        $request->validate([
-            'token' => 'required|string',
-            'path' => 'required|string|max:200',
-            'filename' => 'required|string',
-        ]);
-
         if ($denied = $this->autorizar($request)) {
             return $denied;
         }
@@ -329,13 +303,8 @@ class PhotoProductSiigoController extends Controller
      * Recorre los productos de Siigo, y a los que NO tienen foto les envía la primera
      * foto (JPG) de la carpeta de su color. Nunca borra ni reemplaza fotos existentes.
      */
-    public function product_photo_siigo_sync(Request $request)
+    public function product_photo_siigo_sync(SiigoSyncRequest $request)
     {
-        $request->validate([
-            'token' => 'required|string',
-            'referencia' => 'required|string|max:100',
-        ]);
-
         if ($denied = $this->autorizar($request)) {
             return $denied;
         }
@@ -372,14 +341,8 @@ class PhotoProductSiigoController extends Controller
      * La carpeta de referencia se crea implícitamente al guardar el primer archivo.
      * Las carpetas vacías son válidas y se omiten porque no contienen imágenes que guardar.
      */
-    public function product_photo_bulk_upload(Request $request)
+    public function product_photo_bulk_upload(BulkUploadRequest $request)
     {
-        $request->validate([
-            'token' => 'required|string',
-            'zip' => 'required|file|mimes:zip|max:' . self::MAX_ZIP_SIZE_KB,
-            'zip_mode' => 'required|in:folders,filenames',
-        ]);
-
         // Validar el token y el ID del usuario antes de procesar/guardar imágenes.
         $usuario = $this->validar_usuario_permitido($request->input('token'));
 
@@ -608,14 +571,8 @@ class PhotoProductSiigoController extends Controller
         }
     }
 
-    public function product_photo_delete(Request $request)
+    public function product_photo_delete(DeleteRequest $request)
     {
-        $request->validate([
-            'token' => 'required|string',
-            'referencia' => 'required|string',
-            'filename' => 'required|string',
-        ]);
-
         $usuario = $this->validar_usuario_permitido($request->input('token'));
 
         if (!$usuario['success']) {

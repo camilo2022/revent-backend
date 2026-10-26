@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
-    xmlns:o="urn:schemas-microsoft-com:office:office">
+@extends('layouts.email')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Inventario recibido en tu bodega</title>
-    <!--[if mso]>
+@section('title', 'Confirmación de salida de inventario')
+
+@push('styles')
+<!--[if mso]>
 <noscript>
 <xml>
 <o:OfficeDocumentSettings>
@@ -84,14 +80,6 @@
             white-space: nowrap;
         }
 
-        .lk3 {
-            font-size: 12px;
-            font-weight: 600;
-            color: #b45309;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-
         .lbl {
             margin: 0 0 2px 0;
             font-size: 10px;
@@ -108,13 +96,12 @@
             font-family: Segoe UI, Arial, sans-serif;
         }
     </style>
-</head>
+@endpush
 
-<body style="margin:0; padding:0; background-color:#f3f4f6; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+@section('content')
     @php
         $bodega = fn($codigo, $data) => $data ? $codigo . ' - ' . $data['name'] : '-';
         $primero = $traslados[0] ?? null;
-        $conTransito = collect($traslados)->filter(fn($t) => !is_null($t['approved'] ?? null));
         $conPdf = collect($traslados)->contains(fn($t) => !empty($t['pdf']));
     @endphp
 
@@ -126,32 +113,32 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
                     style="max-width:600px; width:100%;">
 
-                    <!-- Banner de entrada de inventario -->
+                    <!-- Banner de confirmación de salida -->
                     <tr>
                         <td
-                            style="background-color:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:18px 20px; font-family:Segoe UI, Arial, sans-serif;">
+                            style="background-color:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:18px 20px; font-family:Segoe UI, Arial, sans-serif;">
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                                 <tr>
                                     <td width="40" valign="top" style="padding-right:12px;">
                                         <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                             <tr>
                                                 <td width="36" height="36" align="center" valign="middle"
-                                                    style="background-color:#2563eb; border-radius:50%; font-family:Arial, sans-serif; color:#ffffff; font-size:16px; font-weight:bold;">
-                                                    &#8595;
+                                                    style="background-color:#16a34a; border-radius:50%; font-family:Arial, sans-serif; color:#ffffff; font-size:16px; font-weight:bold;">
+                                                    &#10003;
                                                 </td>
                                             </tr>
                                         </table>
                                     </td>
                                     <td valign="middle">
                                         <p
-                                            style="margin:0 0 4px 0; font-size:15px; font-weight:bold; color:#1e3a8a; font-family:Segoe UI, Arial, sans-serif;">
-                                            Enviaron inventario a tu bodega
+                                            style="margin:0 0 4px 0; font-size:15px; font-weight:bold; color:#14532d; font-family:Segoe UI, Arial, sans-serif;">
+                                            Confirmación de salida de inventario
                                         </p>
                                         <p
-                                            style="margin:0; font-size:13px; color:#1d4ed8; font-family:Segoe UI, Arial, sans-serif; line-height:1.4;">
-                                            Te informamos que {{ count($traslados) > 1 ? 'llegaron' : 'llegó' }}
-                                            {{ count($traslados) }} traslado(s) con mercancía destinada a tu bodega.
-                                            Revisa el detalle a continuación.
+                                            style="margin:0; font-size:13px; color:#166534; font-family:Segoe UI, Arial, sans-serif; line-height:1.4;">
+                                            Se {{ count($traslados) > 1 ? 'generaron' : 'generó' }}
+                                            {{ count($traslados) }} traslado(s) de salida desde tu bodega. Revisa el
+                                            detalle a continuación.
                                         </p>
                                     </td>
                                 </tr>
@@ -180,15 +167,15 @@
                                             </p>
                                             <p
                                                 style="margin:0; font-size:16px; font-weight:bold; color:#1f2937; font-family:Segoe UI, Arial, sans-serif;">
-                                                {{ count($traslados) > 1 ? 'Traslados recibidos' : $primero['data']['document'] }}
+                                                {{ count($traslados) > 1 ? 'Traslados de salida' : $primero['data']['document'] }}
                                             </p>
                                         </td>
                                         <td valign="top" align="right">
                                             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                                 <tr>
                                                     <td
-                                                        style="background-color:#dbeafe; color:#1d4ed8; font-size:11px; font-weight:bold; font-family:Segoe UI, Arial, sans-serif; padding:5px 10px; border-radius:999px; white-space:nowrap;">
-                                                        &#8595; Entrada
+                                                        style="background-color:#fee2e2; color:#b91c1c; font-size:11px; font-weight:bold; font-family:Segoe UI, Arial, sans-serif; padding:5px 10px; border-radius:999px; white-space:nowrap;">
+                                                        &#8593; Salida
                                                     </td>
                                                 </tr>
                                             </table>
@@ -208,9 +195,9 @@
                                                 border="0">
                                                 <tr>
                                                     <td width="34%" valign="top">
-                                                        <p class="lbl">Bodega destino</p>
+                                                        <p class="lbl">Bodega origen</p>
                                                         <p class="val">
-                                                            {{ $bodega($primero['data']['bodega_ingreso'], $primero['data']['bodega_ingreso_data']) }}
+                                                            {{ $bodega($primero['data']['bodega_salida'], $primero['data']['bodega_salida_data']) }}
                                                         </p>
                                                     </td>
                                                     <td width="33%" valign="top">
@@ -241,7 +228,7 @@
                                                 <tr>
                                                     <th width="24">#</th>
                                                     <th>Documento</th>
-                                                    <th>Origen</th>
+                                                    <th>Destino</th>
                                                     <th align="right" style="text-align:right;">Acciones</th>
                                                 </tr>
                                                 {{-- Filas sin indentación: cada byte cuenta para que Gmail no recorte el correo --}}
@@ -254,16 +241,11 @@
                                                                     class="o">{{ $traslado['data']['observation'] }}</span>
                                                             @endif
                                                         </td>
-                                                        <td>{{ $bodega($traslado['data']['bodega_salida'], $traslado['data']['bodega_salida_data']) }}
+                                                        <td>{{ $bodega($traslado['data']['bodega_ingreso'], $traslado['data']['bodega_ingreso_data']) }}
                                                         </td>
                                                         <td align="right" style="text-align:right;"><a
                                                                 href="{{ $traslado['preview'] }}" target="_blank"
                                                                 class="lk">&#128065; Ver</a>
-                                                            @if (!is_null($traslado['approved'] ?? null))
-                                                                &nbsp;
-                                                                <a href="{{ $traslado['approved']['download_url'] }}"
-                                                                    class="lk3">&#8681; Excel</a>
-                                                            @endif
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -282,32 +264,6 @@
                                         </tr>
                                     @endif
 
-                                    @if ($conTransito->isNotEmpty())
-                                        <tr>
-                                            <td colspan="2" style="height:14px; line-height:14px; font-size:0;">
-                                                &nbsp;</td>
-                                        </tr>
-
-                                        <!-- Caja de tránsito -->
-                                        <tr>
-                                            <td colspan="2"
-                                                style="background-color:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:14px 16px;">
-                                                <p
-                                                    style="margin:0 0 4px 0; font-size:13px; font-weight:bold; color:#92400e; font-family:Segoe UI, Arial, sans-serif;">
-                                                    Traslado en tránsito
-                                                </p>
-                                                <p
-                                                    style="margin:0{{ $conTransito->count() === 1 ? ' 0 12px 0' : '' }}; font-size:12px; color:#a16207; line-height:1.4; font-family:Segoe UI, Arial, sans-serif;">
-                                                    Cuando la mercancía llegue físicamente a tu bodega, descarga
-                                                    {{ $conTransito->count() === 1 ? 'este archivo' : 'el Excel de cada traslado (enlace "Excel" en la tabla)' }},
-                                                    cárgalo de nuevo y confírmalo en Siigo. También
-                                                    {{ $conTransito->count() === 1 ? 'va adjunto' : 'van adjuntos' }}
-                                                    en este correo.
-                                                </p>
-                                            </td>
-                                        </tr>
-                                    @endif
-
                                 </table>
                             </td>
                         </tr>
@@ -318,7 +274,4 @@
             </td>
         </tr>
     </table>
-
-</body>
-
-</html>
+@endsection

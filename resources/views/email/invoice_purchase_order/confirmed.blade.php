@@ -1,25 +1,11 @@
-{{-- resources/views/email/invoice-purchase-order-confirmed.blade.php --}}
+@extends('layouts.email')
 
-<!DOCTYPE html>
-<html lang="es" xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:v="urn:schemas-microsoft-com:vml"
-    xmlns:o="urn:schemas-microsoft-com:office:office">
+@section('title')
+Recepción de orden de compra {{ data_get($data, 'Order.DocName', '') }}
+@endsection
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-    @php
-        $orderId = data_get($data, 'Order.ACEntryID');
-        $orderLink = $orderId
-            ? 'https://siigonube.siigo.com/#/asp/' . base64_encode("Default.aspx?TabID=1671&ERPDocumentID={$orderId}") . '?TabID=1671'
-            : '';
-    @endphp
-
-    <title>Recepción de orden de compra {{ data_get($data, 'Order.DocName', '') }}</title>
-
-    <!--[if mso]>
+@push('styles')
+<!--[if mso]>
     <noscript>
         <xml>
             <o:OfficeDocumentSettings>
@@ -28,9 +14,15 @@
         </xml>
     </noscript>
     <![endif]-->
-</head>
+@endpush
 
-<body style="margin:0; padding:0; background-color:#f3f4f6; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+@section('content')
+@php
+        $orderId = data_get($data, 'Order.ACEntryID');
+        $orderLink = $orderId
+            ? config('siigo.urls.nube') . '/#/asp/' . base64_encode("Default.aspx?TabID=1671&ERPDocumentID={$orderId}") . '?TabID=1671'
+            : '';
+    @endphp
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;">
     <tr>
@@ -497,6 +489,4 @@
         </td>
     </tr>
 </table>
-
-</body>
-</html>
+@endsection

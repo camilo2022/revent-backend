@@ -22,7 +22,7 @@ class MasivePurchaseOrderSiigo extends Mailable
     {
         $this
             ->subject('Órdenes de compra REVENT CALZADO S.A.S.')
-            ->view('email.masive-purchase-order-siigo');
+            ->view('email.masive_purchase_order.order');
 
         foreach ($this->ordenes_compra as $orden) {
             $this->adjuntar($orden['pdf'] ?? null);

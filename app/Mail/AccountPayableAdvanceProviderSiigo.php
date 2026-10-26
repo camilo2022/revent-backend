@@ -24,7 +24,7 @@ class AccountPayableAdvanceProviderSiigo extends Mailable
     {
         $mail = $this
             ->subject('Comprobante de anticipo REVENT CALZADO S.A.S.')
-            ->view('email.account-payable-advance-provider-siigo');
+            ->view('email.account_payable.advance');
 
         if ($this->attachmentPath) {
             $mail->attach($this->attachmentPath, ['as' => $this->attachmentName]);

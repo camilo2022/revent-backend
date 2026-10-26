@@ -17,6 +17,6 @@ class InvoicePurchaseOrderAccessLink extends Mailable
     {
         return $this
             ->subject('Acceso a Ordenes de compra REVENT CALZADO S.A.S.')
-            ->view('email.invoice-purchase-order-access-link');
+            ->view('email.access.invoice_purchase_order');
     }
 }

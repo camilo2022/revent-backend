@@ -13,7 +13,7 @@ class InventorySiigoController extends Controller
 
     public function export_inventory()
     {
-        return view('integration.export_inventory');
+        return view('integration.exports.inventory.form');
     }
 
     public function export_inventory_download(InventoryExportRequest $request)
@@ -35,6 +35,6 @@ class InventorySiigoController extends Controller
             ExportInventorySiigoJob::dispatch([...$baseFilters, 'positive' => $positive], $emails);
         }
 
-        return view('integration.export_inventory_download', compact('emails'));
+        return view('integration.exports.inventory.result', compact('emails'));
     }
 }

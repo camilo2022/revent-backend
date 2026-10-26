@@ -13,11 +13,11 @@ class Invoice360SiigoController extends Controller
 
     public function export_invoice_360()
     {
-        return view('integration.export_invoice_360');
+        return view('integration.exports.invoice_360.form');
     }
 
     public function export_invoice_360_download(Invoice360ExportRequest $request)
     {
-        return $this->dispatchDateRangeExport($request, ExportInvoice360SiigoJob::class, 'integration.export_invoice_360_download');
+        return $this->dispatchDateRangeExport($request, ExportInvoice360SiigoJob::class, 'integration.exports.invoice_360.result');
     }
 }

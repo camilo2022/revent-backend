@@ -39,8 +39,8 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
     private const PAGINAS_BUSQUEDA_PRODUCTO = 3;
 
-    private const VISTA_SALIDA = 'email.masive-transfer-exit-siigo';
-    private const VISTA_ENTRADA = 'email.masive-transfer-entrance-siigo';
+    private const VISTA_SALIDA = 'email.masive_transfer.exit';
+    private const VISTA_ENTRADA = 'email.masive_transfer.entrance';
 
     private const BODEGAS = [
         'DIRECTO' => [

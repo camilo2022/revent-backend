@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Integration;
 
 use App\Exports\ProductTraceabilitySiigoExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Integration\ProductTraceability\DownloadRequest;
 use App\Imports\ProductTraceabilitySiigoImport;
 use App\Services\Siigo\SiigoCatalogService;
 use App\Services\Siigo\SiigoClient;
 use App\Services\Siigo\SiigoLinks;
 use App\Services\Siigo\SiigoReportService;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductTraceabilitySiigoController extends Controller
@@ -27,22 +27,16 @@ class ProductTraceabilitySiigoController extends Controller
         $token = $this->client->token();
         $warehouses = $this->catalog->warehouses($token);
 
-        return view('integration.product_traceability', compact('warehouses'));
+        return view('integration.product_traceability.index', compact('warehouses'));
     }
 
-    public function product_traceability_download(Request $request)
+    public function product_traceability_download(DownloadRequest $request)
     {
         ini_set('memory_limit', '-1');
         set_time_limit(0);
 
         $token = $this->client->token();
-        $warehouses = $this->catalog->warehouses($token);
-
-        $request->validate([
-            'warehouse_id' => 'required|string|in:' . collect($warehouses)->pluck('id')->join(','),
-            'start_date' => 'required|date',
-            'file' => 'required|file|mimes:xlsx,xls|max:10240',
-        ]);
+        $warehouses = $request->warehouses();
 
         $codigos = Excel::toCollection(new ProductTraceabilitySiigoImport, $request->file('file'))->first()->map(function ($item) {
                 $item['codigo'] = strtoupper($item['codigo']);
