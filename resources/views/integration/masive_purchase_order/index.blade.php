@@ -72,10 +72,6 @@
             background: #ffffff;
         }
 
-        .excel-field-input:invalid:not(:placeholder-shown) {
-            border-color: #fca5a5;
-        }
-
         .excel-field-hint {
             font-size: 0.75rem;
             color: #9ca3af;

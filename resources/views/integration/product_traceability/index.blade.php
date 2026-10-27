@@ -78,10 +78,6 @@
             background: #ffffff;
         }
 
-        .excel-field-input:invalid:not(:placeholder-shown) {
-            border-color: #fca5a5;
-        }
-
         .excel-field-input.is-invalid,
         .excel-field-select.is-invalid {
             border-color: #fca5a5;

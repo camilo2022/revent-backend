@@ -71,10 +71,6 @@
             background: #ffffff;
         }
 
-        .excel-field-input:invalid:not(:placeholder-shown) {
-            border-color: #fca5a5;
-        }
-
         .excel-field-hint {
             font-size: 0.75rem;
             color: #9ca3af;
@@ -370,9 +366,11 @@
                         Correo de notificación <span class="required-mark">*</span>
                     </label>
                     <input type="email" name="email" id="notifyEmail" class="excel-field-input"
-                        placeholder="nombre@correo.com" value="{{ old('email') }}" required>
+                        placeholder="nombre@{{ config('siigo.mail.domain') }}" value="{{ old('email') }}" required
+                        pattern="[a-zA-Z0-9._%+\-]+@{{ str_replace('.', '\.', config('siigo.mail.domain')) }}"
+                        title="Debe ser un correo @{{ config('siigo.mail.domain') }}">
                     <div class="excel-field-hint">
-                        Te enviaremos el resultado a este correo para que lo consultes cuando quieras.
+                        Te enviaremos el resultado a este correo (debe ser @{{ config('siigo.mail.domain') }}) para que lo consultes cuando quieras.
                     </div>
                     @error('email')
                         <div class="excel-error show">{{ $message }}</div>

@@ -43,6 +43,7 @@ body {
 .rv-brand { display: inline-flex; align-items: center; gap: 0.6rem; }
 .rv-brand span { color: #16a34a; }
 .rv-logo { height: 15px; width: auto; display: block; }
+.rv-logo--siigo { height: 18px; }
 .rv-nav {
     display: flex;
     gap: 0.25rem;
@@ -342,7 +343,9 @@ body {
 /* ---- Variantes de formulario (acceso por correo) ---- */
 .excel-upload-wrapper--narrow { max-width: 480px; }
 
-.excel-field-input.is-invalid {
+/* Rojo solo tras el error del servidor o cuando la persona ya tocó el campo (no al cargar la página) */
+.excel-field-input.is-invalid,
+.excel-field-input:user-invalid {
     border-color: #fca5a5;
 }
 

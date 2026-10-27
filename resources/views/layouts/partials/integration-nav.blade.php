@@ -6,7 +6,7 @@
     <div class="rv-topbar-inner">
         <a href="{{ route('home') }}" class="rv-brand">
             <img src="{{ asset('integration/img/revent-logo.png') }}" alt="Revent" class="rv-logo">
-            <span>Siigo</span>
+            <img src="{{ asset('integration/img/siigo-logo.png') }}" alt="Siigo" class="rv-logo rv-logo--siigo">
         </a>
     </div>
 </header>
