@@ -42,3 +42,18 @@
 .tr-sub { color: #6b7280; font-size: .76rem; display: block; }
 .tr-empty { padding: .8rem 1.1rem; color: #9ca3af; font-size: .83rem; }
 .tr-hidden { display: none; }
+
+/* Botón de Excel y encabezado con acciones */
+.tr-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.tr-btn { display: inline-flex; align-items: center; gap: .45rem; background: #16a34a; color: #fff; text-decoration: none; font-size: .85rem; font-weight: 600; padding: .6rem 1.1rem; border-radius: 10px; transition: background .2s ease; }
+.tr-btn:hover { background: #15803d; }
+.tr-btn--ghost { background: #fff; color: #16a34a; border: 1px solid #16a34a; }
+.tr-btn--ghost:hover { background: #f0fdf4; }
+.tr-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.2rem; }
+
+/* Movimientos con saldo acumulado */
+.tr-saldo { font-size: .78rem; color: #6b7280; white-space: nowrap; }
+.tr-saldo strong { color: #1f2937; }
+.tr-table .in { color: #166534; font-weight: 600; }
+.tr-table .out { color: #991b1b; font-weight: 600; }
+.tr-table .saldo { font-weight: 700; color: #1f2937; background: #f9fafb; }

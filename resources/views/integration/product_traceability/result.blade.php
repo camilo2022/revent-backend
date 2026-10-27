@@ -1,6 +1,6 @@
 @extends('layouts.integration')
 
-@section('title', 'Auditoría de tránsitos')
+@section('title', 'Trazabilidad con auditoría de tránsitos')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('integration/css/traceability.css') }}">
@@ -20,15 +20,21 @@
 
 @section('content')
 <div class="tr-wrap">
-    <div class="tr-head">
-        <h1>Auditoría de tránsitos</h1>
-        <p>
-            Bodega <strong>{{ $audit['warehouse'] }}</strong>
-            @if ($audit['transit'])
-                · tránsito revisado: <strong>{{ $audit['transit'] }}</strong>
-            @endif
-            · desde <strong>{{ \Carbon\Carbon::parse($audit['start_date'])->format('d/m/Y') }}</strong>
-        </p>
+    <div class="tr-top">
+        <div class="tr-head">
+            <h1>Trazabilidad con auditoría de tránsitos</h1>
+            <p>
+                Bodega <strong>{{ $audit['warehouse'] }}</strong>
+                @if ($audit['transit'])
+                    · tránsito revisado: <strong>{{ $audit['transit'] }}</strong>
+                @endif
+                · desde <strong>{{ \Carbon\Carbon::parse($audit['start_date'])->format('d/m/Y') }}</strong>
+            </p>
+        </div>
+        <a href="{{ route('siigo.product_traceability_excel', $key) }}" class="tr-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Descargar Excel
+        </a>
     </div>
 
     @unless ($audit['transit'])
@@ -43,7 +49,7 @@
         <div class="tr-card bad"><div class="n">{{ $summary['directo'] ?? 0 }}</div><div class="l">Traslados directos</div></div>
         <div class="tr-card warn"><div class="n">{{ $summary['parcial'] ?? 0 }}</div><div class="l">Parciales (parte directa)</div></div>
         <div class="tr-card muted"><div class="n">{{ $summary['otros'] ?? 0 }}</div><div class="l">Otros ingresos (compra, ajuste…)</div></div>
-        <div class="tr-card muted"><div class="n">{{ $summary['sin_movimientos'] ?? 0 }}</div><div class="l">Códigos sin ingresos</div></div>
+        <div class="tr-card muted"><div class="n">{{ $summary['sin_movimientos'] ?? 0 }}</div><div class="l">Códigos sin movimientos</div></div>
     </div>
 
     <div class="tr-filters">
@@ -58,15 +64,19 @@
             $statuses = collect($product['rows'])->pluck('status')->filter()->unique();
             $irregular = $statuses->contains('directo') || $statuses->contains('parcial');
             $group = $irregular ? 'irregular' : 'ok';
+            $hasEntries = collect($product['rows'])->contains(fn ($r) => $r['entry'] > 0);
             $badge = $irregular ? ($statuses->contains('directo') ? 'directo' : 'parcial')
                 : ($statuses->isNotEmpty() ? $statuses->first() : (count($product['rows']) ? 'otro' : 'sin_movimientos'));
-            $badgeLabel = $labels[$badge] ?? (count($product['rows']) ? 'Otros ingresos' : 'Sin ingresos');
+            $badgeLabel = $labels[$badge] ?? (count($product['rows']) ? ($hasEntries ? 'Otros ingresos' : 'Solo salidas') : 'Sin movimientos');
         @endphp
         <details class="tr-product" data-group="{{ $group }}"
             data-text="{{ strtolower($product['code'] . ' ' . $product['name']) }}" {{ $irregular ? 'open' : '' }}>
             <summary>
                 <span class="code">{{ $product['code'] }}</span>
                 <span class="name">{{ $product['name'] ?? 'Sin movimientos en el periodo' }}</span>
+                @if ($product['rows'])
+                    <span class="tr-saldo">Saldo final <strong>{{ $fmt(end($product['rows'])['balance']) }}</strong></span>
+                @endif
                 <span class="tr-badge {{ $badge }}">{{ $badgeLabel }}</span>
             </summary>
 
@@ -76,7 +86,9 @@
                         <tr>
                             <th>Fecha</th>
                             <th>Comprobante</th>
-                            <th class="num">Cantidad</th>
+                            <th class="num">Entrada</th>
+                            <th class="num">Salida</th>
+                            <th class="num">Saldo</th>
                             <th>Resultado</th>
                             <th>Tránsito previo</th>
                         </tr>
@@ -92,7 +104,9 @@
                                         {{ $row['voucher'] }}
                                     @endif
                                 </td>
-                                <td class="num">{{ $fmt($row['quantity']) }}</td>
+                                <td class="num in">{{ $row['entry'] > 0 ? $fmt($row['entry']) : '' }}</td>
+                                <td class="num out">{{ $row['output'] > 0 ? $fmt($row['output']) : '' }}</td>
+                                <td class="num saldo">{{ $fmt($row['balance']) }}</td>
                                 <td>
                                     @if ($row['status'])
                                         <span class="tr-badge {{ $row['status'] }}">{{ $labels[$row['status']] }}</span>
@@ -101,7 +115,7 @@
                                         @elseif ($row['status'] === 'directo')
                                             <span class="tr-sub">{{ $fmt($row['direct']) }} sin pasar por tránsito</span>
                                         @endif
-                                    @else
+                                    @elseif ($row['entry'] > 0)
                                         <span class="tr-badge otro">No es traslado</span>
                                     @endif
                                 </td>
@@ -116,7 +130,7 @@
                                             <span class="tr-sub">{{ $transit['date'] }} · {{ $fmt($transit['quantity']) }} u.</span>
                                         </span>
                                     @empty
-                                        <span class="tr-sub">—</span>
+                                        @if ($row['status']) <span class="tr-sub">—</span> @endif
                                     @endforelse
                                 </td>
                             </tr>
@@ -124,15 +138,18 @@
                     </tbody>
                 </table>
             @else
-                <div class="tr-empty">Este código no tuvo ingresos a la bodega en el periodo consultado.</div>
+                <div class="tr-empty">Este código no tuvo movimientos en la bodega en el periodo consultado.</div>
             @endif
         </details>
     @endforeach
 
-    <a href="{{ route('siigo.product_traceability') }}" class="back-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Nueva consulta
-    </a>
+    <div class="tr-actions">
+        <a href="{{ route('siigo.product_traceability') }}" class="back-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Nueva consulta
+        </a>
+        <a href="{{ route('siigo.product_traceability_excel', $key) }}" class="tr-btn tr-btn--ghost">Descargar Excel</a>
+    </div>
 </div>
 @endsection
 

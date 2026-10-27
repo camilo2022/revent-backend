@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Integration;
 
+use App\Exports\ProductTraceabilityAuditExport;
 use App\Exports\ProductTraceabilitySiigoExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Integration\ProductTraceability\DownloadRequest;
@@ -12,10 +13,14 @@ use App\Services\Siigo\SiigoClient;
 use App\Services\Siigo\SiigoLinks;
 use App\Services\Siigo\SiigoTraceabilityService;
 use App\Services\Siigo\SiigoTransitAuditService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductTraceabilitySiigoController extends Controller
 {
+    private const AUDIT_CACHE_PREFIX = 'siigo.traceability_audit.';
+
     public function __construct(
         private SiigoClient $client,
         private SiigoCatalogService $catalog,
@@ -62,7 +67,25 @@ class ProductTraceabilitySiigoController extends Controller
             $request->warehouses()
         );
 
-        return view('integration.product_traceability.result', compact('audit'));
+        // Se guarda el resultado un rato para poder bajar el mismo contenido en Excel sin volver a consultar Siigo.
+        $key = (string) Str::uuid();
+        Cache::put(self::AUDIT_CACHE_PREFIX . $key, $audit, now()->addHour());
+
+        return view('integration.product_traceability.result', compact('audit', 'key'));
+    }
+
+    /** Excel con lo mismo que muestra la pantalla de auditoría. */
+    public function product_traceability_excel(string $key)
+    {
+        $audit = Cache::get(self::AUDIT_CACHE_PREFIX . $key);
+
+        if (!$audit) {
+            return redirect()
+                ->route('siigo.product_traceability')
+                ->withErrors(['file' => 'La consulta venció (se guarda una hora). Vuelve a ejecutarla para descargar el Excel.']);
+        }
+
+        return Excel::download(new ProductTraceabilityAuditExport($audit), 'TRAZABILIDAD DE PRODUCTOS.xlsx');
     }
 
     public function product_traceability_download(DownloadRequest $request)
