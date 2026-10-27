@@ -23,7 +23,6 @@ class WarmTransferDatesSiigoJob implements ShouldQueue
 
     public function __construct(private int $warehouseId)
     {
-        $this->onQueue('reports');
     }
 
     public function handle(SiigoTransferEntriesService $transfers, SiigoCatalogService $catalog): void
