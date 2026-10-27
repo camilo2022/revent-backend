@@ -16,7 +16,6 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProductTraceabilitySiigoController extends Controller
 {
-    private const AUDIT_CACHE_PREFIX = 'SIIGO:TRACEABILITY-AUDIT:';
 
     private const EXCEL_NAME = 'TRAZABILIDAD DE PRODUCTOS.xlsx';
 
@@ -47,34 +46,16 @@ class ProductTraceabilitySiigoController extends Controller
             return $this->withoutCodes();
         }
 
-        // Se guarda el resultado un rato para poder bajar el mismo contenido en Excel sin volver a consultar Siigo.
-        $key = (string) Str::uuid();
-        Cache::put(self::AUDIT_CACHE_PREFIX . $key, $audit, now()->addHour());
-
-        return view('integration.product_traceability.result', compact('audit', 'key'));
+        return view('integration.product_traceability.result', compact('audit'));
     }
 
-    /** Descarga directa desde el formulario: el mismo Excel que se baja desde la pantalla. */
+    /** Descarga directa desde el formulario. */
     public function product_traceability_download(DownloadRequest $request)
     {
         $audit = $this->audit($request);
 
         if ($audit === null) {
             return $this->withoutCodes();
-        }
-
-        return Excel::download(new ProductTraceabilityAuditExport($audit), self::EXCEL_NAME);
-    }
-
-    /** Excel con lo mismo que muestra la pantalla (resultado guardado una hora). */
-    public function product_traceability_excel(string $key)
-    {
-        $audit = Cache::get(self::AUDIT_CACHE_PREFIX . $key);
-
-        if (!$audit) {
-            return redirect()
-                ->route('siigo.product_traceability')
-                ->withErrors(['file' => 'La consulta venció (se guarda una hora). Vuelve a ejecutarla para descargar el Excel.']);
         }
 
         return Excel::download(new ProductTraceabilityAuditExport($audit), self::EXCEL_NAME);
