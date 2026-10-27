@@ -351,6 +351,12 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             $producto = $productos[$codigo];
 
             if (!$producto) {
+                Log::warning('Traslado masivo: producto no encontrado en Siigo', [
+                    'codigo'  => $codigo,
+                    'fila'    => $row + 1,
+                    'filtro'  => 'IsInventoryControl=1',
+                    'paginas' => self::PAGINAS_BUSQUEDA_PRODUCTO,
+                ]);
                 $validate[] = ['Row' => $row + 1, 'ProductCode' => $codigo, 'Error' => 'El producto no existe o no tiene control de inventario'];
                 continue;
             }
@@ -406,10 +412,26 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             $data = json_decode($response->json(), true);
 
             if (empty($data)) {
+                Log::warning('Traslado masivo: autocompletado sin datos legibles', [
+                    'codigo' => $codigo,
+                    'pagina' => $pagina,
+                    'status' => $response->status(),
+                    'tipo'   => gettype($response->json()),
+                    'body'   => mb_substr($rawBody, 0, 500),
+                ]);
+
                 return [true, null];
             }
 
             $producto = collect($data)->where('Code', $codigo)->first();
+
+            Log::info('Traslado masivo: consulta de producto', [
+                'codigo'      => $codigo,
+                'pagina'      => $pagina,
+                'resultados'  => count($data),
+                'codigos'     => collect($data)->pluck('Code')->all(),
+                'encontrado'  => (bool) $producto,
+            ]);
 
             if ($producto) {
                 return [true, $producto];
@@ -525,6 +547,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         for ($intento = 1; ; $intento++) {
             // Sin reintento HTTP automatico: reenviar un Save podria crear traslados duplicados.
             $response = app(SiigoClient::class)->services($token)
+                ->replaceHeaders(['Accept' => '*/*'])
                 ->asJson()
                 ->connectTimeout(60)
                 ->timeout(300)
@@ -686,7 +709,10 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
 
     private function autocomplete(string $token, array $body)
     {
+        // Sin Accept: application/json: con esa cabecera Siigo devuelve la lista codificada dos veces
+        // y json_decode() ya no la lee (todos los productos salian como inexistentes).
         return $this->siigo($token)
+            ->replaceHeaders(['Accept' => '*/*'])
             ->timeout(120)
             ->post(config('siigo.endpoints.services.autocomplete'), $body);
     }
