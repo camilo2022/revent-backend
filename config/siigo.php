@@ -164,7 +164,6 @@ return [
     | excluded_account_groups : ids de grupo de cuenta que no salen en el reporte de inventario
     | entries_since           : desde cuándo se buscan los ingresos por traslado (fechas de ingreso del inventario)
     | entry_account_groups    : grupos que se consultan en la trazabilidad para esas fechas
-    | transit_lookback_days   : días antes de la fecha inicial en que la auditoría busca ingresos al TRANSITO
     */
     'inventory' => [
         'excluded_warehouses' => [34, 35, 36, 44, 45, 47, -1],
@@ -174,7 +173,6 @@ return [
             ['id' => 1337, 'name' => 'Compra de Calzados'],
             ['id' => 1189, 'name' => 'Elab. de Calzados '],
         ],
-        'transit_lookback_days' => (int) env('SIIGO_TRANSIT_LOOKBACK_DAYS', 90),
     ],
 
     /*

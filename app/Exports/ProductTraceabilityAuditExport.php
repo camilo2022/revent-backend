@@ -15,7 +15,7 @@ use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
 /**
  * Excel de la trazabilidad con auditoría de tránsitos: las columnas del Excel de trazabilidad de siempre
- * (movimientos con saldo acumulado) más el resultado de cada ingreso y su tránsito previo.
+ * (movimientos con saldo acumulado) más el resultado de cada traslado y sus bodegas de origen y destino.
  * Es el mismo contenido de la pantalla.
  */
 class ProductTraceabilityAuditExport extends DefaultValueBinder implements FromGenerator, Responsable, WithHeadings, WithTitle, WithCustomValueBinder
@@ -27,6 +27,9 @@ class ProductTraceabilityAuditExport extends DefaultValueBinder implements FromG
         'directo' => 'TRASLADO DIRECTO',
         'parcial' => 'PARCIAL',
         'sin_bodega_transito' => 'BODEGA SIN TRÁNSITO',
+        'salida_transito' => 'SALE A TRÁNSITO',
+        'salida_directa' => 'SALIDA DIRECTA A OTRA BODEGA',
+        'sin_origen' => 'SIN DATO DE ORIGEN',
     ];
 
     public function __construct(private array $audit)
@@ -51,7 +54,8 @@ class ProductTraceabilityAuditExport extends DefaultValueBinder implements FromG
             'VALOR ENTRADA',
             'VALOR SALIDA',
             'RESULTADO',
-            'TRANSITO PREVIO',
+            'BODEGA ORIGEN',
+            'BODEGA DESTINO',
         ];
     }
 
@@ -80,7 +84,8 @@ class ProductTraceabilityAuditExport extends DefaultValueBinder implements FromG
                     'VALOR ENTRADA' => null,
                     'VALOR SALIDA' => null,
                     'RESULTADO' => null,
-                    'TRANSITO PREVIO' => null,
+                    'BODEGA ORIGEN' => null,
+                    'BODEGA DESTINO' => null,
                 ];
 
                 continue;
@@ -105,9 +110,8 @@ class ProductTraceabilityAuditExport extends DefaultValueBinder implements FromG
                     'VALOR ENTRADA' => $row['entry_value'],
                     'VALOR SALIDA' => $row['output_value'],
                     'RESULTADO' => $this->result($row),
-                    'TRANSITO PREVIO' => collect($row['transit_vouchers'])
-                        ->map(fn ($t) => "{$t['voucher']} ({$t['date']})")
-                        ->implode('; ') ?: null,
+                    'BODEGA ORIGEN' => $row['origin'],
+                    'BODEGA DESTINO' => $row['destination'],
                 ];
             }
         }

@@ -29,7 +29,7 @@ class SiigoTransferNTPdfService
     private const PDF_DISK = 'local';
     private const PDF_PATH = 'siigo/notas_traslado';
 
-    private const HTML_VIEW_PATH = '/isiigo2ACDocumentAPI/api/v1/Documents/ACEntryHtmlViewAllResponse';
+    public const HTML_VIEW_PATH = '/isiigo2ACDocumentAPI/api/v1/Documents/ACEntryHtmlViewAllResponse';
 
     public function __construct(
         private SiigoClient $client,

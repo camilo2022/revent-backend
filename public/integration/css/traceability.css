@@ -31,6 +31,9 @@
 .tr-badge.directo { background: #fee2e2; color: #991b1b; }
 .tr-badge.parcial { background: #fef3c7; color: #92400e; }
 .tr-badge.otro, .tr-badge.sin_movimientos { background: #f3f4f6; color: #4b5563; }
+.tr-badge.salida_directa { background: #dc2626; color: #fff; }
+.tr-badge.salida_transito { background: #ecfdf5; color: #047857; }
+.tr-badge.sin_origen { background: #f3f4f6; color: #6b7280; }
 .tr-badge.sin_bodega_transito { background: #e0e7ff; color: #3730a3; }
 
 .tr-table { width: 100%; border-collapse: collapse; font-size: .83rem; }
@@ -57,3 +60,10 @@
 .tr-table .in { color: #166534; font-weight: 600; }
 .tr-table .out { color: #991b1b; font-weight: 600; }
 .tr-table .saldo { font-weight: 700; color: #1f2937; background: #f9fafb; }
+
+/* Traslados directos entre bodegas: fila resaltada y ruta origen → destino */
+.tr-table tr.tr-row-alert td { background: #fef2f2; }
+.tr-table tr.tr-row-alert td.saldo { background: #fee2e2; }
+.tr-route { font-size: .8rem; color: #374151; }
+.tr-route .arrow { color: #dc2626; font-weight: 700; padding: 0 .25rem; }
+tr:not(.tr-row-alert) .tr-route .arrow { color: #16a34a; }

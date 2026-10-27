@@ -1,6 +1,6 @@
 @extends('layouts.integration')
 
-@section('title', 'Trazabilidad con auditoría de tránsitos')
+@section('title', 'Trazabilidad con auditoría de traslados')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('integration/css/traceability.css') }}">
@@ -12,9 +12,14 @@
         'directo' => 'Traslado directo',
         'parcial' => 'Parcial',
         'sin_bodega_transito' => 'Bodega sin tránsito',
+        'salida_transito' => 'Sale a tránsito',
+        'salida_directa' => 'Salida directa a otra bodega',
+        'sin_origen' => 'Sin dato de origen',
     ];
+    // Estados que se resaltan: salió o llegó directo, sin pasar por la bodega de tránsito.
+    $alerts = ['directo', 'parcial', 'salida_directa'];
     $summary = $audit['summary'];
-    $directCount = ($summary['directo'] ?? 0) + ($summary['parcial'] ?? 0);
+    $alertCount = ($summary['directo'] ?? 0) + ($summary['parcial'] ?? 0) + ($summary['salida_directa'] ?? 0);
     $fmt = fn ($n) => rtrim(rtrim(number_format($n, 2, ',', '.'), '0'), ',');
 @endphp
 
@@ -22,11 +27,11 @@
 <div class="tr-wrap">
     <div class="tr-top">
         <div class="tr-head">
-            <h1>Trazabilidad con auditoría de tránsitos</h1>
+            <h1>Trazabilidad con auditoría de traslados</h1>
             <p>
                 Bodega <strong>{{ $audit['warehouse'] }}</strong>
                 @if ($audit['transit'])
-                    · tránsito revisado: <strong>{{ $audit['transit'] }}</strong>
+                    · tránsito: <strong>{{ $audit['transit'] }}</strong>
                 @endif
                 · desde <strong>{{ \Carbon\Carbon::parse($audit['start_date'])->format('d/m/Y') }}</strong>
             </p>
@@ -39,14 +44,14 @@
 
     @unless ($audit['transit'])
         <div class="tr-alert">
-            No existe una bodega «TRANSITO {{ $audit['warehouse'] }}» en Siigo, así que no se puede comprobar el paso por tránsito.
-            Los traslados se muestran sin clasificar.
+            No existe una bodega «TRANSITO {{ $audit['warehouse'] }}» en Siigo, así que todo ingreso por traslado se muestra sin clasificar.
         </div>
     @endunless
 
     <div class="tr-cards">
         <div class="tr-card ok"><div class="n">{{ $summary['transito'] ?? 0 }}</div><div class="l">Ingresos por tránsito</div></div>
-        <div class="tr-card bad"><div class="n">{{ $summary['directo'] ?? 0 }}</div><div class="l">Traslados directos</div></div>
+        <div class="tr-card bad"><div class="n">{{ $summary['directo'] ?? 0 }}</div><div class="l">Ingresos directos desde otra bodega</div></div>
+        <div class="tr-card bad"><div class="n">{{ $summary['salida_directa'] ?? 0 }}</div><div class="l">Salidas directas a otra bodega</div></div>
         <div class="tr-card warn"><div class="n">{{ $summary['parcial'] ?? 0 }}</div><div class="l">Parciales (parte directa)</div></div>
         <div class="tr-card muted"><div class="n">{{ $summary['otros'] ?? 0 }}</div><div class="l">Otros ingresos (compra, ajuste…)</div></div>
         <div class="tr-card muted"><div class="n">{{ $summary['sin_movimientos'] ?? 0 }}</div><div class="l">Códigos sin movimientos</div></div>
@@ -54,19 +59,21 @@
 
     <div class="tr-filters">
         <button type="button" class="tr-chip active" data-filter="all">Todos</button>
-        <button type="button" class="tr-chip" data-filter="irregular">Con traslado directo ({{ $directCount }})</button>
-        <button type="button" class="tr-chip" data-filter="ok">Solo por tránsito</button>
+        <button type="button" class="tr-chip" data-filter="irregular">Con traslado directo ({{ $alertCount }})</button>
+        <button type="button" class="tr-chip" data-filter="ok">Sin traslados directos</button>
         <input type="search" class="tr-search" id="trSearch" placeholder="Buscar código o nombre…">
     </div>
 
     @foreach ($audit['products'] as $product)
         @php
             $statuses = collect($product['rows'])->pluck('status')->filter()->unique();
-            $irregular = $statuses->contains('directo') || $statuses->contains('parcial');
+            $irregular = $statuses->intersect($alerts)->isNotEmpty();
             $group = $irregular ? 'irregular' : 'ok';
             $hasEntries = collect($product['rows'])->contains(fn ($r) => $r['entry'] > 0);
-            $badge = $irregular ? ($statuses->contains('directo') ? 'directo' : 'parcial')
-                : ($statuses->isNotEmpty() ? $statuses->first() : (count($product['rows']) ? 'otro' : 'sin_movimientos'));
+            $badge = $statuses->contains('salida_directa') ? 'salida_directa'
+                : ($statuses->contains('directo') ? 'directo'
+                : ($statuses->contains('parcial') ? 'parcial'
+                : ($statuses->isNotEmpty() ? $statuses->first() : (count($product['rows']) ? 'otro' : 'sin_movimientos'))));
             $badgeLabel = $labels[$badge] ?? (count($product['rows']) ? ($hasEntries ? 'Otros ingresos' : 'Solo salidas') : 'Sin movimientos');
         @endphp
         <details class="tr-product" data-group="{{ $group }}"
@@ -90,12 +97,12 @@
                             <th class="num">Salida</th>
                             <th class="num">Saldo</th>
                             <th>Resultado</th>
-                            <th>Tránsito previo</th>
+                            <th>Origen → destino</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($product['rows'] as $row)
-                            <tr>
+                            <tr class="{{ in_array($row['status'], $alerts, true) ? 'tr-row-alert' : '' }}">
                                 <td>{{ $row['date'] }}<span class="tr-sub">{{ $row['time'] }}</span></td>
                                 <td>
                                     @if ($row['url'])
@@ -113,25 +120,18 @@
                                         @if ($row['status'] === 'parcial')
                                             <span class="tr-sub">{{ $fmt($row['via_transit']) }} por tránsito · {{ $fmt($row['direct']) }} directas</span>
                                         @elseif ($row['status'] === 'directo')
-                                            <span class="tr-sub">{{ $fmt($row['direct']) }} sin pasar por tránsito</span>
+                                            <span class="tr-sub">Llegó sin pasar por el tránsito</span>
+                                        @elseif ($row['status'] === 'salida_directa')
+                                            <span class="tr-sub">Salió a una bodega que no es tránsito</span>
                                         @endif
                                     @elseif ($row['entry'] > 0)
                                         <span class="tr-badge otro">No es traslado</span>
                                     @endif
                                 </td>
-                                <td>
-                                    @forelse ($row['transit_vouchers'] as $transit)
-                                        <span>
-                                            @if ($transit['url'])
-                                                <a href="{{ $transit['url'] }}" target="_blank" rel="noopener">{{ $transit['voucher'] }}</a>
-                                            @else
-                                                {{ $transit['voucher'] }}
-                                            @endif
-                                            <span class="tr-sub">{{ $transit['date'] }} · {{ $fmt($transit['quantity']) }} u.</span>
-                                        </span>
-                                    @empty
-                                        @if ($row['status']) <span class="tr-sub">—</span> @endif
-                                    @endforelse
+                                <td class="tr-route">
+                                    @if ($row['origin'] && $row['destination'])
+                                        <strong>{{ $row['origin'] }}</strong> <span class="arrow">→</span> <strong>{{ $row['destination'] }}</strong>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

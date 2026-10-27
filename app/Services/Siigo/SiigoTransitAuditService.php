@@ -5,15 +5,16 @@ namespace App\Services\Siigo;
 use Carbon\Carbon;
 
 /**
- * Trazabilidad de productos en una bodega con auditoría de tránsitos.
+ * Trazabilidad de productos en una bodega con auditoría de traslados.
  *
  * Devuelve todos los movimientos de cada código (entradas y salidas, con el saldo acumulado
- * calculado igual que el Excel de trazabilidad) y, para cada ingreso por traslado (NT-), revisa
- * si antes ya había entrado a la bodega de tránsito de esa bodega ("TRANSITO <bodega>"). Un
- * ingreso sin tránsito previo es un traslado directo.
+ * calculado igual que el Excel de trazabilidad) y, para cada nota de traslado (NT-), lee de qué
+ * bodega a qué bodega fue (del documento de Siigo):
  *
- * Los ingresos se cruzan por cantidad (primero en entrar, primero en cubrirse): un ingreso de
- * 10 unidades con solo 6 pasadas por tránsito queda "parcial" (6 por tránsito, 4 directas).
+ *  - Ingreso cuyo origen es "TRANSITO <esta bodega>"      -> por tránsito (correcto).
+ *  - Ingreso cuyo origen es cualquier otra bodega         -> traslado directo (se muestra el origen).
+ *  - Salida cuyo destino es una bodega "TRANSITO ..."     -> sale a tránsito (correcto).
+ *  - Salida cuyo destino es cualquier otra bodega         -> salida directa a otra bodega (se resalta).
  */
 class SiigoTransitAuditService
 {
@@ -21,12 +22,18 @@ class SiigoTransitAuditService
     public const DIRECT = 'directo';
     public const PARTIAL = 'parcial';
     public const NO_TRANSIT_WAREHOUSE = 'sin_bodega_transito';
+    public const EXIT_TO_TRANSIT = 'salida_transito';
+    public const EXIT_DIRECT = 'salida_directa';
+    public const NO_ROUTE = 'sin_origen';
 
     /** Comprobante de traslado entre bodegas. */
     private const TRANSFER_PREFIX = 'NT-';
+    private const TRANSIT_PREFIX = 'TRANSITO ';
 
-    public function __construct(private SiigoTraceabilityService $traceability)
-    {
+    public function __construct(
+        private SiigoTraceabilityService $traceability,
+        private SiigoTransferRouteService $routes
+    ) {
     }
 
     /**
@@ -48,37 +55,31 @@ class SiigoTransitAuditService
             $wanted
         );
 
-        $transitEntries = [];
-
-        if ($transit) {
-            // Se retrocede para ver tránsitos anteriores al inicio de la consulta.
-            $transitStart = Carbon::parse($startDate)
-                ->subDays((int) config('siigo.inventory.transit_lookback_days'))
-                ->toDateString();
-
-            $transitEntries = $this->transitEntriesByProduct(
-                $this->traceability->movements($token, (int) $transit['id'], $transitStart, $warehouses),
-                $wanted
-            );
-        }
+        $routes = $this->routes->routes($token, $this->transferIds($movements));
 
         $products = [];
-        $summary = [self::VIA_TRANSIT => 0, self::DIRECT => 0, self::PARTIAL => 0, self::NO_TRANSIT_WAREHOUSE => 0, 'otros' => 0, 'sin_movimientos' => 0];
+        $summary = [
+            self::VIA_TRANSIT => 0, self::DIRECT => 0, self::PARTIAL => 0, self::NO_TRANSIT_WAREHOUSE => 0,
+            self::EXIT_TO_TRANSIT => 0, self::EXIT_DIRECT => 0, self::NO_ROUTE => 0, 'otros' => 0, 'sin_movimientos' => 0,
+        ];
 
         foreach (array_keys($wanted) as $code) {
             $list = $movements[$code] ?? [];
-            $results = $this->classify($list, $transitEntries[$code] ?? [], (bool) $transit);
 
             $rows = [];
             $balance = null;
 
-            foreach ($list as $idx => $m) {
+            foreach ($list as $m) {
                 $balance = ($balance ?? $m['initial']) + $m['entry'] - $m['output'];
-                $result = $results[$idx] ?? null;
 
-                if ($m['entry'] > 0) {
-                    $key = $result['status'] ?? 'otros';
-                    $summary[$key] = ($summary[$key] ?? 0) + 1;
+                $result = str_starts_with($m['voucher'], self::TRANSFER_PREFIX)
+                    ? $this->classify($m, $routes[$m['voucher_id']][$code] ?? null, $warehouse['name'] ?? '', (bool) $transit)
+                    : null;
+
+                if ($result) {
+                    $summary[$result['status']]++;
+                } elseif ($m['entry'] > 0) {
+                    $summary['otros']++;
                 }
 
                 $rows[] = [
@@ -97,7 +98,8 @@ class SiigoTransitAuditService
                     'status' => $result['status'] ?? null,
                     'via_transit' => $result['via_transit'] ?? 0.0,
                     'direct' => $result['direct'] ?? 0.0,
-                    'transit_vouchers' => $result['transit_vouchers'] ?? [],
+                    'origin' => $result['origin'] ?? null,
+                    'destination' => $result['destination'] ?? null,
                 ];
             }
 
@@ -122,10 +124,73 @@ class SiigoTransitAuditService
         ];
     }
 
+    /**
+     * Estado de una nota de traslado según su ruta (origen y destino de cada línea del producto).
+     *
+     * @param array<int,array{origin:string,destination:string,quantity:float}>|null $lines null si no se pudo leer el documento
+     */
+    private function classify(array $m, ?array $lines, string $warehouseName, bool $hasTransit): ?array
+    {
+        if ($m['entry'] <= 0 && $m['output'] <= 0) {
+            return null;
+        }
+
+        if ($lines === null) {
+            return ['status' => self::NO_ROUTE, 'via_transit' => 0.0, 'direct' => 0.0, 'origin' => null, 'destination' => null];
+        }
+
+        if ($m['entry'] > 0) {
+            $viaTransit = 0.0;
+            $direct = 0.0;
+            $origins = [];
+
+            foreach ($lines as $line) {
+                $this->isTransit($line['origin']) ? $viaTransit += $line['quantity'] : $direct += $line['quantity'];
+                $origins[$line['origin']] = true;
+            }
+
+            $status = !$hasTransit
+                ? self::NO_TRANSIT_WAREHOUSE
+                : ($direct <= 0 ? self::VIA_TRANSIT : ($viaTransit > 0 ? self::PARTIAL : self::DIRECT));
+
+            return [
+                'status' => $status,
+                'via_transit' => $viaTransit,
+                'direct' => $direct,
+                'origin' => implode(', ', array_keys($origins)),
+                'destination' => $warehouseName,
+            ];
+        }
+
+        $directDestinations = [];
+        $destinations = [];
+
+        foreach ($lines as $line) {
+            $destinations[$line['destination']] = true;
+
+            if (!$this->isTransit($line['destination'])) {
+                $directDestinations[$line['destination']] = true;
+            }
+        }
+
+        return [
+            'status' => $directDestinations ? self::EXIT_DIRECT : self::EXIT_TO_TRANSIT,
+            'via_transit' => 0.0,
+            'direct' => 0.0,
+            'origin' => $warehouseName,
+            'destination' => implode(', ', array_keys($directDestinations ?: $destinations)),
+        ];
+    }
+
+    private function isTransit(string $warehouseName): bool
+    {
+        return str_starts_with($this->normalize($warehouseName), self::TRANSIT_PREFIX);
+    }
+
     /** Bodega "TRANSITO <nombre>" de la bodega, si existe. */
     private function transitWarehouse(string $name, array $warehouses): ?array
     {
-        $target = $this->normalize('TRANSITO ' . $name);
+        $target = $this->normalize(self::TRANSIT_PREFIX . $name);
 
         foreach ($warehouses as $warehouse) {
             if ($this->normalize($warehouse['name']) === $target) {
@@ -139,6 +204,22 @@ class SiigoTransitAuditService
     private function normalize(string $text): string
     {
         return mb_strtoupper(trim(preg_replace('/\s+/u', ' ', $text)));
+    }
+
+    /** Ids de las notas de traslado que aparecen en los movimientos. */
+    private function transferIds(array $movementsByCode): array
+    {
+        $ids = [];
+
+        foreach ($movementsByCode as $list) {
+            foreach ($list as $m) {
+                if ($m['voucher_id'] !== null && str_starts_with($m['voucher'], self::TRANSFER_PREFIX)) {
+                    $ids[] = $m['voucher_id'];
+                }
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**
@@ -177,108 +258,6 @@ class SiigoTransitAuditService
         }
 
         return $byCode;
-    }
-
-    /**
-     * Ingresos a la bodega de tránsito por código, ordenados por fecha.
-     *
-     * @param array<string,int> $wanted códigos buscados (llaves)
-     * @return array<string,array<int,array>>
-     */
-    private function transitEntriesByProduct(array $movements, array $wanted): array
-    {
-        $byCode = [];
-
-        foreach ($movements as $movement) {
-            $code = strtoupper((string) ($movement['ProductCode'] ?? ''));
-
-            if (!isset($wanted[$code]) || (float) ($movement['EntryQuantity'] ?? 0) <= 0) {
-                continue;
-            }
-
-            $voucher = (string) ($movement['Voucher'] ?? '');
-
-            $byCode[$code][] = [
-                'at' => Carbon::parse($movement['ElaborationDate']),
-                'voucher' => $voucher,
-                'url' => $this->voucherUrl($voucher, $movement['VoucherID'] ?? null),
-                'quantity' => (float) $movement['EntryQuantity'],
-            ];
-        }
-
-        foreach ($byCode as &$list) {
-            usort($list, fn ($a, $b) => $a['at'] <=> $b['at']);
-        }
-
-        return $byCode;
-    }
-
-    /**
-     * Cruza los ingresos por traslado a la bodega con los ingresos previos a su tránsito.
-     *
-     * @param array<int,array> $movements movimientos del código en la bodega (con su posición como llave)
-     * @return array<int,array> posición del movimiento => estado, cantidades y comprobantes de tránsito
-     */
-    private function classify(array $movements, array $transitEntries, bool $hasTransit): array
-    {
-        $available = array_map(fn ($t) => $t + ['left' => $t['quantity']], $transitEntries);
-
-        $transfers = [];
-
-        foreach ($movements as $idx => $m) {
-            if ($m['entry'] > 0 && str_starts_with($m['voucher'], self::TRANSFER_PREFIX)) {
-                $transfers[$idx] = $m;
-            }
-        }
-
-        // Los ingresos más antiguos se cubren primero.
-        uasort($transfers, fn ($a, $b) => $a['at'] <=> $b['at']);
-
-        $results = [];
-
-        foreach ($transfers as $idx => $entry) {
-            if (!$hasTransit) {
-                $results[$idx] = ['status' => self::NO_TRANSIT_WAREHOUSE, 'via_transit' => 0.0, 'direct' => $entry['entry'], 'transit_vouchers' => []];
-                continue;
-            }
-
-            $pending = $entry['entry'];
-            $viaTransit = 0.0;
-            $used = [];
-
-            foreach ($available as &$transitEntry) {
-                if ($pending <= 0) {
-                    break;
-                }
-
-                if ($transitEntry['left'] <= 0 || $transitEntry['at'] > $entry['at']) {
-                    continue;
-                }
-
-                $take = min($pending, $transitEntry['left']);
-                $transitEntry['left'] -= $take;
-                $pending -= $take;
-                $viaTransit += $take;
-                $used[] = [
-                    'voucher' => $transitEntry['voucher'],
-                    'url' => $transitEntry['url'],
-                    'date' => $transitEntry['at']->format('d/m/Y'),
-                    'quantity' => $take,
-                ];
-            }
-            unset($transitEntry);
-
-            $direct = max(0.0, $pending);
-
-            $results[$idx] = [
-                'status' => $direct <= 0 ? self::VIA_TRANSIT : ($viaTransit > 0 ? self::PARTIAL : self::DIRECT),
-                'via_transit' => $viaTransit,
-                'direct' => $direct,
-                'transit_vouchers' => $used,
-            ];
-        }
-
-        return $results;
     }
 
     private function voucherUrl(string $voucher, int|string|null $id): string
