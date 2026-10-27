@@ -7,7 +7,8 @@ use Illuminate\Console\Command;
 
 /**
  * Base de los comandos programados de exporte Siigo. Cada subclase define
- * $signature, $description, $successMessage y job(). Los destinatarios salen de config('siigo.mail.*').
+ * $signature, $description, $successMessage y job(). Los destinatarios salen de config('siigo.mail.*'),
+ * salvo que se pase --email=correo (útil para probar un reporte sin enviarlo a toda la lista).
  */
 abstract class DispatchesSiigoExport extends Command
 {
@@ -34,9 +35,40 @@ abstract class DispatchesSiigoExport extends Command
         ];
     }
 
+    /**
+     * Destinatarios efectivos: los de --email si se indicaron, o los de la configuración.
+     *
+     * @return array<int,string>|null null si algún correo de --email no es válido
+     */
+    protected function recipients(): ?array
+    {
+        $custom = $this->hasOption('email') ? array_filter((array) $this->option('email')) : [];
+
+        if (!$custom) {
+            return $this->emails();
+        }
+
+        foreach ($custom as $email) {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->error("El correo «{$email}» no es válido.");
+
+                return null;
+            }
+        }
+
+        return array_values($custom);
+    }
+
     public function handle(): int
     {
-        $this->job()::dispatch($this->filters(), $this->emails());
+        $recipients = $this->recipients();
+
+        if ($recipients === null) {
+            return self::FAILURE;
+        }
+
+        $this->job()::dispatch($this->filters(), $recipients);
+        $this->line('Destinatarios: ' . implode(', ', $recipients));
 
         if ($this->successMessage !== '') {
             $this->info($this->successMessage);

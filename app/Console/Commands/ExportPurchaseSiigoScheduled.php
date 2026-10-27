@@ -7,7 +7,7 @@ use App\Jobs\ExportPurchaseSiigoJob;
 
 class ExportPurchaseSiigoScheduled extends DispatchesSiigoExport
 {
-    protected $signature = 'siigo:export-purchase-scheduled';
+    protected $signature = 'siigo:export-purchase-scheduled {--email=* : Enviar el reporte solo a este correo (se puede repetir)}';
 
     protected $description = 'Ejecuta la exportación automática de compras Siigo del mes en curso (cron)';
 

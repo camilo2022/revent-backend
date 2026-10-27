@@ -7,7 +7,7 @@ use App\Jobs\ExportInventorySiigoJob;
 
 class ExportInventorySiigoScheduled extends DispatchesSiigoExport
 {
-    protected $signature = 'siigo:export-inventory-scheduled';
+    protected $signature = 'siigo:export-inventory-scheduled {--email=* : Enviar el reporte solo a este correo (se puede repetir)}';
 
     protected $description = 'Ejecuta la exportación automática de inventario Siigo (cron)';
 
@@ -29,9 +29,18 @@ class ExportInventorySiigoScheduled extends DispatchesSiigoExport
 
     public function handle(): int
     {
-        foreach ([true, false] as $positive) {
-            $this->job()::dispatch([...$this->filters(), 'positive' => $positive], $this->emails());
+        $recipients = $this->recipients();
+
+        if ($recipients === null) {
+            return self::FAILURE;
         }
+
+        foreach ([true, false] as $positive) {
+            $this->job()::dispatch([...$this->filters(), 'positive' => $positive], $recipients);
+        }
+
+        $this->info('✅ Jobs de exportación de inventario (positivo y negativo) despachados.');
+        $this->line('Destinatarios: ' . implode(', ', $recipients));
 
         return self::SUCCESS;
     }

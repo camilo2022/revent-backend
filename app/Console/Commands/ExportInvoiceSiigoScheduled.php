@@ -7,7 +7,7 @@ use App\Jobs\ExportInvoiceSiigoJob;
 
 class ExportInvoiceSiigoScheduled extends DispatchesSiigoExport
 {
-    protected $signature = 'siigo:export-invoice-scheduled';
+    protected $signature = 'siigo:export-invoice-scheduled {--email=* : Enviar el reporte solo a este correo (se puede repetir)}';
 
     protected $description = 'Ejecuta la exportación automática de facturas Siigo del mes en curso (cron)';
 
