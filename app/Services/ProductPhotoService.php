@@ -97,8 +97,7 @@ class ProductPhotoService
     {
         $colores = $this->coloresPorCarpeta();
 
-        // Las carpetas antiguas llevan guion ("ORO-ROSA"): se siguen reconociendo hasta renombrarlas
-        // (php artisan siigo:rename-color-folders).
+        // Las carpetas antiguas llevan guion ("ORO-ROSA"): se siguen reconociendo hasta que se renombren.
         return $colores[$carpeta] ?? $colores[$this->normalizarColor(str_replace('-', ' ', $carpeta))] ?? null;
     }
 
