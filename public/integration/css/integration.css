@@ -349,6 +349,15 @@ body {
     border-color: #fca5a5;
 }
 
+/* Dos botones de envío en una misma fila (ej. buscar en pantalla y descargar el Excel) */
+.excel-btn-row { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+.excel-btn-row .excel-submit-btn { flex: 1; width: auto; margin-top: 0; }
+.excel-submit-btn--ghost { background: #ffffff; color: #16a34a; border: 1px solid #16a34a; }
+.excel-submit-btn--ghost:hover { background: #f0fdf4; }
+.excel-btn-row .excel-submit-btn--ghost { background: #ffffff; color: #16a34a; border: 1px solid #16a34a; }
+.excel-btn-row .excel-submit-btn--ghost:hover { background: #f0fdf4; }
+.excel-btn-row .excel-submit-btn--ghost:disabled { background: #f3f4f6; color: #9ca3af; border-color: #d1d5db; }
+
 .excel-submit-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;

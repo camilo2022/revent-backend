@@ -14,8 +14,8 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
 /**
- * Excel de la trazabilidad con auditoría de tránsitos: las mismas columnas del Excel de trazabilidad
- * (ProductTraceabilitySiigoExport) más el resultado de cada ingreso y su tránsito previo.
+ * Excel de la trazabilidad con auditoría de tránsitos: las columnas del Excel de trazabilidad de siempre
+ * (movimientos con saldo acumulado) más el resultado de cada ingreso y su tránsito previo.
  * Es el mismo contenido de la pantalla.
  */
 class ProductTraceabilityAuditExport extends DefaultValueBinder implements FromGenerator, Responsable, WithHeadings, WithTitle, WithCustomValueBinder

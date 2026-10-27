@@ -3,15 +3,12 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Exports\ProductTraceabilityAuditExport;
-use App\Exports\ProductTraceabilitySiigoExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Integration\ProductTraceability\DownloadRequest;
 use App\Http\Requests\Integration\ProductTraceability\SearchRequest;
 use App\Imports\ProductTraceabilitySiigoImport;
 use App\Services\Siigo\SiigoCatalogService;
 use App\Services\Siigo\SiigoClient;
-use App\Services\Siigo\SiigoLinks;
-use App\Services\Siigo\SiigoTraceabilityService;
 use App\Services\Siigo\SiigoTransitAuditService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -21,10 +18,11 @@ class ProductTraceabilitySiigoController extends Controller
 {
     private const AUDIT_CACHE_PREFIX = 'siigo.traceability_audit.';
 
+    private const EXCEL_NAME = 'TRAZABILIDAD DE PRODUCTOS.xlsx';
+
     public function __construct(
         private SiigoClient $client,
         private SiigoCatalogService $catalog,
-        private SiigoTraceabilityService $traceability,
         private SiigoTransitAuditService $transitAudit
     ) {
     }
@@ -40,8 +38,50 @@ class ProductTraceabilitySiigoController extends Controller
         return view('integration.product_traceability.index', compact('warehouses'));
     }
 
-    /** Pantalla de auditoría: ¿los ingresos por traslado pasaron antes por la bodega de tránsito? */
+    /** Pantalla: trazabilidad con saldo acumulado y auditoría de tránsitos. */
     public function product_traceability_search(SearchRequest $request)
+    {
+        $audit = $this->audit($request);
+
+        if ($audit === null) {
+            return $this->withoutCodes();
+        }
+
+        // Se guarda el resultado un rato para poder bajar el mismo contenido en Excel sin volver a consultar Siigo.
+        $key = (string) Str::uuid();
+        Cache::put(self::AUDIT_CACHE_PREFIX . $key, $audit, now()->addHour());
+
+        return view('integration.product_traceability.result', compact('audit', 'key'));
+    }
+
+    /** Descarga directa desde el formulario: el mismo Excel que se baja desde la pantalla. */
+    public function product_traceability_download(DownloadRequest $request)
+    {
+        $audit = $this->audit($request);
+
+        if ($audit === null) {
+            return $this->withoutCodes();
+        }
+
+        return Excel::download(new ProductTraceabilityAuditExport($audit), self::EXCEL_NAME);
+    }
+
+    /** Excel con lo mismo que muestra la pantalla (resultado guardado una hora). */
+    public function product_traceability_excel(string $key)
+    {
+        $audit = Cache::get(self::AUDIT_CACHE_PREFIX . $key);
+
+        if (!$audit) {
+            return redirect()
+                ->route('siigo.product_traceability')
+                ->withErrors(['file' => 'La consulta venció (se guarda una hora). Vuelve a ejecutarla para descargar el Excel.']);
+        }
+
+        return Excel::download(new ProductTraceabilityAuditExport($audit), self::EXCEL_NAME);
+    }
+
+    /** Auditoría de la bodega con los códigos del archivo; null si el archivo no trae códigos. */
+    private function audit(DownloadRequest $request): ?array
     {
         ini_set('memory_limit', '-1');
         set_time_limit(0);
@@ -56,77 +96,20 @@ class ProductTraceabilitySiigoController extends Controller
             ->all();
 
         if (!$codigos) {
-            return back()->withErrors(['file' => 'El archivo no tiene códigos en la columna "codigo".'])->withInput();
+            return null;
         }
 
-        $audit = $this->transitAudit->audit(
+        return $this->transitAudit->audit(
             $this->client->token(),
             $request->integer('warehouse_id'),
             $request->input('start_date'),
             $codigos,
             $request->warehouses()
         );
-
-        // Se guarda el resultado un rato para poder bajar el mismo contenido en Excel sin volver a consultar Siigo.
-        $key = (string) Str::uuid();
-        Cache::put(self::AUDIT_CACHE_PREFIX . $key, $audit, now()->addHour());
-
-        return view('integration.product_traceability.result', compact('audit', 'key'));
     }
 
-    /** Excel con lo mismo que muestra la pantalla de auditoría. */
-    public function product_traceability_excel(string $key)
+    private function withoutCodes()
     {
-        $audit = Cache::get(self::AUDIT_CACHE_PREFIX . $key);
-
-        if (!$audit) {
-            return redirect()
-                ->route('siigo.product_traceability')
-                ->withErrors(['file' => 'La consulta venció (se guarda una hora). Vuelve a ejecutarla para descargar el Excel.']);
-        }
-
-        return Excel::download(new ProductTraceabilityAuditExport($audit), 'TRAZABILIDAD DE PRODUCTOS.xlsx');
-    }
-
-    public function product_traceability_download(DownloadRequest $request)
-    {
-        ini_set('memory_limit', '-1');
-        set_time_limit(0);
-
-        $token = $this->client->token();
-        $warehouses = $request->warehouses();
-
-        $codigos = Excel::toCollection(new ProductTraceabilitySiigoImport, $request->file('file'))->first()->map(function ($item) {
-                $item['codigo'] = strtoupper($item['codigo']);
-                return $item;
-            })->pluck('codigo')->unique()->values()->all();
-
-        $data = $this->movimientos_productos_bodegas($token, $request->integer('warehouse_id'), $request->input('start_date'), $warehouses);
-
-        $data = collect($data)->unique()->map(function ($item) {
-                $item = (object) $item;
-                $url_hyperlink = '';
-
-                if(str_starts_with($item->Voucher, 'FV-')){
-                    $url_hyperlink = SiigoLinks::salesInvoice($item->VoucherID);
-                } else if (str_starts_with($item->Voucher, 'FC-')){
-                    $url_hyperlink = SiigoLinks::purchaseInvoice($item->VoucherID);
-                } else if (str_starts_with($item->Voucher, 'NT-')){
-                    $url_hyperlink = SiigoLinks::transferNote($item->VoucherID);
-                } else if (str_starts_with($item->Voucher, 'A-')){
-                    $url_hyperlink = SiigoLinks::inventoryEntry($item->VoucherID);
-                } else if (str_starts_with($item->Voucher, 'NC-')){
-                    $url_hyperlink = SiigoLinks::creditNote($item->VoucherID);
-                }
-                $item->UrlHyperLink = $url_hyperlink;
-                return $item;
-            })->groupBy('ProductCode');
-
-        return Excel::download(new ProductTraceabilitySiigoExport($codigos, $data), "TRAZABILIDAD DE PRODUCTOS.xlsx");
-    }
-
-    private function movimientos_productos_bodegas(string $token, int $warehouseId, string $startDate, array $warehouses)
-    {
-        return $this->traceability->movements($token, $warehouseId, $startDate, $warehouses);
+        return back()->withErrors(['file' => 'El archivo no tiene códigos en la columna "codigo".'])->withInput();
     }
 }

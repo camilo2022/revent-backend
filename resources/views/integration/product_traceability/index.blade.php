@@ -451,9 +451,15 @@
                     <div class="excel-error show">{{ $message }}</div>
                 @enderror
 
-                <button type="submit" class="excel-submit-btn" id="submitBtn" disabled>
-                    Buscar trazabilidad
-                </button>
+                <div class="excel-btn-row">
+                    <button type="submit" class="excel-submit-btn" id="submitBtn" disabled>
+                        Buscar trazabilidad
+                    </button>
+                    <button type="submit" class="excel-submit-btn excel-submit-btn--ghost" id="downloadBtn" disabled
+                        formaction="{{ route('siigo.product_traceability_download') }}">
+                        Descargar Excel
+                    </button>
+                </div>
             </form>
 
         </div>
@@ -473,6 +479,7 @@
         const fileSize = document.getElementById('excelFileSize');
         const removeBtn = document.getElementById('excelRemoveBtn');
         const submitBtn = document.getElementById('submitBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
         const fileError = document.getElementById('fileError');
 
         const allowedExt = ['xlsx', 'xls'];
@@ -530,6 +537,7 @@
             fileInfo.classList.add('show');
             dropzone.classList.add('has-file');
             submitBtn.disabled = false;
+            downloadBtn.disabled = false;
         }
 
         function resetInput() {
@@ -537,6 +545,7 @@
             fileInfo.classList.remove('show');
             dropzone.classList.remove('has-file');
             submitBtn.disabled = true;
+            downloadBtn.disabled = true;
         }
 
         function showError(msg) {
