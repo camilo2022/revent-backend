@@ -8,6 +8,7 @@ use App\Services\Siigo\SiigoDocumentService;
 use App\Services\Siigo\SiigoLinks;
 use Barryvdh\DomPDF\PDF as DomPdf;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\DomCrawler\Crawler;
@@ -53,19 +54,25 @@ class SiigoTransferNTPdfService
         }
 
         if (!$document) {
+            Log::warning('PDF traslado: no se encontró la nota en Siigo', ['document' => $documentCode, 'ac_entry_id' => $acEntryId]);
+
             return null;
         }
 
         $pdf = $this->transfer_note_pdf($siigoToken, $document);
 
         if (!$pdf) {
+            Log::warning('PDF traslado: Siigo no devolvió el HTML de la nota', ['document' => $documentCode, 'ac_entry_id' => $document['ACEntryID'] ?? null]);
+
             return null;
         }
 
         $file = $this->pdf_filename($document);
         $path = self::PDF_PATH . '/' . now()->format('Y_m_d_His') . '_' . $file;
 
-        Storage::disk(self::PDF_DISK)->put($path, $pdf->output());
+        $guardado = Storage::disk(self::PDF_DISK)->put($path, $pdf->output());
+
+        Log::info('PDF traslado generado', ['document' => $documentCode, 'path' => $path, 'guardado' => $guardado]);
 
         return [
             'disk' => self::PDF_DISK,
