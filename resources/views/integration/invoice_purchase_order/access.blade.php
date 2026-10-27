@@ -1,7 +1,6 @@
 @extends('layouts.integration')
 
 @section('title', 'Acceso a Ordenes de compra')
-@section('nav_minimal', '1')
 
 @section('content')
     <x-integration.access-form

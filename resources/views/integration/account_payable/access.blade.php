@@ -1,7 +1,6 @@
 @extends('layouts.integration')
 
 @section('title', 'Acceso a Cuentas por pagar')
-@section('nav_minimal', '1')
 
 @section('content')
     <x-integration.access-form
