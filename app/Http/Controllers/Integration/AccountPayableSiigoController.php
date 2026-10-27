@@ -11,7 +11,7 @@ use App\Http\Requests\Integration\AccountPayable\PaymentRequest;
 use App\Http\Requests\Integration\AccountPayable\PaymentsWeeklyRequest;
 use App\Http\Requests\Integration\AccountPayable\ProvidersRequest;
 use App\Http\Requests\Integration\AccountPayable\SendAccessLinkRequest;
-use App\Mail\AccountPayableAccessLink;
+use App\Mail\AccountPayableAccessLinkMail;
 use App\Services\Siigo\AccountPayable\AccountPayableException;
 use App\Services\Siigo\AccountPayable\SiigoAccountPayableService;
 use Carbon\Carbon;
@@ -40,7 +40,7 @@ class AccountPayableSiigoController extends Controller
             array_keys($allowed),
             'siigo.account_payable',
             'cuentas por pagar',
-            fn (string $url) => new AccountPayableAccessLink($url),
+            fn (string $url) => new AccountPayableAccessLinkMail($url),
             fn (string $email) => ['required_token' => $allowed[$email] ?? true]
         );
     }

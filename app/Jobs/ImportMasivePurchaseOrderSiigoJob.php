@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Mail\MasivePurchaseOrderProviderSiigo;
-use App\Mail\MasivePurchaseOrderSiigo;
+use App\Mail\MasivePurchaseOrderProviderSiigoMail;
+use App\Mail\MasivePurchaseOrderSiigoMail;
 use App\Services\Siigo\SiigoClient;
 use App\Services\Siigo\SiigoPurchaseOrderMonolith;
 use App\Services\Siigo\SiigoPurchaseOrderPayload;
@@ -296,13 +296,13 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
 
         $this->notificarResultado($errors, $this->ordenes_compra);
         if(count($this->ordenes_compra) > 0) {
-            Mail::to([$this->email, config('siigo.mail.operations')])->send(new MasivePurchaseOrderProviderSiigo($this->ordenes_compra, $files, $this->referencia, $provider));
+            Mail::to([$this->email, config('siigo.mail.operations')])->send(new MasivePurchaseOrderProviderSiigoMail($this->ordenes_compra, $files, $this->referencia, $provider));
         }
     }
 
     private function notificarResultado(array $errors, array $ordenes_compra = []): void
     {
-        Mail::to([config('siigo.mail.operations')])->send(new MasivePurchaseOrderSiigo($ordenes_compra, $errors));
+        Mail::to([config('siigo.mail.operations')])->send(new MasivePurchaseOrderSiigoMail($ordenes_compra, $errors));
     }
 
     public function failed(\Throwable $exception): void
@@ -313,7 +313,7 @@ class ImportMasivePurchaseOrderSiigoJob implements ShouldQueue
         ]);
 
         try {
-            Mail::to([config('siigo.mail.operations')])->send(new MasivePurchaseOrderSiigo(
+            Mail::to([config('siigo.mail.operations')])->send(new MasivePurchaseOrderSiigoMail(
                 ordenes_compra: $this->ordenes_compra,
                 errors: [
                     [

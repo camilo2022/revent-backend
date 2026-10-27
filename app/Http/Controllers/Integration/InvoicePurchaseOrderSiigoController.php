@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
-use App\Mail\InvoicePurchaseOrderAccessLink;
+use App\Mail\InvoicePurchaseOrderAccessLinkMail;
 use App\Http\Controllers\Integration\Concerns\SendsAccessLink;
 use App\Services\Siigo\SiigoCatalogService;
 use App\Services\Siigo\SiigoClient;
@@ -14,7 +14,7 @@ use App\Services\SiigoPurchaseOrderCacheService;
 use App\Exports\InvoicePurchaseOrderMissingExport;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use App\Mail\InvoicePurchaseOrderConfirmedSiigo;
+use App\Mail\InvoicePurchaseOrderConfirmedSiigoMail;
 use App\Services\SiigoProductsCache;
 use App\Http\Requests\Integration\InvoicePurchaseOrder\ConfirmedRequest;
 use App\Http\Requests\Integration\InvoicePurchaseOrder\SearchRequest;
@@ -132,7 +132,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
         }
 
         Mail::to([config('siigo.mail.purchase_reception')])->send(
-            new InvoicePurchaseOrderConfirmedSiigo($data, $usuario, $imagenes)
+            new InvoicePurchaseOrderConfirmedSiigoMail($data, $usuario, $imagenes)
         );
 
         return response()->json([
@@ -153,7 +153,7 @@ class InvoicePurchaseOrderSiigoController extends Controller
             config('siigo.access.invoice_purchase_order'),
             'siigo.invoice_purchase_order',
             'ordenes de compra',
-            fn (string $url) => new InvoicePurchaseOrderAccessLink($url)
+            fn (string $url) => new InvoicePurchaseOrderAccessLinkMail($url)
         );
     }
 

@@ -2,9 +2,9 @@
 
 namespace App\Services\Siigo\AccountPayable;
 
-use App\Mail\AccountPayableAdvanceProviderSiigo;
-use App\Mail\AccountPayableConciliationProviderSiigo;
-use App\Mail\AccountPayablePaymentProviderSiigo;
+use App\Mail\AccountPayableAdvanceProviderSiigoMail;
+use App\Mail\AccountPayableConciliationProviderSiigoMail;
+use App\Mail\AccountPayablePaymentProviderSiigoMail;
 use App\Services\Siigo\SiigoClient;
 use App\Services\Siigo\SiigoLinks;
 use Carbon\Carbon;
@@ -306,7 +306,7 @@ class SiigoAccountPayableService
 
             [$provider, $voucherId, $voucher] = $this->saveAndLoadVoucher($token, $proveedor, $payload);
 
-            $this->notify(new AccountPayablePaymentProviderSiigo(
+            $this->notify(new AccountPayablePaymentProviderSiigoMail(
                 $provider, $voucher, $documentos, self::SIGNATURE, $data['observaciones'], $voucherId, null,
                 $staged['path'] ?? null, $staged['name'] ?? null
             ));
@@ -333,7 +333,7 @@ class SiigoAccountPayableService
 
             [$provider, $voucherId, $voucher] = $this->saveAndLoadVoucher($token, $proveedor, $payload);
 
-            $this->notify(new AccountPayableAdvanceProviderSiigo(
+            $this->notify(new AccountPayableAdvanceProviderSiigoMail(
                 $provider, $voucher, self::SIGNATURE, $data['observaciones'], $voucherId, null,
                 $staged['path'] ?? null, $staged['name'] ?? null
             ));
@@ -427,7 +427,7 @@ class SiigoAccountPayableService
         $voucher = $this->saveConciliation($token, $payload);
         $voucherId = $voucher['code'];
 
-        $this->notify(new AccountPayableConciliationProviderSiigo(
+        $this->notify(new AccountPayableConciliationProviderSiigoMail(
             $provider, $voucher, $documentos, $recibos, self::SIGNATURE, $data['observaciones'], $voucherId
         ));
 

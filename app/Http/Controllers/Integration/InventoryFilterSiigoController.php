@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Integration\Concerns\SendsAccessLink;
-use App\Mail\InventroyFilterAccessLink;
+use App\Mail\InventoryFilterAccessLinkMail;
 use App\Services\ProductPhotoService;
 use App\Services\Siigo\SiigoCatalogService;
 use App\Services\Siigo\SiigoClient;
@@ -53,7 +53,7 @@ class InventoryFilterSiigoController extends Controller
             $allowed,
             'siigo.inventory_filter',
             'filtro de inventarios',
-            fn (string $url) => new InventroyFilterAccessLink($url)
+            fn (string $url) => new InventoryFilterAccessLinkMail($url)
         );
     }
 

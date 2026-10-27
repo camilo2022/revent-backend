@@ -5,7 +5,7 @@ namespace App\Mail;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class InvoicePurchaseOrderAccessLink extends Mailable
+class InventoryFilterAccessLinkMail extends Mailable
 {
     use SerializesModels;
 
@@ -16,7 +16,7 @@ class InvoicePurchaseOrderAccessLink extends Mailable
     public function build()
     {
         return $this
-            ->subject('Acceso a Ordenes de compra REVENT CALZADO S.A.S.')
-            ->view('email.access.invoice_purchase_order');
+            ->subject('Acceso a Filtro de inventarios REVENT CALZADO S.A.S.')
+            ->view('email.access.inventory_filter');
     }
 }

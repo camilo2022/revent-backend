@@ -296,9 +296,15 @@ class SiigoTransferNTPdfService
     private function color_folder_image($disk, string $refDir, ?string $color): ?string
     {
         $colorDir = collect($disk->directories($refDir))
-            ->first(fn ($dir) => $this->normalize(basename($dir)) === $this->normalize($color));
+            ->first(fn ($dir) => $this->folder_key(basename($dir)) === $this->folder_key($color));
 
         return $colorDir ? $this->first_image($disk, $colorDir) : null;
+    }
+
+    /** Las carpetas de color llevan guion donde el color tiene espacio (AZUL MARINO => AZUL-MARINO). */
+    private function folder_key(?string $value): string
+    {
+        return preg_replace('/[\s_-]+/', '-', $this->normalize($value));
     }
 
     private function first_image($disk, string $dir): ?string

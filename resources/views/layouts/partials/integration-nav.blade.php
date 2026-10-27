@@ -4,6 +4,9 @@
 --}}
 <header class="rv-topbar">
     <div class="rv-topbar-inner">
-        <a href="{{ route('home') }}" class="rv-brand">Revent <span>·</span> Siigo</a>
+        <a href="{{ route('home') }}" class="rv-brand">
+            <img src="{{ asset('integration/img/revent-logo.png') }}" alt="Revent" class="rv-logo">
+            <span>Siigo</span>
+        </a>
     </div>
 </header>

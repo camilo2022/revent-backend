@@ -5,7 +5,7 @@ namespace App\Mail;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class InvoicePurchaseOrderConfirmedSiigo extends Mailable
+class InvoicePurchaseOrderConfirmedSiigoMail extends Mailable
 {
     use SerializesModels;
 

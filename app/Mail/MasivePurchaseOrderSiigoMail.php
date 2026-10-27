@@ -7,7 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 
-class MasivePurchaseOrderSiigo extends Mailable
+class MasivePurchaseOrderSiigoMail extends Mailable
 {
     use Queueable, SerializesModels;
 

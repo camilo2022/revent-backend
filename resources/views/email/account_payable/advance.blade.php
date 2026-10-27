@@ -71,7 +71,19 @@
                             @endif según anexos.
                         </p>
 
-                        @if(!empty($attachmentPath))
+                        @if(!empty($receiptIsImage) || !empty($url))
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 16px;">
+                            <tr>
+                                <td align="center" style="padding:4px;">
+                                    {{-- El archivo temporal viaja incrustado en el correo (no queda en la carpeta pública). --}}
+                                    <img src="{{ !empty($receiptIsImage) ? $message->embed($attachmentPath) : $url }}" alt="Comprobante de anticipo {{ $voucher['DocName'] ?? '' }}" width="280"
+                                        style="display:block; width:280px; max-width:100%; height:auto; object-fit:contain; border:1px solid #eef0f2; border-radius:8px;"
+                                    >
+                                </td>
+                            </tr>
+                        </table>
+                        @endif
+                        @if(!empty($attachmentPath) && empty($receiptIsImage))
                         <p style="margin:0 0 16px 0; font-size:13px; color:#6b7280; line-height:1.6; text-align:center;">
                             El comprobante de anticipo va adjunto a este correo.
                         </p>
