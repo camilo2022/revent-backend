@@ -34,15 +34,11 @@ class ExportInventorySiigoJob implements ShouldQueue
 
         $token = $siigo->auth();
 
-        $purchases = $siigo->getPurchases($token, $this->filters);
-
         $this->storeAndNotify(new InventorySiigoExport(
                 $name,
                 $token,
-                $purchases,
                 $siigo->stores(),
-                $this->filters,
-                config('siigo.urls.api')
+                $this->filters
             ), $filename);
     }
 

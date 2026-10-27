@@ -2,34 +2,38 @@
 
 namespace App\Exports;
 
-use Exception;
+use App\Services\Siigo\SiigoCatalogService;
+use App\Services\Siigo\SiigoInventoryReportService;
+use App\Services\SiigoProductsCache;
 use Generator;
 use Illuminate\Contracts\Support\Responsable;
-use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromGenerator;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use RuntimeException;
 
+/**
+ * Reporte de inventarios: una fila por producto y bodega con existencias.
+ * Las existencias salen del reporte de inventario por bodega (una llamada por bodega, sin
+ * paginar), los datos del producto del catálogo en caché y las fechas de ingreso de la
+ * trazabilidad de cada referencia en esa bodega.
+ */
 class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, WithTitle
 {
     use Exportable;
 
     protected $name;
     protected $token;
-    protected $purchases;
     protected $stores;
     protected $filters;
-    protected $baseUrl;
 
-    public function __construct($name, $token, $purchases, $stores, $filters, $baseUrl)
+    public function __construct($name, $token, $stores, $filters)
     {
         $this->name = $name;
         $this->token = $token;
-        $this->purchases = $purchases;
         $this->stores = $stores;
         $this->filters = $filters;
-        $this->baseUrl = $baseUrl;
     }
 
     public function headings(): array
@@ -62,52 +66,48 @@ class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, 
 
     public function generator(): Generator
     {
-        $allowedFilters = [
-            'updated_start',
-            'updated_end',
-            'type',
-            'account_group',
-            'code',
-            'id',
-            'page',
-            'page_size',
-        ];
+        $report = app(SiigoInventoryReportService::class);
 
-        $queryParams = array_filter(
-            array_intersect_key(
-                $this->filters,
-                array_flip($allowedFilters)
-            ),
-            function ($value) {
-                return $value !== null && $value !== '';
-            }
-        );
+        $products = app(SiigoProductsCache::class)->keyedByProductId();
 
-        $url = "{$this->baseUrl}/v1/products?" . http_build_query($queryParams);
+        if ($products->isEmpty()) {
+            throw new RuntimeException('El catálogo de productos no está en caché. Ejecuta primero la actualización del catálogo y vuelve a generar el reporte.');
+        }
 
-        do {
-            $response = Http::retry(5, 10000)->timeout(180)->withHeaders([
-                'Content-Type' => 'application/json',
-                'Authorization' => $this->token,
-                'Partner-Id' => 'consultadeFacturas',
-            ])->get($url);
+        $warehouses = app(SiigoCatalogService::class)->warehouses($this->token);
+        $excludedWarehouses = config('siigo.inventory.excluded_warehouses');
+        $excludedGroups = config('siigo.inventory.excluded_account_groups');
+        $positive = $this->filters['positive'] ?? true;
 
-            if ($response->status() === 429) {
-                sleep(1);
+        foreach ($this->stores as $warehouseId => $store) {
+            if (in_array($warehouseId, $excludedWarehouses, true)) {
                 continue;
             }
 
-            if (! $response->successful()) {
-                throw new Exception($response->body());
+            $stock = $report->stock($this->token, $warehouseId);
+
+            $stock = array_values(array_filter($stock, function ($row) use ($positive) {
+                $quantity = (float) ($row['QuantityBalance'] ?? 0);
+
+                return $positive ? $quantity > 0 : $quantity < 0;
+            }));
+
+            if (empty($stock)) {
+                continue;
             }
 
-            $data = $response->json();
+            $entryDates = $report->entryDates($this->token, (int) $warehouseId, $warehouses);
 
-            foreach ($data['results'] ?? [] as $product) {
-                $parts = preg_split(
-                    '/[*-]/',
-                    $product['name'] ?? ''
-                );
+            foreach ($stock as $row) {
+                $product = $products->get($row['productcode'] ?? null);
+
+                if (in_array(mb_strtoupper(trim((string) ($product['accountGroupName'] ?? ''))), $excludedGroups, true)) {
+                    continue;
+                }
+
+                $description = $product['description'] ?? ($row['Description'] ?? '');
+
+                $parts = preg_split('/[*-]/', $description);
 
                 $count = count($parts);
 
@@ -128,46 +128,32 @@ class InventorySiigoExport implements FromGenerator, Responsable, WithHeadings, 
                     $size = $parts[$count - 1] ?? '';
                 }
 
-                if (in_array($product['account_group']['id'] ?? null, [1190, 1338], true)) continue;
+                [$firstDate, $secondDate] = $entryDates[SiigoInventoryReportService::reference($description)] ?? [null, null];
 
-                $operator = ($this->filters['positive'] ?? true) ? '>' : '<';
-                foreach (collect($product['warehouses'] ?? [])->where('quantity', $operator, 0)->whereNotNull('id')->whereNotIn('id', [34, 35, 36, 44, 45, 47, -1]) as $warehouse) {
-                    $firstDate = $this->purchases[$product['code']][$warehouse['id']]['first_date'] ?? null;
+                $diffDays = ($firstDate && $secondDate) ? (new \DateTime($secondDate))->diff(new \DateTime($firstDate))->days : null;
 
-                    $secondDate = $this->purchases[$product['code']][$warehouse['id']]['second_date'] ?? null;
-
-                    $diffDays = ($firstDate && $secondDate) ? (new \DateTime($secondDate))->diff(new \DateTime($firstDate))->days : null;
-
-                    $warehouseId = $warehouse['id'] ?? null;
-                    $store = $this->stores[$warehouseId] ?? null;
-
-                    yield [
-                        'CUENTA DE GRUPO' => $product['account_group']['name'] ?? null,
-                        'CODIGO' => $product['code'] ?? null,
-                        'DESCRIPCION' => $product['name'] ?? null,
-                        'NOMBRE' => $name,
-                        'COLOR' => $color,
-                        'PROVEEDOR' => $provider,
-                        'CATEGORIA' => $category,
-                        'TALLA' => $size,
-                        'CODIGO_BARRAS' => $product['additional_fields']['barcode'] ?? null,
-                        'MARCA' => $product['additional_fields']['brand'] ?? null,
-                        'MODELO' => $product['additional_fields']['model'] ?? null,
-                        'ESTADO' => $store['status'] ?? 'APROBADO',
-                        'BODEGA' => ($store['code'] ?? 'S/C') . ' - ' . ($store['name'] ?? ($warehouse['name'] ?? null)),
-                        'CANTIDAD' => $warehouse['quantity'] ?? 0,
-                        'FECHA' => $firstDate,
-                        'SEGUNDA_FECHA' => $secondDate,
-                        'DIFERENCIA' => $diffDays,
-                    ];
-                }
+                yield [
+                    'CUENTA DE GRUPO' => $product['accountGroupName'] ?? null,
+                    'CODIGO' => $product['code'] ?? null,
+                    'DESCRIPCION' => $description,
+                    'NOMBRE' => $name,
+                    'COLOR' => $color,
+                    'PROVEEDOR' => $provider,
+                    'CATEGORIA' => $category,
+                    'TALLA' => $size,
+                    'CODIGO_BARRAS' => $product['codeBars'] ?? null,
+                    'MARCA' => $product['brand'] ?? null,
+                    'MODELO' => $product['model'] ?? null,
+                    'ESTADO' => $store['status'] ?? 'APROBADO',
+                    'BODEGA' => ($store['code'] ?? 'S/C') . ' - ' . ($store['name'] ?? null),
+                    'CANTIDAD' => (float) $row['QuantityBalance'],
+                    'FECHA' => $firstDate,
+                    'SEGUNDA_FECHA' => $secondDate,
+                    'DIFERENCIA' => $diffDays,
+                ];
             }
 
-            $url = $data['_links']['next']['href'] ?? null;
-
-            if ($url) usleep(500000);
-
-            unset($data, $response);
-        } while ($url);
+            unset($stock, $entryDates);
+        }
     }
 }

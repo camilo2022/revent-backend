@@ -9,8 +9,7 @@ use App\Imports\ProductTraceabilitySiigoImport;
 use App\Services\Siigo\SiigoCatalogService;
 use App\Services\Siigo\SiigoClient;
 use App\Services\Siigo\SiigoLinks;
-use App\Services\Siigo\SiigoReportService;
-use Carbon\Carbon;
+use App\Services\Siigo\SiigoTraceabilityService;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductTraceabilitySiigoController extends Controller
@@ -18,7 +17,7 @@ class ProductTraceabilitySiigoController extends Controller
     public function __construct(
         private SiigoClient $client,
         private SiigoCatalogService $catalog,
-        private SiigoReportService $reports
+        private SiigoTraceabilityService $traceability
     ) {
     }
 
@@ -69,135 +68,6 @@ class ProductTraceabilitySiigoController extends Controller
 
     private function movimientos_productos_bodegas(string $token, int $warehouseId, string $startDate, array $warehouses)
     {
-        $now = Carbon::now();
-        $start = Carbon::parse($startDate);
-
-        $periods = [];
-
-        for ($year = 2015; $year <= $now->year; $year++) {
-            $periods[] = [
-                'id' => $year,
-                'StartDate' => Carbon::create($year, 1, 1)->format('Ymd'),
-                'EndDate' => Carbon::create($year, 12, 31)->format('Ymd'),
-            ];
-        }
-
-        $warehouseSource = collect($warehouses)
-            ->map(function ($warehouse) {
-                return [
-                    'id' => $warehouse['id'],
-                    'name' => $warehouse['name'],
-                ];
-            })
-            ->values()
-            ->toArray();
-
-        $selectedWarehouse = collect($warehouses)->firstWhere('id', $warehouseId);
-
-        $filterCriterias = [
-            [
-                'Field' => 'AccountGroup',
-                'FilterType' => 2,
-                'OperatorType' => 0,
-                'Value' => [-1],
-                'ValueUI' => '',
-                'Source' => json_encode([
-                    [
-                        'id' => 1337,
-                        'name' => 'Compra de Calzados',
-                    ],
-                    [
-                        'id' => 1189,
-                        'name' => 'Elab. de Calzados ',
-                    ],
-                    [
-                        'id' => 1338,
-                        'name' => 'Materia Prima ',
-                    ],
-                    [
-                        'id' => 1190,
-                        'name' => 'Servicios Temporal',
-                    ],
-                ]),
-            ],
-            [
-                'Field' => 'ElaborationDatePeriod',
-                'FilterType' => 66,
-                'OperatorType' => 9,
-                'Value' => [
-                    $start->format('Ymd'),
-                    $now->format('Ymd'),
-                    null,
-                ],
-                'ValueUI' => $start->format('Y/m/d') . ' - ' . $now->format('Y/m/d'),
-                'Source' => json_encode($periods),
-            ],
-            [
-                'Field' => 'ProductType',
-                'FilterType' => 7,
-                'OperatorType' => 0,
-                'Value' => ['0'],
-                'ValueUI' => 'Producto',
-                'Source' => 'TypeProductEnum',
-            ],
-            [
-                'Field' => 'State',
-                'FilterType' => 7,
-                'OperatorType' => 0,
-                'Value' => [-1],
-                'ValueUI' => '',
-                'Source' => 'FixedAssetStateEnum',
-            ],
-            [
-                'Field' => 'Product',
-                'FilterType' => 6,
-                'OperatorType' => 0,
-                'Value' => [],
-                'ValueUI' => '',
-                'Source' => '2',
-            ],
-            [
-                'Field' => 'WarehouseFilter',
-                'FilterType' => 2,
-                'OperatorType' => 0,
-                'Value' => [$warehouseId],
-                'ValueUI' => $selectedWarehouse['name'] ?? '',
-                'Source' => json_encode($warehouseSource),
-            ],
-            [
-                'Field' => 'IncludeWarehousesWithoutMovements',
-                'FilterType' => 7,
-                'OperatorType' => 0,
-                'Value' => [-1],
-                'ValueUI' => '',
-                'Source' => 'LogicalEnum',
-            ],
-            [
-                'Field' => 'Currency',
-                'FilterType' => 65,
-                'OperatorType' => 0,
-                'Value' => ['ALL'],
-                'ValueUI' => 'Moneda Local',
-                'Source' => null,
-            ],
-        ];
-
-        $body = [
-            'Id' => 5412,
-            'Skip' => 0,
-            'Take' => 0,
-            'Sort' => ' ',
-            'FilterCriterias' => json_encode($filterCriterias),
-            'Params' => json_encode([
-                'TabID' => '1370',
-                'pTabID' => '1445',
-                'rReport' => '1',
-            ]),
-            'GetTotalCount' => false,
-            'GridOrderCriteria' => null,
-            'AddOns' => [],
-        ];
-
-        return $this->reports->table($body, 'Error consultando movimientos de productos: ', $token);
+        return $this->traceability->movements($token, $warehouseId, $startDate, $warehouses);
     }
 }

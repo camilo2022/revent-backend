@@ -8,6 +8,7 @@ use App\Mail\InventroyFilterAccessLink;
 use App\Services\ProductPhotoService;
 use App\Services\Siigo\SiigoCatalogService;
 use App\Services\Siigo\SiigoClient;
+use App\Services\Siigo\SiigoInventoryReportService;
 use App\Services\Siigo\SiigoReportService;
 use App\Services\SiigoProductsCache;
 use Carbon\Carbon;
@@ -32,7 +33,8 @@ class InventoryFilterSiigoController extends Controller
         private ProductPhotoService $photos,
         private SiigoClient $client,
         private SiigoCatalogService $catalog,
-        private SiigoReportService $reports
+        private SiigoReportService $reports,
+        private SiigoInventoryReportService $inventoryReport
     ) {
     }
 
@@ -68,58 +70,7 @@ class InventoryFilterSiigoController extends Controller
     {
         $token = $this->client->token();
 
-        $filters = [
-            [
-                'Field'        => '_vProduct',
-                'FilterType'   => 6,
-                'OperatorType' => 0,
-                'Value'        => [],
-                'ValueUI'      => '',
-                'Source'       => '2',
-            ],
-            [
-                'Field'        => 'WarehouseFilter',
-                'FilterType'   => 2,
-                'OperatorType' => 0,
-                'Value'        => [$request->input('warehouse_id')],
-                'ValueUI'      => '',
-                'Source'       => '',
-            ],
-            [
-                'Field'        => '_vCutoffDate',
-                'FilterType'   => 5,
-                'OperatorType' => 0,
-                'Value'        => [now()->toISOString()],
-                'ValueUI'      => now()->format('n/j/Y'),
-                'Source'       => 'Account',
-            ],
-            [
-                'Field'        => 'ProductBalanceFilter',
-                'FilterType'   => 7,
-                'OperatorType' => 0,
-                'Value'        => ['0'],
-                'ValueUI'      => 'Con saldo',
-                'Source'       => 'ProductBalancesEnum',
-            ],
-            [
-                'Field'        => 'product',
-                'FilterType'   => 2,
-                'OperatorType' => 0,
-                'Value'        => [-1],
-                'ValueUI'      => '',
-                'Source'       => '',
-            ],
-        ];
-        $body = [
-            'FilterCriterias'    => json_encode($filters, JSON_UNESCAPED_UNICODE),
-            'GetTotalCount'      => false,
-            'GridOrderCriteria'  => null,
-            'Id'                 => 5443,
-            'Params'             => json_encode(['TabID' => '1617', 'pTabID' => '1445', 'rReport' => '1']),
-            'Skip'               => 0,
-            'Sort'               => ' ',
-            'Take'               => 0,
-        ];
+        $body = $this->inventoryReport->stockBody($request->input('warehouse_id'));
 
         $data = $this->reports->table($body, 'Error consultando inventario: ', $token);
 

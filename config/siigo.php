@@ -121,6 +121,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Reporte de inventarios
+    |--------------------------------------------------------------------------
+    | excluded_warehouses     : ids de bodega que no salen en el reporte
+    | excluded_account_groups : grupos de cuenta (nombre, en mayúsculas) que no salen
+    | entry_account_groups    : grupos que se consultan en la trazabilidad para las fechas de ingreso
+    | entries_lookback_days   : cuántos días atrás se buscan los ingresos de cada referencia
+    */
+    'inventory' => [
+        'excluded_warehouses' => [34, 35, 36, 44, 45, 47, -1],
+        'excluded_account_groups' => ['MATERIA PRIMA', 'SERVICIOS TEMPORAL'],
+        'entry_account_groups' => [
+            ['id' => 1337, 'name' => 'Compra de Calzados'],
+            ['id' => 1189, 'name' => 'Elab. de Calzados '],
+        ],
+        'entries_lookback_days' => (int) env('SIIGO_INVENTORY_ENTRIES_LOOKBACK_DAYS', 365),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Correos
     |--------------------------------------------------------------------------
     | Listas separadas por coma en el .env; si no existen se usan los valores
