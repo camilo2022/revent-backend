@@ -22,9 +22,8 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
     protected $purchases;
     protected $products;
     protected $stores;
-    protected $column;
 
-    public function __construct($sellers, $cost_centers, $invoices, $credit_notes, $purchases, $products, $stores, $column = true)
+    public function __construct($sellers, $cost_centers, $invoices, $credit_notes, $purchases, $products, $stores)
     {
         $this->sellers = $sellers;
         $this->cost_centers = $cost_centers;
@@ -33,12 +32,11 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
         $this->purchases = $purchases;
         $this->products = $products;
         $this->stores = $stores;
-        $this->column = $column;
     }
 
     public function headings(): array
     {
-        $headings = [
+        return [
             'PREFIJO',
             'NUMERO',
             'DOCUMENTO',
@@ -55,19 +53,7 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
             'CATEGORIA',
             'TALLA',
             'PRECIO',
-            'IMPUESTO'
-        ];
-
-        if($this->column) {
-            $headings = [
-                ...$headings,
-                'DESCUENTO',
-                'SUBTOTAL'
-            ];
-        }
-
-        $headings = [
-            ...$headings,
+            'IMPUESTO',
             'TOTAL',
             'CANTIDAD',
             'BODEGA',
@@ -75,8 +61,6 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
             'SEGUNDA_FECHA',
             'DIFERENCIA'
         ];
-
-        return $headings;
     }
 
     public function title(): string
@@ -105,7 +89,7 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
                 $seller = $this->sellers[$document['seller'] ?? ''] ?? [];
 
                 foreach ($document['items'] ?? [] as $item) {
-                    if (in_array($item['code'], ['G18022025', 'P18022025']) && !$this->column) continue;
+                    if (in_array($item['code'], ['G18022025', 'P18022025'])) continue;
 
                     $warehouseData = $item['warehouse'] ?? [];
                     $warehouseId = $warehouseData['id'] ?? null;
@@ -169,14 +153,6 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
                         'IMPUESTO' => (float) collect($item['taxes'] ?? [])->sum('value') * $multiplier,
                     ];
 
-                    if($this->column) {
-                        $row = [
-                            ...$row,
-                            'DESCUENTO' => (float) ($item['discount']['value'] ?? 0) * $multiplier,
-                            'SUBTOTAL' => (float) (($item['total'] ?? 0) - collect($item['taxes'] ?? [])->sum('value')) * $multiplier,
-                        ];
-                    }
-
                     $row = [
                         ...$row,
                         'TOTAL' => (float) ($item['total'] ?? 0) * $multiplier,
@@ -195,22 +171,11 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
 
     public function columnFormats(): array
     {
-        // Columnas fijas: PRECIO = P, IMPUESTO = Q
-        $formats = [
+        // PRECIO = P, IMPUESTO = Q, TOTAL = R
+        return [
             'P' => NumberFormat::FORMAT_ACCOUNTING_USD, // PRECIO
             'Q' => NumberFormat::FORMAT_ACCOUNTING_USD, // IMPUESTO
+            'R' => NumberFormat::FORMAT_ACCOUNTING_USD, // TOTAL
         ];
-
-        if ($this->column) {
-            // Con DESCUENTO y SUBTOTAL: R = DESCUENTO, S = SUBTOTAL, T = TOTAL
-            $formats['R'] = NumberFormat::FORMAT_ACCOUNTING_USD; // DESCUENTO
-            $formats['S'] = NumberFormat::FORMAT_ACCOUNTING_USD; // SUBTOTAL
-            $formats['T'] = NumberFormat::FORMAT_ACCOUNTING_USD; // TOTAL
-        } else {
-            // Sin DESCUENTO/SUBTOTAL: R = TOTAL
-            $formats['R'] = NumberFormat::FORMAT_ACCOUNTING_USD; // TOTAL
-        }
-
-        return $formats;
     }
 }

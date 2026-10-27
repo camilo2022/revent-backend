@@ -121,6 +121,32 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Complementos (add-ons) que Siigo exige en algunos reportes
+    |--------------------------------------------------------------------------
+    */
+    'report_addons' => [
+        'pos_web' => [
+            'name' => 'POS Web',
+            'state' => true,
+            'tenantId' => env('SIIGO_POS_WEB_TENANT_ID', '0x00000000000000000000000000605286'),
+            'type' => 1,
+            'module' => 5,
+            'complements' => null,
+            'dateActive' => '07/06/2026 11:52:42.756',
+            'documentBase' => 0,
+            'payrollComplements' => null,
+            'posActiveCashiers' => [
+                'baseCashiers' => 1,
+                'aditionalCashiers' => 26,
+            ],
+            'readOnly' => null,
+            'subState' => 1,
+            'updateType' => 1,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Reporte de inventarios
     |--------------------------------------------------------------------------
     | excluded_warehouses     : ids de bodega que no salen en el reporte
