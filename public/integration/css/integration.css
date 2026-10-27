@@ -42,7 +42,7 @@ body {
 }
 .rv-brand { display: inline-flex; align-items: center; gap: 0.6rem; }
 .rv-brand span { color: #16a34a; }
-.rv-logo { height: 26px; width: auto; display: block; }
+.rv-logo { height: 15px; width: auto; display: block; }
 .rv-nav {
     display: flex;
     gap: 0.25rem;
