@@ -28,7 +28,7 @@ class SyncUnicoSiigoController extends Controller
 
     public function run(ManualSyncUnicoRequest $request)
     {
-        if (!Cache::add('siigo.sync_unico.manual_lock', true, self::LOCK_SECONDS)) {
+        if (!Cache::add('SIIGO:SYNC-UNICO:MANUAL-LOCK', true, self::LOCK_SECONDS)) {
             return back()
                 ->withErrors(['mode' => 'Ya se lanzó una sincronización hace menos de un minuto. Revisa el historial antes de lanzar otra.'])
                 ->withInput();

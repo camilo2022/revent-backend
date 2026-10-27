@@ -18,7 +18,7 @@ class SyncUnicoRunLog
     public const MANUAL = 'manual';
     public const API = 'API';
 
-    private const CACHE_KEY = 'siigo.sync_unico.runs';
+    private const CACHE_KEY = 'SIIGO:SYNC-UNICO:RUNS';
     private const KEEP = 15;
 
     /** Más allá de este tiempo sin terminar se considera que la cola no la ejecutó. */

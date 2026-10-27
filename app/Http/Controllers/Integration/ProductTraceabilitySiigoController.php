@@ -16,7 +16,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProductTraceabilitySiigoController extends Controller
 {
-    private const AUDIT_CACHE_PREFIX = 'siigo.traceability_audit.';
+    private const AUDIT_CACHE_PREFIX = 'SIIGO:TRACEABILITY-AUDIT:';
 
     private const EXCEL_NAME = 'TRAZABILIDAD DE PRODUCTOS.xlsx';
 

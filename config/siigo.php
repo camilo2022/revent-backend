@@ -102,7 +102,7 @@ return [
     | ttl en minutos; el token de Siigo dura 24 h.
     */
     'token' => [
-        'cache_key' => 'siigo.api_token',
+        'cache_key' => 'SIIGO:API-TOKEN',
         'ttl' => (int) env('SIIGO_TOKEN_TTL', 600),
     ],
 

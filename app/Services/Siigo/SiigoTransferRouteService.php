@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Http;
  */
 class SiigoTransferRouteService
 {
-    private const CACHE_PREFIX = 'siigo.nt_route.';
+    private const CACHE_PREFIX = 'SIIGO:NT-ROUTE:';
     private const CACHE_DAYS = 7;
     private const POOL_SIZE = 8;
 

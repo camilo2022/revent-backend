@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Cache;
  */
 class SiigoTransferEntriesService
 {
-    private const CACHE_PREFIX = 'siigo.transfer_dates.';
+    private const CACHE_PREFIX = 'SIIGO:TRANSFER-DATES:';
     private const TRANSFER_PREFIX = 'NT-';
 
     public function __construct(private SiigoTraceabilityService $traceability)
