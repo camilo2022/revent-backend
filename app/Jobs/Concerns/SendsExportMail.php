@@ -29,14 +29,17 @@ trait SendsExportMail
         $relative = 'tmp/exports/' . $filename;
         $local = Storage::disk('local');
 
+        // Guarda el Excel en la carpeta temporal
         Excel::store($export, $relative, 'local');
 
         $tempPath = $local->path($relative);
 
         try {
+            // Tamaño máximo para enviarlo adjunto (en bytes)
             $maxBytes = (int) config('siigo.exports.max_attachment_mb', 25) * 1024 * 1024;
             $mail = $this->mailClass();
 
+            // Si cabe, se envía el Excel adjunto en el correo
             if (filesize($tempPath) <= $maxBytes) {
                 Mail::to($this->notifyEmail)->send(new $mail(
                     success: true,
@@ -48,6 +51,7 @@ trait SendsExportMail
                 return;
             }
 
+            // Si es muy grande, se copia al disco público y el correo lleva el enlace de descarga
             $stream = fopen($tempPath, 'r');
             try {
                 Storage::disk('public')->writeStream('exports/' . $filename, $stream);
@@ -63,6 +67,7 @@ trait SendsExportMail
                 downloadUrl: route('exports.download', ['file' => $filename])
             ));
         } finally {
+            // Borra el temporal, se haya enviado bien o no
             if (is_file($tempPath)) {
                 @unlink($tempPath);
             }
@@ -73,6 +78,7 @@ trait SendsExportMail
     {
         $mail = $this->mailClass();
 
+        // Avisa por correo que el exporte falló, con el mensaje del error
         Mail::to($this->notifyEmail)->send(new $mail(success: false, errorMessage: $e->getMessage()));
     }
 }

@@ -28,6 +28,7 @@ abstract class DispatchesSiigoExport extends Command
     {
         $date = Carbon::now();
 
+        // Del primer día del mes a las 00:00:00 hasta el último a las 23:59:59
         return [
             'created_start' => $date->copy()->startOfMonth()->startOfDay()->format('Y-m-d H:i:s'),
             'created_end' => $date->copy()->endOfMonth()->endOfDay()->format('Y-m-d H:i:s'),
@@ -42,12 +43,15 @@ abstract class DispatchesSiigoExport extends Command
      */
     protected function recipients(): ?array
     {
+        // Correos escritos con --email (vacío si no se pasó ninguno)
         $custom = $this->hasOption('email') ? array_filter((array) $this->option('email')) : [];
 
+        // Sin --email se usa la lista de la configuración
         if (!$custom) {
             return $this->emails();
         }
 
+        // Con --email, cada correo debe tener formato válido
         foreach ($custom as $email) {
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $this->error("El correo «{$email}» no es válido.");
@@ -63,10 +67,12 @@ abstract class DispatchesSiigoExport extends Command
     {
         $recipients = $this->recipients();
 
+        // Hay un correo inválido: no se lanza el job
         if ($recipients === null) {
             return self::FAILURE;
         }
 
+        // Envía el job a la cola con los filtros del mes y los destinatarios
         $this->job()::dispatch($this->filters(), $recipients);
         $this->line('Destinatarios: ' . implode(', ', $recipients));
 

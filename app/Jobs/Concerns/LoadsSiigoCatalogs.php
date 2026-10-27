@@ -15,6 +15,7 @@ trait LoadsSiigoCatalogs
     /** Vendedores (usuarios de Siigo) indexados por id. */
     protected function loadSellers(string $token, array $filters = []): array
     {
+        // Tamaño de página: el de los filtros o 100
         $query = ['page_size' => $filters['page_size'] ?? 100];
 
         if (isset($filters['page'])) {
@@ -23,6 +24,7 @@ trait LoadsSiigoCatalogs
 
         $sellers = $this->siigoClient()->paginate(config('siigo.endpoints.api.users'), $query, $token);
 
+        // Usa el id del vendedor como llave del arreglo
         return collect($sellers)->keyBy('id')->all();
     }
 
@@ -31,18 +33,22 @@ trait LoadsSiigoCatalogs
     {
         $response = $this->siigoClient()->api($token)->get(config('siigo.endpoints.api.cost_centers'));
 
+        // Si Siigo responde con error, se corta el job con el mensaje recibido
         if (!$response->successful()) {
             throw new \Exception($response->body());
         }
 
+        // Usa el id del centro de costo como llave del arreglo
         return collect($response->json() ?? [])->keyBy('id')->all();
     }
 
     /** Recorre un listado paginado (facturas, notas crédito, compras) con los filtros de fecha. */
     protected function loadListing(string $endpoint, string $token, array $filters = []): array
     {
+        // Solo estos filtros se envían a Siigo
         $allowedFilters = ['page', 'page_size', 'created_start', 'created_end'];
 
+        // Quita los filtros que no están permitidos o vienen vacíos
         $query = array_filter(
             array_intersect_key($filters, array_flip($allowedFilters)),
             fn ($value) => $value !== null && $value !== ''
