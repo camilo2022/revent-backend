@@ -25,7 +25,7 @@
                 </label>
                 <input type="email" name="email" id="email"
                     class="excel-field-input @error('email') is-invalid @enderror"
-                    placeholder="nombre@{{ config('siigo.mail.domain') }}" value="{{ old('email') }}" required autofocus>
+                    placeholder="nombre{{ '@' . config('siigo.mail.domain') }}" value="{{ old('email') }}" required autofocus>
                 <div class="excel-field-hint">{{ $hint }}</div>
             </div>
 
