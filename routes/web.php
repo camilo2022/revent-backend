@@ -3,7 +3,6 @@
 use App\Http\Controllers\Integration\AccountPayableSiigoController;
 use App\Http\Controllers\Integration\InventoryFilterSiigoController;
 use App\Http\Controllers\Integration\InventorySiigoController;
-use App\Http\Controllers\Integration\Invoice360SiigoController;
 use App\Http\Controllers\Integration\InvoicePurchaseOrderSiigoController;
 use App\Http\Controllers\Integration\InvoiceSiigoController;
 use App\Http\Controllers\Integration\PurchaseSiigoController;
@@ -29,8 +28,8 @@ Route::post('/siigo/export_inventory_download', [InventorySiigoController::class
 Route::get('/siigo/export_invoice', [InvoiceSiigoController::class, 'export_invoice'])->name('siigo.export_invoice');
 Route::post('/siigo/export_invoice_download', [InvoiceSiigoController::class, 'export_invoice_download'])->name('siigo.export_invoice_download');
 
-Route::get('/siigo/export_invoice_360', [Invoice360SiigoController::class, 'export_invoice_360'])->name('siigo.export_invoice_360');
-Route::post('/siigo/export_invoice_360_download', [Invoice360SiigoController::class, 'export_invoice_360_download'])->name('siigo.export_invoice_360_download');
+// El reporte de facturación 360 se unificó con el de facturación: la dirección antigua redirige al reporte único.
+Route::redirect('/siigo/export_invoice_360', '/siigo/export_invoice');
 
 Route::get('/siigo/export_purchase', [PurchaseSiigoController::class, 'export_purchase'])->name('siigo.export_purchase');
 Route::post('/siigo/export_purchase_download', [PurchaseSiigoController::class, 'export_purchase_download'])->name('siigo.export_purchase_download');

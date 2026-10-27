@@ -5,7 +5,7 @@
 @section('content')
     <x-integration.export-form
         title="Generar reporte de facturación"
-        subtitle="Elige un mes completo o un rango de fechas manual. El reporte se enviará a los correos indicados."
+        subtitle="Elige un mes completo o un rango de fechas manual. El Excel trae el detalle de la facturación y una hoja 360 por factura, y se enviará a los correos indicados."
         :action="route('siigo.export_invoice_download')"
         form-id="invoiceReportForm"
         :period="true" />

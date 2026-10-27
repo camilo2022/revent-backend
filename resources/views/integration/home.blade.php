@@ -73,7 +73,6 @@
         /* Colores por tipo de reporte */
         .icon-inventario { background: #4f46e5; }
         .icon-facturacion { background: #16a34a; }
-        .icon-facturacion360 { background: #d97706; }
         .icon-compra { background: #dc2626; }
         .icon-traslado { background: #7c3aed; }
         .icon-trazabilidad { background: #0891b2; }
@@ -122,7 +121,6 @@
         /* Color del texto/flecha según el ícono de la tarjeta (no depende de la posición) */
         .report-card:has(.icon-inventario) .report-action { color: #4f46e5; }
         .report-card:has(.icon-facturacion) .report-action { color: #16a34a; }
-        .report-card:has(.icon-facturacion360) .report-action { color: #d97706; }
         .report-card:has(.icon-compra) .report-action { color: #dc2626; }
         .report-card:has(.icon-traslado) .report-action { color: #7c3aed; }
         .report-card:has(.icon-trazabilidad) .report-action { color: #0891b2; }
@@ -188,27 +186,7 @@
             </div>
             <div class="report-body">
                 <div class="report-title">Reporte de Facturación</div>
-                <div class="report-desc">Detalle de facturas emitidas en un rango de fechas.</div>
-            </div>
-            <div class="report-footer">
-                <span class="report-action">
-                    Generar reporte
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </span>
-            </div>
-        </a>
-
-        <a href="{{ route('siigo.export_invoice_360') }}" class="report-card">
-            <div class="report-icon icon-facturacion360">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                </svg>
-            </div>
-            <div class="report-body">
-                <div class="report-title">Reporte de Facturación 360</div>
-                <div class="report-desc">Vista integral de facturación con indicadores y cruces por cliente.</div>
+                <div class="report-desc">Detalle de facturas emitidas en un rango de fechas, con la hoja 360 por factura.</div>
             </div>
             <div class="report-footer">
                 <span class="report-action">

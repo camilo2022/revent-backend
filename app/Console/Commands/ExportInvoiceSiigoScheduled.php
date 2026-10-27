@@ -9,7 +9,7 @@ class ExportInvoiceSiigoScheduled extends DispatchesSiigoExport
 {
     protected $signature = 'siigo:export-invoice-scheduled';
 
-    protected $description = 'Ejecuta la exportación automática de facturas Siigo del mes en curso (cron)';
+    protected $description = 'Ejecuta la exportación automática de facturación Siigo (detalle y hoja 360) del mes en curso (cron)';
 
     protected string $successMessage = '✅ Job de exportación de facturas Siigo despachado correctamente.';
 
