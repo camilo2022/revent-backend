@@ -269,7 +269,7 @@
             </div>
             <div class="report-body">
                 <div class="report-title">Trazabilidad de Producto</div>
-                <div class="report-desc">Consulta el historial de movimientos de una referencia por bodega y fecha.</div>
+                <div class="report-desc">Movimientos con saldo acumulado y auditoría de traslados directos entre bodegas.</div>
             </div>
             <div class="report-footer">
                 <span class="report-action">

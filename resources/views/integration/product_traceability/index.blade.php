@@ -383,7 +383,7 @@
                         @endforeach
                     </select>
                     <div class="excel-field-hint">
-                        Se revisan la bodega seleccionada y su bodega «TRANSITO» para saber si cada ingreso pasó por tránsito.
+                        Se muestra de qué bodega a qué bodega fue cada traslado y se resaltan los que salieron o llegaron directo, sin pasar por la bodega «TRANSITO».
                     </div>
                     @error('warehouse_id')
                         <div class="excel-error show">{{ $message }}</div>
