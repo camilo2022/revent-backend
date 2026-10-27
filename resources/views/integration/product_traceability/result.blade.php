@@ -148,7 +148,6 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
             Nueva consulta
         </a>
-        <a href="{{ route('siigo.product_traceability_excel', $key) }}" class="tr-btn tr-btn--ghost">Descargar Excel</a>
     </div>
 </div>
 @endsection
