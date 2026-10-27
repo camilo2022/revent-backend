@@ -149,8 +149,8 @@ return [
     |--------------------------------------------------------------------------
     | Productos que no cuentan como venta
     |--------------------------------------------------------------------------
-    | Los reportes de facturación y la sincronización con Único omiten estos códigos
-    | de producto (aparecen en las facturas con valor simbólico).
+    | Los reportes de facturación y la sincronización con Único omiten estos códigos:
+    | son las bolsas, que van en la factura con un valor simbólico (en las facturas revisadas, $1).
     */
     'invoices' => [
         'excluded_product_codes' => ['G18022025', 'P18022025'],
