@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Exports\InvoiceDetailSiigoExport;
 use App\Exports\InvoiceSiigoMultiSheetExport;
 use App\Jobs\Concerns\LoadsSiigoCatalogs;
 use App\Jobs\Concerns\SendsExportMail;
@@ -15,8 +16,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Reporte de facturación de venta: un solo Excel con la hoja 360 (resumen por factura con la
- * lógica de las vendedoras) y la hoja de detalle de la facturación.
+ * Reporte de facturación de venta. El de facturación 360 es este mismo reporte con una hoja
+ * adicional (la lógica 360 por factura): ver ExportInvoice360SiigoJob.
  */
 class ExportInvoiceSiigoJob implements ShouldQueue
 {
@@ -29,6 +30,12 @@ class ExportInvoiceSiigoJob implements ShouldQueue
     public function __construct(public array $filters, public array|string $notifyEmail)
     {
         $this->onQueue('reports');
+    }
+
+    /** Si el exporte lleva la hoja 360 (resumen por factura con la lógica de las vendedoras). */
+    protected function includes360(): bool
+    {
+        return false;
     }
 
     public function handle(): void
@@ -46,14 +53,15 @@ class ExportInvoiceSiigoJob implements ShouldQueue
         $purchases = $siigo->getPurchases($token, $this->filters);
         $products = $siigo->getProducts($token, $this->filters);
 
-        $documents = app(SiigoSalesDocumentsService::class)->byCostCenter(
-            $token,
-            $costCenters,
-            $this->filters['created_start'],
-            $this->filters['created_end']
-        );
+        if ($this->includes360()) {
+            $documents = app(SiigoSalesDocumentsService::class)->byCostCenter(
+                $token,
+                $costCenters,
+                $this->filters['created_start'],
+                $this->filters['created_end']
+            );
 
-        $this->storeAndNotify(new InvoiceSiigoMultiSheetExport(
+            $export = new InvoiceSiigoMultiSheetExport(
                 $sellers,
                 $costCenters,
                 $invoices,
@@ -62,7 +70,20 @@ class ExportInvoiceSiigoJob implements ShouldQueue
                 $products,
                 $this->stores(),
                 $documents
-            ), $this->exportFilename('facturas_de_venta'));
+            );
+        } else {
+            $export = new InvoiceDetailSiigoExport(
+                $sellers,
+                $costCenters,
+                $invoices,
+                $creditNotes,
+                $purchases,
+                $products,
+                $this->stores()
+            );
+        }
+
+        $this->storeAndNotify($export, $this->exportFilename($this->includes360() ? 'facturas_de_venta_360' : 'facturas_de_venta'));
     }
 
     protected function mailClass(): string

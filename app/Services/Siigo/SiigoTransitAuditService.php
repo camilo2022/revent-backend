@@ -36,7 +36,9 @@ class SiigoTransitAuditService
         $warehouse = collect($warehouses)->first(fn ($w) => (int) $w['id'] === $warehouseId);
         $transit = $this->transitWarehouse($warehouse['name'] ?? '', $warehouses);
 
-        $wanted = array_flip(array_map('strtoupper', $codes));
+        // Las bolsas (G18022025, P18022025) no son mercancía: no se auditan.
+        $bags = array_map('strtoupper', config('siigo.invoices.excluded_product_codes'));
+        $wanted = array_flip(array_diff(array_map('strtoupper', $codes), $bags));
 
         $entries = $this->entriesByProduct(
             $this->traceability->movements($token, $warehouseId, $startDate, $warehouses),

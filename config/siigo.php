@@ -158,32 +158,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Reporte de inventarios
+    | Inventario y trazabilidad
     |--------------------------------------------------------------------------
-    | excluded_warehouses     : ids de bodega que no salen en el reporte
-    | excluded_account_groups : códigos de grupo de cuenta que no salen
-    | account_groups          : código => nombre del grupo (la caché de productos no trae el nombre)
-    | entry_account_groups    : grupos que se consultan en la trazabilidad para las fechas de ingreso
-    | entries_since           : desde cuándo se buscan los ingresos de cada referencia (las dos fechas más antiguas)
+    | excluded_warehouses     : ids de bodega que no salen en el reporte de inventario
+    | excluded_account_groups : ids de grupo de cuenta que no salen en el reporte de inventario
+    | entries_since           : desde cuándo se buscan los ingresos por traslado (fechas de ingreso del inventario)
+    | entry_account_groups    : grupos que se consultan en la trazabilidad para esas fechas
+    | transit_lookback_days   : días antes de la fecha inicial en que la auditoría busca ingresos al TRANSITO
     */
     'inventory' => [
         'excluded_warehouses' => [34, 35, 36, 44, 45, 47, -1],
-        // La caché de productos guarda el código del grupo (accountGroupCode), no su nombre.
-        'excluded_account_groups' => [1338, 1190],
-        'account_groups' => [
-            1337 => 'Compra de Calzados',
-            1189 => 'Elab. de Calzados',
-            1338 => 'Materia Prima',
-            1190 => 'Servicios Temporal',
-        ],
+        'excluded_account_groups' => [1190, 1338],
+        'entries_since' => env('SIIGO_INVENTORY_ENTRIES_SINCE', '2015-01-01'),
         'entry_account_groups' => [
             ['id' => 1337, 'name' => 'Compra de Calzados'],
             ['id' => 1189, 'name' => 'Elab. de Calzados '],
         ],
-        // Comprobantes que cuentan como ingreso a la bodega: compra (FC-) y traslado (NT-).
-        'entry_voucher_prefixes' => ['FC-', 'NT-'],
-        'entries_since' => env('SIIGO_INVENTORY_ENTRIES_SINCE', '2015-01-01'),
-        // Auditoría de tránsitos: días antes de la fecha inicial en que se buscan ingresos al tránsito.
         'transit_lookback_days' => (int) env('SIIGO_TRANSIT_LOOKBACK_DAYS', 90),
     ],
 

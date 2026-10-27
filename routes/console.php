@@ -10,7 +10,12 @@ Artisan::command('inspire', function () {
 
 Schedule::command('siigo:export-invoice-scheduled')->dailyAt('06:15');
 
+Schedule::command('siigo:export-invoice-360-scheduled')->dailyAt('06:30');
+
 Schedule::command('siigo:export-purchase-scheduled')->dailyAt('06:45');
+
+// Fechas de ingreso por traslado del reporte de inventario: se actualizan antes de generarlo.
+Schedule::command('siigo:warm-transfer-dates')->dailyAt('03:30');
 
 Schedule::command('siigo:export-inventory-scheduled')->dailyAt('07:00');
 
