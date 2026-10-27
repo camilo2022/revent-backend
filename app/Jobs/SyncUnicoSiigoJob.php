@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Mail\SyncUnicoSiigoMail;
 use App\Services\Siigo\SiigoClient;
+use App\Services\Siigo\SyncUnicoRunLog;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -73,12 +74,29 @@ class SyncUnicoSiigoJob implements ShouldQueue
 
     private function notify_result(bool $success, array $details): void
     {
+        $this->record_result($success, $details);
+
         try {
             Mail::to([config('siigo.mail.technology')])->send(new SyncUnicoSiigoMail($success, $details));
         } catch (\Throwable $mailException) {
             Log::warning('No se pudo enviar notificación de SyncUnicoSiigoJob', [
                 'error' => $mailException->getMessage(),
             ]);
+        }
+    }
+
+    /** Deja el resultado en el historial de la pantalla de sincronización; nunca interrumpe el job. */
+    private function record_result(bool $success, array $details): void
+    {
+        try {
+            $log = app(SyncUnicoRunLog::class);
+            $runId = $this->params['run_id'] ?? null;
+
+            $success
+                ? $log->succeeded($runId, $this->params, (int) ($details['total_invoices'] ?? 0), $details['unico_summary'] ?? [])
+                : $log->failed($runId, $this->params, (string) ($details['error'] ?? 'Error desconocido'));
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo registrar el resultado de SyncUnicoSiigoJob', ['error' => $e->getMessage()]);
         }
     }
 

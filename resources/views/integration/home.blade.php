@@ -71,6 +71,7 @@
         }
 
         /* Colores por tipo de reporte */
+        .icon-sync { background: #0284c7; }
         .icon-inventario { background: #4f46e5; }
         .icon-facturacion { background: #16a34a; }
         .icon-facturacion360 { background: #d97706; }
@@ -120,6 +121,7 @@
         }
 
         /* Color del texto/flecha según el ícono de la tarjeta (no depende de la posición) */
+        .report-card:has(.icon-sync) .report-action { color: #0284c7; }
         .report-card:has(.icon-inventario) .report-action { color: #4f46e5; }
         .report-card:has(.icon-facturacion) .report-action { color: #16a34a; }
         .report-card:has(.icon-facturacion360) .report-action { color: #d97706; }
@@ -155,6 +157,26 @@
     </div>
 
     <div class="reports-grid">
+
+        <a href="{{ route('siigo.sync_unico_manual') }}" class="report-card">
+            <div class="report-icon icon-sync">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <polyline points="1 20 1 14 7 14"/>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Sincronizar ventas con Único</div>
+                <div class="report-desc">Lanza a mano la sincronización de ventas de Siigo con Único si la automática falla, y revisa cómo salieron las últimas.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Sincronizar ahora
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
 
         <a href="{{ route('siigo.export_inventory') }}" class="report-card">
             <div class="report-icon icon-inventario">

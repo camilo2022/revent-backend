@@ -8,6 +8,7 @@ use App\Http\Controllers\Integration\InvoicePurchaseOrderSiigoController;
 use App\Http\Controllers\Integration\InvoiceSiigoController;
 use App\Http\Controllers\Integration\PurchaseSiigoController;
 use App\Http\Controllers\Integration\SiigoController;
+use App\Http\Controllers\Integration\SyncUnicoSiigoController;
 use App\Http\Controllers\Integration\MasiveTransferSiigoController;
 use App\Http\Controllers\Integration\ProductTraceabilitySiigoController;
 use App\Http\Controllers\Integration\MasivePurchaseOrderSiigoController;
@@ -36,6 +37,8 @@ Route::get('/siigo/export_purchase', [PurchaseSiigoController::class, 'export_pu
 Route::post('/siigo/export_purchase_download', [PurchaseSiigoController::class, 'export_purchase_download'])->name('siigo.export_purchase_download');
 
 Route::get('/siigo/sync_unico', [SiigoController::class, 'sync'])->name('siigo.sync');
+Route::get('/siigo/sync_unico/manual', [SyncUnicoSiigoController::class, 'index'])->name('siigo.sync_unico_manual');
+Route::post('/siigo/sync_unico/manual', [SyncUnicoSiigoController::class, 'run'])->name('siigo.sync_unico_run');
 
 Route::get('/siigo/masive_transfer', [MasiveTransferSiigoController::class, 'masive_transfer'])->name('siigo.masive_transfer');
 Route::post('/siigo/masive_transfer_upload', [MasiveTransferSiigoController::class, 'masive_transfer_upload'])->name('siigo.masive_transfer_upload');

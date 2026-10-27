@@ -1,0 +1,38 @@
+/* Sincronización manual de Siigo con Único */
+.su-wrap { max-width: 1000px; margin: 1.5rem auto; display: flex; flex-direction: column; gap: 1.2rem; }
+.su-card { background: #fff; border: 1px solid #eef0f2; border-radius: 16px; padding: 1.6rem 1.8rem; box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+
+.su-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .7rem; margin-bottom: 1rem; }
+.su-option { position: relative; display: flex; gap: .7rem; align-items: flex-start; border: 1px solid #d1d5db; border-radius: 12px; padding: .8rem .9rem; cursor: pointer; background: #f9fafb; transition: border-color .15s ease, background .15s ease; }
+.su-option:hover { border-color: #16a34a; }
+.su-option input { margin-top: .2rem; accent-color: #16a34a; }
+.su-option:has(input:checked) { border-color: #16a34a; background: #f0fdf4; box-shadow: 0 0 0 1px #16a34a inset; }
+.su-option-title { display: block; font-weight: 600; font-size: .9rem; color: #1f2937; }
+.su-option-hint { display: block; font-size: .76rem; color: #6b7280; margin-top: .1rem; }
+
+.su-range { display: none; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: .5rem; }
+.su-range.show { display: grid; }
+@media (max-width: 600px) { .su-range.show { grid-template-columns: 1fr; } }
+
+.su-note { font-size: .8rem; color: #6b7280; background: #f9fafb; border: 1px solid #f1f3f5; border-radius: 10px; padding: .7rem .9rem; margin: .6rem 0 0; }
+
+.su-history-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .8rem; }
+.su-history-head .excel-upload-title { margin-bottom: 0; }
+.su-refresh { font-size: .82rem; font-weight: 600; color: #16a34a; text-decoration: none; }
+.su-refresh:hover { text-decoration: underline; }
+
+.su-table-wrap { overflow-x: auto; }
+.su-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.su-table th { text-align: left; background: #f9fafb; color: #6b7280; font-size: .72rem; text-transform: uppercase; letter-spacing: .03em; padding: .5rem .7rem; white-space: nowrap; }
+.su-table td { padding: .6rem .7rem; border-top: 1px solid #f1f3f5; vertical-align: top; }
+.su-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.su-detail { color: #6b7280; font-size: .78rem; max-width: 280px; }
+.su-error { color: #991b1b; }
+
+.su-badge { display: inline-block; border-radius: 999px; padding: .15rem .65rem; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+.su-badge.success { background: #dcfce7; color: #166534; }
+.su-badge.failed { background: #fee2e2; color: #991b1b; }
+.su-badge.running { background: #dbeafe; color: #1e40af; }
+.su-badge.stale { background: #fef3c7; color: #92400e; }
+
+.su-empty { color: #9ca3af; font-size: .85rem; padding: .6rem 0; }
