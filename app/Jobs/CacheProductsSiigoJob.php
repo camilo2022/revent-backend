@@ -25,7 +25,7 @@ class CacheProductsSiigoJob implements ShouldQueue
     private const PHOTO_DISK = ProductPhotoService::DISK;
     private const PHOTO_BASE_PATH = ProductPhotoService::BASE_PATH;
     private const PHOTO_REFERENCE_REGEX = '/^[A-ZÑ0-9_]+$/u';
-    private const PHOTO_COLOR_REGEX = '/^[A-ZÑ0-9_-]+$/u';
+    private const PHOTO_COLOR_REGEX = '/^[A-ZÑ0-9_ -]+$/u';
     private const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
 
     /** Máximo de productos por job de fotos (si una referencia tiene más, se divide en varios jobs). */
@@ -228,7 +228,7 @@ class CacheProductsSiigoJob implements ShouldQueue
     /**
      * AGUILA-NEGRO-SEBA-BA-35 => referencia AGUILA, color NEGRO.
      * Separa por "-" o "*". Referencia y color se normalizan: sin acentos (BACARDÍ => BACARDI),
-     * en mayúsculas y conservando la Ñ. En el color los espacios pasan a guion.
+     * en mayúsculas y conservando la Ñ. El color conserva sus espacios (ORO ROSA).
      */
     private function parseDescription(string $description): ?array
     {
@@ -239,7 +239,7 @@ class CacheProductsSiigoJob implements ShouldQueue
         }
 
         $reference = $this->normalizeText($parts[0]);
-        $color = preg_replace('/\s+/', '-', $this->normalizeText($parts[1]));
+        $color = preg_replace('/\s+/', ' ', $this->normalizeText($parts[1]));
 
         if (preg_match(self::PHOTO_REFERENCE_REGEX, $reference) !== 1
             || preg_match(self::PHOTO_COLOR_REGEX, $color) !== 1) {

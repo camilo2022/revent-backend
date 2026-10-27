@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
  * storage/app/public/products con la estructura:
  *
  *   products/{REFERENCIA}/*.webp          (fotos del producto)
- *   products/{REFERENCIA}/{COLOR}/*.webp  (fotos por color; COLOR = nombre del color, espacios como guion)
+ *   products/{REFERENCIA}/{COLOR}/*.webp  (fotos por color; COLOR = nombre del color tal cual, con espacios: "ORO ROSA")
  */
 class ProductPhotoService
 {
@@ -79,13 +79,13 @@ class ProductPhotoService
         ];
     }
 
-    /** Nombre de carpeta de un color: "ORO ROSA" => "ORO-ROSA". */
+    /** Nombre de carpeta de un color: el nombre tal cual, con espacios ("ORO ROSA"). */
     public function carpetaDeColor(array $color): string
     {
-        return $this->normalizarNombre($color['nombre']);
+        return $this->normalizarColor($color['nombre']);
     }
 
-    /** Colores indexados por nombre de carpeta, p. ej. ['NEGRO' => [...], 'ORO-ROSA' => [...]]. */
+    /** Colores indexados por nombre de carpeta, p. ej. ['NEGRO' => [...], 'ORO ROSA' => [...]]. */
     public function coloresPorCarpeta(): array
     {
         return $this->coloresPorCarpeta ??= collect($this->colores())
@@ -95,7 +95,11 @@ class ProductPhotoService
 
     public function colorPorCarpeta(string $carpeta): ?array
     {
-        return $this->coloresPorCarpeta()[$carpeta] ?? null;
+        $colores = $this->coloresPorCarpeta();
+
+        // Las carpetas antiguas llevan guion ("ORO-ROSA"): se siguen reconociendo hasta renombrarlas
+        // (php artisan siigo:rename-color-folders).
+        return $colores[$carpeta] ?? $colores[$this->normalizarColor(str_replace('-', ' ', $carpeta))] ?? null;
     }
 
     // ------------------------------------------------------------------
@@ -105,6 +109,12 @@ class ProductPhotoService
     public function normalizarNombre(string $valor): string
     {
         return mb_strtoupper(preg_replace('/\s+/u', '-', trim($valor)), 'UTF-8');
+    }
+
+    /** Nombre de carpeta de color: mayúsculas y espacios simples, sin guiones ("oro  rosa" => "ORO ROSA"). */
+    public function normalizarColor(string $valor): string
+    {
+        return mb_strtoupper(preg_replace('/\s+/u', ' ', trim($valor)), 'UTF-8');
     }
 
     public function nombreValido(string $valor): bool
@@ -245,7 +255,7 @@ class ProductPhotoService
                 return $this->fail('Nombre inválido. Usa solo MAYÚSCULAS (se permite Ñ), números, guion o guion bajo.');
             }
         } elseif ($info['level'] === 1) {
-            $nombre = $this->normalizarNombre($nombre);
+            $nombre = $this->normalizarColor($nombre);
 
             if ($this->colorPorCarpeta($nombre) === null) {
                 return $this->fail('El color seleccionado no existe en el catálogo.');
@@ -314,6 +324,8 @@ class ProductPhotoService
     /** Colores que todavía no tienen carpeta en el producto, agrupados por macrocategoría. */
     private function coloresDisponibles(array $existentes): array
     {
+        $existentes = array_map(fn ($e) => $this->normalizarColor(str_replace('-', ' ', $e)), $existentes);
+
         return collect($this->colores())
             ->reject(fn ($c) => in_array($this->carpetaDeColor($c), $existentes, true))
             ->sortBy('nombre')

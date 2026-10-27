@@ -893,10 +893,10 @@ class PhotoProductSiigoController extends Controller
         return ['reference' => $reference, 'color' => $color];
     }
 
-    /** Mayúsculas y espacios como guion, para comparar contra los nombres de carpeta. */
+    /** Mayúsculas y espacios simples (sin guiones), para comparar contra los nombres de carpeta. */
     private function normalizar_clave(string $value): string
     {
-        return preg_replace('/\s+/', '-', mb_strtoupper(trim($value)));
+        return preg_replace('/\s+/', ' ', mb_strtoupper(trim($value)));
     }
 
     /** Partes de la ruta sin el prefijo BASE_PATH: [REFERENCIA] o [REFERENCIA, COLOR]. */
