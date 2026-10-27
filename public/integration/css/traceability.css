@@ -1,0 +1,44 @@
+/* Pantalla de auditoría de trazabilidad / tránsitos */
+.tr-wrap { max-width: 1100px; margin: 1.5rem auto; }
+.tr-head h1 { font-size: 1.3rem; margin: 0 0 .25rem; color: #1f2937; }
+.tr-head p { margin: 0; color: #6b7280; font-size: .88rem; }
+.tr-head strong { color: #1f2937; }
+
+.tr-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .8rem; margin: 1.2rem 0; }
+.tr-card { background: #fff; border: 1px solid #eef0f2; border-radius: 14px; padding: 1rem 1.1rem; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+.tr-card .n { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+.tr-card .l { font-size: .78rem; color: #6b7280; margin-top: .35rem; }
+.tr-card.ok .n { color: #16a34a; }
+.tr-card.bad .n { color: #dc2626; }
+.tr-card.warn .n { color: #d97706; }
+.tr-card.muted .n { color: #6b7280; }
+
+.tr-alert { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: .7rem 1rem; font-size: .85rem; margin-bottom: 1rem; }
+
+.tr-filters { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.tr-chip { border: 1px solid #d1d5db; background: #fff; color: #374151; border-radius: 999px; padding: .35rem .9rem; font-size: .8rem; font-weight: 600; cursor: pointer; }
+.tr-chip.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+.tr-search { flex: 1; min-width: 180px; border: 1px solid #d1d5db; border-radius: 999px; padding: .35rem .9rem; font-size: .85rem; }
+
+.tr-product { background: #fff; border: 1px solid #eef0f2; border-radius: 14px; margin-bottom: .8rem; overflow: hidden; }
+.tr-product > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: .8rem; padding: .85rem 1.1rem; }
+.tr-product > summary::-webkit-details-marker { display: none; }
+.tr-product .code { font-weight: 700; color: #1f2937; }
+.tr-product .name { color: #6b7280; font-size: .82rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tr-badge { display: inline-block; border-radius: 999px; padding: .15rem .65rem; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+.tr-badge.transito { background: #dcfce7; color: #166534; }
+.tr-badge.directo { background: #fee2e2; color: #991b1b; }
+.tr-badge.parcial { background: #fef3c7; color: #92400e; }
+.tr-badge.otro, .tr-badge.sin_movimientos { background: #f3f4f6; color: #4b5563; }
+.tr-badge.sin_bodega_transito { background: #e0e7ff; color: #3730a3; }
+
+.tr-table { width: 100%; border-collapse: collapse; font-size: .83rem; }
+.tr-table th { text-align: left; background: #f9fafb; color: #6b7280; font-size: .72rem; text-transform: uppercase; letter-spacing: .03em; padding: .5rem 1.1rem; }
+.tr-table td { padding: .55rem 1.1rem; border-top: 1px solid #f1f3f5; vertical-align: top; }
+.tr-table a { color: #4f46e5; text-decoration: none; font-weight: 600; }
+.tr-table a:hover { text-decoration: underline; }
+.tr-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.tr-sub { color: #6b7280; font-size: .76rem; display: block; }
+.tr-empty { padding: .8rem 1.1rem; color: #9ca3af; font-size: .83rem; }
+.tr-hidden { display: none; }

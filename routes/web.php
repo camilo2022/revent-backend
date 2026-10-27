@@ -42,6 +42,7 @@ Route::post('/siigo/masive_transfer_upload', [MasiveTransferSiigoController::cla
 Route::post('/siigo/masive_transfer_format', [MasiveTransferSiigoController::class, 'masive_transfer_format'])->name('siigo.masive_transfer_format');
 
 Route::get('/siigo/product_traceability', [ProductTraceabilitySiigoController::class, 'product_traceability'])->name('siigo.product_traceability');
+Route::post('/siigo/product_traceability_search', [ProductTraceabilitySiigoController::class, 'product_traceability_search'])->name('siigo.product_traceability_search');
 Route::post('/siigo/product_traceability_download', [ProductTraceabilitySiigoController::class, 'product_traceability_download'])->name('siigo.product_traceability_download');
 
 Route::get('/siigo/masive_purchase_order', [MasivePurchaseOrderSiigoController::class, 'masive_purchase_order'])->name('siigo.masive_purchase_order');

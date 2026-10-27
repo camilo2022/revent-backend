@@ -367,7 +367,7 @@
                 </a>
             </div>
 
-            <form action="{{ route('siigo.product_traceability_download') }}" method="POST"
+            <form action="{{ route('siigo.product_traceability_search') }}" method="POST"
                 enctype="multipart/form-data" id="traceabilityForm">
                 @csrf
 

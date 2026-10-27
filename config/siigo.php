@@ -136,6 +136,8 @@ return [
             ['id' => 1189, 'name' => 'Elab. de Calzados '],
         ],
         'entries_lookback_days' => (int) env('SIIGO_INVENTORY_ENTRIES_LOOKBACK_DAYS', 365),
+        // Auditoría de tránsitos: días antes de la fecha inicial en que se buscan ingresos al tránsito.
+        'transit_lookback_days' => (int) env('SIIGO_TRANSIT_LOOKBACK_DAYS', 90),
     ],
 
     /*
