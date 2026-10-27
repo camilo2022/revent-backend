@@ -880,16 +880,9 @@ class SiigoAccountPayableService
 
             $this->ensureSuccessful($response, 'Error consultando cuentas: ');
 
-            $data = $response->json();
+            $data = $this->decodeNested($response->json());
 
-            if (is_string($data)) {
-                if ($data === '') {
-                    break;
-                }
-                $data = json_decode($data, true);
-            }
-
-            if (empty($data)) {
+            if (!is_array($data) || empty($data)) {
                 break;
             }
             $resultados = array_merge($resultados, $data);
@@ -906,9 +899,9 @@ class SiigoAccountPayableService
 
         $this->ensureSuccessful($response, 'Error consultando tipos de documentos: ');
 
-        $data = json_decode($response->json(), true);
+        $data = $this->decodeNested($response->json());
 
-        return collect($data)->whereIn('ERPDocCode', ['21'])->values();
+        return collect(is_array($data) ? $data : [])->whereIn('ERPDocCode', ['21'])->values();
     }
 
     private function searchAccount(string $token, string $query)
@@ -966,13 +959,32 @@ class SiigoAccountPayableService
             return null;
         }
 
-        $data = json_decode($response->json(), true);
+        $data = $this->decodeNested($response->json());
 
-        if (empty($data)) {
-            return null;
+        return is_array($data) && !empty($data) ? $data : null;
+    }
+
+    /**
+     * Siigo entrega algunas listas como JSON dentro de JSON (a veces dos o tres veces).
+     * Decodifica hasta obtener la lista; un texto vacío significa "sin resultados".
+     */
+    private function decodeNested(mixed $data): mixed
+    {
+        for ($i = 0; $i < 5 && is_string($data); $i++) {
+            if (trim($data) === '') {
+                return [];
+            }
+
+            $decoded = json_decode($data, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                break;
+            }
+
+            $data = $decoded;
         }
 
-        return json_decode($data, true);
+        return $data;
     }
 
     // ------------------------------------------------------------------
