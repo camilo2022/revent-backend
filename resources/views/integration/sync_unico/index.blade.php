@@ -152,6 +152,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     (function () {
         const form = document.getElementById('syncForm');
@@ -168,14 +169,28 @@
         radios.forEach(r => r.addEventListener('change', toggleRange));
         toggleRange();
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
+            // Se detiene el envío hasta que se confirme en la alerta
+            e.preventDefault();
+
             const mode = form.querySelector('input[name="mode"]:checked').value;
-            if (!confirm('¿Sincronizar con Único las ventas de ' + labels[mode] + '?')) {
-                e.preventDefault();
-                return;
-            }
+            const result = await Swal.fire({
+                icon: 'question',
+                title: '¿Sincronizar con Único?',
+                text: 'Se sincronizarán las ventas de ' + labels[mode] + '.',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, sincronizar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            });
+
+            if (!result.isConfirmed) return;
+
             btn.disabled = true;
             btn.querySelector('.btn-label').textContent = 'Lanzando…';
+            // submit() envía el formulario sin volver a disparar este evento
+            form.submit();
         });
     })();
 </script>
