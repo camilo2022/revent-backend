@@ -382,12 +382,12 @@
                         <option value="" disabled {{ old('warehouse_id') ? '' : 'selected' }}>Selecciona una bodega</option>
                         @foreach ($warehouses as $warehouse)
                             <option value="{{ $warehouse['id'] }}" {{ old('warehouse_id') == $warehouse['id'] ? 'selected' : '' }}>
-                                {{ $warehouse['name'] }}
+                                {{ $warehouse['name'] }}{{ empty($warehouse['transito']) ? ' (sin bodega de tránsito)' : '' }}
                             </option>
                         @endforeach
                     </select>
                     <div class="excel-field-hint">
-                        Se buscará la trazabilidad de las referencias en la bodega seleccionada.
+                        Se revisan la bodega seleccionada y su bodega «TRANSITO» para saber si cada ingreso pasó por tránsito.
                     </div>
                     @error('warehouse_id')
                         <div class="excel-error show">{{ $message }}</div>

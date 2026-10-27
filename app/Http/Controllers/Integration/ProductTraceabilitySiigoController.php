@@ -26,8 +26,11 @@ class ProductTraceabilitySiigoController extends Controller
 
     public function product_traceability()
     {
-        $token = $this->client->token();
-        $warehouses = $this->catalog->warehouses($token);
+        // Solo las bodegas "reales": cada una lleva marcado si tiene su bodega TRANSITO, que la auditoría revisa sola.
+        $warehouses = collect($this->catalog->warehousesWithTransit($this->client->token()))
+            ->reject(fn ($warehouse) => (int) $warehouse['id'] === -1)
+            ->values()
+            ->all();
 
         return view('integration.product_traceability.index', compact('warehouses'));
     }
