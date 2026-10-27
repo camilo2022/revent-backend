@@ -111,12 +111,10 @@ return [
     | Archivos de exporte
     |--------------------------------------------------------------------------
     | Los Excel se envían adjuntos al correo. Si pesan más de max_attachment_mb
-    | se guardan en el disco público (exports/) con enlace de descarga y
-    | siigo:purge-exports los borra pasados retention_days días.
+    | se guardan en el disco público (exports/) con enlace de descarga.
     */
     'exports' => [
         'max_attachment_mb' => (int) env('SIIGO_EXPORT_MAX_ATTACHMENT_MB', 25),
-        'retention_days' => (int) env('SIIGO_EXPORT_RETENTION_DAYS', 7),
     ],
 
     /*

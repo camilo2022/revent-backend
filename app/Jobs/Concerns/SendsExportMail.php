@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Facades\Excel;
  * Generación del Excel y envío del correo de éxito/fallo de los exportes Siigo.
  * El archivo se genera en una ruta temporal y se adjunta al correo; solo si supera
  * config('siigo.exports.max_attachment_mb') se deja en el disco público con enlace de
- * descarga (siigo:purge-exports lo limpia). El job define mailClass() con su Mailable.
+ * descarga. El job define mailClass() con su Mailable.
  */
 trait SendsExportMail
 {
