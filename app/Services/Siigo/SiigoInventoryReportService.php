@@ -87,16 +87,15 @@ class SiigoInventoryReportService
     }
 
     /**
-     * Las dos fechas más recientes en que cada referencia ingresó a la bodega
-     * (movimientos con cantidad de entrada), de los últimos
-     * siigo.inventory.entries_lookback_days días.
+     * Las dos fechas más antiguas en que cada referencia ingresó a la bodega por compra (FC-)
+     * o por traslado (NT-), tomadas en conjunto, desde siigo.inventory.entries_since.
      *
      * @param array<int,array{id:int|string,name:string}> $warehouses bodegas de Siigo
-     * @return array<string,array{0:string,1:?string}> referencia => [fecha más reciente, segunda fecha]
+     * @return array<string,array{0:string,1:?string}> referencia => [primera fecha, segunda fecha]
      */
     public function entryDates(string $token, int $warehouseId, array $warehouses): array
     {
-        $start = Carbon::now()->subDays((int) config('siigo.inventory.entries_lookback_days'))->toDateString();
+        $start = Carbon::parse(config('siigo.inventory.entries_since'))->toDateString();
 
         $movements = $this->withRetry(fn () => $this->traceability->movements(
             $token,
@@ -106,11 +105,18 @@ class SiigoInventoryReportService
             config('siigo.inventory.entry_account_groups')
         ));
 
+        $prefixes = config('siigo.inventory.entry_voucher_prefixes');
         $datesByReference = [];
 
         foreach ($movements as $movement) {
             if ((float) ($movement['EntryQuantity'] ?? 0) <= 0 || empty($movement['ElaborationDate'])) {
                 continue;
+            }
+
+            $voucher = (string) ($movement['Voucher'] ?? '');
+
+            if (!collect($prefixes)->contains(fn ($prefix) => str_starts_with($voucher, $prefix))) {
+                continue; // ajustes, devoluciones y otros comprobantes no cuentan como ingreso
             }
 
             $reference = self::reference((string) ($movement['ProductName'] ?? ''));
@@ -128,7 +134,7 @@ class SiigoInventoryReportService
 
         foreach ($datesByReference as $reference => $dates) {
             $dates = array_keys($dates);
-            rsort($dates);
+            sort($dates);
 
             $result[$reference] = [$dates[0], $dates[1] ?? null];
         }

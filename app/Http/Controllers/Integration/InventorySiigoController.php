@@ -27,13 +27,14 @@ class InventorySiigoController extends Controller
             'type' => $validated['type'] ?? 'Product',
         ];
 
-        $positiveValues = !empty($validated['inventory_type'])
-            ? [$validated['inventory_type'] === 'positivo']
-            : [true, false];
+        // Un solo Excel con una hoja por tipo; sin selección salen las dos (positivo y negativo).
+        $types = match ($validated['inventory_type'] ?? null) {
+            'positivo' => ['positive'],
+            'negativo' => ['negative'],
+            default => ['positive', 'negative'],
+        };
 
-        foreach ($positiveValues as $positive) {
-            ExportInventorySiigoJob::dispatch([...$baseFilters, 'positive' => $positive], $emails);
-        }
+        ExportInventorySiigoJob::dispatch([...$baseFilters, 'types' => $types], $emails);
 
         return view('integration.exports.inventory.result', compact('emails'));
     }

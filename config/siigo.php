@@ -115,7 +115,7 @@ return [
     | siigo:purge-exports los borra pasados retention_days días.
     */
     'exports' => [
-        'max_attachment_mb' => (int) env('SIIGO_EXPORT_MAX_ATTACHMENT_MB', 20),
+        'max_attachment_mb' => (int) env('SIIGO_EXPORT_MAX_ATTACHMENT_MB', 25),
         'retention_days' => (int) env('SIIGO_EXPORT_RETENTION_DAYS', 7),
     ],
 
@@ -150,18 +150,28 @@ return [
     | Reporte de inventarios
     |--------------------------------------------------------------------------
     | excluded_warehouses     : ids de bodega que no salen en el reporte
-    | excluded_account_groups : grupos de cuenta (nombre, en mayúsculas) que no salen
+    | excluded_account_groups : códigos de grupo de cuenta que no salen
+    | account_groups          : código => nombre del grupo (la caché de productos no trae el nombre)
     | entry_account_groups    : grupos que se consultan en la trazabilidad para las fechas de ingreso
-    | entries_lookback_days   : cuántos días atrás se buscan los ingresos de cada referencia
+    | entries_since           : desde cuándo se buscan los ingresos de cada referencia (las dos fechas más antiguas)
     */
     'inventory' => [
         'excluded_warehouses' => [34, 35, 36, 44, 45, 47, -1],
-        'excluded_account_groups' => ['MATERIA PRIMA', 'SERVICIOS TEMPORAL'],
+        // La caché de productos guarda el código del grupo (accountGroupCode), no su nombre.
+        'excluded_account_groups' => [1338, 1190],
+        'account_groups' => [
+            1337 => 'Compra de Calzados',
+            1189 => 'Elab. de Calzados',
+            1338 => 'Materia Prima',
+            1190 => 'Servicios Temporal',
+        ],
         'entry_account_groups' => [
             ['id' => 1337, 'name' => 'Compra de Calzados'],
             ['id' => 1189, 'name' => 'Elab. de Calzados '],
         ],
-        'entries_lookback_days' => (int) env('SIIGO_INVENTORY_ENTRIES_LOOKBACK_DAYS', 365),
+        // Comprobantes que cuentan como ingreso a la bodega: compra (FC-) y traslado (NT-).
+        'entry_voucher_prefixes' => ['FC-', 'NT-'],
+        'entries_since' => env('SIIGO_INVENTORY_ENTRIES_SINCE', '2015-01-01'),
         // Auditoría de tránsitos: días antes de la fecha inicial en que se buscan ingresos al tránsito.
         'transit_lookback_days' => (int) env('SIIGO_TRANSIT_LOOKBACK_DAYS', 90),
     ],

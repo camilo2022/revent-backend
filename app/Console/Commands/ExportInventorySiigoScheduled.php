@@ -21,18 +21,9 @@ class ExportInventorySiigoScheduled extends DispatchesSiigoExport
         return config('siigo.mail.inventory');
     }
 
-    /** Se despacha un job por cada signo de inventario (positivo y negativo). */
+    /** Un solo Excel con las hojas de inventario positivo y negativo. */
     protected function filters(): array
     {
-        return ['page_size' => 100, 'type' => 'Product'];
-    }
-
-    public function handle(): int
-    {
-        foreach ([true, false] as $positive) {
-            $this->job()::dispatch([...$this->filters(), 'positive' => $positive], $this->emails());
-        }
-
-        return self::SUCCESS;
+        return ['page_size' => 100, 'type' => 'Product', 'types' => ['positive', 'negative']];
     }
 }

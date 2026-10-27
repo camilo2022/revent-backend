@@ -34,7 +34,7 @@ trait SendsExportMail
         $tempPath = $local->path($relative);
 
         try {
-            $maxBytes = (int) config('siigo.exports.max_attachment_mb', 20) * 1024 * 1024;
+            $maxBytes = (int) config('siigo.exports.max_attachment_mb', 25) * 1024 * 1024;
             $mail = $this->mailClass();
 
             if (filesize($tempPath) <= $maxBytes) {
