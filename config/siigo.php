@@ -96,18 +96,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Token de la API pública
-    |--------------------------------------------------------------------------
-    | Se guarda en caché para no autenticar en cada petición.
-    | ttl en minutos; el token de Siigo dura 24 h.
-    */
-    'token' => [
-        'cache_key' => 'SIIGO:API-TOKEN',
-        'ttl' => (int) env('SIIGO_TOKEN_TTL', 600),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Archivos de exporte
     |--------------------------------------------------------------------------
     | Los Excel se envían adjuntos al correo. Si pesan más de max_attachment_mb

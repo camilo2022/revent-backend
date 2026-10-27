@@ -2,33 +2,18 @@
 
 namespace App\Services\Siigo;
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 /**
  * Autenticación contra la API pública de Siigo.
- * El token se guarda en caché para no autenticar en cada petición.
+ * Cada llamada a token() inicia sesión de nuevo (sin caché: el token cacheado vencía antes de lo esperado).
  */
 class SiigoAuth
 {
+    /** Inicia sesión en cada llamada: el token no se guarda en caché. $fresh se conserva por compatibilidad. */
     public function token(bool $fresh = false): string
     {
-        $key = config('siigo.token.cache_key');
-
-        if ($fresh) {
-            Cache::forget($key);
-        }
-
-        return Cache::remember(
-            $key,
-            now()->addMinutes(config('siigo.token.ttl')),
-            fn () => $this->authenticate()
-        );
-    }
-
-    public function forget(): void
-    {
-        Cache::forget(config('siigo.token.cache_key'));
+        return $this->authenticate();
     }
 
     private function authenticate(): string
