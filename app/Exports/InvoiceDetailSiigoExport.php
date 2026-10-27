@@ -89,7 +89,7 @@ class InvoiceDetailSiigoExport implements FromGenerator, Responsable, WithHeadin
                 $seller = $this->sellers[$document['seller'] ?? ''] ?? [];
 
                 foreach ($document['items'] ?? [] as $item) {
-                    if (in_array($item['code'], ['G18022025', 'P18022025'])) continue;
+                    if (in_array($item['code'], config('siigo.invoices.excluded_product_codes'))) continue;
 
                     $warehouseData = $item['warehouse'] ?? [];
                     $warehouseId = $warehouseData['id'] ?? null;

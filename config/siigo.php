@@ -147,6 +147,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Productos que no cuentan como venta
+    |--------------------------------------------------------------------------
+    | Los reportes de facturación y la sincronización con Único omiten estos códigos
+    | de producto (aparecen en las facturas con valor simbólico).
+    */
+    'invoices' => [
+        'excluded_product_codes' => ['G18022025', 'P18022025'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Reporte de inventarios
     |--------------------------------------------------------------------------
     | excluded_warehouses     : ids de bodega que no salen en el reporte

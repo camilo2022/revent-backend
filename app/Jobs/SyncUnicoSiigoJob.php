@@ -192,7 +192,7 @@ class SyncUnicoSiigoJob implements ShouldQueue
                     $size = $parts[$count - 1] ?? '#N/A';
                 }
 
-                if (in_array($item['code'], ['G18022025', 'P18022025'])) continue;
+                if (in_array($item['code'], config('siigo.invoices.excluded_product_codes'))) continue;
 
                 $result[] = [
                     'document_number' => in_array($invoice['customer']['identification'] ?? null, $valid_documents)

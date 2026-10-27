@@ -72,7 +72,7 @@ class InvoiceSiigoExport extends DefaultValueBinder implements FromGenerator, Re
             $cost_center = $this->cost_centers[$document['cost_center'] ?? ''] ?? [];
             $seller = $this->sellers[$document['seller'] ?? ''] ?? [];
 
-            $items = collect($document['items'])->whereNotIn('code', ['G18022025', 'P18022025'])->values();
+            $items = collect($document['items'])->whereNotIn('code', config('siigo.invoices.excluded_product_codes'))->values();
 
             $impuesto = $items->sum(fn ($item) => collect($item['taxes'] ?? [])->sum('value'));
             $descuento = $items->sum('discount.value');
