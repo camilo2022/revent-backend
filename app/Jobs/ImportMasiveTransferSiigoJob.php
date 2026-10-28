@@ -58,7 +58,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             24 => ['name' => 'PORTAL', 'transito' => 75, 'users' => [597, 1089, 941, 732, 792, 865, 871, 887, 888, 891, 893, 894, 896, 897, 898, 899, 938, 959, 971, 998, 1001, 1027, 1063, 1072, 1123, 1131, 1132, 1180, 1188, 1226, 1228, 1278, 1295, 1296, 1315, 1318, 1319, 1331, 1351, 1364, 1365, 1378, 1461, 1462, 1463, 1481, 1497, 1508, 1512, 1523, 11574, 11575, 11576, 11598], 'emails' => ['portaldelprado']],
             27 => ['name' => 'CARIBE PLAZA 1', 'transito' => null, 'users' => [597, 1089, 941, 1366], 'emails' => ['caribeplaza']],
             28 => ['name' => 'PLAZA DEL SOL', 'transito' => 76, 'users' => [597, 1089, 941, 780, 930, 1181, 1221, 1261, 1268, 1298, 1328, 1385, 1400, 1430, 1438, 1454, 1467, 1480, 11592], 'emails' => ['plazadelsol']],
-            31 => ['name' => 'WEB', 'transito' => null, 'users' => [597, 1089, 941, 940, 980, 1146], 'emails' => ['paginawebrevent@gmail.com']],
+            31 => ['name' => 'WEB', 'transito' => 10094, 'users' => [597, 1089, 941, 940, 980, 1146], 'emails' => ['paginawebrevent@gmail.com']],
             32 => ['name' => 'CASTELLANA', 'transito' => 77, 'users' => [597, 1089, 941, 926, 1021, 1035, 1040, 1042, 1044, 1046, 1051, 1052, 1053, 1054, 1055, 1058, 1066, 1070, 1073, 1075, 1082, 1085, 1091, 1102, 1106, 1133, 1134, 1142, 1152, 1153, 1154, 1167, 1173, 1174, 1184, 1185, 1187, 1195, 1196, 1202, 1225, 1227, 1229, 1230, 1265, 1266, 1267, 1275, 1276, 1277, 1299, 1307, 1308, 1317, 1352, 1419, 1444, 1483, 1488, 1492, 1494, 1515, 1516, 1517, 1534, 11569, 11570], 'emails' => ['castellana']],
             33 => ['name' => 'UNICO BQ', 'transito' => 78, 'users' => [597, 1089, 941, 1124, 740, 813, 882, 1018, 1122, 1212, 1220, 1222, 1252, 1256, 1259, 1260, 1273, 1274, 1281, 1282, 1283, 1284, 1285, 1286, 1289, 1305, 1312, 1313, 1320, 1321, 1357, 1360, 1375, 1379, 1403, 1424, 1449, 1451, 1460, 1511, 1514, 1524, 11562], 'emails' => ['unico']],
             34 => ['name' => 'CREAR ENSAMBLES', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
@@ -109,6 +109,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             90 => ['name' => 'TRANSITO GUACARI SINCELEJO', 'users' => [597, 1089, 941, 21649], 'emails' => ['guacari']],
             91 => ['name' => 'TRANSITO NUESTRO BOGOTÁ', 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
             94 => ['name' => 'TRANSITO MALL PLAZA CARTAGENA', 'users' => [597], 'emails' => ['operaciones']],
+            10094 => ['name' => 'TRANSITO WEB', 'users' => [597, 1089, 941, 940, 980, 1146], 'emails' => ['paginawebrevent@gmail.com']],
         ]
     ];
 
