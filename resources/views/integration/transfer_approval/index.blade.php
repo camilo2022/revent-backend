@@ -120,6 +120,12 @@
             </table>
         </div>
 
+        <div class="section-title">
+            Imagenes por referencia
+        </div>
+
+        <div class="image-gallery" id="resImages"></div>
+
         <div class="approval-confirm">
             <button type="button" class="checklist-submit-btn" id="confirmBtn">
                 Confirmar aprobacion
@@ -274,6 +280,15 @@
             `;
         }).join('');
 
+        document.getElementById('resImages').innerHTML = (note.images || []).map(function (card) {
+            const colors = card.Colors.map(function (color) { return `<div class="image-color">${esc(color.Color)}</div>`; }).join('');
+            const picture = card.Image
+                ? `<img src="${esc(card.Image)}" alt="${esc(card.Reference)}" loading="lazy">`
+                : '<div class="no-image">Sin imagen</div>';
+
+            return `<div class="image-card">${picture}<div class="image-ref">${esc(card.Reference)}</div>${colors}</div>`;
+        }).join('');
+
         quantityInputs().forEach(paint);
         updateSummary();
         resultCard.classList.add('show');
@@ -309,6 +324,7 @@
     function resetView() {
         currentNote = null;
         itemsBody.innerHTML = '';
+        document.getElementById('resImages').innerHTML = '';
         resultCard.classList.remove('show');
         queryInput.value = '';
         queryInput.focus();

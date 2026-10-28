@@ -22,7 +22,7 @@ use Illuminate\Console\Command;
  * Requiere un worker de colas corriendo:
  *   php artisan queue:work
  */
-class WarmSiigoPurchaseOrderCache extends Command
+class WarmSiigoPurchaseOrderCacheSchedule extends Command
 {
     protected $signature = 'siigo:warm-purchase-cache
         {--months=5 : Cuántos meses atrás cachear, contados desde hoy}

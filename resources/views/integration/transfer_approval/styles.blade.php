@@ -891,4 +891,44 @@
             padding-top: 1.1rem;
             border-top: 1px solid #e5e7eb;
         }
+
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.8rem;
+            margin-top: 0.6rem;
+        }
+
+        .image-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.5rem;
+            text-align: center;
+            background: #fff;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 170px;
+            object-fit: contain;
+        }
+
+        .image-card .no-image {
+            height: 170px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 0.8rem;
+        }
+
+        .image-card .image-ref {
+            font-weight: 700;
+            margin-top: 0.4rem;
+        }
+
+        .image-card .image-color {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
 </style>

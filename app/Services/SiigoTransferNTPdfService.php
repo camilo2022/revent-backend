@@ -236,7 +236,11 @@ class SiigoTransferNTPdfService
         return [$css, $body];
     }
 
-    public function image_groups(array $items): Collection
+    /**
+     * Tarjetas de imagen por referencia y color (misma regla para el PDF y la vista de recepción).
+     * Con $asUrl devuelve la URL pública de la foto en vez de la ruta en disco que necesita dompdf.
+     */
+    public function image_groups(array $items, bool $asUrl = false): Collection
     {
         $disk = Storage::disk(self::DISK);
 
@@ -246,7 +250,7 @@ class SiigoTransferNTPdfService
         return collect($items)
             ->filter(fn ($item) => !empty($item['Reference']))
             ->groupBy(fn ($item) => $this->normalize($item['Reference']))
-            ->flatMap(function ($referenceItems) use ($disk, $referenceDirs) {
+            ->flatMap(function ($referenceItems) use ($disk, $referenceDirs, $asUrl) {
                 $reference = $referenceItems->first()['Reference'];
                 $refDir = $referenceDirs->get($this->normalize($reference));
 
@@ -263,7 +267,7 @@ class SiigoTransferNTPdfService
                 $shared = [];
 
                 foreach ($colors as $color) {
-                    $image = $refDir ? $this->color_folder_image($disk, $refDir, $color['Color']) : null;
+                    $image = $refDir ? $this->color_folder_image($disk, $refDir, $color['Color'], $asUrl) : null;
 
                     if ($image) {
                         // El color tiene su propia carpeta con foto
@@ -284,7 +288,7 @@ class SiigoTransferNTPdfService
                         'Reference' => $reference,
                         'Colors'    => $shared,
                         'Total'     => collect($shared)->sum('Total'),
-                        'Image'     => $refDir ? $this->first_image($disk, $refDir) : null,
+                        'Image'     => $refDir ? $this->first_image($disk, $refDir, $asUrl) : null,
                     ];
                 }
 
@@ -293,12 +297,12 @@ class SiigoTransferNTPdfService
             ->values();
     }
 
-    private function color_folder_image($disk, string $refDir, ?string $color): ?string
+    private function color_folder_image($disk, string $refDir, ?string $color, bool $asUrl = false): ?string
     {
         $colorDir = collect($disk->directories($refDir))
             ->first(fn ($dir) => $this->folder_key(basename($dir)) === $this->folder_key($color));
 
-        return $colorDir ? $this->first_image($disk, $colorDir) : null;
+        return $colorDir ? $this->first_image($disk, $colorDir, $asUrl) : null;
     }
 
     /** Las carpetas de color llevan guion donde el color tiene espacio (AZUL MARINO => AZUL-MARINO). */
@@ -307,7 +311,7 @@ class SiigoTransferNTPdfService
         return preg_replace('/[\s_-]+/', '-', $this->normalize($value));
     }
 
-    private function first_image($disk, string $dir): ?string
+    private function first_image($disk, string $dir, bool $asUrl = false): ?string
     {
         $files = collect($disk->files($dir))
             ->filter(fn ($file) => in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), self::IMAGE_EXT, true))
@@ -315,6 +319,10 @@ class SiigoTransferNTPdfService
             ->values();
 
         foreach ($files as $file) {
+            if ($asUrl) {
+                return '/storage/' . implode('/', array_map('rawurlencode', explode('/', $file)));
+            }
+
             if ($source = $this->image_source($disk, $file)) {
                 return $source;
             }

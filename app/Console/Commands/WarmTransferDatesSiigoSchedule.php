@@ -6,7 +6,7 @@ use App\Jobs\WarmTransferDatesSiigoJob;
 use App\Services\SiigoInventoryService;
 use Illuminate\Console\Command;
 
-class WarmTransferDatesSiigo extends Command
+class WarmTransferDatesSiigoSchedule extends Command
 {
     protected $signature = 'siigo:warm-transfer-dates {--warehouse= : Solo esta bodega (id)}';
 

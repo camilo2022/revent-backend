@@ -97,6 +97,7 @@ class SiigoTransferApprovalService
                 'transit' => ['id' => $transitId, 'name' => $warehouses['TRANSITO'][$transitId]['name']],
                 'destination' => ['id' => $finalId, 'name' => $warehouses['DIRECTO'][$finalId]['name']],
                 'items' => $this->group_items($items),
+                'images' => $this->notes->image_groups($items, true)->all(),
             ],
             'error' => null,
         ];

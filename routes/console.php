@@ -24,3 +24,7 @@ Schedule::command('siigo:sync-unico-scheduled')->hourly()->between('08:00', '22:
 Schedule::command('siigo:warm-purchase-cache')->dailyAt('00:00');
 
 Schedule::command('siigo:cache-products-scheduled')->dailyAt('02:30');
+
+// Traslados directos de ayer por bodega de tienda: un correo por bodega que los haya hecho.
+// Oculto hasta que se habilite en producción: para activarlo, descomentar la línea.
+// Schedule::command('siigo:direct-transfer-alert')->dailyAt('06:00');
