@@ -66,7 +66,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             36 => ['name' => 'ECOMMERCE', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
             37 => ['name' => 'CARNAVAL', 'transito' => 79, 'users' => [597, 1089, 941, 810, 886, 1145, 1147, 1148, 1150, 1151, 1160, 1203, 1233, 1257, 1297, 1324, 1325, 1429, 1466, 1532, 11563, 11565], 'emails' => ['carnaval']],
             44 => ['name' => 'INSTAGRAM', 'transito' => null, 'users' => [597, 1089, 941, 1547], 'emails' => ['operaciones']],
-            45 => ['name' => 'GARANTIAS', 'transito' => 10095, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            45 => ['name' => 'GARANTIAS', 'transito' => 10095, 'users' => [597, 1089, 941], 'emails' => ['garantiasrevent@gmail.com']],
             46 => ['name' => 'GUATAPURI', 'transito' => 80, 'users' => [597, 1089, 941, 1037, 1060, 1166, 1170, 1178, 1255, 1271, 1292, 1304, 1329, 1330, 1356, 1384, 1439, 1445, 1473, 1474, 1475, 1504, 11580], 'emails' => ['guatapuri']],
             47 => ['name' => 'TEMPORADA 2025', 'transito' => null, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
             49 => ['name' => 'VENTURA PLAZA', 'transito' => 81, 'users' => [597, 1192, 1089, 941, 1344, 1345, 1371, 1383, 1495, 1556, 11556], 'emails' => ['venturaplaza']],
@@ -110,7 +110,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             91 => ['name' => 'TRANSITO NUESTRO BOGOTÁ', 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
             94 => ['name' => 'TRANSITO MALL PLAZA CARTAGENA', 'users' => [597], 'emails' => ['operaciones']],
             10094 => ['name' => 'TRANSITO WEB', 'users' => [597, 1089, 941, 940, 980, 1146], 'emails' => ['paginawebrevent@gmail.com']],
-            10095 => ['name' => 'TRANSITO GARANTIAS', 'users' => [597, 1089, 941], 'emails' => ['operaciones']]
+            10095 => ['name' => 'TRANSITO GARANTIAS', 'users' => [597, 1089, 941], 'emails' => ['garantiasrevent@gmail.com']]
         ]
     ];
 
