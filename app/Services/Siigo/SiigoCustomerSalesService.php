@@ -95,7 +95,7 @@ class SiigoCustomerSalesService
      * Nombre y teléfono de cada cliente: primero de la caché y el resto de Siigo en tandas en paralelo.
      *
      * @param array<string,string> $uuids UUID de Siigo indexado por documento
-     * @return array<string,array{name:string,phone:string}> indexado por documento
+     * @return array<string,array{name:string,email:string,phone:string,phone_valid:bool}> indexado por documento
      */
     private function customerContacts(string $token, array $uuids): array
     {
@@ -106,8 +106,8 @@ class SiigoCustomerSalesService
             $identification = (string) $identification;
 
             if ($identification === '' || $identification === self::GENERIC_IDENTIFICATION) {
-                $contacts[$identification] = ['name' => 'CLIENTE GENÉRICO (SIN DATOS)', 'phone' => ''];
-            } elseif ($uuid !== '' && ($cached = Cache::get(self::CACHE_PREFIX . $uuid))) {
+                $contacts[$identification] = ['name' => 'CLIENTE GENÉRICO (SIN DATOS)', 'email' => '', 'phone' => '', 'phone_valid' => false];
+            } elseif ($uuid !== '' && is_array($cached = Cache::get(self::CACHE_PREFIX . $uuid)) && isset($cached['email'])) {
                 $contacts[$identification] = $cached;
             } else {
                 $missing[$identification] = $uuid;
@@ -132,8 +132,8 @@ class SiigoCustomerSalesService
 
                 $contacts[$identification] = [
                     'name' => mb_strtoupper(trim(implode(' ', $customer['name'] ?? [])) ?: 'SIN NOMBRE'),
-                    'phone' => collect($customer['phones'] ?? [])->pluck('number')->filter()->implode(' / '),
-                ];
+                    'email' => collect($customer['contacts'] ?? [])->pluck('email')->filter()->first() ?? '',
+                ] + $this->phones(collect($customer['phones'] ?? [])->pluck('number')->all());
 
                 // Solo se guardan las consultas que Siigo respondió bien
                 if ($found && $uuid !== '') {
@@ -143,6 +143,23 @@ class SiigoCustomerSalesService
         }
 
         return $contacts;
+    }
+
+    /**
+     * Separa los teléfonos válidos: celular de 10 dígitos que empieza por 3 o fijo de 10 dígitos que empieza por 60.
+     * Si ninguno es válido se muestran tal como vienen.
+     *
+     * @return array{phone:string,phone_valid:bool}
+     */
+    private function phones(array $numbers): array
+    {
+        $numbers = array_filter(array_map(fn ($number) => preg_replace('/\D/', '', (string) $number), $numbers));
+        $valid = array_filter($numbers, fn ($number) => preg_match('/^(3\d{9}|60\d{8})$/', $number));
+
+        return [
+            'phone' => implode(' / ', $valid ?: $numbers),
+            'phone_valid' => !empty($valid),
+        ];
     }
 
     /** Consulta varios clientes a la vez en Siigo; devuelve las respuestas indexadas por documento. */

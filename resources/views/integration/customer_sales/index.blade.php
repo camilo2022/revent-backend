@@ -12,6 +12,9 @@
     .cs-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; }
     .cs-name { font-weight: 700; color: #1f2937; }
     .cs-meta { font-size: .82rem; color: #6b7280; }
+    .cs-phone { font-size: 1.15rem; font-weight: 700; color: #166534; }
+    .cs-phone.invalid { color: #991b1b; }
+    .cs-group-title { margin-top: 1.4rem; font-weight: 700; font-size: .95rem; color: #374151; }
     .cs-invoice { margin-top: .7rem; font-size: .82rem; }
     .cs-invoice-title { font-weight: 600; color: #374151; }
 </style>
@@ -65,51 +68,67 @@
     </div>
 
     @if (is_array($customers))
+        @php
+            // Primero los clientes con teléfono válido y después los demás
+            $groups = [
+                'Teléfonos válidos' => array_values(array_filter($customers, fn ($c) => $c['phone_valid'])),
+                'Teléfonos no válidos o sin teléfono' => array_values(array_filter($customers, fn ($c) => !$c['phone_valid'])),
+            ];
+        @endphp
+
         <div class="su-card">
             <div class="excel-upload-title">
                 {{ count($customers) }} {{ count($customers) === 1 ? 'cliente' : 'clientes' }}
             </div>
 
-            @forelse ($customers as $customer)
-                <div class="cs-customer">
-                    <div class="cs-head">
-                        <div>
-                            <div class="cs-name">{{ $customer['name'] }}</div>
-                            <div class="cs-meta">
-                                Documento: {{ $customer['identification'] ?: '—' }}
-                                · Teléfono: {{ $customer['phone'] ?: '—' }}
-                            </div>
-                        </div>
-                        <div class="cs-meta">{{ count($customer['invoices']) }} {{ count($customer['invoices']) === 1 ? 'factura' : 'facturas' }}</div>
-                    </div>
+            @foreach ($groups as $title => $group)
+                @continue(empty($group))
 
-                    @foreach ($customer['invoices'] as $invoice)
-                        <div class="cs-invoice">
-                            <div class="cs-invoice-title">
-                                {{ $invoice['name'] }} · {{ \Carbon\Carbon::parse($invoice['date'])->format('d/m/Y') }} · {{ $fmtMoney($invoice['total']) }}
+                <div class="cs-group-title">{{ $title }} ({{ count($group) }})</div>
+
+                @foreach ($group as $customer)
+                    <div class="cs-customer">
+                        <div class="cs-head">
+                            <div>
+                                <div class="cs-name">{{ $customer['name'] }}</div>
+                                <div class="cs-phone {{ $customer['phone_valid'] ? '' : 'invalid' }}">{{ $customer['phone'] ?: 'Sin teléfono' }}</div>
+                                @if ($customer['email'])
+                                    <div class="cs-meta">{{ $customer['email'] }}</div>
+                                @endif
                             </div>
-                            <div class="su-table-wrap">
-                                <table class="su-table">
-                                    <thead>
-                                        <tr><th>Referencia</th><th>Descripción</th><th class="num">Cantidad</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($invoice['items'] as $item)
-                                            <tr>
-                                                <td>{{ $item['code'] }}</td>
-                                                <td>{{ $item['description'] }}</td>
-                                                <td class="num">{{ $fmtQty($item['quantity']) }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+                            <div class="cs-meta">{{ count($customer['invoices']) }} {{ count($customer['invoices']) === 1 ? 'factura' : 'facturas' }}</div>
                         </div>
-                    @endforeach
-                </div>
-            @empty
+
+                        @foreach ($customer['invoices'] as $invoice)
+                            <div class="cs-invoice">
+                                <div class="cs-invoice-title">
+                                    {{ $invoice['name'] }} · {{ \Carbon\Carbon::parse($invoice['date'])->format('d/m/Y') }} · {{ $fmtMoney($invoice['total']) }}
+                                </div>
+                                <div class="su-table-wrap">
+                                    <table class="su-table">
+                                        <thead>
+                                            <tr><th>Referencia</th><th>Descripción</th><th class="num">Cantidad</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($invoice['items'] as $item)
+                                                <tr>
+                                                    <td>{{ $item['code'] }}</td>
+                                                    <td>{{ $item['description'] }}</td>
+                                                    <td class="num">{{ $fmtQty($item['quantity']) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endforeach
+            @endforeach
+
+            @if (empty($customers))
                 <div class="su-empty">No hay ventas para esa fecha y centro de costo.</div>
-            @endforelse
+            @endif
         </div>
     @endif
 
