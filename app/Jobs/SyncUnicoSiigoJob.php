@@ -187,7 +187,7 @@ class SyncUnicoSiigoJob implements ShouldQueue
         $result = [];
 
         foreach ($invoices as $invoice) {
-            if (!isset($malls[$invoice['cost_center']])) {
+            if (!isset($malls[$invoice['cost_center'] ?? null])) {
                 continue;
             }
 
