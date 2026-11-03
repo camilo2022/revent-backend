@@ -9,8 +9,8 @@ use Illuminate\Console\Command;
 
 /**
  * Precalienta el cache de órdenes de compra / facturas de compra de
- * Siigo desde hace N meses hasta AYER (hoy se consulta en vivo desde
- * el controlador), despachando un Job por cada tramo de fechas
+ * Siigo desde el día 1 del mes que queda N meses atrás del actual (sin contar
+ * el mes en curso) hasta AYER (hoy se consulta en vivo desde el controlador), despachando un Job por cada tramo de fechas
  * (por defecto, 3 días) con un pequeño delay entre uno y otro.
  *
  * Cada ejecución SOBRESCRIBE el cache existente.
@@ -25,11 +25,11 @@ use Illuminate\Console\Command;
 class WarmSiigoPurchaseOrderCacheSchedule extends Command
 {
     protected $signature = 'siigo:warm-purchase-cache
-        {--months=5 : Cuántos meses atrás cachear, contados desde hoy}
+        {--months=5 : Meses atrás, sin contar el mes actual, desde donde se empieza a cachear (día 1 de ese mes)}
         {--chunk-days=3 : Tamaño de cada tramo, en días}
         {--delay=30 : Segundos de espera entre cada tramo despachado a la cola}';
 
-    protected $description = 'Precalienta en cache (por tramos) el listado y detalle de órdenes de compra y facturas de compra de Siigo, desde hace N meses hasta ayer';
+    protected $description = 'Precalienta en cache (por tramos) el listado y detalle de órdenes de compra y facturas de compra de Siigo, desde el día 1 del mes que queda N meses atrás (sin contar el actual) hasta ayer';
 
     public function handle(): int
     {
@@ -37,9 +37,8 @@ class WarmSiigoPurchaseOrderCacheSchedule extends Command
         $chunkDays = max(1, (int) $this->option('chunk-days'));
         $delaySeconds = max(0, (int) $this->option('delay'));
 
-        // Hoy no se cachea: el controlador lo consulta en vivo
-        //$fecha_inicio = Carbon::now()->subMonths($months)->startOfDay();
-        $fecha_inicio = Carbon::parse('2026-04-01')->startOfDay();
+        // 5 meses atrás sin contar el actual (día 1 de ese mes) hasta ayer; hoy no se cachea (el controlador lo consulta en vivo)
+        $fecha_inicio = Carbon::now()->startOfMonth()->subMonths($months);
         $fecha_fin = Carbon::yesterday()->endOfDay();
 
         $this->info("Cacheando desde {$fecha_inicio->toDateString()} hasta {$fecha_fin->toDateString()}, en tramos de {$chunkDays} día(s)...");

@@ -22,7 +22,6 @@ use App\Http\Requests\Integration\InvoicePurchaseOrder\SendAccessLinkRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
@@ -172,8 +171,8 @@ class InvoicePurchaseOrderSiigoController extends Controller
         $productsByCode = app(SiigoProductsCache::class)->keyedByProductId();
 
         // Cache: histórico | En vivo: solo hoy
-        //$fecha_inicio = Carbon::now()->subMonths(5)->startOfDay();
-        $fecha_inicio = Carbon::parse('2026-04-01')->startOfDay();
+        // 5 meses atrás sin contar el actual (día 1 de ese mes) hasta ayer; igual que siigo:warm-purchase-cache
+        $fecha_inicio = Carbon::now()->startOfMonth()->subMonths(5);
         $ayer = Carbon::yesterday();
         $hoy_inicio = Carbon::today();
         $hoy_fin = Carbon::now();

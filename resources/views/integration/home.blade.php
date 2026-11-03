@@ -85,6 +85,7 @@
         .icon-recepcion { background: #ea580c; }
         .icon-pendientes { background: #0d9488; }
         .icon-documentos { background: #65a30d; }
+        .icon-traslado-recepcion { background: #a21caf; }
 
         .report-body {
             flex: 1;
@@ -135,6 +136,7 @@
         .report-card:has(.icon-recepcion) .report-action { color: #ea580c; }
         .report-card:has(.icon-pendientes) .report-action { color: #0d9488; }
         .report-card:has(.icon-documentos) .report-action { color: #65a30d; }
+        .report-card:has(.icon-traslado-recepcion) .report-action { color: #a21caf; }
 
         .report-action svg {
             width: 14px;
@@ -400,27 +402,6 @@
             </div>
         </a>
 
-                {{-- Traslados por recepcionar: oculto hasta que se habilite en producción.
-                <a href="{{ route('siigo.transfer_approval') }}" class="report-card">
-            <div class="report-icon icon-recepcion">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                    <path d="M9 12l2 2 4-4"/>
-                </svg>
-            </div>
-            <div class="report-body">
-                <div class="report-title">Traslados por recepcionar</div>
-                <div class="report-desc">Busca una nota de traslado en tránsito, revisa lo disponible y aprueba las unidades recibidas para crear el traslado a la bodega final.</div>
-            </div>
-            <div class="report-footer">
-                <span class="report-action">
-                    Recepcionar traslado
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </span>
-            </div>
-        </a>
-                --}}
-
         <a href="{{ route('siigo.invoice_purchase_order_access') }}" class="report-card">
             <div class="report-icon icon-pendientes">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -458,6 +439,27 @@
             <div class="report-footer">
                 <span class="report-action">
                     Consultar documento
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
+
+        <a href="{{ route('siigo.transfer_approval') }}" class="report-card">
+            <div class="report-icon icon-traslado-recepcion">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="3" width="15" height="13"/>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                    <circle cx="5.5" cy="18.5" r="2.5"/>
+                    <circle cx="18.5" cy="18.5" r="2.5"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Traslados por recepcionar</div>
+                <div class="report-desc">Busca una nota de traslado en tránsito, revisa lo disponible y aprueba las unidades recibidas para crear el traslado a la bodega final.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Recepcionar traslado
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </span>
             </div>
