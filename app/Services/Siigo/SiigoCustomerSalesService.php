@@ -3,6 +3,10 @@
 namespace App\Services\Siigo;
 
 use Carbon\Carbon;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 /**
  * Clientes que compraron en un rango de fechas (y opcionalmente en un centro de costo):
@@ -12,6 +16,13 @@ class SiigoCustomerSalesService
 {
     /** Documento del "cliente genérico" de las ventas de mostrador: no tiene nombre ni teléfono propios. */
     private const GENERIC_IDENTIFICATION = '222222222222';
+
+    /** Los datos del cliente casi no cambian: se guardan por UUID de Siigo durante 7 días. */
+    private const CACHE_PREFIX = 'SIIGO:CUSTOMER:';
+    private const CACHE_SECONDS = 604800;
+
+    /** Consultas a Siigo al mismo tiempo (más de esto dispara el límite de peticiones). */
+    private const PARALLEL = 5;
 
     public function __construct(private SiigoClient $client)
     {
@@ -49,6 +60,7 @@ class SiigoCustomerSalesService
             }
 
             $identification = (string) ($invoice['customer']['identification'] ?? '');
+            $uuid = (string) ($invoice['customer']['id'] ?? '');
 
             $items = collect($invoice['items'] ?? [])
                 ->whereNotIn('code', $excluded)
@@ -61,6 +73,7 @@ class SiigoCustomerSalesService
                 ->all();
 
             $byCustomer[$identification]['identification'] = $identification;
+            $byCustomer[$identification]['uuid'] = $uuid;
             $byCustomer[$identification]['invoices'][] = [
                 'name' => $invoice['name'] ?? '',
                 'date' => $invoice['date'] ?? '',
@@ -69,34 +82,79 @@ class SiigoCustomerSalesService
             ];
         }
 
-        // Una consulta de nombre y teléfono por cliente
+        $contacts = $this->customerContacts($token, array_column($byCustomer, 'uuid', 'identification'));
+
         foreach ($byCustomer as $identification => &$customer) {
-            $customer += $this->customerContact($token, $identification);
+            $customer += $contacts[$identification];
         }
 
         return collect($byCustomer)->sortBy('name')->values()->all();
     }
 
-    /** @return array{name:string,phone:string} */
-    private function customerContact(string $token, string $identification): array
+    /**
+     * Nombre y teléfono de cada cliente: primero de la caché y el resto de Siigo en tandas en paralelo.
+     *
+     * @param array<string,string> $uuids UUID de Siigo indexado por documento
+     * @return array<string,array{name:string,phone:string}> indexado por documento
+     */
+    private function customerContacts(string $token, array $uuids): array
     {
-        if ($identification === '' || $identification === self::GENERIC_IDENTIFICATION) {
-            return ['name' => 'CLIENTE GENÉRICO (SIN DATOS)', 'phone' => ''];
+        $contacts = [];
+        $missing = [];
+
+        foreach ($uuids as $identification => $uuid) {
+            $identification = (string) $identification;
+
+            if ($identification === '' || $identification === self::GENERIC_IDENTIFICATION) {
+                $contacts[$identification] = ['name' => 'CLIENTE GENÉRICO (SIN DATOS)', 'phone' => ''];
+            } elseif ($uuid !== '' && ($cached = Cache::get(self::CACHE_PREFIX . $uuid))) {
+                $contacts[$identification] = $cached;
+            } else {
+                $missing[$identification] = $uuid;
+            }
         }
 
-        $response = $this->client->api($token)->get(config('siigo.endpoints.api.customers'), ['identification' => $identification]);
+        foreach (array_chunk($missing, self::PARALLEL, true) as $batch) {
+            $responses = $this->fetchBatch($token, array_keys($batch));
 
-        // Si Siigo limita las consultas se espera un segundo y se reintenta una vez
-        if ($response->status() === 429) {
-            sleep(1);
-            $response = $this->client->api($token)->get(config('siigo.endpoints.api.customers'), ['identification' => $identification]);
+            // Las que Siigo limitó o fallaron se reintentan una vez, de a una, tras una pausa
+            $retry = array_filter(array_keys($batch), fn ($id) => !($responses[$id] ?? null) instanceof Response || !$responses[$id]->successful());
+
+            if ($retry) {
+                sleep(2);
+                $responses = array_replace($responses, $this->fetchBatch($token, $retry));
+            }
+
+            foreach ($batch as $identification => $uuid) {
+                $response = $responses[$identification] ?? null;
+                $found = $response instanceof Response && $response->successful();
+                $customer = $found ? ($response->json('results.0') ?? []) : [];
+
+                $contacts[$identification] = [
+                    'name' => mb_strtoupper(trim(implode(' ', $customer['name'] ?? [])) ?: 'SIN NOMBRE'),
+                    'phone' => collect($customer['phones'] ?? [])->pluck('number')->filter()->implode(' / '),
+                ];
+
+                // Solo se guardan las consultas que Siigo respondió bien
+                if ($found && $uuid !== '') {
+                    Cache::put(self::CACHE_PREFIX . $uuid, $contacts[$identification], self::CACHE_SECONDS);
+                }
+            }
         }
 
-        $customer = $response->successful() ? ($response->json('results.0') ?? []) : [];
+        return $contacts;
+    }
 
-        return [
-            'name' => mb_strtoupper(trim(implode(' ', $customer['name'] ?? [])) ?: 'SIN NOMBRE'),
-            'phone' => collect($customer['phones'] ?? [])->pluck('number')->filter()->implode(' / '),
-        ];
+    /** Consulta varios clientes a la vez en Siigo; devuelve las respuestas indexadas por documento. */
+    private function fetchBatch(string $token, array $identifications): array
+    {
+        return Http::pool(fn (Pool $pool) => array_map(
+            fn ($identification) => $pool->as((string) $identification)
+                ->baseUrl(config('siigo.urls.api'))
+                ->timeout(60)
+                ->withHeaders(['Authorization' => $token, 'Partner-Id' => config('siigo.partner_id')])
+                ->get(config('siigo.endpoints.api.customers'), ['identification' => $identification]),
+            $identifications
+        ));
     }
 }
