@@ -85,6 +85,7 @@
         .icon-recepcion { background: #ea580c; }
         .icon-pendientes { background: #0d9488; }
         .icon-documentos { background: #65a30d; }
+        .icon-clientes { background: #0d9488; }
         .icon-traslado-recepcion { background: #a21caf; }
 
         .report-body {
@@ -136,6 +137,7 @@
         .report-card:has(.icon-recepcion) .report-action { color: #ea580c; }
         .report-card:has(.icon-pendientes) .report-action { color: #0d9488; }
         .report-card:has(.icon-documentos) .report-action { color: #65a30d; }
+        .report-card:has(.icon-clientes) .report-action { color: #0d9488; }
         .report-card:has(.icon-traslado-recepcion) .report-action { color: #a21caf; }
 
         .report-action svg {
@@ -454,12 +456,33 @@
                 </svg>
             </div>
             <div class="report-body">
-                <div class="report-title">Traslados por recepcionar</div>
+                <div class="report-title">Traslados por Recepcionar</div>
                 <div class="report-desc">Busca una nota de traslado en tránsito, revisa lo disponible y aprueba las unidades recibidas para crear el traslado a la bodega final.</div>
             </div>
             <div class="report-footer">
                 <span class="report-action">
                     Recepcionar traslado
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+            </div>
+        </a>
+
+        <a href="{{ route('siigo.customer_sales') }}" class="report-card">
+            <div class="report-icon icon-clientes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <div class="report-body">
+                <div class="report-title">Clientes por Venta</div>
+                <div class="report-desc">Consulta qué clientes compraron en una fecha y centro de costo, con su teléfono y lo que compraron.</div>
+            </div>
+            <div class="report-footer">
+                <span class="report-action">
+                    Consultar clientes
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </span>
             </div>

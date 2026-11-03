@@ -49,6 +49,7 @@ return [
             'credit_notes' => '/v1/credit-notes',
             'users' => '/v1/users',
             'cost_centers' => '/v1/cost-centers',
+            'customers' => '/v1/customers',
         ],
         'services' => [
             'report' => '/document/api/v1/reports/getreport',

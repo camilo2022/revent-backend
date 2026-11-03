@@ -14,6 +14,7 @@ use App\Http\Controllers\Integration\ProductTraceabilitySiigoController;
 use App\Http\Controllers\Integration\MasivePurchaseOrderSiigoController;
 use App\Http\Controllers\Integration\PhotoProductSiigoController;
 use App\Http\Controllers\Integration\SearchDocumentSiigoController;
+use App\Http\Controllers\Integration\CustomerSalesSiigoController;
 use App\Http\Controllers\Integration\TransferApprovalSiigoController;
 use Illuminate\Support\Facades\Route;
 
@@ -93,6 +94,9 @@ Route::get('/siigo/invoice_purchase_order_missing_download', [InvoicePurchaseOrd
 Route::get('/siigo/transfer_approval', [TransferApprovalSiigoController::class, 'transfer_approval'])->name('siigo.transfer_approval');
 Route::post('/siigo/transfer_approval/search', [TransferApprovalSiigoController::class, 'transfer_approval_search'])->name('siigo.transfer_approval_search');
 Route::post('/siigo/transfer_approval/confirm', [TransferApprovalSiigoController::class, 'transfer_approval_confirm'])->name('siigo.transfer_approval_confirm');
+
+Route::get('/siigo/customer_sales', [CustomerSalesSiigoController::class, 'customer_sales'])->name('siigo.customer_sales');
+Route::post('/siigo/customer_sales/search', [CustomerSalesSiigoController::class, 'customer_sales_search'])->name('siigo.customer_sales_search');
 
 Route::get('/siigo/search_document', [SearchDocumentSiigoController::class, 'search_document'])->name('siigo.search_document');
 Route::get('/siigo/search_document/search', [SearchDocumentSiigoController::class, 'search_document_search'])->name('siigo.search_document_search');
