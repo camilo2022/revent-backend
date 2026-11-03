@@ -188,7 +188,7 @@ return [
         'technology' => env('SIIGO_MAIL_TECHNOLOGY', 'tecnologia@revent.com.co'),
 
         // Alerta diaria de traslados directos entre bodegas.
-        'direct_transfers' => array_filter(array_map('trim', explode(',', env('SIIGO_MAIL_DIRECT_TRANSFERS', 'tecnologia@revent.com.co')))),
+        'direct_transfers' => array_filter(array_map('trim', explode(',', env('SIIGO_MAIL_DIRECT_TRANSFERS', 'auditoria@revent.com.co')))),
         'purchase_reception' => env('SIIGO_MAIL_PURCHASE_RECEPTION', 'recepciondeoc@revent.com.co'),
     ],
 
