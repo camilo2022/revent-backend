@@ -42,18 +42,18 @@
             <div class="cs-form">
                 <div>
                     <label for="date_start">Fecha inicial</label>
-                    <input type="date" id="date_start" name="date_start" value="{{ old('date_start', now()->subYear()->format('Y-m-d')) }}" required>
+                    <input type="date" id="date_start" name="date_start" value="{{ old('date_start', request('date_start', now()->subYear()->format('Y-m-d'))) }}" required>
                 </div>
                 <div>
                     <label for="date_end">Fecha final (opcional)</label>
-                    <input type="date" id="date_end" name="date_end" value="{{ old('date_end') }}">
+                    <input type="date" id="date_end" name="date_end" value="{{ old('date_end', request('date_end')) }}">
                 </div>
                 <div>
                     <label for="cost_center">Centro de costo (tienda)</label>
                     <select id="cost_center" name="cost_center">
                         <option value="">Todos</option>
                         @foreach ($costCenters as $center)
-                            <option value="{{ $center['id'] }}" {{ (string) old('cost_center') === (string) $center['id'] ? 'selected' : '' }}>{{ $center['name'] }}</option>
+                            <option value="{{ $center['id'] }}" {{ (string) old('cost_center', request('cost_center')) === (string) $center['id'] ? 'selected' : '' }}>{{ $center['name'] }}</option>
                         @endforeach
                     </select>
                 </div>
