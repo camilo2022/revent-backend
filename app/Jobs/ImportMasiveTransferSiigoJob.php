@@ -79,7 +79,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             62 => ['name' => 'NUESTRO URABÁ', 'transito' => 88, 'users' => [597, 1089, 941, 21648], 'emails' => ['nuestrouraba']],
             63 => ['name' => 'NUESTRO CARTAGO', 'transito' => 89, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
             66 => ['name' => 'GUACARI SINCELEJO', 'transito' => 90, 'users' => [597, 1089, 941, 21649], 'emails' => ['guacari']],
-            69 => ['name' => 'NUESTRO BOGOTÁ', 'transito' => 91, 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            69 => ['name' => 'NUESTRO BOGOTÁ', 'transito' => 91, 'users' => [597, 1089, 941, 41697], 'emails' => ['operaciones']],
             93 => ['name' => 'MALL PLAZA CARTAGENA', 'transito' => 94, 'users' => [597], 'emails' => ['operaciones']],
             10093 => ['name' => 'IMPORTADO', 'transito' => null, 'users' => [597], 'emails' => ['operaciones']],
         ],
@@ -107,7 +107,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
             88 => ['name' => 'TRANSITO NUESTRO URABÁ', 'users' => [597, 1089, 941, 21648], 'emails' => ['nuestrouraba']],
             89 => ['name' => 'TRANSITO NUESTRO CARTAGO', 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
             90 => ['name' => 'TRANSITO GUACARI SINCELEJO', 'users' => [597, 1089, 941, 21649], 'emails' => ['guacari']],
-            91 => ['name' => 'TRANSITO NUESTRO BOGOTÁ', 'users' => [597, 1089, 941], 'emails' => ['operaciones']],
+            91 => ['name' => 'TRANSITO NUESTRO BOGOTÁ', 'users' => [597, 1089, 941, 41697], 'emails' => ['operaciones']],
             94 => ['name' => 'TRANSITO MALL PLAZA CARTAGENA', 'users' => [597], 'emails' => ['operaciones']],
             10094 => ['name' => 'TRANSITO WEB', 'users' => [597, 1089, 941, 940, 980, 1146], 'emails' => ['paginawebrevent@gmail.com']],
             10095 => ['name' => 'TRANSITO GARANTIAS', 'users' => [597, 1089, 941], 'emails' => ['garantiasrevent@gmail.com']]
