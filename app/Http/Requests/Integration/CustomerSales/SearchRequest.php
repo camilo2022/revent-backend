@@ -19,6 +19,7 @@ class SearchRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'token' => ['required', 'string'],
             'date_start' => ['required', 'date_format:Y-m-d'],
             'date_end' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_start'],
             'cost_center' => ['nullable', 'integer'],
@@ -44,6 +45,7 @@ class SearchRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'token.required' => 'Pega el token de Siigo para consultar.',
             'date_start.required' => 'Indica la fecha a consultar.',
             'date_format' => 'El campo :attribute no tiene un formato de fecha válido.',
             'date_end.after_or_equal' => 'La fecha final no puede ser anterior a la inicial.',
@@ -54,6 +56,7 @@ class SearchRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'token' => 'token',
             'date_start' => 'fecha inicial',
             'date_end' => 'fecha final',
         ];
