@@ -40,6 +40,15 @@ class ErpPermissionsSeeder extends Seeder
                 ],
             ],
             [
+                'role' => ['name' => 'reports', 'title' => 'Reportes', 'description' => 'Consulta y exportación de reportes.'],
+                'permissions' => [
+                    ['name' => 'reports.all', 'title' => 'Listar reportes', 'description' => 'Permite listar los reportes disponibles.'],
+                    ['name' => 'reports.find', 'title' => 'Consultar reporte', 'description' => 'Permite consultar los campos y filtros de un reporte.'],
+                    ['name' => 'reports.generate', 'title' => 'Generar reporte', 'description' => 'Permite generar un reporte con los campos y filtros elegidos.'],
+                    ['name' => 'reports.export', 'title' => 'Exportar reporte', 'description' => 'Permite exportar un reporte a Excel.'],
+                ],
+            ],
+            [
                 'role' => ['name' => 'technical_sheets', 'title' => 'Fichas técnicas', 'description' => 'Gestión de fichas técnicas.'],
                 'permissions' => [
                     ['name' => 'technical_sheets.all', 'title' => 'Listar fichas técnicas', 'description' => 'Permite listar fichas técnicas.'],

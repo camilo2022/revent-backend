@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RiskManagerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BloodTypeController;
@@ -66,6 +67,13 @@ use App\Models\Store;
 use App\Models\Product;
 use App\Models\TechnicalSheet;
 use App\Models\ProductionOrder;
+
+Route::prefix('/reports')->controller(ReportController::class)->group(function () {
+    Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:reports.all']);
+    Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:reports.find']);
+    Route::post('/generate/{id}', 'generate')->middleware(['auth:sanctum', 'can:reports.generate']);
+    Route::post('/export/{id}', 'export')->middleware(['auth:sanctum', 'can:reports.export']);
+});
 
 Route::prefix('/audits')->controller(AuditController::class)->group(function () {
     Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:audits.all']);

@@ -24,6 +24,9 @@ class ErpNavigationSeeder extends Seeder
                 ['Fichas técnicas', '/technical_sheets', 'technical_sheets', 'technical_sheets.all'],
                 ['Órdenes de producción', '/production_orders', 'production_orders', 'production_orders.all'],
             ]],
+            'Reportes' => ['reports', [
+                ['Reportes', '/reports', 'reports', 'reports.all'],
+            ]],
             'Catálogos' => ['catalogs', [
                 ['Colores', '/colors', 'colors', 'colors.all'],
                 ['Tallas', '/sizes', 'sizes', 'sizes.all'],
