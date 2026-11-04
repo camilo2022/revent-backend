@@ -4,59 +4,74 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Integration\CustomerSales\SearchRequest;
+use App\Services\Siigo\SiigoClient;
 use App\Services\Siigo\SiigoCustomerSalesService;
-use Illuminate\Http\Request;
+use App\Services\Siigo\SiigoUserService;
 
 /**
- * Consulta de clientes que compraron en una fecha (o rango) y en un centro de costo, con lo que compraron.
- * Siempre usa el token de la API de Siigo que la persona pega en pantalla, nunca el generado con las credenciales del .env.
+ * Consulta de clientes que compraron en una fecha y en un centro de costo, con lo que compraron.
+ * El token que pega la persona (el mismo de las otras pantallas) solo valida que sea un usuario real de Siigo;
+ * los datos se consultan con el token normal de la API, generado con las credenciales del .env.
  */
 class CustomerSalesSiigoController extends Controller
 {
-    public function __construct(private SiigoCustomerSalesService $sales)
+    public function __construct(
+        private SiigoCustomerSalesService $sales,
+        private SiigoClient $client,
+        private SiigoUserService $siigoUsers
+    )
     {
     }
 
     public function customer_sales()
     {
-        return view('integration.customer_sales.index', [
-            'costCenters' => [],
+        $view = view('integration.customer_sales.index', [
+            'costCenters' => $this->costCenters(),
             'customers' => null,
         ]);
-    }
 
-    /** Centros de costo para el filtro, cargados con el token pegado. */
-    public function customer_sales_cost_centers(Request $request)
-    {
-        $request->validate(['token' => ['required', 'string']]);
-
-        try {
-            return response()->json(['success' => true, 'cost_centers' => $this->sales->costCenters(trim($request->input('token')))]);
-        } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'message' => 'Token inválido o vencido.'], 401);
-        }
+        return $this->costCentersFailed ? $view->withErrors(['cost_center' => 'No se pudieron cargar los centros de costo.']) : $view;
     }
 
     public function customer_sales_search(SearchRequest $request)
     {
-        // La consulta recorre todas las facturas del rango: puede tardar
+        // El token debe ser de un usuario válido de Siigo (si no, nadie sin acceso consulta clientes)
+        $user = $this->siigoUsers->fromToken(trim($request->input('token')));
+
+        if (!$user['success']) {
+            // El token no se guarda en la sesión
+            return back()->withInput($request->except('token'))->withErrors(['token' => 'El token no es válido o ya venció. Cópialo de nuevo desde Siigo.']);
+        }
+
+        // La consulta recorre todas las facturas del día: puede tardar
         set_time_limit(600);
 
-        $token = trim($request->input('token'));
-        $dateEnd = $request->input('date_end') ?: $request->input('date_start');
+        $date = $request->input('date');
         $costCenter = $request->filled('cost_center') ? (int) $request->input('cost_center') : null;
 
         try {
-            $costCenters = $this->sales->costCenters($token);
-            $customers = $this->sales->search($token, $request->input('date_start'), $dateEnd, $costCenter);
+            $customers = $this->sales->search($this->client->token(), $date, $date, $costCenter);
         } catch (\Throwable $e) {
-            // El token no se guarda en la sesión
-            return back()->withInput($request->except('token'))->withErrors(['token' => 'No se pudo consultar Siigo (revisa que el token sea válido y no haya vencido).']);
+            return back()->withInput($request->except('token'))->withErrors(['date' => 'No se pudo consultar Siigo. Inténtalo de nuevo en unos minutos.']);
         }
 
         return view('integration.customer_sales.index', [
-            'costCenters' => $costCenters,
+            'costCenters' => $this->costCenters(),
             'customers' => $customers,
         ]);
+    }
+
+    private bool $costCentersFailed = false;
+
+    // Centros de costo con el token del .env; si Siigo falla, el filtro queda vacío y se avisa
+    private function costCenters(): array
+    {
+        try {
+            return $this->sales->costCenters($this->client->token());
+        } catch (\Throwable $e) {
+            $this->costCentersFailed = true;
+
+            return [];
+        }
     }
 }

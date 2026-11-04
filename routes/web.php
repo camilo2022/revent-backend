@@ -96,7 +96,6 @@ Route::post('/siigo/transfer_approval/search', [TransferApprovalSiigoController:
 Route::post('/siigo/transfer_approval/confirm', [TransferApprovalSiigoController::class, 'transfer_approval_confirm'])->name('siigo.transfer_approval_confirm');
 
 Route::get('/siigo/customer_sales', [CustomerSalesSiigoController::class, 'customer_sales'])->name('siigo.customer_sales');
-Route::post('/siigo/customer_sales/cost_centers', [CustomerSalesSiigoController::class, 'customer_sales_cost_centers'])->name('siigo.customer_sales_cost_centers');
 Route::post('/siigo/customer_sales/search', [CustomerSalesSiigoController::class, 'customer_sales_search'])->name('siigo.customer_sales_search');
 
 Route::get('/siigo/search_document', [SearchDocumentSiigoController::class, 'search_document'])->name('siigo.search_document');

@@ -33,7 +33,7 @@
         <div class="excel-upload-subtitle">
             Consulta qué clientes compraron en una fecha, con su teléfono y lo que compraron.
             Sirve, por ejemplo, para ver quién compró este mismo día el año pasado.
-            Si dejas la fecha final vacía se consulta solo el día inicial (máximo {{ \App\Http\Requests\Integration\CustomerSales\SearchRequest::MAX_DAYS }} días).
+            Se consulta un solo día. El token de Siigo solo valida tu acceso.
         </div>
 
         @if ($errors->any())
@@ -44,20 +44,16 @@
             @csrf
             <div class="cs-form">
                 <div style="grid-column: 1 / -1;">
-                    <label for="token">Token de Siigo</label>
+                    <label for="token">Token de Siigo (valida tu acceso)</label>
                     <input type="text" id="token" name="token" value="{{ request('token') }}" placeholder="Pega aquí el token" autocomplete="off" required>
                 </div>
                 <div>
-                    <label for="date_start">Fecha inicial</label>
-                    <input type="date" id="date_start" name="date_start" value="{{ old('date_start', request('date_start', now()->subYear()->format('Y-m-d'))) }}" required>
-                </div>
-                <div>
-                    <label for="date_end">Fecha final (opcional)</label>
-                    <input type="date" id="date_end" name="date_end" value="{{ old('date_end', request('date_end')) }}">
+                    <label for="date">Fecha</label>
+                    <input type="date" id="date" name="date" value="{{ old('date', request('date', now()->subYear()->format('Y-m-d'))) }}" required>
                 </div>
                 <div>
                     <label for="cost_center">Centro de costo (tienda)</label>
-                    <select id="cost_center" name="cost_center" data-selected="{{ old('cost_center', request('cost_center')) }}">
+                    <select id="cost_center" name="cost_center">
                         <option value="">Todos</option>
                         @foreach ($costCenters as $center)
                             <option value="{{ $center['id'] }}" {{ (string) old('cost_center', request('cost_center')) === (string) $center['id'] ? 'selected' : '' }}>{{ $center['name'] }}</option>
@@ -141,37 +137,6 @@
 
 @push('scripts')
 <script>
-    const tokenInput = document.getElementById('token');
-    const centerSelect = document.getElementById('cost_center');
-
-    // Al pegar el token se cargan los centros de costo (solo si aún no hay lista)
-    tokenInput.addEventListener('change', async () => {
-        const token = tokenInput.value.trim();
-        if (!token || centerSelect.options.length > 1) return;
-
-        try {
-            const response = await fetch('{{ route('siigo.customer_sales_cost_centers') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: JSON.stringify({ token }),
-            });
-            const data = await response.json();
-
-            if (!data.success) {
-                alert(data.message);
-                return;
-            }
-
-            data.cost_centers.forEach((center) => centerSelect.add(new Option(center.name, center.id)));
-        } catch (e) {
-            alert('No se pudieron cargar los centros de costo.');
-        }
-    });
-
     // Evita lanzar la consulta dos veces mientras Siigo responde
     document.getElementById('csForm').addEventListener('submit', () => {
         const btn = document.getElementById('csBtn');
