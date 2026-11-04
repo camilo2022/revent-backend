@@ -24,6 +24,7 @@ class MasiveTransferWarehousesSiigoExport extends DefaultValueBinder implements 
     public function headings(): array
     {
         return [
+            'bodega',
             'id',
             'nombre',
             'transito'
@@ -39,6 +40,7 @@ class MasiveTransferWarehousesSiigoExport extends DefaultValueBinder implements 
     {
         foreach($this->warehouses as $warehouse) {
             yield [
+                'bodega' => $warehouse['id'] . '-' . $warehouse['name'],
                 'id' => $warehouse['id'],
                 'nombre' => $warehouse['name'],
                 'transito' => $warehouse['transito'] ? 'SI' : 'NO'

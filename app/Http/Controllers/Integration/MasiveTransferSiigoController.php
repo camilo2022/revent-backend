@@ -8,6 +8,7 @@ use App\Imports\MasiveTransferSiigoSheetsImport;
 use App\Jobs\ImportMasiveTransferSiigoJob;
 use App\Services\Siigo\SiigoClient;
 use App\Http\Requests\Integration\MasiveTransfer\MasiveTransferUploadRequest;
+use App\Support\WarehouseOption;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MasiveTransferSiigoController extends Controller
@@ -33,6 +34,8 @@ class MasiveTransferSiigoController extends Controller
         $email = $request->input('email');
 
         $transfer = Excel::toCollection(new MasiveTransferSiigoSheetsImport, $request->file('file'));
+
+        $transfer = WarehouseOption::normalize($transfer, 'traslado_detalles', ['bodega_salida', 'bodega_entrada']);
 
         ImportMasiveTransferSiigoJob::dispatch($transfer, $email);
 

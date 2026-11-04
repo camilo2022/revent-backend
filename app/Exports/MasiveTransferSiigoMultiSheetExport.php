@@ -15,7 +15,7 @@ class MasiveTransferSiigoMultiSheetExport implements WithMultipleSheets
     public function __construct($transfer, $transfer_details, $warehouses = [])
     {
         $this->sheet_transfer = new MasiveTransferSiigoExport($transfer);
-        $this->sheet_transfer_details = new MasiveTransferDetailSiigoExport($transfer_details);
+        $this->sheet_transfer_details = new MasiveTransferDetailSiigoExport($transfer_details, $warehouses);
         $this->warehouses = new MasiveTransferWarehousesSiigoExport($warehouses);
     }
 

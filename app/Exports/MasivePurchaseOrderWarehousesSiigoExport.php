@@ -23,6 +23,7 @@ class MasivePurchaseOrderWarehousesSiigoExport implements FromGenerator, Respons
     public function headings(): array
     {
         return [
+            'bodega',
             'id',
             'nombre'
         ];
@@ -37,6 +38,7 @@ class MasivePurchaseOrderWarehousesSiigoExport implements FromGenerator, Respons
     {
         foreach($this->warehouses as $warehouse) {
             yield [
+                'bodega' => $warehouse['id'] . '-' . $warehouse['name'],
                 'id' => $warehouse['id'],
                 'nombre' => $warehouse['name']
             ];

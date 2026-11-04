@@ -9,6 +9,7 @@ use App\Jobs\ImportMasivePurchaseOrderSiigoJob;
 use App\Services\Siigo\SiigoClient;
 use App\Http\Requests\Integration\MasivePurchaseOrder\MasivePurchaseOrderFormatRequest;
 use App\Http\Requests\Integration\MasivePurchaseOrder\MasivePurchaseOrderUploadRequest;
+use App\Support\WarehouseOption;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MasivePurchaseOrderSiigoController extends Controller
@@ -64,6 +65,8 @@ class MasivePurchaseOrderSiigoController extends Controller
         $email = $request->input('email');
 
         $order = Excel::toCollection(new MasivePurchaseOrderSiigoSheetsImport, $request->file('file'));
+
+        $order = WarehouseOption::normalize($order, 'orden_compra_detalles', ['bodega']);
 
         ImportMasivePurchaseOrderSiigoJob::dispatch($order, $email, $referencia);
 
