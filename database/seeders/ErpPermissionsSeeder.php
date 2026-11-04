@@ -9,7 +9,7 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Permisos del ERP (colecciones, fichas técnicas, órdenes de producción) y los de cargos que las rutas usan.
+ * Permisos del ERP (colecciones, fichas técnicas, órdenes de producción) y el nombre correcto de los de cargos.
  * Se puede correr varias veces (o solo, en una base ya sembrada): crea lo que falta y no repite nada.
  *   php artisan db:seed --class=ErpPermissionsSeeder
  */
@@ -17,6 +17,16 @@ class ErpPermissionsSeeder extends Seeder
 {
     public function run(): void
     {
+        // Las rutas de cargos usan `organizational_structure.areas.positions.*`, pero el seeder original los creó
+        // como `organizational_structure.positions.*`. Se renombran (conservan su id, así las asignaciones siguen).
+        foreach (['all', 'find', 'store', 'update', 'delete', 'restore', 'authorization.assign', 'authorization.remove'] as $action) {
+            $old = Permission::where('name', "organizational_structure.positions.{$action}")->first();
+
+            if ($old && !Permission::where('name', "organizational_structure.areas.positions.{$action}")->exists()) {
+                $old->update(['name' => "organizational_structure.areas.positions.{$action}"]);
+            }
+        }
+
         $groups = [
             [
                 'role' => ['name' => 'collections', 'title' => 'Colecciones', 'description' => 'Gestión de colecciones.'],
@@ -51,20 +61,6 @@ class ErpPermissionsSeeder extends Seeder
                     ['name' => 'production_orders.update', 'title' => 'Actualizar orden de producción', 'description' => 'Permite actualizar órdenes de producción.'],
                     ['name' => 'production_orders.approved', 'title' => 'Aprobar orden de producción', 'description' => 'Permite aprobar órdenes de producción.'],
                     ['name' => 'production_orders.canceled', 'title' => 'Cancelar orden de producción', 'description' => 'Permite cancelar órdenes de producción.'],
-                ],
-            ],
-            // Las rutas de cargos usan estos nombres (el seeder original creó otros que ninguna ruta usa)
-            [
-                'role' => ['name' => 'organizational_structure.areas.positions', 'title' => 'Cargos', 'description' => 'Gestión de cargos.'],
-                'permissions' => [
-                    ['name' => 'organizational_structure.areas.positions.all', 'title' => 'Listar cargos', 'description' => 'Permite listar cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.find', 'title' => 'Consultar cargo', 'description' => 'Permite consultar un cargo.'],
-                    ['name' => 'organizational_structure.areas.positions.store', 'title' => 'Crear cargo', 'description' => 'Permite crear cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.update', 'title' => 'Actualizar cargo', 'description' => 'Permite actualizar cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.delete', 'title' => 'Eliminar cargo', 'description' => 'Permite eliminar cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.restore', 'title' => 'Restaurar cargo', 'description' => 'Permite restaurar cargos.'],
-                    ['name' => 'organizational_structure.areas.positions.authorization.assign', 'title' => 'Asignar permisos a cargo', 'description' => 'Permite asignar permisos a un cargo.'],
-                    ['name' => 'organizational_structure.areas.positions.authorization.remove', 'title' => 'Quitar permisos a cargo', 'description' => 'Permite quitar permisos a un cargo.'],
                 ],
             ],
         ];

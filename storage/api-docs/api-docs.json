@@ -3792,6 +3792,619 @@
                 ]
             }
         },
+        "/classification/collections/all": {
+            "get": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Listar colecciones",
+                "operationId": "59b34a99e745a1c8052e1402e0722795",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Filtro de búsqueda.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "fin de año"
+                        }
+                    },
+                    {
+                        "name": "column",
+                        "in": "query",
+                        "description": "Columna a ordenar.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "id",
+                                "name",
+                                "year",
+                                "code",
+                                "created_at",
+                                "updated_at",
+                                "deleted_at"
+                            ],
+                            "example": "year"
+                        }
+                    },
+                    {
+                        "name": "dir",
+                        "in": "query",
+                        "description": "Orden de datos.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "example": "desc"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página. Sin enviarlo se devuelven todos.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "with_trashed",
+                        "in": "query",
+                        "description": "Registros inactivos.",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de colecciones cargada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "collections": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Collection"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "pagination": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "count": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "per_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "current_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "total_pages": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/classification/collections/find/{id}": {
+            "get": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Obtener una colección",
+                "operationId": "a9d62d75a7612721d620c93a7cde5eff",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la colección",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Colección cargada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "collection": {
+                                                    "$ref": "#/components/schemas/Collection"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Identificador no registrado"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/classification/collections/store": {
+            "post": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Crear una colección",
+                "operationId": "028b8988129d20142f606a5d02e76ebd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "year",
+                                    "code"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "COLECCION 5"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Colección de fin de año",
+                                        "nullable": true
+                                    },
+                                    "year": {
+                                        "type": "string",
+                                        "example": "26"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "example": "5"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Colección creada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "collection": {
+                                                    "$ref": "#/components/schemas/Collection"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/classification/collections/update/{id}": {
+            "put": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Actualizar una colección",
+                "operationId": "9936a8800735bacf25d9284db9a167de",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la colección",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "year",
+                                    "code"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "COLECCION 5"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Colección de fin de año",
+                                        "nullable": true
+                                    },
+                                    "year": {
+                                        "type": "string",
+                                        "example": "26"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "example": "5"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Colección actualizada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "collection": {
+                                                    "$ref": "#/components/schemas/Collection"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/classification/collections/delete/{id}": {
+            "delete": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Eliminar (inactivar) una colección sin productos",
+                "operationId": "d61565837f9ae213ce0b8a4fead53720",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la colección",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Colección eliminada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "collection": {
+                                                    "$ref": "#/components/schemas/Collection"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "La colección no existe o tiene productos"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/classification/collections/restore/{id}": {
+            "patch": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Restaurar una colección eliminada",
+                "operationId": "f02acaeedc481a8362c648a343d057be",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la colección",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Colección restaurada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "collection": {
+                                                    "$ref": "#/components/schemas/Collection"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "La colección no está eliminada"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/colors/all": {
             "get": {
                 "tags": [
@@ -16467,17 +17080,17 @@
                 "tags": [
                     "Products"
                 ],
-                "summary": "Listar products",
+                "summary": "Listar productos",
                 "operationId": "9d0c6051933dfb2b4db236a37fd04ccb",
                 "parameters": [
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "Filtro de Busqueda.",
+                        "description": "Filtro de búsqueda (código, nombre, descripción, colección).",
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "example": "juan"
+                            "example": "ACTION"
                         }
                     },
                     {
@@ -16489,11 +17102,10 @@
                             "type": "string",
                             "enum": [
                                 "id",
-                                "trademark_id",
                                 "code",
-                                "category_id",
-                                "subcategory_id",
-                                "observation",
+                                "name",
+                                "price",
+                                "cost",
                                 "created_at",
                                 "updated_at"
                             ],
@@ -16515,9 +17127,19 @@
                         }
                     },
                     {
+                        "name": "collection_id",
+                        "in": "query",
+                        "description": "Solo productos de una colección.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
                         "name": "per_page",
                         "in": "query",
-                        "description": "Registros por página.",
+                        "description": "Registros por página. Sin enviarlo se devuelven todos.",
                         "required": false,
                         "schema": {
                             "type": "integer",
@@ -16527,7 +17149,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de products cargada correctamente",
+                        "description": "Lista de productos cargada correctamente",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -16620,7 +17242,7 @@
                 "tags": [
                     "Products"
                 ],
-                "summary": "Obtener un producto especifica",
+                "summary": "Obtener un producto con sus colores y tallas",
                 "operationId": "d7b30324d996bd5a1e9ca087ea8cdcba",
                 "parameters": [
                     {
@@ -16636,7 +17258,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Categoria cargada con éxito",
+                        "description": "Producto cargado con éxito",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -16664,41 +17286,7 @@
                         }
                     },
                     "422": {
-                        "description": "Identificador del producto no registrado.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Error de validación."
-                                        },
-                                        "attributes": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "string",
-                                                    "example": 1
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "errors": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "No hay ningún registro."
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Identificador no registrado"
                     },
                     "401": {
                         "description": "No autenticado",
@@ -16733,7 +17321,7 @@
                 "tags": [
                     "Products"
                 ],
-                "summary": "Crear un producto",
+                "summary": "Crear un producto (el código lo genera el servidor)",
                 "operationId": "b331f25302ee0779e4ff1e46b2d10224",
                 "requestBody": {
                     "required": true,
@@ -16741,37 +17329,67 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "trademark_id",
-                                    "code",
-                                    "category_id",
-                                    "subcategory_id"
+                                    "collection_id",
+                                    "name",
+                                    "price",
+                                    "colors_id"
                                 ],
                                 "properties": {
-                                    "trademark_id": {
-                                        "description": "ID de la marca",
+                                    "collection_id": {
                                         "type": "integer",
                                         "example": 1
                                     },
-                                    "code": {
-                                        "description": "Código o referencia del producto",
+                                    "name": {
                                         "type": "string",
-                                        "example": "REF-001"
+                                        "example": "ACTION"
                                     },
-                                    "category_id": {
-                                        "description": "ID de la categoría",
-                                        "type": "integer",
-                                        "example": 2
-                                    },
-                                    "subcategory_id": {
-                                        "description": "ID de la subcategoría",
-                                        "type": "integer",
-                                        "example": 5
-                                    },
-                                    "observation": {
-                                        "description": "Observación adicional del producto",
+                                    "description": {
                                         "type": "string",
-                                        "example": "Producto de temporada",
+                                        "example": "Botín clásico",
                                         "nullable": true
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 189900
+                                    },
+                                    "cost": {
+                                        "type": "number",
+                                        "example": 85000,
+                                        "nullable": true
+                                    },
+                                    "colors_id": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "color_id": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": null,
+                                                    "nullable": true
+                                                },
+                                                "sizes_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "size_id": {
+                                                                "type": "integer",
+                                                                "example": 10
+                                                            },
+                                                            "description": {
+                                                                "type": "string",
+                                                                "example": null,
+                                                                "nullable": true
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
                                     }
                                 },
                                 "type": "object"
@@ -16780,8 +17398,8 @@
                     }
                 },
                 "responses": {
-                    "200": {
-                        "description": "Producto creado correctamente",
+                    "201": {
+                        "description": "Producto creado con éxito",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -16809,93 +17427,325 @@
                         }
                     },
                     "422": {
-                        "description": "Error de validación.",
+                        "description": "Error de validación"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/products/update/{id}": {
+            "put": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Actualizar un producto y sincronizar sus colores y tallas",
+                "operationId": "615bba49c084f6fc97e568daccec4639",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del producto",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "price",
+                                    "colors_id"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "ACTION"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Botín clásico",
+                                        "nullable": true
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "example": 189900
+                                    },
+                                    "cost": {
+                                        "type": "number",
+                                        "example": 85000,
+                                        "nullable": true
+                                    },
+                                    "colors_id": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "color_id": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": null,
+                                                    "nullable": true
+                                                },
+                                                "sizes_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "size_id": {
+                                                                "type": "integer",
+                                                                "example": 10
+                                                            },
+                                                            "description": {
+                                                                "type": "string",
+                                                                "example": null,
+                                                                "nullable": true
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Producto actualizado con éxito",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "product": {
+                                                    "$ref": "#/components/schemas/Product"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
                                         "message": {
                                             "type": "string",
-                                            "example": "Error de validación."
+                                            "example": "Operación completada con éxito."
                                         },
-                                        "attributes": {
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación (por ejemplo, quitar un color o talla usado en una orden)"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/production_orders/all": {
+            "get": {
+                "tags": [
+                    "ProductionOrders"
+                ],
+                "summary": "Listar órdenes de producción",
+                "operationId": "11ba9f299fdc5934200cf9ae77e5e1b2",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Filtro de búsqueda (consecutivo, proveedor, producto, estado).",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "PO2611"
+                        }
+                    },
+                    {
+                        "name": "column",
+                        "in": "query",
+                        "description": "Columna a ordenar.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "id",
+                                "consecutive",
+                                "due_date",
+                                "status",
+                                "created_at",
+                                "updated_at"
+                            ],
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "dir",
+                        "in": "query",
+                        "description": "Orden de datos.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "example": "desc"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Solo órdenes en un estado.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Pendiente",
+                                "Aprobado",
+                                "Cancelado"
+                            ],
+                            "example": "Pendiente"
+                        }
+                    },
+                    {
+                        "name": "supplier_id",
+                        "in": "query",
+                        "description": "Solo órdenes de un proveedor.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página. Sin enviarlo se devuelven todos.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de órdenes cargada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
                                             "properties": {
-                                                "trademark_id": {
-                                                    "type": "string",
-                                                    "example": "Identificador de la marca"
+                                                "production_orders": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/ProductionOrderRow"
+                                                    }
                                                 },
-                                                "code": {
-                                                    "type": "string",
-                                                    "example": "Código - Referencia"
-                                                },
-                                                "category_id": {
-                                                    "type": "string",
-                                                    "example": "Identificador de la categoría"
-                                                },
-                                                "subcategory_id": {
-                                                    "type": "string",
-                                                    "example": "Identificador de la subcategoría"
-                                                },
-                                                "observation": {
-                                                    "type": "string",
-                                                    "example": "Observación"
+                                                "meta": {
+                                                    "properties": {
+                                                        "pagination": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "count": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "per_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "current_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "total_pages": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
                                                 }
                                             },
                                             "type": "object"
                                         },
-                                        "errors": {
-                                            "properties": {
-                                                "trademark_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Es obligatorio."
-                                                    }
-                                                },
-                                                "code": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Debe tener 8 caracteres."
-                                                    }
-                                                },
-                                                "category_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Es obligatorio."
-                                                    }
-                                                },
-                                                "subcategory_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Es obligatorio."
-                                                    }
-                                                },
-                                                "details.0.color_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Es obligatorio."
-                                                    }
-                                                },
-                                                "details.0.size_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Es obligatorio."
-                                                    }
-                                                },
-                                                "details.1": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "La combinación de color y talla ya fue agregada."
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
                                         }
                                     },
                                     "type": "object"
@@ -16931,18 +17781,18 @@
                 ]
             }
         },
-        "/products/update/{id}": {
-            "put": {
+        "/production_orders/find/{id}": {
+            "get": {
                 "tags": [
-                    "Products"
+                    "ProductionOrders"
                 ],
-                "summary": "Editar un producto específico",
-                "operationId": "615bba49c084f6fc97e568daccec4639",
+                "summary": "Obtener una orden de producción con sus colores, tiendas y tallas",
+                "operationId": "873cd15224e877c78e9f87fa564214ad",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Identificador del producto",
+                        "description": "Identificador de la orden de producción",
                         "required": true,
                         "schema": {
                             "type": "integer",
@@ -16950,61 +17800,17 @@
                         }
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "trademark_id",
-                                    "code",
-                                    "category_id",
-                                    "subcategory_id"
-                                ],
-                                "properties": {
-                                    "trademark_id": {
-                                        "description": "ID de la marca",
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "code": {
-                                        "description": "Código o referencia del producto",
-                                        "type": "string",
-                                        "example": "REF-001"
-                                    },
-                                    "category_id": {
-                                        "description": "ID de la categoría",
-                                        "type": "integer",
-                                        "example": 2
-                                    },
-                                    "subcategory_id": {
-                                        "description": "ID de la subcategoría",
-                                        "type": "integer",
-                                        "example": 5
-                                    },
-                                    "observation": {
-                                        "description": "Observación adicional del producto",
-                                        "type": "string",
-                                        "example": "Producto de temporada",
-                                        "nullable": true
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
-                        "description": "Producto editado correctamente",
+                        "description": "Orden cargada con éxito",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "data": {
                                             "properties": {
-                                                "product": {
-                                                    "$ref": "#/components/schemas/Product"
+                                                "production_order": {
+                                                    "$ref": "#/components/schemas/ProductionOrder"
                                                 }
                                             },
                                             "type": "object"
@@ -17024,99 +17830,487 @@
                         }
                     },
                     "422": {
-                        "description": "Error de validación.",
+                        "description": "Identificador no registrado"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/production_orders/store": {
+            "post": {
+                "tags": [
+                    "ProductionOrders"
+                ],
+                "summary": "Crear una orden de producción (queda en estado Pendiente)",
+                "operationId": "daade5b37ffaa1dd684afcb85400fde6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "technical_sheet_id",
+                                    "supplier_id",
+                                    "due_date",
+                                    "vat_percentage",
+                                    "delivery_note_percentage",
+                                    "production_order_details"
+                                ],
+                                "properties": {
+                                    "technical_sheet_id": {
+                                        "type": "integer",
+                                        "example": 4
+                                    },
+                                    "supplier_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-12-01"
+                                    },
+                                    "vat_percentage": {
+                                        "type": "integer",
+                                        "example": 100
+                                    },
+                                    "delivery_note_percentage": {
+                                        "type": "integer",
+                                        "example": 0
+                                    },
+                                    "production_order_details": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_detail_id": {
+                                                    "description": "Color del producto",
+                                                    "type": "integer",
+                                                    "example": 31
+                                                },
+                                                "cost": {
+                                                    "type": "number",
+                                                    "example": 85000
+                                                },
+                                                "price": {
+                                                    "type": "number",
+                                                    "example": 189900
+                                                },
+                                                "observation": {
+                                                    "type": "string",
+                                                    "example": null,
+                                                    "nullable": true
+                                                },
+                                                "production_order_detail_quantities": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "store_id": {
+                                                                "type": "integer",
+                                                                "example": 3
+                                                            },
+                                                            "product_detail_id": {
+                                                                "description": "Talla del color",
+                                                                "type": "integer",
+                                                                "example": 40
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Orden creada con éxito",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "production_order": {
+                                                    "$ref": "#/components/schemas/ProductionOrder"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
                                         "message": {
                                             "type": "string",
-                                            "example": "Error de validación."
+                                            "example": "Operación completada con éxito."
                                         },
-                                        "attributes": {
-                                            "properties": {
-                                                "trademark_id": {
-                                                    "type": "string",
-                                                    "example": "Identificador de la marca"
-                                                },
-                                                "code": {
-                                                    "type": "string",
-                                                    "example": "Código - Referencia"
-                                                },
-                                                "category_id": {
-                                                    "type": "string",
-                                                    "example": "Identificador de la categoría"
-                                                },
-                                                "subcategory_id": {
-                                                    "type": "string",
-                                                    "example": "Identificador de la subcategoría"
-                                                },
-                                                "observation": {
-                                                    "type": "string",
-                                                    "example": "Observación"
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "errors": {
-                                            "properties": {
-                                                "trademark_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Es obligatorio."
-                                                    }
-                                                },
-                                                "code": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Debe tener 8 caracteres."
-                                                    }
-                                                },
-                                                "category_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Es obligatorio."
-                                                    }
-                                                },
-                                                "subcategory_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Es obligatorio."
-                                                    }
-                                                },
-                                                "details.0.color_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Es obligatorio."
-                                                    }
-                                                },
-                                                "details.0.size_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "Es obligatorio."
-                                                    }
-                                                },
-                                                "details.1": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "La combinación de color y talla ya fue agregada."
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "description": "Error de validación (ficha no aprobada, color o talla que no pertenecen a la ficha, repetidos, etc.)"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/production_orders/update/{id}": {
+            "put": {
+                "tags": [
+                    "ProductionOrders"
+                ],
+                "summary": "Actualizar una orden pendiente: lo que no se envía se elimina",
+                "operationId": "930c85d28638bdde7b0a10f80a7875b5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la orden de producción",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "technical_sheet_id",
+                                    "supplier_id",
+                                    "due_date",
+                                    "vat_percentage",
+                                    "delivery_note_percentage",
+                                    "production_order_details"
+                                ],
+                                "properties": {
+                                    "technical_sheet_id": {
+                                        "type": "integer",
+                                        "example": 4
+                                    },
+                                    "supplier_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-12-01"
+                                    },
+                                    "vat_percentage": {
+                                        "type": "integer",
+                                        "example": 100
+                                    },
+                                    "delivery_note_percentage": {
+                                        "type": "integer",
+                                        "example": 0
+                                    },
+                                    "production_order_details": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "product_detail_id": {
+                                                    "description": "Color del producto",
+                                                    "type": "integer",
+                                                    "example": 31
+                                                },
+                                                "cost": {
+                                                    "type": "number",
+                                                    "example": 85000
+                                                },
+                                                "price": {
+                                                    "type": "number",
+                                                    "example": 189900
+                                                },
+                                                "observation": {
+                                                    "type": "string",
+                                                    "example": null,
+                                                    "nullable": true
+                                                },
+                                                "production_order_detail_quantities": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "store_id": {
+                                                                "type": "integer",
+                                                                "example": 3
+                                                            },
+                                                            "product_detail_id": {
+                                                                "description": "Talla del color",
+                                                                "type": "integer",
+                                                                "example": 40
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Orden actualizada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "production_order": {
+                                                    "$ref": "#/components/schemas/ProductionOrder"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación (la orden ya no está pendiente, etc.)"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/production_orders/approved/{id}": {
+            "patch": {
+                "tags": [
+                    "ProductionOrders"
+                ],
+                "summary": "Aprobar la orden (Pendiente → Aprobado)",
+                "operationId": "6a47137d1767118cd1196c06e5536a69",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la orden de producción",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Orden aprobada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "production_order": {
+                                                    "$ref": "#/components/schemas/ProductionOrder"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "La orden no está pendiente"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/production_orders/canceled/{id}": {
+            "patch": {
+                "tags": [
+                    "ProductionOrders"
+                ],
+                "summary": "Cancelar la orden (Pendiente o Aprobado → Cancelado)",
+                "operationId": "079d1557559285b6ef8688545111e1df",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la orden de producción",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Orden cancelada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "production_order": {
+                                                    "$ref": "#/components/schemas/ProductionOrder"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "La orden ya está cancelada"
                     },
                     "401": {
                         "description": "No autenticado",
@@ -23503,6 +24697,841 @@
                 ]
             }
         },
+        "/technical_sheets/all": {
+            "get": {
+                "tags": [
+                    "TechnicalSheets"
+                ],
+                "summary": "Listar fichas técnicas",
+                "operationId": "9a25abb6a3f9de276d2932ddcf63c02e",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Filtro de búsqueda (producto, proceso, descripción, estado).",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "ACTION"
+                        }
+                    },
+                    {
+                        "name": "column",
+                        "in": "query",
+                        "description": "Columna a ordenar.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "id",
+                                "version",
+                                "status",
+                                "approved_at",
+                                "created_at",
+                                "updated_at"
+                            ],
+                            "example": "id"
+                        }
+                    },
+                    {
+                        "name": "dir",
+                        "in": "query",
+                        "description": "Orden de datos.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "example": "desc"
+                        }
+                    },
+                    {
+                        "name": "product_id",
+                        "in": "query",
+                        "description": "Solo fichas de un producto.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Solo fichas en un estado.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "Pendiente",
+                                "En revision",
+                                "Aprobado",
+                                "Cancelado"
+                            ],
+                            "example": "Aprobado"
+                        }
+                    },
+                    {
+                        "name": "only_approved",
+                        "in": "query",
+                        "description": "Solo la versión aprobada más reciente de cada producto (para elegir en la orden).",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página. Sin enviarlo se devuelven todos.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de fichas técnicas cargada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "technical_sheets": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/TechnicalSheet"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "pagination": {
+                                                            "properties": {
+                                                                "total": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "count": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "per_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "current_page": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "total_pages": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/technical_sheets/find/{id}": {
+            "get": {
+                "tags": [
+                    "TechnicalSheets"
+                ],
+                "summary": "Obtener una ficha técnica con su producto, colores y tallas",
+                "operationId": "da772dcdd47698b58a5f90bf4d028a36",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la ficha técnica",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ficha técnica cargada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "technical_sheet": {
+                                                    "$ref": "#/components/schemas/TechnicalSheet"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Identificador no registrado"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/technical_sheets/store": {
+            "post": {
+                "tags": [
+                    "TechnicalSheets"
+                ],
+                "summary": "Crear la ficha técnica (versión 1) de un producto",
+                "operationId": "29c8d48faedaa777a398a58b1d991410",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "trademark_id",
+                                    "category_id",
+                                    "subcategory_id"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "trademark_id": {
+                                        "type": "integer",
+                                        "example": 12
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 20
+                                    },
+                                    "subcategory_id": {
+                                        "type": "integer",
+                                        "example": 31
+                                    },
+                                    "process": {
+                                        "type": "string",
+                                        "example": "Corte, guarnecida y montaje.",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Botín clásico",
+                                        "nullable": true
+                                    },
+                                    "observation": {
+                                        "type": "string",
+                                        "example": null,
+                                        "nullable": true
+                                    },
+                                    "specifications": {
+                                        "type": "object",
+                                        "example": {
+                                            "horma": "H-45",
+                                            "suela": "Caucho"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Ficha técnica creada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "technical_sheet": {
+                                                    "$ref": "#/components/schemas/TechnicalSheet"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación (por ejemplo, el producto ya tiene ficha)"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/technical_sheets/update/{id}": {
+            "put": {
+                "tags": [
+                    "TechnicalSheets"
+                ],
+                "summary": "Actualizar una ficha técnica (solo en borrador o en revisión)",
+                "operationId": "779406c3c31ec41105b2478f0be778c5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la ficha técnica",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "trademark_id",
+                                    "category_id",
+                                    "subcategory_id"
+                                ],
+                                "properties": {
+                                    "trademark_id": {
+                                        "type": "integer",
+                                        "example": 12
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 20
+                                    },
+                                    "subcategory_id": {
+                                        "type": "integer",
+                                        "example": 31
+                                    },
+                                    "process": {
+                                        "type": "string",
+                                        "example": "Corte, guarnecida y montaje.",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Botín clásico",
+                                        "nullable": true
+                                    },
+                                    "observation": {
+                                        "type": "string",
+                                        "example": null,
+                                        "nullable": true
+                                    },
+                                    "specifications": {
+                                        "type": "object",
+                                        "example": {
+                                            "horma": "H-45",
+                                            "suela": "Caucho"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ficha técnica actualizada con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "technical_sheet": {
+                                                    "$ref": "#/components/schemas/TechnicalSheet"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación (por ejemplo, la ficha ya está aprobada)"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/technical_sheets/reviewed/{id}": {
+            "patch": {
+                "tags": [
+                    "TechnicalSheets"
+                ],
+                "summary": "Enviar la ficha a revisión (Pendiente → En revision)",
+                "operationId": "0aa7f2d6c4ebdaea7438b2239ac7993a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la ficha técnica",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ficha enviada a revisión",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "technical_sheet": {
+                                                    "$ref": "#/components/schemas/TechnicalSheet"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "La ficha no está en un estado válido"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/technical_sheets/approved/{id}": {
+            "patch": {
+                "tags": [
+                    "TechnicalSheets"
+                ],
+                "summary": "Aprobar la ficha (Pendiente o En revision → Aprobado)",
+                "operationId": "0c8a91ce64016a8dbf90b53798849d9a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la ficha técnica",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ficha aprobada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "technical_sheet": {
+                                                    "$ref": "#/components/schemas/TechnicalSheet"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "La ficha no está en un estado válido o el producto no tiene colores con tallas"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/technical_sheets/canceled/{id}": {
+            "patch": {
+                "tags": [
+                    "TechnicalSheets"
+                ],
+                "summary": "Cancelar la ficha (Pendiente, En revision o Aprobado → Cancelado)",
+                "operationId": "baee2e56b941b258f5d25b6fbb6dc565",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la ficha técnica",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ficha cancelada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "technical_sheet": {
+                                                    "$ref": "#/components/schemas/TechnicalSheet"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "La ficha no está en un estado válido"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/technical_sheets/version/{id}": {
+            "post": {
+                "tags": [
+                    "TechnicalSheets"
+                ],
+                "summary": "Crear una nueva versión de la ficha copiando la indicada",
+                "operationId": "96086863eb911504ae4c1a6c4a5eef19",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador de la ficha técnica a copiar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Nueva versión creada en estado Pendiente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "technical_sheet": {
+                                                    "$ref": "#/components/schemas/TechnicalSheet"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "El producto ya tiene una versión en borrador o en revisión"
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/trademarks/all": {
             "get": {
                 "tags": [
@@ -25958,6 +27987,60 @@
                 },
                 "type": "object"
             },
+            "Collection": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "COLECCION 5"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Colección de fin de año",
+                        "nullable": true
+                    },
+                    "year": {
+                        "type": "string",
+                        "example": "26"
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "5"
+                    },
+                    "last_number": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "product_prefix": {
+                        "type": "string",
+                        "example": "RB265"
+                    },
+                    "next_code": {
+                        "type": "string",
+                        "example": "RB265001"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-11-04 10:00:00"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-11-04 10:00:00"
+                    },
+                    "deleted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "Color": {
                 "properties": {
                     "id": {
@@ -27208,143 +29291,400 @@
                         "type": "integer",
                         "example": 1
                     },
-                    "trademark_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
                     "code": {
                         "type": "string",
-                        "example": "RV0001"
+                        "example": "RB265001"
                     },
-                    "category_id": {
-                        "type": "integer",
-                        "example": 1
-                    },
-                    "subcategory_id": {
-                        "type": "integer",
-                        "example": 1
+                    "name": {
+                        "type": "string",
+                        "example": "ACTION"
                     },
                     "description": {
                         "type": "string",
-                        "example": "descripcion del producto",
+                        "example": "Botín clásico",
                         "nullable": true
+                    },
+                    "cost": {
+                        "type": "string",
+                        "example": "85000.00"
+                    },
+                    "price": {
+                        "type": "string",
+                        "example": "189900.00"
+                    },
+                    "collection_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "collection": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Collection"
+                            }
+                        ],
+                        "nullable": true,
+                        "type": "object"
+                    },
+                    "technical_sheet": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "version": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "status": {
+                                "type": "string",
+                                "example": "Aprobado"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "colors": {
+                        "description": "Colores del producto; cada uno con sus tallas",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "example": 31
+                                },
+                                "code": {
+                                    "type": "string",
+                                    "example": "RB265001-99"
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "example": null,
+                                    "nullable": true
+                                },
+                                "color": {
+                                    "type": "object"
+                                },
+                                "sizes": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 40
+                                            },
+                                            "code": {
+                                                "type": "string",
+                                                "example": "RB265001-35-99"
+                                            },
+                                            "description": {
+                                                "type": "string",
+                                                "example": null,
+                                                "nullable": true
+                                            },
+                                            "size": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            },
+                            "type": "object"
+                        }
                     },
                     "created_at": {
                         "type": "string",
                         "format": "date-time",
-                        "example": "2026-03-30T13:17:29.000000Z"
+                        "example": "2026-11-04 10:00:00"
                     },
                     "updated_at": {
                         "type": "string",
                         "format": "date-time",
-                        "example": "2026-04-06T15:21:16.000000Z"
-                    },
-                    "trademark": {
-                        "$ref": "#/components/schemas/Trademark"
-                    },
-                    "category": {
-                        "$ref": "#/components/schemas/Category"
-                    },
-                    "subcategory": {
-                        "$ref": "#/components/schemas/Subcategory"
-                    },
-                    "colors": {
-                        "description": "Detalles de nivel color (ProductDetail con model_type=Product). Cada uno puede traer su propio arreglo 'sizes' con las tallas hijas.",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/ProductDetail"
-                        }
+                        "example": "2026-11-04 10:00:00"
                     }
                 },
                 "type": "object"
             },
-            "ProductDetail": {
+            "ProductionOrderRow": {
                 "properties": {
                     "id": {
                         "type": "integer",
                         "example": 1
                     },
-                    "uuid": {
+                    "consecutive": {
                         "type": "string",
-                        "format": "uuid",
-                        "example": "000x0000-x00x-00x0-x000-00000000000",
-                        "nullable": true
+                        "example": "PO261104001"
                     },
-                    "model_id": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "Pendiente",
+                            "Aprobado",
+                            "Cancelado"
+                        ],
+                        "example": "Pendiente"
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-12-01"
+                    },
+                    "vat_percentage": {
                         "type": "integer",
-                        "example": 1
+                        "example": 100
                     },
-                    "model_type": {
-                        "type": "string",
-                        "example": "App\\\\Models\\\\Product"
-                    },
-                    "assignable_id": {
+                    "delivery_note_percentage": {
                         "type": "integer",
-                        "example": 1
+                        "example": 0
                     },
-                    "assignable_type": {
-                        "type": "string",
-                        "example": "App\\\\Models\\\\Color"
+                    "supplier": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "code": {
+                                "type": "string",
+                                "example": "AB"
+                            },
+                            "legal_name": {
+                                "type": "string",
+                                "example": "PROVEEDOR SAS"
+                            },
+                            "trade_name": {
+                                "type": "string",
+                                "example": null,
+                                "nullable": true
+                            }
+                        },
+                        "type": "object"
                     },
-                    "description": {
-                        "type": "string",
-                        "example": "descripcion del producto",
-                        "nullable": true
+                    "technical_sheet": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 4
+                            },
+                            "version": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "status": {
+                                "type": "string",
+                                "example": "Aprobado"
+                            },
+                            "product": {
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "example": "RB265001"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "ACTION"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "type": "object"
                     },
-                    "code": {
-                        "type": "string",
-                        "example": "AGUILA-01-36"
+                    "colors_count": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "stores_count": {
+                        "type": "integer",
+                        "example": 30
+                    },
+                    "total_pairs": {
+                        "type": "integer",
+                        "example": 1200
                     },
                     "created_at": {
                         "type": "string",
                         "format": "date-time",
-                        "example": "2026-03-30T13:17:29.000000Z"
+                        "example": "2026-11-04 10:00:00"
+                    }
+                },
+                "type": "object"
+            },
+            "ProductionOrder": {
+                "description": "Detalle de la orden: colores, y por color las tiendas con sus tallas",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "consecutive": {
+                        "type": "string",
+                        "example": "PO261104001"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "Pendiente",
+                            "Aprobado",
+                            "Cancelado"
+                        ],
+                        "example": "Pendiente"
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-12-01"
+                    },
+                    "vat_percentage": {
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "delivery_note_percentage": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "supplier": {
+                        "type": "object"
+                    },
+                    "technical_sheet": {
+                        "type": "object"
+                    },
+                    "details": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "example": 7
+                                },
+                                "product_detail_id": {
+                                    "type": "integer",
+                                    "example": 31
+                                },
+                                "code": {
+                                    "type": "string",
+                                    "example": "RB265001-99"
+                                },
+                                "color": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "NEGRO"
+                                        },
+                                        "code": {
+                                            "type": "string",
+                                            "example": "99"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "cost": {
+                                    "type": "string",
+                                    "example": "85000.00"
+                                },
+                                "price": {
+                                    "type": "string",
+                                    "example": "189900.00"
+                                },
+                                "observation": {
+                                    "type": "string",
+                                    "example": null,
+                                    "nullable": true
+                                },
+                                "total": {
+                                    "type": "integer",
+                                    "example": 78
+                                },
+                                "stores": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "store": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    },
+                                                    "code": {
+                                                        "type": "string",
+                                                        "example": "G2"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "ALEGRA"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "total": {
+                                                "type": "integer",
+                                                "example": 24
+                                            },
+                                            "sizes": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "product_detail_id": {
+                                                            "type": "integer",
+                                                            "example": 40
+                                                        },
+                                                        "code": {
+                                                            "type": "string",
+                                                            "example": "RB265001-35-99"
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "35"
+                                                        },
+                                                        "quantity": {
+                                                            "type": "integer",
+                                                            "example": 2
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "totals": {
+                        "properties": {
+                            "pairs": {
+                                "type": "integer",
+                                "example": 78
+                            },
+                            "colors": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "stores": {
+                                "type": "integer",
+                                "example": 4
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-11-04 10:00:00"
                     },
                     "updated_at": {
                         "type": "string",
                         "format": "date-time",
-                        "example": "2026-04-06T15:21:16.000000Z"
-                    },
-                    "model": {
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "product": "#/components/schemas/Product",
-                                "product_detail": "#/components/schemas/ProductDetail"
-                            }
-                        },
-                        "oneOf": [
-                            {
-                                "$ref": "#/components/schemas/Product"
-                            },
-                            {
-                                "$ref": "#/components/schemas/ProductDetail"
-                            }
-                        ]
-                    },
-                    "assignable": {
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "color": "#/components/schemas/Color",
-                                "size": "#/components/schemas/Size"
-                            }
-                        },
-                        "oneOf": [
-                            {
-                                "$ref": "#/components/schemas/Color"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Size"
-                            }
-                        ]
-                    },
-                    "sizes": {
-                        "description": "Solo presente en nivel color: tallas hijas de este registro",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/ProductDetail"
-                        }
+                        "example": "2026-11-04 10:00:00"
                     }
                 },
                 "type": "object"
@@ -28020,6 +30360,109 @@
                 },
                 "type": "object"
             },
+            "TechnicalSheet": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "product_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "version": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "Pendiente",
+                            "En revision",
+                            "Aprobado",
+                            "Cancelado"
+                        ],
+                        "example": "Pendiente"
+                    },
+                    "trademark_id": {
+                        "type": "integer",
+                        "example": 12
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "example": 20
+                    },
+                    "subcategory_id": {
+                        "type": "integer",
+                        "example": 31
+                    },
+                    "process": {
+                        "type": "string",
+                        "example": "Corte, guarnecida y montaje.",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Botín clásico",
+                        "nullable": true
+                    },
+                    "observation": {
+                        "type": "string",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "specifications": {
+                        "type": "object",
+                        "example": {
+                            "horma": "H-45",
+                            "suela": "Caucho"
+                        }
+                    },
+                    "approved_by": {
+                        "type": "integer",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "approved_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-11-04 10:00:00"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-11-04 10:00:00"
+                    },
+                    "product": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Product"
+                            }
+                        ],
+                        "nullable": true,
+                        "type": "object"
+                    },
+                    "trademark": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "category": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "subcategory": {
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "Trademark": {
                 "properties": {
                     "id": {
@@ -28261,6 +30704,10 @@
             "description": "Endpoints para gestionar ciudads"
         },
         {
+            "name": "Collections",
+            "description": "Colecciones del año: su año y código forman parte del código de cada producto"
+        },
+        {
             "name": "Colors",
             "description": "Endpoints para gestionar colores"
         },
@@ -28326,7 +30773,11 @@
         },
         {
             "name": "Products",
-            "description": "Endpoints para gestionar products"
+            "description": "Productos (referencias): código generado, nombre, colores y tallas"
+        },
+        {
+            "name": "ProductionOrders",
+            "description": "Órdenes de producción por referencia: colores, tiendas y cantidades por talla"
         },
         {
             "name": "Location - Regions",
@@ -28359,6 +30810,10 @@
         {
             "name": "Suppliers",
             "description": "Endpoints para gestionar proveedores"
+        },
+        {
+            "name": "TechnicalSheets",
+            "description": "Fichas técnicas de los productos: versiones y aprobación"
         },
         {
             "name": "Trademarks",

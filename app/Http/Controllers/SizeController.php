@@ -354,7 +354,7 @@ class SizeController extends Controller
             $size = new Size();
             $size->name = $request->input('name');
             $size->description = $request->input('description');
-            $size->settings->code = $request->input('settings.code');
+            $size->settings = $request->input('settings');
             $size->save();
 
             return $this->successResponse(
@@ -478,7 +478,7 @@ class SizeController extends Controller
             $size = Size::findOrFail($id);
             $size->name = $request->input('name');
             $size->description = $request->input('description');
-            $size->settings->code = $request->input('settings.code');
+            $size->settings = $request->input('settings');
             $size->save();
 
             return $this->successResponse(
