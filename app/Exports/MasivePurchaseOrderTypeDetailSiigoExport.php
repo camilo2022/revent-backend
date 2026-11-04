@@ -23,6 +23,7 @@ class MasivePurchaseOrderTypeDetailSiigoExport implements FromGenerator, Respons
     public function headings(): array
     {
         return [
+            'opcion',
             'id',
             'nombre'
         ];
@@ -37,6 +38,7 @@ class MasivePurchaseOrderTypeDetailSiigoExport implements FromGenerator, Respons
     {
         foreach($this->type_details as $id => $type_detail) {
             yield [
+                'opcion' => $id . '-' . $type_detail,
                 'id' => (string) $id,
                 'nombre' => $type_detail
             ];

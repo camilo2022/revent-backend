@@ -67,7 +67,7 @@ class MasivePurchaseOrderSiigoController extends Controller
         $order = Excel::toCollection(new MasivePurchaseOrderSiigoSheetsImport, $request->file('file'));
 
         $order = WarehouseOption::normalize($order, 'orden_compra', ['centro_costo', 'rete_iva', 'rete_ica']);
-        $order = WarehouseOption::normalize($order, 'orden_compra_detalles', ['bodega', 'imp_cargo', 'imp_retencion']);
+        $order = WarehouseOption::normalize($order, 'orden_compra_detalles', ['tipo_detalle', 'bodega', 'imp_cargo', 'imp_retencion']);
 
         ImportMasivePurchaseOrderSiigoJob::dispatch($order, $email, $referencia);
 
