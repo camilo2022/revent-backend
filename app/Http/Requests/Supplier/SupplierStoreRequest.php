@@ -4,6 +4,7 @@ namespace App\Http\Requests\Supplier;
 
 use App\Models\City;
 use App\Models\Country;
+use App\Models\FileType;
 use App\Models\Department;
 use App\Models\DocumentType;
 use Illuminate\Contracts\Validation\Validator;
@@ -30,12 +31,12 @@ class SupplierStoreRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string', 'size:2', 'unique:suppliers,code'],
-            'legal_name' => ['required', 'string', 'max:100', 'unique:suppliers,legal_name', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'],
-            'trade_name' => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'],
+            'legal_name' => ['required', 'string', 'max:100', 'unique:suppliers,legal_name', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s.&,\-]+$/'],
+            'trade_name' => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s.&,\-]+$/'],
             'document_type_id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . DocumentType::ITEM_ID . ',deleted_at,NULL'],
-            'document' => ['required', 'string', 'digits_between:5,14', 'unique:people,document'],
+            'document' => ['required', 'string', 'digits_between:5,14', 'unique:suppliers,document'],
             'location_type' => ['required', 'string', 'in:' . implode(',', [Country::class, Department::class, City::class])],
-            'location_id' => ['required', 'numeric', match ($this->input('assignable_type')) {
+            'location_id' => ['required', 'numeric', match ($this->input('location_type')) {
                     Country::class  => 'exists:countries,id',
                     Department::class => 'exists:departments,id',
                     City::class => 'exists:cities,id',
@@ -44,9 +45,10 @@ class SupplierStoreRequest extends FormRequest
             'address' => ['required', 'string', 'max:255'],
             'neighborhood' => ['required', 'string', 'max:255'],
             'phone_country_id' => ['required', 'numeric', 'exists:countries,id'],
-            'phone' => ['required', 'string', 'digits:10'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:people,email'],
-            'file' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048']
+            'phone' => ['required', 'string', 'digits:10', 'unique:suppliers,phone'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:suppliers,email'],
+            'file' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'file_type_id' => ['required', 'exists:subitems,id,item_id,' . FileType::ITEM_ID . ',deleted_at,NULL']
         ];
     }
 
@@ -54,6 +56,7 @@ class SupplierStoreRequest extends FormRequest
     {
         return [
             'required' => 'Es obligatorio.',
+            'required_with' => 'Es obligatorio cuando se envía el archivo.',
             'string' => 'Debe ser una cadena de texto.',
             'email' => 'Debe ser un correo electrónico válido.',
             'numeric' => 'Debe ser un dato númerico.',
@@ -62,7 +65,7 @@ class SupplierStoreRequest extends FormRequest
             'min' => 'Se permite mínimo :min caracteres.',
             'size' => 'Se permite la longitud de :value caracteres.',
             'unique' => 'Ya está registrado.',
-            'regex' => "Formato inválido:\n- Solo letras.",
+            'regex' => 'Formato inválido. Solo letras, números, espacios y . & , -',
             'exists' => 'No hay ningún registro.',
             'image' => 'Debe ser una imagen.',
             'mimes' => 'Extensión inválida. Permitidas :values.',
@@ -79,7 +82,7 @@ class SupplierStoreRequest extends FormRequest
             'document_type_id' => 'Identificador del tipo de documento',
             'document' => 'Número de documento',
             'location_type' => 'Tipo de ubicación',
-            'location_id' => match ($this->input('assignable_type')) {
+            'location_id' => match ($this->input('location_type')) {
                 Country::class  => 'País',
                 Department::class => 'Departamento',
                 City::class => 'Ciudad',
@@ -90,7 +93,8 @@ class SupplierStoreRequest extends FormRequest
             'phone_country_id' => 'Identificador del país del teléfono',
             'phone' => 'Número de teléfono',
             'email' => 'Correo electrónico',
-            'file' => 'Archivo'
+            'file' => 'Archivo',
+            'file_type_id' => 'Tipo de archivo'
         ];
     }
 }

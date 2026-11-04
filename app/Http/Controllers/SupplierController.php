@@ -17,6 +17,7 @@ use App\Models\Supplier;
 use App\Services\FileService;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
@@ -295,7 +296,7 @@ class SupplierController extends Controller
                         Department::class => ['country' => ['region' => ['continent']]],
                         City::class => ['department' => ['country' => ['region' => ['continent']]]],
                     ]),
-                    'document_type' => ['person_type'], 'employee'
+                    'document_type' => ['person_type'], 'phone_country'
                 ])->findOrFail($id);
 
             return $this->successResponse(
@@ -409,22 +410,26 @@ class SupplierController extends Controller
     public function store(SupplierStoreRequest $request)
     {
         try {
-            $supplier = new Supplier();
-            $supplier->code = $request->input('code');
-            $supplier->legal_name = $request->input('legal_name');
-            $supplier->trade_name = $request->input('trade_name');
-            $supplier->document_type_id = $request->integer('document_type_id');
-            $supplier->document = $request->input('document');
-            $supplier->location_id = $request->integer('location_id');
-            $supplier->location_type = $request->input('location_type');
-            $supplier->address = $request->input('address');
-            $supplier->neighborhood = $request->input('neighborhood');
-            $supplier->phone_country_id = $request->integer('phone_country_id');
-            $supplier->phone = $request->input('phone');
-            $supplier->email = $request->input('email');
-            $supplier->save();
+            $supplier = DB::transaction(function () use ($request) {
+                $supplier = new Supplier();
+                $supplier->code = $request->input('code');
+                $supplier->legal_name = $request->input('legal_name');
+                $supplier->trade_name = $request->input('trade_name');
+                $supplier->document_type_id = $request->integer('document_type_id');
+                $supplier->document = $request->input('document');
+                $supplier->location_id = $request->integer('location_id');
+                $supplier->location_type = $request->input('location_type');
+                $supplier->address = $request->input('address');
+                $supplier->neighborhood = $request->input('neighborhood');
+                $supplier->phone_country_id = $request->integer('phone_country_id');
+                $supplier->phone = $request->input('phone');
+                $supplier->email = $request->input('email');
+                $supplier->save();
 
-            if ($request->hasFile('file')) app(FileService::class)->save($supplier, $request->file('file'), $request->integer('file_type_id'), 'public', 'supplier');
+                if ($request->hasFile('file')) app(FileService::class)->save($supplier, $request->file('file'), $request->integer('file_type_id'), 'public', 'supplier');
+
+                return $supplier;
+            });
 
             return $this->successResponse(
                 new SupplierResource($supplier),
@@ -537,22 +542,26 @@ class SupplierController extends Controller
     public function update(SupplierUpdateRequest $request, $id)
     {
         try {
-            $supplier = Supplier::findOrFail($id);
-            $supplier->code = $request->input('code');
-            $supplier->legal_name = $request->input('legal_name');
-            $supplier->trade_name = $request->input('trade_name');
-            $supplier->document_type_id = $request->integer('document_type_id');
-            $supplier->document = $request->input('document');
-            $supplier->location_id = $request->integer('location_id');
-            $supplier->location_type = $request->input('location_type');
-            $supplier->address = $request->input('address');
-            $supplier->neighborhood = $request->input('neighborhood');
-            $supplier->phone_country_id = $request->integer('phone_country_id');
-            $supplier->phone = $request->input('phone');
-            $supplier->email = $request->input('email');
-            $supplier->save();
+            $supplier = DB::transaction(function () use ($request, $id) {
+                $supplier = Supplier::findOrFail($id);
+                $supplier->code = $request->input('code');
+                $supplier->legal_name = $request->input('legal_name');
+                $supplier->trade_name = $request->input('trade_name');
+                $supplier->document_type_id = $request->integer('document_type_id');
+                $supplier->document = $request->input('document');
+                $supplier->location_id = $request->integer('location_id');
+                $supplier->location_type = $request->input('location_type');
+                $supplier->address = $request->input('address');
+                $supplier->neighborhood = $request->input('neighborhood');
+                $supplier->phone_country_id = $request->integer('phone_country_id');
+                $supplier->phone = $request->input('phone');
+                $supplier->email = $request->input('email');
+                $supplier->save();
 
-            if ($request->hasFile('file')) app(FileService::class)->save($supplier, $request->file('file'), $request->integer('file_type_id'), 'public', 'supplier');
+                if ($request->hasFile('file')) app(FileService::class)->save($supplier, $request->file('file'), $request->integer('file_type_id'), 'public', 'supplier');
+
+                return $supplier;
+            });
 
             return $this->successResponse(
                 new SupplierResource($supplier),

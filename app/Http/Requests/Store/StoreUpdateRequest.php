@@ -28,11 +28,11 @@ class StoreUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:stores,id,item_id'],
+            'id' => ['required', 'exists:stores,id,deleted_at,NULL'],
             'code' => ['required', 'string', 'size:2', 'unique:stores,code,' . $this->route('id') . ',id'],
-            'name' => ['required', 'string', 'max:100', 'unique:stores,name,' . $this->route('id') . ',id', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'],
+            'name' => ['required', 'string', 'max:100', 'unique:stores,name,' . $this->route('id') . ',id', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s.&,\-]+$/'],
             'location_type' => ['required', 'string', 'in:' . implode(',', [Country::class, Department::class, City::class])],
-            'location_id' => ['required', 'numeric', match ($this->input('assignable_type')) {
+            'location_id' => ['required', 'numeric', match ($this->input('location_type')) {
                     Country::class  => 'exists:countries,id',
                     Department::class => 'exists:departments,id',
                     City::class => 'exists:cities,id',
@@ -52,7 +52,7 @@ class StoreUpdateRequest extends FormRequest
             'max' => 'Se permite máximo :max caracteres.',
             'size' => 'Se permite la longitud de :value caracteres.',
             'unique' => 'Ya está registrado.',
-            'regex' => "Formato inválido:\n- Solo letras.",
+            'regex' => 'Formato inválido. Solo letras, números, espacios y . & , -',
             'exists' => 'No hay ningún registro.'
         ];
     }
@@ -64,7 +64,7 @@ class StoreUpdateRequest extends FormRequest
             'code' => 'Código',
             'name' => 'Nombre',
             'location_type' => 'Tipo de ubicación',
-            'location_id' => match ($this->input('assignable_type')) {
+            'location_id' => match ($this->input('location_type')) {
                 Country::class  => 'País',
                 Department::class => 'Departamento',
                 City::class => 'Ciudad',

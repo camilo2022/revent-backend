@@ -7,6 +7,7 @@ use App\Models\PersonType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class DocumentTypeUpdateRequest extends FormRequest
 {
@@ -32,7 +33,7 @@ class DocumentTypeUpdateRequest extends FormRequest
             'name' => ['required', 'string', 'uppercase', 'min:4', 'max:50', 'unique:subitems,name,' . $this->route('id') . ',id,item_id,' . DocumentType::ITEM_ID],
             'description' => ['required', 'uppercase', 'string', 'max:255'],
             'settings' => ['required', 'array'],
-            'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . DocumentType::ITEM_ID],
+            'settings.code' => ['required', 'uppercase', 'string', 'size:2', Rule::unique('subitems', 'settings->code')->where('item_id', DocumentType::ITEM_ID)->ignore($this->route('id'))],
         ];
     }
 

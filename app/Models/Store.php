@@ -55,7 +55,6 @@ class Store extends Model implements Auditable
                 $q->orWhere(function (Builder $sq) use ($term) {
                     $sq->orWhere('code', 'LIKE', '%' . $term . '%')
                         ->orWhere('name', 'LIKE', '%' . $term . '%')
-                        ->orWhere('document', 'LIKE', '%' . $term . '%')
                         ->orWhere('address', 'LIKE', '%' . $term . '%')
                         ->orWhere('neighborhood', 'LIKE', '%' . $term . '%');
                 });

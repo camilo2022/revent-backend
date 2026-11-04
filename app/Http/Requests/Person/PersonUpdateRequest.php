@@ -5,6 +5,7 @@ namespace App\Http\Requests\Person;
 use App\Models\BloodType;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\FileType;
 use App\Models\Department;
 use App\Models\DocumentType;
 use App\Models\Gender;
@@ -40,7 +41,7 @@ class PersonUpdateRequest extends FormRequest
             'birth_date' => ['required', 'date', 'date_format:Y-m-d', 'before:now'],
             'blood_type_id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . BloodType::ITEM_ID . ',deleted_at,NULL'],
             'location_type' => ['required', 'string', 'in:' . implode(',', [Country::class, Department::class, City::class])],
-            'location_id' => ['required', 'numeric', match ($this->input('assignable_type')) {
+            'location_id' => ['required', 'numeric', match ($this->input('location_type')) {
                     Country::class  => 'exists:countries,id',
                     Department::class => 'exists:departments,id',
                     City::class => 'exists:cities,id',
@@ -49,9 +50,10 @@ class PersonUpdateRequest extends FormRequest
             'address' => ['required', 'string', 'max:255'],
             'neighborhood' => ['required', 'string', 'max:255'],
             'phone_country_id' => ['required', 'numeric', 'exists:countries,id'],
-            'phone' => ['required', 'string', 'digits:10'],
+            'phone' => ['required', 'string', 'digits:10', 'unique:people,phone,' . $this->route('id') . ',id'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:people,email,' . $this->route('id') . ',id'],
-            'photo' => ['sometimes', 'image', 'mimes:jpg,jpeg,png', 'max:2048']
+            'photo' => ['sometimes', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'photo_type_id' => ['required_with:photo', 'exists:subitems,id,item_id,' . FileType::ITEM_ID . ',deleted_at,NULL']
         ];
     }
 
@@ -59,6 +61,7 @@ class PersonUpdateRequest extends FormRequest
     {
         return [
             'required' => 'Es obligatorio.',
+            'required_with' => 'Es obligatorio cuando se envía el archivo.',
             'string' => 'Debe ser una cadena de texto.',
             'email' => 'Debe ser un correo electrónico válido.',
             'numeric' => 'Debe ser un dato númerico.',
@@ -90,7 +93,7 @@ class PersonUpdateRequest extends FormRequest
             'birth_date' => 'Fecha de nacimiento',
             'blood_type_id' => 'Identificador del tipo de sangre',
             'location_type' => 'Tipo de ubicación',
-            'location_id' => match ($this->input('assignable_type')) {
+            'location_id' => match ($this->input('location_type')) {
                 Country::class  => 'País',
                 Department::class => 'Departamento',
                 City::class => 'Ciudad',
@@ -101,7 +104,8 @@ class PersonUpdateRequest extends FormRequest
             'phone_country_id' => 'Identificador del país del teléfono',
             'phone' => 'Número de teléfono',
             'email' => 'Correo electrónico',
-            'photo' => 'Foto'
+            'photo' => 'Foto',
+            'photo_type_id' => 'Tipo de archivo de la foto'
         ];
     }
 
