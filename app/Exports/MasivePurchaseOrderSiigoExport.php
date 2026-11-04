@@ -79,7 +79,7 @@ class MasivePurchaseOrderSiigoExport implements FromGenerator, Responsable, With
             'fecha_limite' => Carbon::now()->addDays(7)->format('d/m/Y')
         ];
 
-        if ($this->filters['use_cost_center']) $generator['centro_costo'] = $this->purchase_order_type->CostCenterDefaultCode;
+        if ($this->filters['use_cost_center']) $generator['centro_costo'] = $this->defaultCostCenter();
 
         $generator['observaciones'] = '';
 
@@ -87,6 +87,15 @@ class MasivePurchaseOrderSiigoExport implements FromGenerator, Responsable, With
         if ($this->filters['is_rete_ica']) $generator['rete_ica'] = '';
 
         yield $generator;
+    }
+
+    /** El centro de costo por defecto, con el mismo formato "ID-NOMBRE" de la lista si está en ella. */
+    protected function defaultCostCenter(): mixed
+    {
+        $default = $this->purchase_order_type->CostCenterDefaultCode;
+        $cost_center = collect($this->cost_centers)->first(fn ($item) => (string) $item['id'] === (string) $default);
+
+        return $cost_center ? $cost_center['id'] . '-' . $cost_center['name'] : $default;
     }
 
     public function registerEvents(): array

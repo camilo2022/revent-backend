@@ -23,6 +23,7 @@ class MasivePurchaseOrderCostCenterSiigoExport implements FromGenerator, Respons
     public function headings(): array
     {
         return [
+            'opcion',
             'id',
             'codigo',
             'nombre'
@@ -38,6 +39,7 @@ class MasivePurchaseOrderCostCenterSiigoExport implements FromGenerator, Respons
     {
         foreach($this->cost_centers as $cost_center) {
             yield [
+                'opcion' => $cost_center['id'] . '-' . $cost_center['name'],
                 'id' => $cost_center['id'],
                 'codigo' => $cost_center['code'],
                 'nombre' => $cost_center['name']
