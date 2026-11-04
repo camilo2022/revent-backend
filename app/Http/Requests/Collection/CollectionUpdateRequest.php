@@ -2,10 +2,11 @@
 
 namespace App\Http\Requests\Collection;
 
+use App\Models\Collection;
+use App\Models\Product;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use App\Models\Collection;
 use Illuminate\Validation\Rule;
 
 class CollectionUpdateRequest extends FormRequest
@@ -27,11 +28,12 @@ class CollectionUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:collections,id,deleted_at,NULL'],
-            'name' => ['required', 'uppercase', 'string', 'min:3', 'max:60'],
+            'id' => ['required', 'exists:subitems,id,item_id,' . Collection::ITEM_ID . ',deleted_at,NULL'],
+            'name' => ['required', 'uppercase', 'string', 'min:3', 'max:60', Rule::unique('subitems', 'name')->where('item_id', Collection::ITEM_ID)->ignore($this->route('id'))],
             'description' => ['nullable', 'string', 'max:255'],
-            'year' => ['required', 'string', 'regex:/^\d{2}$/'],
-            'code' => ['required', 'string', 'regex:/^\d$/', Rule::unique('collections', 'code')->where('year', $this->input('year'))->whereNull('deleted_at')->ignore($this->route('id'))]
+            'settings' => ['required', 'array'],
+            'settings.year' => ['required', 'string', 'regex:/^\d{2}$/'],
+            'settings.code' => ['required', 'string', 'regex:/^\d$/', Rule::unique('subitems', 'settings->code')->where('item_id', Collection::ITEM_ID)->where('settings->year', $this->input('settings.year'))->ignore($this->route('id'))]
         ];
     }
 
@@ -40,23 +42,25 @@ class CollectionUpdateRequest extends FormRequest
         return [
             'required' => 'Es obligatorio.',
             'string' => 'Debe ser una cadena de texto.',
-            'min' => 'El valor debe ser mayor o igual a :min.',
-            'max' => 'Se permite máximo :max.',
+            'array' => 'Debe ser un arreglo de datos.',
+            'min' => 'Se permite mínimo :min caracteres.',
+            'max' => 'Se permite máximo :max caracteres.',
             'uppercase' => 'Debe estar en mayúsculas.',
             'regex' => 'Formato inválido. Año de 2 dígitos y código de 1 dígito.',
-            'unique' => 'Ya existe una colección con ese año y código.',
-            'exists' => 'No hay ningún registro.'
+            'unique' => 'Ya está registrado.',
+            'unique' => 'Ya está registrado (el año y el código no se pueden repetir).'
         ];
     }
 
     public function attributes(): array
     {
         return [
+            'id' => 'Identificador de la colección',
             'name' => 'Nombre',
             'description' => 'Descripción',
-            'year' => 'Año (2 dígitos)',
-            'code' => 'Código de la colección (1 dígito)',
-            'id' => 'Identificador de la colección'
+            'settings' => 'Configuración',
+            'settings.year' => 'Año (2 dígitos)',
+            'settings.code' => 'Código de la colección (1 dígito)'
         ];
     }
 
@@ -70,11 +74,12 @@ class CollectionUpdateRequest extends FormRequest
         $validator->after(function ($validator) {
             if ($validator->errors()->isNotEmpty()) return;
 
-            $collection = Collection::withCount('products')->find($this->route('id'));
+            $collection = Collection::find($this->route('id'));
+            $changed = $collection->year !== $this->input('settings.year') || $collection->code !== $this->input('settings.code');
 
             // El año y el código ya forman parte de los códigos de los productos
-            if ($collection->products_count > 0 && ($collection->year !== $this->input('year') || $collection->code !== $this->input('code'))) {
-                $validator->errors()->add('code', 'La colección ya tiene productos: no se puede cambiar su año ni su código.');
+            if ($changed && Product::where('collection_id', $collection->id)->exists()) {
+                $validator->errors()->add('settings.code', 'La colección ya tiene productos: no se puede cambiar su año ni su código.');
             }
         });
     }

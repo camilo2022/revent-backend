@@ -18,14 +18,11 @@ class Product extends Model implements Auditable
 
     protected $guard_name = 'api';
 
-    // marca, categoría y subcategoría quedan solo por compatibilidad: ahora viven en la ficha técnica
+    // Marca, categoría y subcategoría van en la ficha técnica
     protected $fillable = [
         'code',
         'name',
         'collection_id',
-        'trademark_id',
-        'category_id',
-        'subcategory_id',
         'description',
         'cost',
         'price'
@@ -48,21 +45,6 @@ class Product extends Model implements Auditable
     public function collection(): BelongsTo
     {
         return $this->belongsTo(Collection::class);
-    }
-
-    public function trademark(): BelongsTo
-    {
-        return $this->belongsTo(Trademark::class);
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
-    }
-
-    public function subcategory(): BelongsTo
-    {
-        return $this->belongsTo(Subcategory::class);
     }
 
     // Colores del producto (nivel color de product_details); las tallas cuelgan de cada color

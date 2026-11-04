@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Collection;
 
+use App\Models\Collection;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -26,10 +27,11 @@ class CollectionStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'uppercase', 'string', 'min:3', 'max:60'],
+            'name' => ['required', 'uppercase', 'string', 'min:3', 'max:60', 'unique:subitems,name,NULL,id,item_id,' . Collection::ITEM_ID],
             'description' => ['nullable', 'string', 'max:255'],
-            'year' => ['required', 'string', 'regex:/^\d{2}$/'],
-            'code' => ['required', 'string', 'regex:/^\d$/', Rule::unique('collections', 'code')->where('year', $this->input('year'))->whereNull('deleted_at')]
+            'settings' => ['required', 'array'],
+            'settings.year' => ['required', 'string', 'regex:/^\d{2}$/'],
+            'settings.code' => ['required', 'string', 'regex:/^\d$/', Rule::unique('subitems', 'settings->code')->where('item_id', Collection::ITEM_ID)->where('settings->year', $this->input('settings.year'))]
         ];
     }
 
@@ -38,11 +40,13 @@ class CollectionStoreRequest extends FormRequest
         return [
             'required' => 'Es obligatorio.',
             'string' => 'Debe ser una cadena de texto.',
-            'min' => 'El valor debe ser mayor o igual a :min.',
-            'max' => 'Se permite máximo :max.',
+            'array' => 'Debe ser un arreglo de datos.',
+            'min' => 'Se permite mínimo :min caracteres.',
+            'max' => 'Se permite máximo :max caracteres.',
             'uppercase' => 'Debe estar en mayúsculas.',
             'regex' => 'Formato inválido. Año de 2 dígitos y código de 1 dígito.',
-            'unique' => 'Ya existe una colección con ese año y código.'
+            'unique' => 'Ya está registrado.',
+            'unique' => 'Ya está registrado (el año y el código no se pueden repetir).'
         ];
     }
 
@@ -51,8 +55,9 @@ class CollectionStoreRequest extends FormRequest
         return [
             'name' => 'Nombre',
             'description' => 'Descripción',
-            'year' => 'Año (2 dígitos)',
-            'code' => 'Código de la colección (1 dígito)'
+            'settings' => 'Configuración',
+            'settings.year' => 'Año (2 dígitos)',
+            'settings.code' => 'Código de la colección (1 dígito)'
         ];
     }
 }

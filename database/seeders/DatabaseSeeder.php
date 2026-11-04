@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             ErpPermissionsSeeder::class,
             ItemsAndSubitemsSeeder::class,
+            ErpItemsSeeder::class,
             LocationsSeeder::class,
             UserSeeder::class,
             ErpNavigationSeeder::class,

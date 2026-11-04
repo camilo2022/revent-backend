@@ -2,10 +2,11 @@
 
 namespace App\Http\Requests\Collection;
 
+use App\Models\Collection;
+use App\Models\Product;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use App\Models\Collection;
 
 class CollectionDeleteRequest extends FormRequest
 {
@@ -26,7 +27,7 @@ class CollectionDeleteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:collections,id,deleted_at,NULL']
+            'id' => ['required', 'exists:subitems,id,item_id,' . Collection::ITEM_ID . ',deleted_at,NULL']
         ];
     }
 
@@ -55,7 +56,7 @@ class CollectionDeleteRequest extends FormRequest
         $validator->after(function ($validator) {
             if ($validator->errors()->isNotEmpty()) return;
 
-            if (Collection::withCount('products')->find($this->route('id'))->products_count > 0) {
+            if (Product::where('collection_id', $this->route('id'))->exists()) {
                 $validator->errors()->add('id', 'La colección tiene productos y no se puede eliminar.');
             }
         });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Collection;
 
+use App\Models\Collection;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -25,7 +26,7 @@ class CollectionFindRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:collections,id']
+            'id' => ['required', 'exists:subitems,id,item_id,' . Collection::ITEM_ID]
         ];
     }
 

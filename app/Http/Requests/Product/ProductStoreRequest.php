@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Product;
 
+use App\Models\Collection;
 use App\Models\Color;
 use App\Models\Size;
 use Illuminate\Contracts\Validation\Validator;
@@ -27,7 +28,7 @@ class ProductStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'collection_id' => ['required', 'exists:collections,id,deleted_at,NULL'],
+            'collection_id' => ['required', 'exists:subitems,id,item_id,' . Collection::ITEM_ID . ',deleted_at,NULL'],
             'name' => ['required', 'uppercase', 'string', 'min:2', 'max:60'],
             'description' => ['nullable', 'string', 'max:1000'],
             'price' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],

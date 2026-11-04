@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Product;
 
+use App\Models\Collection;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -30,7 +31,7 @@ class ProductAllRequest extends FormRequest
             'search' => ['nullable', 'string'],
             'column' => ['nullable', 'string', 'in:id,code,name,price,cost,created_at,updated_at'],
             'dir' => ['nullable', 'string', 'in:asc,desc'],
-            'collection_id' => ['nullable', 'exists:collections,id']
+            'collection_id' => ['nullable', 'exists:subitems,id,item_id,' . Collection::ITEM_ID]
         ];
     }
 

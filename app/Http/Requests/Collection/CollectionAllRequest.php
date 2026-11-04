@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Collection;
 
+use App\Models\Collection;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -28,7 +29,7 @@ class CollectionAllRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1'],
             'page' => ['nullable', 'integer', 'min:1'],
             'search' => ['nullable', 'string'],
-            'column' => ['nullable', 'string', 'in:id,name,year,code,created_at,updated_at,deleted_at'],
+            'column' => ['nullable', 'string', 'in:id,name,description,created_at,updated_at,deleted_at'],
             'dir' => ['nullable', 'string', 'in:asc,desc'],
             'with_trashed' => ['required', 'boolean']
         ];

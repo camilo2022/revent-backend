@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Supplier;
+use App\Models\TechnicalSheet;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,7 @@ return new class extends Migration
         Schema::create('production_orders', function (Blueprint $table) {
             $table->id();
             $table->string('consecutive', 11)->unique();
+            $table->foreignIdFor(TechnicalSheet::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Ficha técnica de la que sale la orden');
             $table->date('due_date')->comment('Fecha de vencimiento');
             $table->foreignIdFor(Supplier::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Proveedor');
             $table->unsignedTinyInteger('vat_percentage')->default(100)->comment('Porcentaje que se factura con IVA');

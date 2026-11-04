@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Collection;
 
+use App\Models\Collection;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -26,7 +27,7 @@ class CollectionRestoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', Rule::exists('collections', 'id')->whereNotNull('deleted_at')]
+            'id' => ['required', Rule::exists('subitems', 'id')->where('item_id', Collection::ITEM_ID)->whereNotNull('deleted_at')]
         ];
     }
 

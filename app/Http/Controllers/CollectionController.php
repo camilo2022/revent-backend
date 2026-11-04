@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\DB;
  *     @OA\Property(property="description", type="string", nullable=true, example="Colección de fin de año"),
  *     @OA\Property(property="year", type="string", example="26"),
  *     @OA\Property(property="code", type="string", example="5"),
+ *     @OA\Property(property="settings", type="object", example={"year": "26", "code": "5", "last_number": 0}),
  *     @OA\Property(property="last_number", type="integer", example=0),
  *     @OA\Property(property="product_prefix", type="string", example="RB265"),
  *     @OA\Property(property="next_code", type="string", example="RB265001"),
@@ -49,7 +50,7 @@ class CollectionController extends Controller
      *     summary="Listar colecciones",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(name="search", in="query", description="Filtro de búsqueda.", required=false, @OA\Schema(type="string", example="fin de año")),
-     *     @OA\Parameter(name="column", in="query", description="Columna a ordenar.", required=false, @OA\Schema(type="string", enum={"id","name","year","code","created_at","updated_at","deleted_at"}, example="year")),
+     *     @OA\Parameter(name="column", in="query", description="Columna a ordenar.", required=false, @OA\Schema(type="string", enum={"id","name","description","created_at","updated_at","deleted_at"}, example="name")),
      *     @OA\Parameter(name="dir", in="query", description="Orden de datos.", required=false, @OA\Schema(type="string", enum={"asc","desc"}, example="desc")),
      *     @OA\Parameter(name="per_page", in="query", description="Registros por página. Sin enviarlo se devuelven todos.", required=false, @OA\Schema(type="integer", example=10)),
      *     @OA\Parameter(name="with_trashed", in="query", description="Registros inactivos.", required=true, @OA\Schema(type="boolean", example=false)),
@@ -87,7 +88,7 @@ class CollectionController extends Controller
                 ->when($request->filled('column') && $request->filled('dir'), function ($query) use ($request) {
                     return $query->orderBy($request->input('column'), $request->input('dir'));
                 }, function ($query) {
-                    return $query->orderByDesc('year')->orderBy('code');
+                    return $query->orderByDesc('settings->year')->orderBy('settings->code');
                 });
 
             $collections = $collections->paginate($request->integer('per_page', $collections->count()));
@@ -147,11 +148,13 @@ class CollectionController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name","year","code"},
+     *             required={"name","settings"},
      *             @OA\Property(property="name", type="string", example="COLECCION 5"),
      *             @OA\Property(property="description", type="string", nullable=true, example="Colección de fin de año"),
-     *             @OA\Property(property="year", type="string", example="26"),
-     *             @OA\Property(property="code", type="string", example="5")
+     *             @OA\Property(property="settings", type="object",
+     *                 @OA\Property(property="year", type="string", example="26"),
+     *                 @OA\Property(property="code", type="string", example="5")
+     *             )
      *         )
      *     ),
      *     @OA\Response(
@@ -175,8 +178,7 @@ class CollectionController extends Controller
                 $collection = new Collection();
                 $collection->name = $request->input('name');
                 $collection->description = $request->input('description');
-                $collection->year = $request->input('year');
-                $collection->code = $request->input('code');
+                $collection->settings = (object) ['year' => $request->input('settings.year'), 'code' => $request->input('settings.code'), 'last_number' => 0];
                 $collection->save();
 
                 return $collection;
@@ -202,11 +204,13 @@ class CollectionController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name","year","code"},
+     *             required={"name","settings"},
      *             @OA\Property(property="name", type="string", example="COLECCION 5"),
      *             @OA\Property(property="description", type="string", nullable=true, example="Colección de fin de año"),
-     *             @OA\Property(property="year", type="string", example="26"),
-     *             @OA\Property(property="code", type="string", example="5")
+     *             @OA\Property(property="settings", type="object",
+     *                 @OA\Property(property="year", type="string", example="26"),
+     *                 @OA\Property(property="code", type="string", example="5")
+     *             )
      *         )
      *     ),
      *     @OA\Response(
@@ -230,8 +234,8 @@ class CollectionController extends Controller
                 $collection = Collection::findOrFail($id);
                 $collection->name = $request->input('name');
                 $collection->description = $request->input('description');
-                $collection->year = $request->input('year');
-                $collection->code = $request->input('code');
+                // El consecutivo de productos se conserva
+                $collection->settings = (object) ['year' => $request->input('settings.year'), 'code' => $request->input('settings.code'), 'last_number' => $collection->last_number];
                 $collection->save();
 
                 return $collection;

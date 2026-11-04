@@ -3820,13 +3820,12 @@
                             "enum": [
                                 "id",
                                 "name",
-                                "year",
-                                "code",
+                                "description",
                                 "created_at",
                                 "updated_at",
                                 "deleted_at"
                             ],
-                            "example": "year"
+                            "example": "name"
                         }
                     },
                     {
@@ -4047,8 +4046,7 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "year",
-                                    "code"
+                                    "settings"
                                 ],
                                 "properties": {
                                     "name": {
@@ -4060,13 +4058,18 @@
                                         "example": "Colección de fin de año",
                                         "nullable": true
                                     },
-                                    "year": {
-                                        "type": "string",
-                                        "example": "26"
-                                    },
-                                    "code": {
-                                        "type": "string",
-                                        "example": "5"
+                                    "settings": {
+                                        "properties": {
+                                            "year": {
+                                                "type": "string",
+                                                "example": "26"
+                                            },
+                                            "code": {
+                                                "type": "string",
+                                                "example": "5"
+                                            }
+                                        },
+                                        "type": "object"
                                     }
                                 },
                                 "type": "object"
@@ -4160,8 +4163,7 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "year",
-                                    "code"
+                                    "settings"
                                 ],
                                 "properties": {
                                     "name": {
@@ -4173,13 +4175,18 @@
                                         "example": "Colección de fin de año",
                                         "nullable": true
                                     },
-                                    "year": {
-                                        "type": "string",
-                                        "example": "26"
-                                    },
-                                    "code": {
-                                        "type": "string",
-                                        "example": "5"
+                                    "settings": {
+                                        "properties": {
+                                            "year": {
+                                                "type": "string",
+                                                "example": "26"
+                                            },
+                                            "code": {
+                                                "type": "string",
+                                                "example": "5"
+                                            }
+                                        },
+                                        "type": "object"
                                     }
                                 },
                                 "type": "object"
@@ -27929,6 +27936,14 @@
                     "code": {
                         "type": "string",
                         "example": "5"
+                    },
+                    "settings": {
+                        "type": "object",
+                        "example": {
+                            "year": "26",
+                            "code": "5",
+                            "last_number": 0
+                        }
                     },
                     "last_number": {
                         "type": "integer",

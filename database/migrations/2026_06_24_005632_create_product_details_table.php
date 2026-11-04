@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Dos niveles en una tabla: color (model = producto, assignable = color) y talla (model = el color, assignable = talla)
         Schema::create('product_details', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->nullable()->unique();
@@ -18,7 +19,8 @@ return new class extends Migration
             $table->morphs('assignable');
             $table->text('description')->nullable();
             $table->timestamps();
-            $table->index(['model_id', 'model_type', 'assignable_id', 'assignable_type'], 'product_details_model_assignable_unique')->unique();
+            // Un color o talla no se repite dentro de su padre (nombre corto: MySQL permite 64 caracteres)
+            $table->unique(['model_type', 'model_id', 'assignable_type', 'assignable_id'], 'pd_model_assignable_unique');
         });
     }
 

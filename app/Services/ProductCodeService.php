@@ -14,16 +14,20 @@ class ProductCodeService
 
     public function next(int $collectionId): string
     {
-        // Bloquea la colección mientras se asigna el número
-        $collection = Collection::whereKey($collectionId)->lockForUpdate()->firstOrFail();
+        // El contador se mueve con cada producto: no se audita
+        return Collection::withoutAuditing(function () use ($collectionId) {
+            // Bloquea la colección mientras se asigna el número
+            $collection = Collection::whereKey($collectionId)->lockForUpdate()->firstOrFail();
+            $number = $collection->last_number + 1;
 
-        if ($collection->last_number >= self::MAX_NUMBER) {
-            throw new \DomainException("La colección {$collection->name} ya llegó al límite de " . self::MAX_NUMBER . ' productos.');
-        }
+            if ($number > self::MAX_NUMBER) {
+                throw new \DomainException("La colección {$collection->name} ya llegó al límite de " . self::MAX_NUMBER . ' productos.');
+            }
 
-        $collection->last_number++;
-        $collection->save();
+            $collection->settings = (object) array_merge((array) $collection->settings, ['last_number' => $number]);
+            $collection->save();
 
-        return $collection->product_prefix . str_pad($collection->last_number, 3, '0', STR_PAD_LEFT);
+            return $collection->product_prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
+        });
     }
 }

@@ -16,8 +16,10 @@ class CollectionResource extends JsonResource
     {
         return [
             'id' => $collection->id,
+            'item_id' => $collection->item_id,
             'name' => $collection->name,
             'description' => $collection->description,
+            'settings' => $collection->settings,
             'year' => $collection->year,
             'code' => $collection->code,
             'last_number' => $collection->last_number,
