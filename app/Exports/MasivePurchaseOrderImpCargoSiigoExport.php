@@ -23,6 +23,7 @@ class MasivePurchaseOrderImpCargoSiigoExport implements FromGenerator, Responsab
     public function headings(): array
     {
         return [
+            'opcion',
             'id',
             'nombre',
             'valor'
@@ -38,6 +39,7 @@ class MasivePurchaseOrderImpCargoSiigoExport implements FromGenerator, Responsab
     {
         foreach($this->imps_cargo as $imp_cargo) {
             yield [
+                'opcion' => $imp_cargo['Id'] . '-' . $imp_cargo['Name'],
                 'id' => $imp_cargo['Id'],
                 'nombre' => $imp_cargo['Name'],
                 'valor' => $imp_cargo['Value']

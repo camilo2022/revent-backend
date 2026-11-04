@@ -23,6 +23,7 @@ class MasivePurchaseOrderImpRetencionSiigoExport implements FromGenerator, Respo
     public function headings(): array
     {
         return [
+            'opcion',
             'id',
             'nombre',
             'valor'
@@ -38,6 +39,7 @@ class MasivePurchaseOrderImpRetencionSiigoExport implements FromGenerator, Respo
     {
         foreach($this->imps_retencion as $imp_retencion) {
             yield [
+                'opcion' => $imp_retencion['Id'] . '-' . $imp_retencion['Name'],
                 'id' => $imp_retencion['Id'],
                 'nombre' => $imp_retencion['Name'],
                 'valor' => $imp_retencion['Value']

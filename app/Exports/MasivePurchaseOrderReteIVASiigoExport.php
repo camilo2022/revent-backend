@@ -23,6 +23,7 @@ class MasivePurchaseOrderReteIVASiigoExport implements FromGenerator, Responsabl
     public function headings(): array
     {
         return [
+            'opcion',
             'id',
             'nombre',
             'valor'
@@ -38,6 +39,7 @@ class MasivePurchaseOrderReteIVASiigoExport implements FromGenerator, Responsabl
     {
         foreach($this->retes_iva as $rete_iva) {
             yield [
+                'opcion' => $rete_iva['Id'] . '-' . ($rete_iva['Name'] ?: 'No aplica'),
                 'id' => $rete_iva['Id'],
                 'nombre' => $rete_iva['Name'] ?: 'No aplica',
                 'valor' => $rete_iva['Value']
