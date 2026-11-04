@@ -3,8 +3,6 @@
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
-use App\Traits\ApiMessage;
-use App\Traits\ApiResponser;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,13 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (AuthenticationException $e, $request) {
             if ($request->is('api/*')) {
-                return $this->errorResponse(
-                    [
-                        'message' => $this->getMessage(class_basename($e)),
+                // Sin sesión o con el token vencido: 401 (aquí no existe $this, no se usan los traits)
+                return response()->json([
+                    'error' => [
+                        'message' => 'No autenticado. ',
                         'error' => $e->getMessage()
-                    ],
-                    $this->getCode(class_basename($e))
-                );
+                    ]
+                ], 401);
             }
         });
     })->withProviders([

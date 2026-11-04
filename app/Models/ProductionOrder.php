@@ -23,6 +23,7 @@ class ProductionOrder extends Model implements Auditable
 
     protected $fillable = [
         'consecutive',
+        'technical_sheet_id',
         'due_date',
         'supplier_id',
         'vat_percentage',
@@ -32,6 +33,7 @@ class ProductionOrder extends Model implements Auditable
 
     protected $auditInclude = [
         'consecutive',
+        'technical_sheet_id',
         'due_date',
         'supplier_id',
         'vat_percentage',
@@ -46,6 +48,11 @@ class ProductionOrder extends Model implements Auditable
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function technical_sheet(): BelongsTo
+    {
+        return $this->belongsTo(TechnicalSheet::class);
     }
 
     public function production_order_details(): HasMany
@@ -70,12 +77,14 @@ class ProductionOrder extends Model implements Auditable
 
                     $sq->where('consecutive', 'LIKE', $like)
                         ->orWhere('due_date', 'LIKE', $like)
-                        ->orWhere('vat_percentage', 'LIKE', $like)
-                        ->orWhere('delivery_note_percentage', 'LIKE', $like)
                         ->orWhere('status', 'LIKE', $like)
                         ->orWhereHas('supplier', function (Builder $q) use ($like) {
                             $q->where('legal_name', 'LIKE', $like)
-                            ->orWhere('trade_name', 'LIKE', $like);
+                                ->orWhere('trade_name', 'LIKE', $like);
+                        })
+                        ->orWhereHas('technical_sheet.product', function (Builder $q) use ($like) {
+                            $q->where('code', 'LIKE', $like)
+                                ->orWhere('name', 'LIKE', $like);
                         });
                 });
             }

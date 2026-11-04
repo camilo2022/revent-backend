@@ -25,7 +25,7 @@ class ProductionOrderFindRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:production_orders,id'],
+            'id' => ['required', 'exists:production_orders,id']
         ];
     }
 
@@ -40,7 +40,7 @@ class ProductionOrderFindRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del producto'
+            'id' => 'Identificador de la orden de producción'
         ];
     }
 

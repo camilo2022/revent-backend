@@ -25,21 +25,23 @@ class ProductAllRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'per_page' => ['nullable', 'numeric'],
-            'page' => ['nullable', 'numeric'],
+            'per_page' => ['nullable', 'integer', 'min:1'],
+            'page' => ['nullable', 'integer', 'min:1'],
             'search' => ['nullable', 'string'],
-            'column' => ['nullable', 'string', 'in:id,trademark_id,code,category_id,subcategory_id,observation,created_at,updated_at,deleted_at'],
-            'dir' => ['nullable', 'string', 'in:asc,desc']
+            'column' => ['nullable', 'string', 'in:id,code,name,price,cost,created_at,updated_at'],
+            'dir' => ['nullable', 'string', 'in:asc,desc'],
+            'collection_id' => ['nullable', 'exists:collections,id']
         ];
     }
 
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
             'string' => 'Debe ser una cadena de texto.',
-            'numeric' => 'Debe ser un valor numérico.',
-            'in' => 'Valor inválido. Permitidos: :values.'
+            'integer' => 'Debe ser un número entero.',
+            'min' => 'El valor debe ser mayor o igual a :min.',
+            'in' => 'Valor inválido. Permitidos: :values.',
+            'exists' => 'No registrado en el sistema.'
         ];
     }
 
@@ -50,7 +52,8 @@ class ProductAllRequest extends FormRequest
             'page' => 'N° de pagina.',
             'search' => 'Filtro de Busqueda.',
             'column' => 'Columna a ordenar.',
-            'dir' => 'Orden de datos.'
+            'dir' => 'Orden de datos.',
+            'collection_id' => 'Colección'
         ];
     }
 }

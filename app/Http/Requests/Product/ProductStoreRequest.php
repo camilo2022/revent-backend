@@ -2,11 +2,8 @@
 
 namespace App\Http\Requests\Product;
 
-use App\Models\Category;
 use App\Models\Color;
 use App\Models\Size;
-use App\Models\Subcategory;
-use App\Models\Trademark;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -30,18 +27,18 @@ class ProductStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'trademark_id' => ['required', 'exists:subitems,id,item_id,' . Trademark::ITEM_ID],
-            'code' => ['required', 'uppercase', 'string', 'size:8', 'unique:products,code'],
-            'category_id' => ['required', 'exists:subitems,id,item_id,' . Category::ITEM_ID],
-            'subcategory_id' => ['required', 'exists:subitems,id,item_id,' . Subcategory::ITEM_ID],
+            'collection_id' => ['required', 'exists:collections,id,deleted_at,NULL'],
+            'name' => ['required', 'uppercase', 'string', 'min:2', 'max:60'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'price' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
+            'cost' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'colors_id' => ['required', 'array', 'min:1'],
             'colors_id.*' => ['array'],
-            'colors_id.*.color_id' => ['required',  'distinct', 'exists:subitems,id,item_id,' . Color::ITEM_ID],
+            'colors_id.*.color_id' => ['required', 'integer', 'exists:subitems,id,item_id,' . Color::ITEM_ID . ',deleted_at,NULL'],
             'colors_id.*.description' => ['nullable', 'string', 'max:1000'],
             'colors_id.*.sizes_id' => ['required', 'array', 'min:1'],
             'colors_id.*.sizes_id.*' => ['array'],
-            'colors_id.*.sizes_id.*.size_id' => ['required', 'distinct', 'exists:subitems,id,item_id,' . Size::ITEM_ID],
+            'colors_id.*.sizes_id.*.size_id' => ['required', 'integer', 'exists:subitems,id,item_id,' . Size::ITEM_ID . ',deleted_at,NULL'],
             'colors_id.*.sizes_id.*.description' => ['nullable', 'string', 'max:1000'],
         ];
     }
@@ -50,27 +47,27 @@ class ProductStoreRequest extends FormRequest
     {
         return [
             'required' => 'Es obligatorio.',
+            'exists' => 'No registrado en el sistema.',
             'string' => 'Debe ser una cadena de texto.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'size' => 'Debe tener :size caracteres.',
-            'unique' => 'Ya está registrado.',
-            'uppercase' => 'El campo debe estar en mayúsculas.',
-            'array' => 'Debe ser un arreglo.',
-            'exists' => 'El valor seleccionado no es válido.',
-            'distinct' => 'Ya fue agregado.',
-            'colors_id.min' => 'Se permite mínimo :min colores.',
-            'colors_id.*.sizes_id.min' => 'Se permite mínimo :min tallas.'
+            'integer' => 'Debe ser un número entero.',
+            'numeric' => 'Debe ser un valor numérico.',
+            'array' => 'Debe ser un arreglo de datos.',
+            'uppercase' => 'Debe estar en mayúsculas.',
+            'min' => 'El valor debe ser mayor o igual a :min.',
+            'max' => 'Se permite máximo :max.',
+            'colors_id.min' => 'Debe tener al menos un color.',
+            'colors_id.*.sizes_id.min' => 'Cada color debe tener al menos una talla.',
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'trademark_id' => 'Identificador de la marca',
-            'code' => 'Codigo - Referencia',
-            'category_id' => 'Identificador de la categoria',
-            'subcategory_id' => 'Identificador de la subcategoria',
+            'collection_id' => 'Colección',
+            'name' => 'Nombre de la referencia',
             'description' => 'Descripción',
+            'price' => 'Precio de venta',
+            'cost' => 'Costo',
             'colors_id' => 'Colores',
             'colors_id.*.color_id' => 'Color',
             'colors_id.*.description' => 'Descripción del color',
@@ -78,5 +75,33 @@ class ProductStoreRequest extends FormRequest
             'colors_id.*.sizes_id.*.size_id' => 'Talla',
             'colors_id.*.sizes_id.*.description' => 'Descripción de la talla',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if ($validator->errors()->isNotEmpty()) return;
+
+            $colors = $this->input('colors_id', []);
+            $colorIds = array_column($colors, 'color_id');
+
+            // El mismo color no puede repetirse en el producto
+            foreach ($colorIds as $i => $id) {
+                if (array_search($id, $colorIds) !== $i) {
+                    $validator->errors()->add("colors_id.$i.color_id", 'El color ya está en el producto.');
+                }
+            }
+
+            // La talla no puede repetirse dentro de un color (sí puede estar en otro color)
+            foreach ($colors as $i => $color) {
+                $sizeIds = array_column($color['sizes_id'], 'size_id');
+
+                foreach ($sizeIds as $j => $id) {
+                    if (array_search($id, $sizeIds) !== $j) {
+                        $validator->errors()->add("colors_id.$i.sizes_id.$j.size_id", 'La talla ya está en este color.');
+                    }
+                }
+            }
+        });
     }
 }

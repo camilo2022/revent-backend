@@ -25,7 +25,7 @@ class ProductFindRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:products,id'],
+            'id' => ['required', 'exists:products,id']
         ];
     }
 

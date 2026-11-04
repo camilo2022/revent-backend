@@ -5,6 +5,7 @@ namespace App\Http\Requests\ProductionOrder;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Models\ProductionOrder;
 
 class ProductionOrderAllRequest extends FormRequest
 {
@@ -25,21 +26,24 @@ class ProductionOrderAllRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'per_page' => ['nullable', 'numeric'],
-            'page' => ['nullable', 'numeric'],
+            'per_page' => ['nullable', 'integer', 'min:1'],
+            'page' => ['nullable', 'integer', 'min:1'],
             'search' => ['nullable', 'string'],
-            'column' => ['nullable', 'string', 'in:id,consecutive,due_date,supplier_id,vat_percentage,delivery_note_percentage,status,created_at,updated_at'],
-            'dir' => ['nullable', 'string', 'in:asc,desc']
+            'column' => ['nullable', 'string', 'in:id,consecutive,due_date,status,created_at,updated_at'],
+            'dir' => ['nullable', 'string', 'in:asc,desc'],
+            'status' => ['nullable', 'string', 'in:' . implode(',', ProductionOrder::statuses())],
+            'supplier_id' => ['nullable', 'exists:suppliers,id']
         ];
     }
 
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
             'string' => 'Debe ser una cadena de texto.',
-            'numeric' => 'Debe ser un valor numérico.',
-            'in' => 'Valor inválido. Permitidos: :values.'
+            'integer' => 'Debe ser un número entero.',
+            'min' => 'El valor debe ser mayor o igual a :min.',
+            'in' => 'Valor inválido. Permitidos: :values.',
+            'exists' => 'No registrado en el sistema.'
         ];
     }
 
@@ -50,7 +54,9 @@ class ProductionOrderAllRequest extends FormRequest
             'page' => 'N° de pagina.',
             'search' => 'Filtro de Busqueda.',
             'column' => 'Columna a ordenar.',
-            'dir' => 'Orden de datos.'
+            'dir' => 'Orden de datos.',
+            'status' => 'Estado',
+            'supplier_id' => 'Proveedor'
         ];
     }
 }
