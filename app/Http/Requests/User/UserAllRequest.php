@@ -37,10 +37,10 @@ class UserAllRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
+            'required' => 'El campo es requerido.',
             'string' => 'Debe ser una cadena de caracteres.',
-            'numeric' => 'Debe ser un valor numérico.',
-            'in' => 'Valor inválido. Permitidos: :values.',
+            'numeric' => 'El campo debe ser un número.',
+            'in' => 'El valor no es válido. Permitidos: :values.',
             'boolean' => 'Deber ser verdadero o falso.'
         ];
     }

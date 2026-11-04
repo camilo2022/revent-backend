@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
 
+// Un color de la orden; las cantidades por tienda y talla cuelgan de él
 class ProductionOrderDetail extends Model implements Auditable
 {
     use Auditing;
@@ -19,7 +20,6 @@ class ProductionOrderDetail extends Model implements Auditable
     protected $fillable = [
         'production_order_id',
         'product_detail_id',
-        'store_id',
         'cost',
         'price',
         'observation'
@@ -28,7 +28,6 @@ class ProductionOrderDetail extends Model implements Auditable
     protected $auditInclude = [
         'production_order_id',
         'product_detail_id',
-        'store_id',
         'cost',
         'price',
         'observation'
@@ -44,14 +43,10 @@ class ProductionOrderDetail extends Model implements Auditable
         return $this->belongsTo(ProductionOrder::class);
     }
 
+    // Color del producto (product_details nivel color)
     public function product_detail(): BelongsTo
     {
         return $this->belongsTo(ProductDetail::class);
-    }
-
-    public function store(): BelongsTo
-    {
-        return $this->belongsTo(Store::class);
     }
 
     public function production_order_detail_quantities(): HasMany

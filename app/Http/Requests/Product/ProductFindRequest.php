@@ -25,14 +25,14 @@ class ProductFindRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:products,id'],
+            'id' => ['required', 'exists:products,id']
         ];
     }
 
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
+            'required' => 'El campo es requerido.',
             'exists' => 'No hay ningún registro.'
         ];
     }

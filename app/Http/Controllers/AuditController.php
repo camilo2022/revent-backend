@@ -4,7 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Audit\AuditAllRequest;
 use App\Http\Requests\Audit\AuditFindRequest;
+use App\Http\Requests\Audit\AuditRecordRequest;
 use App\Http\Resources\Audit\AuditCollection;
+use App\Models\Product;
+use App\Models\ProductDetail;
+use App\Models\ProductionOrder;
+use App\Models\ProductionOrderDetail;
+use App\Models\ProductionOrderDetailQuantity;
+use App\Models\TechnicalSheet;
 use OwenIt\Auditing\Models\Audit;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
@@ -83,7 +90,7 @@ class AuditController extends Controller
     /**
      * @OA\Get(
      *     path="/audits/all",
-     *     tags={"Audit"},
+     *     tags={"Audits"},
      *     summary="Listar auditorias",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -211,7 +218,7 @@ class AuditController extends Controller
     /**
      * @OA\Get(
      *     path="/audits/find/{id}",
-     *     tags={"Audit"},
+     *     tags={"Audits"},
      *     summary="Obtener una auditoria específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -296,5 +303,72 @@ class AuditController extends Controller
                 $this->getCode(class_basename($e))
             );
         }
+    }
+
+    /**
+     * Historial de un registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde.
+     * El modelo sale de la ruta de cada módulo (/{módulo}/audits/{id}).
+     */
+    public function record(AuditRecordRequest $request, $id)
+    {
+        try {
+            $targets = $this->auditTargets($request->route('model'), (int) $id);
+
+            $audits = Audit::with(['user' => ['employee' => ['person', 'position' => ['area']]]])
+                ->where(function ($query) use ($targets) {
+                    foreach ($targets as [$type, $ids]) {
+                        $query->orWhere(fn ($q) => $q->where('auditable_type', $type)->whereIn('auditable_id', $ids));
+                    }
+                })
+                ->when($request->filled('event'), fn ($query) => $query->where('event', $request->input('event')))
+                ->orderByDesc('created_at')
+                ->orderByDesc('id');
+
+            $audits = $audits->paginate($request->integer('per_page', 15));
+
+            return $this->successResponse(
+                new AuditCollection($audits),
+                $this->getMessage('Success'),
+                200
+            );
+        } catch (\Throwable $e) {
+            return $this->errorResponse(
+                [
+                    'message' => $this->getMessage(class_basename($e)),
+                    'error' => $e->getMessage()
+                ],
+                $this->getCode(class_basename($e))
+            );
+        }
+    }
+
+    /**
+     * Registros cuyo historial se muestra junto al del registro consultado: él mismo y lo que depende de él
+     * (producto: colores, tallas y ficha técnica; orden: detalles y cantidades).
+     *
+     * @return array<int, array{0: string, 1: array<int, int>}>
+     */
+    private function auditTargets(string $model, int $id): array
+    {
+        $targets = [[$model, [$id]]];
+
+        if ($model === Product::class) {
+            $colors = ProductDetail::where('model_type', (new Product)->getMorphClass())->where('model_id', $id)->pluck('id')->all();
+            $sizes = ProductDetail::where('model_type', (new ProductDetail)->getMorphClass())->whereIn('model_id', $colors)->pluck('id')->all();
+            $sheets = TechnicalSheet::withTrashed()->where('product_id', $id)->pluck('id')->all();
+
+            $targets[] = [ProductDetail::class, array_merge($colors, $sizes)];
+            $targets[] = [TechnicalSheet::class, $sheets];
+        }
+
+        if ($model === ProductionOrder::class) {
+            $details = ProductionOrderDetail::where('production_order_id', $id)->pluck('id')->all();
+            $quantities = ProductionOrderDetailQuantity::whereIn('production_order_detail_id', $details)->pluck('id')->all();
+
+            $targets[] = [ProductionOrderDetail::class, $details];
+            $targets[] = [ProductionOrderDetailQuantity::class, $quantities];
+        }
+
+        return $targets;
     }
 }

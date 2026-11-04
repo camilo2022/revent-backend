@@ -9,6 +9,11 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
 
+/**
+ * Dos niveles en una sola tabla:
+ * color  -> model = Product,       assignable = Color
+ * talla  -> model = ProductDetail, assignable = Size (el model es el color)
+ */
 class ProductDetail extends Model implements Auditable
 {
     use Auditing;
@@ -35,10 +40,7 @@ class ProductDetail extends Model implements Auditable
         'description'
     ];
 
-    protected $appends = [
-        'code'
-    ];
-
+    // Tallas de un color
     public function sizes(): MorphMany
     {
         return $this->morphMany(ProductDetail::class, 'model');
@@ -59,14 +61,17 @@ class ProductDetail extends Model implements Auditable
         return $this->morphMany(File::class, 'model');
     }
 
+    // Color: referencia-color (RB265001-99). Talla: referencia-talla-color (RB265001-35-99).
+    // Usa las relaciones ya cargadas; si no están, hace consultas (evitarlo en listados).
     protected function code(): Attribute
     {
         return Attribute::make(
             get: function () {
                 if ($this->model_type === self::class) {
                     return implode('-', [
-                        $this->model?->code ?? 'NA-00',
+                        $this->model?->model?->code ?? 'NA',
                         $this->assignable?->settings?->code ?? '00',
+                        $this->model?->assignable?->settings?->code ?? '00',
                     ]);
                 }
 

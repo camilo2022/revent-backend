@@ -37,10 +37,10 @@ class FileTypeAllRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'numeric' => 'Debe ser un valor numérico.',
-            'in' => 'Valor inválido. Permitidos: :values.',
+            'required' => 'El campo es requerido.',
+            'string' => 'El campo debe ser texto.',
+            'numeric' => 'El campo debe ser un número.',
+            'in' => 'El valor no es válido. Permitidos: :values.',
             'boolean' => 'Deber ser verdadero o falso.'
         ];
     }

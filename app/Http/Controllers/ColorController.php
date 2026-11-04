@@ -354,7 +354,7 @@ class ColorController extends Controller
             $color = new Color();
             $color->name = $request->input('name');
             $color->description = $request->input('description');
-            $color->settings->code = $request->input('settings.code');
+            $color->settings = $request->input('settings');
             $color->save();
 
             return $this->successResponse(
@@ -478,7 +478,7 @@ class ColorController extends Controller
             $color = Color::findOrFail($id);
             $color->name = $request->input('name');
             $color->description = $request->input('description');
-            $color->settings->code = $request->input('settings.code');
+            $color->settings = $request->input('settings');
             $color->save();
 
             return $this->successResponse(

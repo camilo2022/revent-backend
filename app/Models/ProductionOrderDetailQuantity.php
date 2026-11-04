@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
 
+// Cantidad de una talla para una tienda dentro de un color de la orden
 class ProductionOrderDetailQuantity extends Model implements Auditable
 {
     use Auditing;
@@ -17,12 +18,14 @@ class ProductionOrderDetailQuantity extends Model implements Auditable
 
     protected $fillable = [
         'production_order_detail_id',
+        'store_id',
         'product_detail_id',
         'quantity'
     ];
 
     protected $auditInclude = [
         'production_order_detail_id',
+        'store_id',
         'product_detail_id',
         'quantity'
     ];
@@ -32,6 +35,12 @@ class ProductionOrderDetailQuantity extends Model implements Auditable
         return $this->belongsTo(ProductionOrderDetail::class);
     }
 
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
+
+    // Talla del producto (product_details nivel talla)
     public function product_detail(): BelongsTo
     {
         return $this->belongsTo(ProductDetail::class);

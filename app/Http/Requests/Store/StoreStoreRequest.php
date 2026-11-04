@@ -29,9 +29,9 @@ class StoreStoreRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string', 'size:2', 'unique:stores,code'],
-            'name' => ['required', 'string', 'max:100', 'unique:stores,name', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/'],
+            'name' => ['required', 'string', 'max:100', 'unique:stores,name', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s.&,\-]+$/'],
             'location_type' => ['required', 'string', 'in:' . implode(',', [Country::class, Department::class, City::class])],
-            'location_id' => ['required', 'numeric', match ($this->input('assignable_type')) {
+            'location_id' => ['required', 'numeric', match ($this->input('location_type')) {
                     Country::class  => 'exists:countries,id',
                     Department::class => 'exists:departments,id',
                     City::class => 'exists:cities,id',
@@ -45,13 +45,13 @@ class StoreStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'numeric' => 'Debe ser un dato númerico.',
-            'max' => 'Se permite máximo :max caracteres.',
+            'required' => 'El campo es requerido.',
+            'string' => 'El campo debe ser texto.',
+            'numeric' => 'El campo debe ser un número.',
+            'max' => 'El campo permite máximo :max caracteres.',
             'size' => 'Se permite la longitud de :value caracteres.',
-            'unique' => 'Ya está registrado.',
-            'regex' => "Formato inválido:\n- Solo letras.",
+            'unique' => 'El valor ya está registrado.',
+            'regex' => 'Formato inválido. Solo letras, números, espacios y . & , -',
             'exists' => 'No hay ningún registro.'
         ];
     }
@@ -62,7 +62,7 @@ class StoreStoreRequest extends FormRequest
             'code' => 'Código',
             'name' => 'Nombre',
             'location_type' => 'Tipo de ubicación',
-            'location_id' => match ($this->input('assignable_type')) {
+            'location_id' => match ($this->input('location_type')) {
                 Country::class  => 'País',
                 Department::class => 'Departamento',
                 City::class => 'Ciudad',

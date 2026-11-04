@@ -17,6 +17,7 @@ use App\Models\Person;
 use App\Services\FileService;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
@@ -430,24 +431,28 @@ class PersonController extends Controller
     public function store(PersonStoreRequest $request)
     {
         try {
-            $person = new Person();
-            $person->names = $request->input('names');
-            $person->last_names = $request->input('last_names');
-            $person->document_type_id = $request->integer('document_type_id');
-            $person->document = $request->input('document');
-            $person->gender_id = $request->integer('gender_id');
-            $person->birth_date = $request->input('birth_date');
-            $person->blood_type_id = $request->integer('blood_type_id');
-            $person->location_id = $request->integer('location_id');
-            $person->location_type = $request->input('location_type');
-            $person->address = $request->input('address');
-            $person->neighborhood = $request->input('neighborhood');
-            $person->phone_country_id = $request->integer('phone_country_id');
-            $person->phone = $request->input('phone');
-            $person->email = $request->input('email');
-            $person->save();
+            $person = DB::transaction(function () use ($request) {
+                $person = new Person();
+                $person->names = $request->input('names');
+                $person->last_names = $request->input('last_names');
+                $person->document_type_id = $request->integer('document_type_id');
+                $person->document = $request->input('document');
+                $person->gender_id = $request->integer('gender_id');
+                $person->birth_date = $request->input('birth_date');
+                $person->blood_type_id = $request->integer('blood_type_id');
+                $person->location_id = $request->integer('location_id');
+                $person->location_type = $request->input('location_type');
+                $person->address = $request->input('address');
+                $person->neighborhood = $request->input('neighborhood');
+                $person->phone_country_id = $request->integer('phone_country_id');
+                $person->phone = $request->input('phone');
+                $person->email = $request->input('email');
+                $person->save();
 
-            if ($request->hasFile('photo')) app(FileService::class)->save($person, $request->file('photo'), $request->integer('photo_type_id'), 'public', 'person');
+                if ($request->hasFile('photo')) app(FileService::class)->save($person, $request->file('photo'), $request->integer('photo_type_id'), 'public', 'person');
+
+                return $person;
+            });
 
             return $this->successResponse(
                 new PersonResource($person),
@@ -564,24 +569,28 @@ class PersonController extends Controller
     public function update(PersonUpdateRequest $request, $id)
     {
         try {
-            $person = Person::findOrFail($id);
-            $person->names = $request->input('names');
-            $person->last_names = $request->input('last_names');
-            $person->document_type_id = $request->integer('document_type_id');
-            $person->document = $request->input('document');
-            $person->gender_id = $request->integer('gender_id');
-            $person->birth_date = $request->input('birth_date');
-            $person->blood_type_id = $request->integer('blood_type_id');
-            $person->location_id = $request->integer('location_id');
-            $person->location_type = $request->input('location_type');
-            $person->address = $request->input('address');
-            $person->neighborhood = $request->input('neighborhood');
-            $person->phone_country_id = $request->integer('phone_country_id');
-            $person->phone = $request->input('phone');
-            $person->email = $request->input('email');
-            $person->save();
+            $person = DB::transaction(function () use ($request, $id) {
+                $person = Person::findOrFail($id);
+                $person->names = $request->input('names');
+                $person->last_names = $request->input('last_names');
+                $person->document_type_id = $request->integer('document_type_id');
+                $person->document = $request->input('document');
+                $person->gender_id = $request->integer('gender_id');
+                $person->birth_date = $request->input('birth_date');
+                $person->blood_type_id = $request->integer('blood_type_id');
+                $person->location_id = $request->integer('location_id');
+                $person->location_type = $request->input('location_type');
+                $person->address = $request->input('address');
+                $person->neighborhood = $request->input('neighborhood');
+                $person->phone_country_id = $request->integer('phone_country_id');
+                $person->phone = $request->input('phone');
+                $person->email = $request->input('email');
+                $person->save();
 
-            if ($request->hasFile('photo')) app(FileService::class)->save($person, $request->file('photo'), $request->integer('photo_type_id'), 'public', 'person');
+                if ($request->hasFile('photo')) app(FileService::class)->save($person, $request->file('photo'), $request->integer('photo_type_id'), 'public', 'person');
+
+                return $person;
+            });
 
             return $this->successResponse(
                 new PersonResource($person),

@@ -5,6 +5,7 @@ namespace App\Http\Requests\Person;
 use App\Models\BloodType;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\FileType;
 use App\Models\Department;
 use App\Models\DocumentType;
 use App\Models\Gender;
@@ -39,7 +40,7 @@ class PersonStoreRequest extends FormRequest
             'birth_date' => ['required', 'date', 'date_format:Y-m-d', 'before:now'],
             'blood_type_id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . BloodType::ITEM_ID . ',deleted_at,NULL'],
             'location_type' => ['required', 'string', 'in:' . implode(',', [Country::class, Department::class, City::class])],
-            'location_id' => ['required', 'numeric', match ($this->input('assignable_type')) {
+            'location_id' => ['required', 'numeric', match ($this->input('location_type')) {
                     Country::class  => 'exists:countries,id',
                     Department::class => 'exists:departments,id',
                     City::class => 'exists:cities,id',
@@ -48,31 +49,33 @@ class PersonStoreRequest extends FormRequest
             'address' => ['required', 'string', 'max:255'],
             'neighborhood' => ['required', 'string', 'max:255'],
             'phone_country_id' => ['required', 'numeric', 'exists:countries,id'],
-            'phone' => ['required', 'string', 'digits:10'],
+            'phone' => ['required', 'string', 'digits:10', 'unique:people,phone'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:people,email'],
-            'photo' => ['sometimes', 'image', 'mimes:jpg,jpeg,png', 'max:2048']
+            'photo' => ['sometimes', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'photo_type_id' => ['required_with:photo', 'exists:subitems,id,item_id,' . FileType::ITEM_ID . ',deleted_at,NULL']
         ];
     }
 
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'email' => 'Debe ser un correo electrónico válido.',
-            'numeric' => 'Debe ser un dato númerico.',
+            'required' => 'El campo es requerido.',
+            'required_with' => 'Es obligatorio cuando se envía el archivo.',
+            'string' => 'El campo debe ser texto.',
+            'email' => 'El campo debe ser un correo electrónico válido.',
+            'numeric' => 'El campo debe ser un número.',
             'digits_between' => 'Debe tener entre 5 y 14 dígitos.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'min' => 'Se permite mínimo :min caracteres.',
+            'max' => 'El campo permite máximo :max caracteres.',
+            'min' => 'El campo requiere mínimo :min caracteres.',
             'size' => 'Se permite la longitud de :value caracteres.',
-            'unique' => 'Ya está registrado.',
+            'unique' => 'El valor ya está registrado.',
             'regex' => "Formato inválido:\n- Solo letras.",
-            'exists' => 'No hay ningún registro.',
-            'date' => 'Debe ser una fecha válida.',
+            'exists' => 'El valor seleccionado no existe.',
+            'date' => 'El campo debe ser una fecha válida.',
             'date_format' => 'Formato inválido. Permitido :format.',
             'before' => 'Debe ser una fecha anterior a :date.',
-            'image' => 'Debe ser una imagen.',
-            'mimes' => 'Extensión inválida. Permitidas :values.',
+            'image' => 'El campo debe ser una imagen.',
+            'mimes' => 'El archivo tiene una extensión inválida. Permitidas: :values.',
             'photo.max' => 'Se permite máximo :max KB.'
         ];
     }
@@ -88,7 +91,7 @@ class PersonStoreRequest extends FormRequest
             'birth_date' => 'Fecha de nacimiento',
             'blood_type_id' => 'Identificador del tipo de sangre',
             'location_type' => 'Tipo de ubicación',
-            'location_id' => match ($this->input('assignable_type')) {
+            'location_id' => match ($this->input('location_type')) {
                 Country::class  => 'País',
                 Department::class => 'Departamento',
                 City::class => 'Ciudad',
@@ -99,7 +102,8 @@ class PersonStoreRequest extends FormRequest
             'phone_country_id' => 'Identificador del país del teléfono',
             'phone' => 'Número de teléfono',
             'email' => 'Correo electrónico',
-            'photo' => 'Foto'
+            'photo' => 'Foto',
+            'photo_type_id' => 'Tipo de archivo de la foto'
         ];
     }
 }

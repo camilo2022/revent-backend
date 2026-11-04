@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as Auditing;
@@ -18,21 +18,20 @@ class Product extends Model implements Auditable
 
     protected $guard_name = 'api';
 
+    // Marca, categoría y subcategoría van en la ficha técnica
     protected $fillable = [
-        'trademark_id',
         'code',
-        'category_id',
-        'subcategory_id',
+        'name',
+        'collection_id',
         'description',
         'cost',
         'price'
     ];
 
     protected $auditInclude = [
-        'trademark_id',
         'code',
-        'category_id',
-        'subcategory_id',
+        'name',
+        'collection_id',
         'description',
         'cost',
         'price'
@@ -43,24 +42,21 @@ class Product extends Model implements Auditable
         'price' => 'decimal:2',
     ];
 
-    public function trademark(): BelongsTo
+    public function collection(): BelongsTo
     {
-        return $this->belongsTo(Trademark::class);
+        return $this->belongsTo(Collection::class);
     }
 
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
-    }
-
-    public function subcategory(): BelongsTo
-    {
-        return $this->belongsTo(Subcategory::class);
-    }
-
+    // Colores del producto (nivel color de product_details); las tallas cuelgan de cada color
     public function colors(): MorphMany
     {
         return $this->morphMany(ProductDetail::class, 'model');
+    }
+
+    // Ficha técnica del producto
+    public function technical_sheet(): HasOne
+    {
+        return $this->hasOne(TechnicalSheet::class);
     }
 
     public function scopeSearch(Builder $query, ?string $search = null): Builder
@@ -79,20 +75,10 @@ class Product extends Model implements Auditable
                 $q->where(function (Builder $sq) use ($like) {
 
                     $sq->where('code', 'LIKE', $like)
-                        ->orWhereHas('trademark', function (Builder $q) use ($like) {
-                            $q->where('name', 'LIKE', $like)
-                            ->orWhere('description', 'LIKE', $like)
-                            ->orWhere('settings->code', 'LIKE', $like);
-                        })
-                        ->orWhereHas('category', function (Builder $q) use ($like) {
-                            $q->where('name', 'LIKE', $like)
-                            ->orWhere('description', 'LIKE', $like)
-                            ->orWhere('settings->code', 'LIKE', $like);
-                        })
-                        ->orWhereHas('subcategory', function (Builder $q) use ($like) {
-                            $q->where('name', 'LIKE', $like)
-                            ->orWhere('description', 'LIKE', $like)
-                            ->orWhere('settings->code', 'LIKE', $like);
+                        ->orWhere('name', 'LIKE', $like)
+                        ->orWhere('description', 'LIKE', $like)
+                        ->orWhereHas('collection', function (Builder $q) use ($like) {
+                            $q->where('name', 'LIKE', $like);
                         });
                 });
             }

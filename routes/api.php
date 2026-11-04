@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RiskManagerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BloodTypeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\CompensationFundController;
 use App\Http\Controllers\ContinentController;
@@ -32,9 +34,46 @@ use App\Http\Controllers\SizeController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SubcategoryController;
 use App\Http\Controllers\SubmoduleController;
+use App\Http\Controllers\TechnicalSheetController;
 use App\Http\Controllers\TrademarkController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Role;
+use App\Models\Permission;
+use App\Models\FileType;
+use App\Models\PersonType;
+use App\Models\DocumentType;
+use App\Models\BloodType;
+use App\Models\CompensationFund;
+use App\Models\Employee;
+use App\Models\Gender;
+use App\Models\HealthEntity;
+use App\Models\Module;
+use App\Models\Submodule;
+use App\Models\Area;
+use App\Models\Position;
+use App\Models\PensionFund;
+use App\Models\Person;
+use App\Models\RiskManager;
+use App\Models\User;
+use App\Models\Trademark;
+use App\Models\Color;
+use App\Models\Size;
+use App\Models\Category;
+use App\Models\Collection;
+use App\Models\Subcategory;
+use App\Models\Supplier;
+use App\Models\Store;
+use App\Models\Product;
+use App\Models\TechnicalSheet;
+use App\Models\ProductionOrder;
+
+Route::prefix('/reports')->controller(ReportController::class)->group(function () {
+    Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:reports.all']);
+    Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:reports.find']);
+    Route::post('/generate/{id}', 'generate')->middleware(['auth:sanctum', 'can:reports.generate']);
+    Route::post('/export/{id}', 'export')->middleware(['auth:sanctum', 'can:reports.export']);
+});
 
 Route::prefix('/audits')->controller(AuditController::class)->group(function () {
     Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:audits.all']);
@@ -42,7 +81,7 @@ Route::prefix('/audits')->controller(AuditController::class)->group(function () 
 });
 
 Route::prefix('/auth')->controller(AuthController::class)->group(function () {
-    Route::post('/login', 'login');
+    Route::post('/login', 'login')->middleware('throttle:10,1');
     Route::post('/logout', 'logout')->middleware(['auth:sanctum']);
     Route::get('/user', 'user')->middleware(['auth:sanctum']);
 });
@@ -293,6 +332,15 @@ Route::prefix('/classification')->group(function () {
         });
     });
 
+    Route::prefix('/collections')->controller(CollectionController::class)->group(function () {
+        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:collections.all']);
+        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:collections.find']);
+        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:collections.store']);
+        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:collections.update']);
+        Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:collections.delete']);
+        Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:collections.restore']);
+    });
+
     Route::prefix('/subcategories')->controller(SubcategoryController::class)->group(function () {
         Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:classification.subcategories.all']);
         Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:classification.subcategories.find']);
@@ -322,13 +370,23 @@ Route::prefix('/stores')->controller(StoreController::class)->group(function () 
 });
 
 Route::prefix('/products')->controller(ProductController::class)->group(function () {
-    Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:products.all']);
+    Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:products.all|technical_sheets.store']);
     Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:products.find']);
     Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:products.store']);
     Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:products.update']);
 });
 
-Route::prefix('/production_order')->controller(ProductionOrderController::class)->group(function () {
+Route::prefix('/technical_sheets')->controller(TechnicalSheetController::class)->group(function () {
+    Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:technical_sheets.all|production_orders.store|production_orders.update']);
+    Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:technical_sheets.find']);
+    Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:technical_sheets.store']);
+    Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:technical_sheets.update']);
+    Route::patch('/reviewed/{id}', 'reviewed')->middleware(['auth:sanctum', 'can:technical_sheets.reviewed']);
+    Route::patch('/approved/{id}', 'approved')->middleware(['auth:sanctum', 'can:technical_sheets.approved']);
+    Route::patch('/canceled/{id}', 'canceled')->middleware(['auth:sanctum', 'can:technical_sheets.canceled']);
+});
+
+Route::prefix('/production_orders')->controller(ProductionOrderController::class)->group(function () {
     Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:production_orders.all']);
     Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:production_orders.find']);
     Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:production_orders.store']);
@@ -337,3 +395,19 @@ Route::prefix('/production_order')->controller(ProductionOrderController::class)
     Route::patch('/canceled/{id}', 'canceled')->middleware(['auth:sanctum', 'can:production_orders.canceled']);
 });
 
+// Auditoría por registro: GET /{módulo}/audits/{id} devuelve quién hizo cada cambio de ese registro, cuándo y desde dónde
+foreach ([
+    'roles' => Role::class, 'permissions' => Permission::class, 'file_types' => FileType::class, 'person_types' => PersonType::class,
+    'document_types' => DocumentType::class, 'blood_types' => BloodType::class, 'compensation_funds' => CompensationFund::class,
+    'employees' => Employee::class, 'genders' => Gender::class, 'health_entities' => HealthEntity::class, 'modules' => Module::class,
+    'submodules' => Submodule::class, 'areas' => Area::class, 'positions' => Position::class, 'pension_funds' => PensionFund::class,
+    'people' => Person::class, 'risk_managers' => RiskManager::class, 'users' => User::class, 'trademarks' => Trademark::class,
+    'colors' => Color::class, 'sizes' => Size::class, 'categories' => Category::class, 'collections' => Collection::class,
+    'subcategories' => Subcategory::class, 'suppliers' => Supplier::class, 'stores' => Store::class, 'products' => Product::class,
+    'technical_sheets' => TechnicalSheet::class, 'production_orders' => ProductionOrder::class,
+] as $prefix => $model) {
+    Route::get("/{$prefix}/audits/{id}", [AuditController::class, 'record'])
+        ->defaults('model', $model)
+        ->whereNumber('id')
+        ->middleware(['auth:sanctum', 'can:audits.find']);
+}

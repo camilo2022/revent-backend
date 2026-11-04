@@ -25,14 +25,14 @@ class ProductionOrderFindRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:production_orders,id'],
+            'id' => ['required', 'exists:production_orders,id']
         ];
     }
 
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
+            'required' => 'El campo es requerido.',
             'exists' => 'No hay ningún registro.'
         ];
     }
@@ -40,7 +40,7 @@ class ProductionOrderFindRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del producto'
+            'id' => 'Identificador de la orden de producción'
         ];
     }
 

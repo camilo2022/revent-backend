@@ -2,81 +2,59 @@
 
 namespace App\Http\Requests\Product;
 
-use App\Models\Category;
-use App\Models\Color;
-use App\Models\Size;
-use App\Models\Subcategory;
-use App\Models\Trademark;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Models\Product;
+use App\Models\ProductionOrderDetail;
+use App\Models\ProductionOrderDetailQuantity;
 
-class ProductUpdateRequest extends FormRequest
+// Mismos datos que al crear (sin la colección: el código ya la lleva) más el id del producto
+class ProductUpdateRequest extends ProductStoreRequest
 {
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'message' => 'Error de validación.',
-            'attributes' => $this->attributes(),
-            'errors' => $validator->errors()
-        ], 422));
-    }
-
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     public function rules(): array
     {
-        return [
-            'trademark_id' => ['required', 'exists:subitems,id,item_id,' . Trademark::ITEM_ID],
-            'code' => ['required', 'uppercase', 'string', 'size:8', 'unique:products,code'],
-            'category_id' => ['required', 'exists:subitems,id,item_id,' . Category::ITEM_ID],
-            'subcategory_id' => ['required', 'exists:subitems,id,item_id,' . Subcategory::ITEM_ID],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'colors_id' => ['required', 'array', 'min:1'],
-            'colors_id.*' => ['array'],
-            'colors_id.*.color_id' => ['required',  'distinct', 'exists:subitems,id,item_id,' . Color::ITEM_ID],
-            'colors_id.*.description' => ['nullable', 'string', 'max:1000'],
-            'colors_id.*.sizes_id' => ['required', 'array', 'min:1'],
-            'colors_id.*.sizes_id.*' => ['array'],
-            'colors_id.*.sizes_id.*.size_id' => ['required', 'distinct', 'exists:subitems,id,item_id,' . Size::ITEM_ID],
-            'colors_id.*.sizes_id.*.description' => ['nullable', 'string', 'max:1000'],
-        ];
-    }
+        $rules = array_diff_key(parent::rules(), ['collection_id' => true]);
 
-    public function messages(): array
-    {
-        return [
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'size' => 'Debe tener :size caracteres.',
-            'unique' => 'Ya está registrado.',
-            'uppercase' => 'El campo debe estar en mayúsculas.',
-            'array' => 'Debe ser un arreglo.',
-            'exists' => 'El valor seleccionado no es válido.',
-            'distinct' => 'Ya fue agregado.',
-            'colors_id.min' => 'Se permite mínimo :min colores.',
-            'colors_id.*.sizes_id.min' => 'Se permite mínimo :min tallas.'
-        ];
+        return ['id' => ['required', 'exists:products,id']] + $rules;
     }
 
     public function attributes(): array
     {
-        return [
-            'trademark_id' => 'Identificador de la marca',
-            'code' => 'Codigo - Referencia',
-            'category_id' => 'Identificador de la categoria',
-            'subcategory_id' => 'Identificador de la subcategoria',
-            'description' => 'Descripción',
-            'colors_id' => 'Colores',
-            'colors_id.*.color_id' => 'Color',
-            'colors_id.*.description' => 'Descripción del color',
-            'colors_id.*.sizes_id' => 'Tallas',
-            'colors_id.*.sizes_id.*.size_id' => 'Talla',
-            'colors_id.*.sizes_id.*.description' => 'Descripción de la talla',
-        ];
+        return ['id' => 'Identificador del producto'] + parent::attributes();
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge(['id' => $this->route('id')]);
+    }
+
+    public function withValidator($validator)
+    {
+        parent::withValidator($validator);
+
+        $validator->after(function ($validator) {
+            if ($validator->errors()->isNotEmpty()) return;
+
+            $product = Product::with('colors.sizes')->find($this->route('id'));
+            $sent = collect($this->input('colors_id', []));
+
+            // Un color o talla que ya está en una orden de producción no se puede quitar
+            foreach ($product->colors as $color) {
+                $sentColor = $sent->firstWhere('color_id', $color->assignable_id);
+
+                if (!$sentColor) {
+                    if (ProductionOrderDetail::where('product_detail_id', $color->id)->exists()) {
+                        $validator->errors()->add('colors_id', "El color {$color->assignable?->name} está en órdenes de producción y no se puede quitar.");
+                    }
+                    continue;
+                }
+
+                $sentSizes = collect($sentColor['sizes_id'])->pluck('size_id');
+
+                foreach ($color->sizes as $size) {
+                    if (!$sentSizes->contains($size->assignable_id) && ProductionOrderDetailQuantity::where('product_detail_id', $size->id)->exists()) {
+                        $validator->errors()->add('colors_id', "La talla {$size->assignable?->name} del color {$color->assignable?->name} está en órdenes de producción y no se puede quitar.");
+                    }
+                }
+            }
+        });
     }
 }

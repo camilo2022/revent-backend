@@ -35,12 +35,12 @@ class PensionFundUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'min' => 'Se permite mínimo :min caracteres.',
-            'unique' => 'Ya está registrado.',
-            'exists' => 'No está registrado.',
+            'required' => 'El campo es requerido.',
+            'string' => 'El campo debe ser texto.',
+            'max' => 'El campo permite máximo :max caracteres.',
+            'min' => 'El campo requiere mínimo :min caracteres.',
+            'unique' => 'El valor ya está registrado.',
+            'exists' => 'El valor seleccionado no está registrado.',
             'uppercase' => 'Debe de ingresar mayúsculas.'
         ];
     }

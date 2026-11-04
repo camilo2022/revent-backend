@@ -36,7 +36,7 @@ class ModuleRestoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
+            'required' => 'El campo es requerido.',
             'exists' => 'No hay ningún registro.'
         ];
     }

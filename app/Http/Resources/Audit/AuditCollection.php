@@ -20,6 +20,7 @@ class AuditCollection extends ResourceCollection
                     'auditable_name' => $this->getAuditableName(class_basename($audit->auditable_type)),
                     'url' => $audit->url,
                     'ip_address' => $audit->ip_address,
+                    'user_agent' => $audit->user_agent,
                     'tags' => $audit->tags,
                     'audit_tag' => $this->getTagName($audit->tags ?? null),
                     'old_values' => $audit->old_values,
@@ -59,6 +60,16 @@ class AuditCollection extends ResourceCollection
     }
 
     private $model_types = [
+        'Supplier' => 'Proveedor',
+        'Store' => 'Tienda',
+        'ProductionOrderDetailQuantity' => 'Cantidad de la orden',
+        'ProductionOrderDetail' => 'Detalle de la orden',
+        'ProductionOrder' => 'Orden de producción',
+        'TechnicalSheet' => 'Ficha técnica',
+        'ProductDetail' => 'Color o talla del producto',
+        'Product' => 'Producto',
+        'Collection' => 'Colección',
+        'Color' => 'Color',
         'Area' => 'Área',
         'BackType' => 'Tipo de Trasero',
         'BloodType' => 'Tipo de Sangre',

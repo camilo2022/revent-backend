@@ -97,12 +97,13 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         try {
-            $user = User::with(['employee' => ['person']])->where('username', $request->input('username'))->firstOrFail();
+            $user = User::with(['employee' => ['person']])->where('username', $request->input('username'))->first();
 
-            if (!Hash::check($request->input('password'), $user->password)) {
+            // Mismo mensaje y mismo trabajo si el usuario no existe o la clave es incorrecta (no permite saber cuáles usuarios existen)
+            if (!Hash::check($request->input('password'), $user?->password ?? '$2y$12$usesomesillystringfore7hnbRJHxXVLeakoG8K30oukPsA.ztMG')) {
                 return $this->errorResponse(
                     [
-                        'message' => $this->getMessage('UnauthorizedException'),
+                        'message' => 'Usuario o contraseña incorrectos. ',
                         'error' => 'Credenciales incorrectas.'
                     ],
                     422

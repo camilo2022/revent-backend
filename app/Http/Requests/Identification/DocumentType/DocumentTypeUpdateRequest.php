@@ -7,6 +7,7 @@ use App\Models\PersonType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class DocumentTypeUpdateRequest extends FormRequest
 {
@@ -32,21 +33,21 @@ class DocumentTypeUpdateRequest extends FormRequest
             'name' => ['required', 'string', 'uppercase', 'min:4', 'max:50', 'unique:subitems,name,' . $this->route('id') . ',id,item_id,' . DocumentType::ITEM_ID],
             'description' => ['required', 'uppercase', 'string', 'max:255'],
             'settings' => ['required', 'array'],
-            'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . DocumentType::ITEM_ID],
+            'settings.code' => ['required', 'uppercase', 'string', 'size:2', Rule::unique('subitems', 'settings->code')->where('item_id', DocumentType::ITEM_ID)->ignore($this->route('id'))],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'min' => 'Se permite mínimo :min caracteres.',
-            'size' => 'Debe tener :size caracteres.',
-            'unique' => 'Ya está registrado.',
+            'required' => 'El campo es requerido.',
+            'string' => 'El campo debe ser texto.',
+            'max' => 'El campo permite máximo :max caracteres.',
+            'min' => 'El campo requiere mínimo :min caracteres.',
+            'size' => 'El campo debe tener :size caracteres.',
+            'unique' => 'El valor ya está registrado.',
             'uppercase' => 'El campo debe estar en mayúsculas.',
-            'array' => 'Debe ser un arreglo.',
+            'array' => 'El campo debe ser una lista.',
         ];
     }
 

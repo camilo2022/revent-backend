@@ -36,7 +36,7 @@ class ModuleAllRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'per_page.numeric' => 'Debe ser un valor numérico.',
+            'per_page.numeric' => 'El campo debe ser un número.',
             'search.string' => 'Debe ser un registro válido de busqueda. ',
             'column.string' => 'Debe ser una columna válida. ',
             'column.in' => 'El valor de la columna no es válido. ',

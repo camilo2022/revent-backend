@@ -44,14 +44,14 @@ class EmployeeStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'min' => 'Se permite mínimo :min caracteres.',
-            'unique' => 'Ya está registrado.',
+            'required' => 'El campo es requerido.',
+            'string' => 'El campo debe ser texto.',
+            'max' => 'El campo permite máximo :max caracteres.',
+            'min' => 'El campo requiere mínimo :min caracteres.',
+            'unique' => 'El valor ya está registrado.',
             'regex' => "Formato inválido:\n- Solo letras.",
-            'exists' => 'No hay ningún registro.',
-            'date' => 'Debe ser una fecha válida.',
+            'exists' => 'El valor seleccionado no existe.',
+            'date' => 'El campo debe ser una fecha válida.',
             'date_format' => 'Formato inválido. Permitido :format.',
             'after' => 'Debe ser una fecha posterior a :date.'
         ];
