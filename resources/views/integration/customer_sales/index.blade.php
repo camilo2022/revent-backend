@@ -6,6 +6,8 @@
 <link rel="stylesheet" href="{{ asset('integration/css/sync-unico.css') }}">
 <style>
     .cs-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end; }
+    .cs-req { color: #dc2626; font-weight: 700; }
+    .cs-hint { font-size: .75rem; color: #6b7280; margin-top: .6rem; }
     .cs-form label { display: block; font-size: .8rem; font-weight: 600; color: #374151; margin-bottom: .3rem; }
     .cs-form input, .cs-form select { width: 100%; padding: .55rem .7rem; border: 1px solid #d1d5db; border-radius: 10px; font-size: .9rem; background: #fff; }
     .cs-customer { border: 1px solid #eef0f2; border-radius: 12px; padding: 1rem 1.2rem; margin-top: .8rem; }
@@ -44,11 +46,11 @@
             @csrf
             <div class="cs-form">
                 <div style="grid-column: 1 / -1;">
-                    <label for="token">Token de Siigo (valida tu acceso)</label>
+                    <label for="token">Token de Siigo (valida tu acceso) <span class="cs-req" title="Obligatorio">*</span></label>
                     <input type="text" id="token" name="token" value="{{ request('token') }}" placeholder="Pega aquí el token" autocomplete="off" required>
                 </div>
                 <div>
-                    <label for="date">Fecha</label>
+                    <label for="date">Fecha <span class="cs-req" title="Obligatorio">*</span></label>
                     <input type="date" id="date" name="date" value="{{ old('date', request('date', now()->subYear()->format('Y-m-d'))) }}" required>
                 </div>
                 <div>
@@ -65,6 +67,7 @@
                 </div>
             </div>
         </form>
+        <div class="cs-hint"><span class="cs-req">*</span> Campo obligatorio</div>
     </div>
 
     @if (is_array($customers))
