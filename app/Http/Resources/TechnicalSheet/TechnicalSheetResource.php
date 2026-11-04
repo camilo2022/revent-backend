@@ -18,7 +18,6 @@ class TechnicalSheetResource extends JsonResource
         return [
             'id' => $sheet->id,
             'product_id' => $sheet->product_id,
-            'version' => $sheet->version,
             'status' => $sheet->status,
             'trademark_id' => $sheet->trademark_id,
             'category_id' => $sheet->category_id,

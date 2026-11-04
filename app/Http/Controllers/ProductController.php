@@ -37,7 +37,6 @@ use Illuminate\Support\Facades\DB;
  *     @OA\Property(property="collection", type="object", nullable=true, ref="#/components/schemas/Collection"),
  *     @OA\Property(property="technical_sheet", type="object", nullable=true,
  *         @OA\Property(property="id", type="integer", example=1),
- *         @OA\Property(property="version", type="integer", example=1),
  *         @OA\Property(property="status", type="string", example="Aprobado")
  *     ),
  *     @OA\Property(property="colors", type="array", description="Colores del producto; cada uno con sus tallas",

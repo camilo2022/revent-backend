@@ -24724,7 +24724,6 @@
                             "type": "string",
                             "enum": [
                                 "id",
-                                "version",
                                 "status",
                                 "approved_at",
                                 "created_at",
@@ -24776,7 +24775,7 @@
                     {
                         "name": "only_approved",
                         "in": "query",
-                        "description": "Solo la versión aprobada más reciente de cada producto (para elegir en la orden).",
+                        "description": "Solo fichas aprobadas (para elegir en la orden).",
                         "required": false,
                         "schema": {
                             "type": "boolean",
@@ -24968,7 +24967,7 @@
                 "tags": [
                     "TechnicalSheets"
                 ],
-                "summary": "Crear la ficha técnica (versión 1) de un producto",
+                "summary": "Crear la ficha técnica de un producto",
                 "operationId": "29c8d48faedaa777a398a58b1d991410",
                 "requestBody": {
                     "required": true,
@@ -25091,7 +25090,7 @@
                 "tags": [
                     "TechnicalSheets"
                 ],
-                "summary": "Actualizar una ficha técnica (solo en borrador o en revisión)",
+                "summary": "Actualizar una ficha técnica (menos las canceladas); el cambio queda en la auditoría",
                 "operationId": "779406c3c31ec41105b2478f0be778c5",
                 "parameters": [
                     {
@@ -25186,7 +25185,7 @@
                         }
                     },
                     "422": {
-                        "description": "Error de validación (por ejemplo, la ficha ya está aprobada)"
+                        "description": "Error de validación (por ejemplo, la ficha está cancelada)"
                     },
                     "401": {
                         "description": "No autenticado",
@@ -25221,7 +25220,7 @@
                 "tags": [
                     "TechnicalSheets"
                 ],
-                "summary": "Enviar la ficha a revisión (Pendiente → En revision)",
+                "summary": "Enviar la ficha a revisión (Pendiente o Cancelado → En revision)",
                 "operationId": "0aa7f2d6c4ebdaea7438b2239ac7993a",
                 "parameters": [
                     {
@@ -25424,85 +25423,6 @@
                     },
                     "422": {
                         "description": "La ficha no está en un estado válido"
-                    },
-                    "401": {
-                        "description": "No autenticado",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UnauthorizedResponse"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Error del servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ServerErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/technical_sheets/version/{id}": {
-            "post": {
-                "tags": [
-                    "TechnicalSheets"
-                ],
-                "summary": "Crear una nueva versión de la ficha copiando la indicada",
-                "operationId": "96086863eb911504ae4c1a6c4a5eef19",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Identificador de la ficha técnica a copiar",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Nueva versión creada en estado Pendiente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "technical_sheet": {
-                                                    "$ref": "#/components/schemas/TechnicalSheet"
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Operación completada con éxito."
-                                        },
-                                        "error": {
-                                            "type": "boolean",
-                                            "example": false
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "El producto ya tiene una versión en borrador o en revisión"
                     },
                     "401": {
                         "description": "No autenticado",
@@ -29331,10 +29251,6 @@
                                 "type": "integer",
                                 "example": 1
                             },
-                            "version": {
-                                "type": "integer",
-                                "example": 1
-                            },
                             "status": {
                                 "type": "string",
                                 "example": "Aprobado"
@@ -29464,10 +29380,6 @@
                             "id": {
                                 "type": "integer",
                                 "example": 4
-                            },
-                            "version": {
-                                "type": "integer",
-                                "example": 1
                             },
                             "status": {
                                 "type": "string",
@@ -30370,10 +30282,6 @@
                         "type": "integer",
                         "example": 1
                     },
-                    "version": {
-                        "type": "integer",
-                        "example": 1
-                    },
                     "status": {
                         "type": "string",
                         "enum": [
@@ -30813,7 +30721,7 @@
         },
         {
             "name": "TechnicalSheets",
-            "description": "Fichas técnicas de los productos: versiones y aprobación"
+            "description": "Fichas técnicas de los productos: una por producto, con revisión y aprobación (los cambios quedan en la auditoría)"
         },
         {
             "name": "Trademarks",

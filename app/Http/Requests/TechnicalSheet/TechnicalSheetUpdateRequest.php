@@ -4,7 +4,7 @@ namespace App\Http\Requests\TechnicalSheet;
 
 use App\Models\TechnicalSheet;
 
-// Mismos datos que al crear (sin el producto) más el id de la ficha; solo se edita en borrador o revisión
+// Mismos datos que al crear (sin el producto) más el id de la ficha; una ficha cancelada no se edita (los cambios quedan en la auditoría)
 class TechnicalSheetUpdateRequest extends TechnicalSheetStoreRequest
 {
     public function rules(): array
@@ -35,8 +35,8 @@ class TechnicalSheetUpdateRequest extends TechnicalSheetStoreRequest
 
             $technical_sheet = TechnicalSheet::find($this->route('id'));
 
-            if (!in_array($technical_sheet->status, [TechnicalSheet::PENDING, TechnicalSheet::REVIEW])) {
-                $validator->errors()->add('id', "La ficha está en estado {$technical_sheet->status} y no se puede editar. Cree una nueva versión.");
+            if ($technical_sheet->status === TechnicalSheet::CANCELED) {
+                $validator->errors()->add('id', 'La ficha está cancelada y no se puede editar.');
             }
         });
     }

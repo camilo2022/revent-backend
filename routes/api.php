@@ -347,7 +347,6 @@ Route::prefix('/technical_sheets')->controller(TechnicalSheetController::class)-
     Route::patch('/reviewed/{id}', 'reviewed')->middleware(['auth:sanctum', 'can:technical_sheets.reviewed']);
     Route::patch('/approved/{id}', 'approved')->middleware(['auth:sanctum', 'can:technical_sheets.approved']);
     Route::patch('/canceled/{id}', 'canceled')->middleware(['auth:sanctum', 'can:technical_sheets.canceled']);
-    Route::post('/version/{id}', 'version')->middleware(['auth:sanctum', 'can:technical_sheets.version']);
 });
 
 Route::prefix('/production_orders')->controller(ProductionOrderController::class)->group(function () {

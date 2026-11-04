@@ -108,7 +108,6 @@ class ProductionOrderResource extends JsonResource
 
         return [
             'id' => $sheet->id,
-            'version' => $sheet->version,
             'status' => $sheet->status,
             'product' => $sheet->relationLoaded('product') && $sheet->product
                 ? ['id' => $sheet->product->id, 'code' => $sheet->product->code, 'name' => $sheet->product->name]

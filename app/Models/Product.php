@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use OwenIt\Auditing\Contracts\Auditable;
@@ -72,15 +71,10 @@ class Product extends Model implements Auditable
         return $this->morphMany(ProductDetail::class, 'model');
     }
 
-    public function technical_sheets(): HasMany
-    {
-        return $this->hasMany(TechnicalSheet::class);
-    }
-
-    // Ficha más reciente (mayor versión)
+    // Ficha técnica del producto
     public function technical_sheet(): HasOne
     {
-        return $this->hasOne(TechnicalSheet::class)->latestOfMany('version');
+        return $this->hasOne(TechnicalSheet::class);
     }
 
     public function scopeSearch(Builder $query, ?string $search = null): Builder

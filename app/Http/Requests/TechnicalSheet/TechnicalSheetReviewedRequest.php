@@ -57,7 +57,7 @@ class TechnicalSheetReviewedRequest extends FormRequest
 
             $technical_sheet = TechnicalSheet::with('product.colors.sizes')->find($this->route('id'));
 
-            if (!in_array($technical_sheet->status, [TechnicalSheet::PENDING])) {
+            if (!in_array($technical_sheet->status, [TechnicalSheet::PENDING, TechnicalSheet::CANCELED])) {
                 $validator->errors()->add('id', "La ficha está en estado {$technical_sheet->status} y no se puede enviar a revisión.");
             }
         });

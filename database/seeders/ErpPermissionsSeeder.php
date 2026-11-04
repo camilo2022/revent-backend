@@ -49,7 +49,6 @@ class ErpPermissionsSeeder extends Seeder
                     ['name' => 'technical_sheets.reviewed', 'title' => 'Enviar ficha técnica a revisión', 'description' => 'Permite enviar fichas técnicas a revisión.'],
                     ['name' => 'technical_sheets.approved', 'title' => 'Aprobar ficha técnica', 'description' => 'Permite aprobar fichas técnicas.'],
                     ['name' => 'technical_sheets.canceled', 'title' => 'Cancelar ficha técnica', 'description' => 'Permite cancelar fichas técnicas.'],
-                    ['name' => 'technical_sheets.version', 'title' => 'Crear versión de ficha técnica', 'description' => 'Permite crear una nueva versión de una ficha técnica.'],
                 ],
             ],
             [

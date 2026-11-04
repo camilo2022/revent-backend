@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // La orden guarda la versión de la ficha con la que se creó
+        // Ficha técnica de la que sale la orden
         Schema::table('production_orders', function (Blueprint $table) {
             $table->foreignIdFor(TechnicalSheet::class)->nullable()->after('id')->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Ficha técnica usada');
         });

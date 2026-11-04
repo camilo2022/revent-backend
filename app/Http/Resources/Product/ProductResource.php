@@ -31,7 +31,6 @@ class ProductResource extends JsonResource
             ] : null,
             'technical_sheet' => $product->relationLoaded('technical_sheet') && $product->technical_sheet ? [
                 'id' => $product->technical_sheet->id,
-                'version' => $product->technical_sheet->version,
                 'status' => $product->technical_sheet->status,
             ] : null,
             'colors' => $product->relationLoaded('colors') ? $product->colors->map(fn ($color) => self::color($product, $color))->values() : [],

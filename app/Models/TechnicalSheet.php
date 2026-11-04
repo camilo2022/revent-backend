@@ -25,7 +25,6 @@ class TechnicalSheet extends Model implements Auditable
 
     protected $fillable = [
         'product_id',
-        'version',
         'trademark_id',
         'category_id',
         'subcategory_id',
@@ -40,7 +39,6 @@ class TechnicalSheet extends Model implements Auditable
 
     protected $auditInclude = [
         'product_id',
-        'version',
         'trademark_id',
         'category_id',
         'subcategory_id',
@@ -88,14 +86,10 @@ class TechnicalSheet extends Model implements Auditable
         return $this->hasMany(ProductionOrder::class);
     }
 
-    // Solo la versión aprobada más reciente de cada producto
+    // Solo las fichas aprobadas (las únicas que se pueden usar en una orden)
     public function scopeOnlyApproved(Builder $query): Builder
     {
-        return $query->where('status', self::APPROVED)
-            ->whereRaw(
-                'version = (select max(ts.version) from technical_sheets ts where ts.product_id = technical_sheets.product_id and ts.status = ? and ts.deleted_at is null)',
-                [self::APPROVED]
-            );
+        return $query->where('status', self::APPROVED);
     }
 
     public function scopeSearch(Builder $query, ?string $search = null): Builder

@@ -9,7 +9,6 @@ use App\Http\Requests\TechnicalSheet\TechnicalSheetFindRequest;
 use App\Http\Requests\TechnicalSheet\TechnicalSheetReviewedRequest;
 use App\Http\Requests\TechnicalSheet\TechnicalSheetStoreRequest;
 use App\Http\Requests\TechnicalSheet\TechnicalSheetUpdateRequest;
-use App\Http\Requests\TechnicalSheet\TechnicalSheetVersionRequest;
 use App\Http\Resources\TechnicalSheet\TechnicalSheetCollection;
 use App\Http\Resources\TechnicalSheet\TechnicalSheetResource;
 use App\Models\TechnicalSheet;
@@ -22,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * @OA\Tag(
  *     name="TechnicalSheets",
- *     description="Fichas técnicas de los productos: versiones y aprobación"
+ *     description="Fichas técnicas de los productos: una por producto, con revisión y aprobación (los cambios quedan en la auditoría)"
  * )
  *
  * @OA\Schema(
@@ -30,7 +29,6 @@ use Illuminate\Support\Facades\DB;
  *     type="object",
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="product_id", type="integer", example=1),
- *     @OA\Property(property="version", type="integer", example=1),
  *     @OA\Property(property="status", type="string", enum={"Pendiente","En revision","Aprobado","Cancelado"}, example="Pendiente"),
  *     @OA\Property(property="trademark_id", type="integer", example=12),
  *     @OA\Property(property="category_id", type="integer", example=20),
@@ -63,11 +61,11 @@ class TechnicalSheetController extends Controller
      *     summary="Listar fichas técnicas",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(name="search", in="query", description="Filtro de búsqueda (producto, proceso, descripción, estado).", required=false, @OA\Schema(type="string", example="ACTION")),
-     *     @OA\Parameter(name="column", in="query", description="Columna a ordenar.", required=false, @OA\Schema(type="string", enum={"id","version","status","approved_at","created_at","updated_at"}, example="id")),
+     *     @OA\Parameter(name="column", in="query", description="Columna a ordenar.", required=false, @OA\Schema(type="string", enum={"id","status","approved_at","created_at","updated_at"}, example="id")),
      *     @OA\Parameter(name="dir", in="query", description="Orden de datos.", required=false, @OA\Schema(type="string", enum={"asc","desc"}, example="desc")),
      *     @OA\Parameter(name="product_id", in="query", description="Solo fichas de un producto.", required=false, @OA\Schema(type="integer", example=1)),
      *     @OA\Parameter(name="status", in="query", description="Solo fichas en un estado.", required=false, @OA\Schema(type="string", enum={"Pendiente","En revision","Aprobado","Cancelado"}, example="Aprobado")),
-     *     @OA\Parameter(name="only_approved", in="query", description="Solo la versión aprobada más reciente de cada producto (para elegir en la orden).", required=false, @OA\Schema(type="boolean", example=true)),
+     *     @OA\Parameter(name="only_approved", in="query", description="Solo fichas aprobadas (para elegir en la orden).", required=false, @OA\Schema(type="boolean", example=true)),
      *     @OA\Parameter(name="per_page", in="query", description="Registros por página. Sin enviarlo se devuelven todos.", required=false, @OA\Schema(type="integer", example=10)),
      *     @OA\Response(
      *         response=200,
@@ -165,7 +163,7 @@ class TechnicalSheetController extends Controller
      * @OA\Post(
      *     path="/technical_sheets/store",
      *     tags={"TechnicalSheets"},
-     *     summary="Crear la ficha técnica (versión 1) de un producto",
+     *     summary="Crear la ficha técnica de un producto",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
@@ -201,7 +199,6 @@ class TechnicalSheetController extends Controller
             $technical_sheet = DB::transaction(function () use ($request) {
                 $technical_sheet = new TechnicalSheet();
                 $technical_sheet->product_id = $request->integer('product_id');
-                $technical_sheet->version = 1;
                 $this->fill($technical_sheet, $request);
                 $technical_sheet->status = TechnicalSheet::PENDING;
                 $technical_sheet->save();
@@ -223,7 +220,7 @@ class TechnicalSheetController extends Controller
      * @OA\Put(
      *     path="/technical_sheets/update/{id}",
      *     tags={"TechnicalSheets"},
-     *     summary="Actualizar una ficha técnica (solo en borrador o en revisión)",
+     *     summary="Actualizar una ficha técnica (menos las canceladas); el cambio queda en la auditoría",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(name="id", in="path", description="Identificador de la ficha técnica", required=true, @OA\Schema(type="integer", example=1)),
      *     @OA\RequestBody(
@@ -248,7 +245,7 @@ class TechnicalSheetController extends Controller
      *             @OA\Property(property="error", type="boolean", example=false)
      *         )
      *     ),
-     *     @OA\Response(response=422, description="Error de validación (por ejemplo, la ficha ya está aprobada)"),
+     *     @OA\Response(response=422, description="Error de validación (por ejemplo, la ficha está cancelada)"),
      *     @OA\Response(response=401, description="No autenticado", @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")),
      *     @OA\Response(response=500, description="Error del servidor", @OA\JsonContent(ref="#/components/schemas/ServerErrorResponse"))
      * )
@@ -278,7 +275,7 @@ class TechnicalSheetController extends Controller
      * @OA\Patch(
      *     path="/technical_sheets/reviewed/{id}",
      *     tags={"TechnicalSheets"},
-     *     summary="Enviar la ficha a revisión (Pendiente → En revision)",
+     *     summary="Enviar la ficha a revisión (Pendiente o Cancelado → En revision)",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(name="id", in="path", description="Identificador de la ficha técnica", required=true, @OA\Schema(type="integer", example=1)),
      *     @OA\Response(
@@ -350,54 +347,6 @@ class TechnicalSheetController extends Controller
     public function canceled(TechnicalSheetCanceledRequest $request, $id)
     {
         return $this->changeStatus($id, TechnicalSheet::CANCELED);
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/technical_sheets/version/{id}",
-     *     tags={"TechnicalSheets"},
-     *     summary="Crear una nueva versión de la ficha copiando la indicada",
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(name="id", in="path", description="Identificador de la ficha técnica a copiar", required=true, @OA\Schema(type="integer", example=1)),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Nueva versión creada en estado Pendiente",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="object", @OA\Property(property="technical_sheet", ref="#/components/schemas/TechnicalSheet")),
-     *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
-     *             @OA\Property(property="error", type="boolean", example=false)
-     *         )
-     *     ),
-     *     @OA\Response(response=422, description="El producto ya tiene una versión en borrador o en revisión"),
-     *     @OA\Response(response=401, description="No autenticado", @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")),
-     *     @OA\Response(response=500, description="Error del servidor", @OA\JsonContent(ref="#/components/schemas/ServerErrorResponse"))
-     * )
-     */
-    public function version(TechnicalSheetVersionRequest $request, $id)
-    {
-        try {
-            $new = DB::transaction(function () use ($id) {
-                $source = TechnicalSheet::findOrFail($id);
-
-                // La versión nueva es la siguiente a la mayor del producto
-                $version = TechnicalSheet::withTrashed()->where('product_id', $source->product_id)->max('version') + 1;
-
-                $new = $source->replicate(['status', 'approved_by', 'approved_at']);
-                $new->version = $version;
-                $new->status = TechnicalSheet::PENDING;
-                $new->save();
-
-                return $new;
-            });
-
-            return $this->successResponse(
-                new TechnicalSheetResource($new->load(self::WITH)),
-                $this->getMessage('Success'),
-                201
-            );
-        } catch (\Throwable $e) {
-            return $this->failure($e);
-        }
     }
 
     // Datos editables de la ficha (los comparten crear y actualizar)

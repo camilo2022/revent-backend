@@ -47,7 +47,7 @@ class TechnicalSheetStoreRequest extends FormRequest
         return [
             'required' => 'Es obligatorio.',
             'exists' => 'No registrado en el sistema.',
-            'unique' => 'El producto ya tiene ficha técnica. Cree una nueva versión.',
+            'unique' => 'El producto ya tiene ficha técnica.',
             'string' => 'Debe ser una cadena de texto.',
             'integer' => 'Debe ser un número entero.',
             'array' => 'Debe ser un arreglo de datos.',

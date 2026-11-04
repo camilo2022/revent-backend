@@ -17,11 +17,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Ficha técnica por producto y versión: la orden de producción guarda la versión exacta que usó
+        // Ficha técnica del producto (una por producto); los cambios quedan en la auditoría (audits)
         Schema::create('technical_sheets', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Product::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Producto');
-            $table->unsignedSmallInteger('version')->default(1)->comment('Versión de la ficha');
+            $table->foreignIdFor(Product::class)->unique()->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Producto');
             $table->foreignIdFor(Trademark::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Marca');
             $table->foreignIdFor(Category::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Categoría');
             $table->foreignIdFor(Subcategory::class)->constrained()->cascadeOnUpdate()->restrictOnDelete()->comment('Subcategoría (tipo de calzado)');
@@ -34,7 +33,6 @@ return new class extends Migration
             $table->timestamp('approved_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            $table->unique(['product_id', 'version'], 'technical_sheets_product_version_unique');
         });
     }
 

@@ -29,7 +29,7 @@ class TechnicalSheetAllRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1'],
             'page' => ['nullable', 'integer', 'min:1'],
             'search' => ['nullable', 'string'],
-            'column' => ['nullable', 'string', 'in:id,version,status,approved_at,created_at,updated_at'],
+            'column' => ['nullable', 'string', 'in:id,status,approved_at,created_at,updated_at'],
             'dir' => ['nullable', 'string', 'in:asc,desc'],
             'product_id' => ['nullable', 'exists:products,id'],
             'status' => ['nullable', 'string', 'in:' . implode(',', TechnicalSheet::statuses())],

@@ -41,7 +41,6 @@ use Illuminate\Support\Facades\DB;
  *     ),
  *     @OA\Property(property="technical_sheet", type="object",
  *         @OA\Property(property="id", type="integer", example=4),
- *         @OA\Property(property="version", type="integer", example=1),
  *         @OA\Property(property="status", type="string", example="Aprobado"),
  *         @OA\Property(property="product", type="object",
  *             @OA\Property(property="id", type="integer", example=2),
