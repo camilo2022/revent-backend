@@ -36,8 +36,8 @@ class PermissionAllRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'exists' => 'No hay ningún registro.',
-            'per_page.numeric' => 'Debe ser un valor numérico.',
+            'exists' => 'El valor seleccionado no existe.',
+            'per_page.numeric' => 'El campo debe ser un número.',
             'search.string' => 'Debe ser un registro válido de busqueda. ',
             'column.string' => 'Debe ser una columna válida. ',
             'column.in' => 'El valor de la columna no es válido. ',

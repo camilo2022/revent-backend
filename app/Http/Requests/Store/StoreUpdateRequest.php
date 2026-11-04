@@ -46,12 +46,12 @@ class StoreUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'numeric' => 'Debe ser un dato númerico.',
-            'max' => 'Se permite máximo :max caracteres.',
+            'required' => 'El campo es requerido.',
+            'string' => 'El campo debe ser texto.',
+            'numeric' => 'El campo debe ser un número.',
+            'max' => 'El campo permite máximo :max caracteres.',
             'size' => 'Se permite la longitud de :value caracteres.',
-            'unique' => 'Ya está registrado.',
+            'unique' => 'El valor ya está registrado.',
             'regex' => 'Formato inválido. Solo letras, números, espacios y . & , -',
             'exists' => 'No hay ningún registro.'
         ];

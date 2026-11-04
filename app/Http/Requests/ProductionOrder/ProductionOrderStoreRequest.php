@@ -48,12 +48,12 @@ class ProductionOrderStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'exists' => 'No registrado en el sistema.',
-            'integer' => 'Debe ser un número entero.',
-            'numeric' => 'Debe ser un valor numérico.',
-            'string' => 'Debe ser una cadena de texto.',
-            'array' => 'Debe ser un arreglo de datos.',
+            'required' => 'El campo es requerido.',
+            'exists' => 'El valor seleccionado no está registrado.',
+            'integer' => 'El campo debe ser un número entero.',
+            'numeric' => 'El campo debe ser un número.',
+            'string' => 'El campo debe ser texto.',
+            'array' => 'El campo debe ser una lista.',
             'distinct' => 'No se puede repetir.',
             'between' => 'Debe estar entre :min y :max.',
             'min' => 'El valor debe ser mayor o igual a :min.',

@@ -47,13 +47,13 @@ class ProductStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'exists' => 'No registrado en el sistema.',
-            'string' => 'Debe ser una cadena de texto.',
-            'integer' => 'Debe ser un número entero.',
-            'numeric' => 'Debe ser un valor numérico.',
-            'array' => 'Debe ser un arreglo de datos.',
-            'uppercase' => 'Debe estar en mayúsculas.',
+            'required' => 'El campo es requerido.',
+            'exists' => 'El valor seleccionado no está registrado.',
+            'string' => 'El campo debe ser texto.',
+            'integer' => 'El campo debe ser un número entero.',
+            'numeric' => 'El campo debe ser un número.',
+            'array' => 'El campo debe ser una lista.',
+            'uppercase' => 'El campo debe estar en mayúsculas.',
             'min' => 'El valor debe ser mayor o igual a :min.',
             'max' => 'Se permite máximo :max.',
             'colors_id.min' => 'Debe tener al menos un color.',

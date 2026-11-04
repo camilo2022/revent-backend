@@ -8,8 +8,8 @@ use App\Models\Submodule;
 use Illuminate\Database\Seeder;
 
 /**
- * Menú del sistema (Configuración, Administración y Producción). Busca cada permiso por nombre (no por número)
- * y no repite lo que ya existe; las urls son las rutas del frontend:
+ * Menú del sistema separado por módulos (Producción, Catálogos, Comercial, Administración, Parámetros y Configuración).
+ * Busca cada permiso por nombre (no por número) y mueve de módulo lo que ya existe; las urls son las rutas del frontend:
  *   php artisan db:seed --class=ErpNavigationSeeder   (después de ErpPermissionsSeeder)
  */
 class ErpNavigationSeeder extends Seeder
@@ -18,18 +18,30 @@ class ErpNavigationSeeder extends Seeder
     {
         // Módulo => [icono, submódulos [nombre, url, icono, permiso]]
         $menu = [
-            'Configuración' => ['settings', [
-                ['Usuarios', '/users', 'users', 'users.all'],
-                ['Personas', '/people', 'people', 'people.all'],
-                ['Empleados', '/employees', 'employees', 'employees.all'],
-                ['Roles', '/roles', 'roles', 'authorization.roles.all'],
-                ['Permisos', '/permissions', 'permissions', 'authorization.permissions.all'],
-                ['Módulos', '/modules', 'modules', 'navegation.modules.all'],
-                ['Auditoría', '/audits', 'audits', 'audits.all'],
+            'Producción' => ['production', [
+                ['Colecciones', '/collections', 'collections', 'collections.all'],
+                ['Productos', '/products', 'products', 'products.all'],
+                ['Fichas técnicas', '/technical_sheets', 'technical_sheets', 'technical_sheets.all'],
+                ['Órdenes de producción', '/production_orders', 'production_orders', 'production_orders.all'],
+            ]],
+            'Catálogos' => ['catalogs', [
+                ['Colores', '/colors', 'colors', 'colors.all'],
+                ['Tallas', '/sizes', 'sizes', 'sizes.all'],
+                ['Marcas', '/trademarks', 'trademarks', 'trademarks.all'],
+                ['Categorías', '/categories', 'categories', 'classification.categories.all'],
+                ['Subcategorías', '/subcategories', 'subcategories', 'classification.subcategories.all'],
+            ]],
+            'Comercial' => ['commercial', [
+                ['Proveedores', '/suppliers', 'suppliers', 'suppliers.all'],
+                ['Tiendas', '/stores', 'stores', 'stores.all'],
             ]],
             'Administración' => ['administration', [
+                ['Personas', '/people', 'people', 'people.all'],
+                ['Empleados', '/employees', 'employees', 'employees.all'],
                 ['Áreas', '/areas', 'areas', 'organizational_structure.areas.all'],
                 ['Cargos', '/positions', 'positions', 'organizational_structure.areas.positions.all'],
+            ]],
+            'Parámetros' => ['parameters', [
                 ['Géneros', '/genders', 'genders', 'genders.all'],
                 ['Tipos de sangre', '/blood_types', 'blood_types', 'blood_types.all'],
                 ['Administradoras de riesgos', '/risk_managers', 'risk_managers', 'risk_managers.all'],
@@ -40,20 +52,16 @@ class ErpNavigationSeeder extends Seeder
                 ['Tipos de persona', '/person_types', 'person_types', 'identification.person_types.all'],
                 ['Tipos de documento', '/document_types', 'document_types', 'identification.document_types.all'],
             ]],
-            'Producción' => ['production', [
-                ['Colecciones', '/collections', 'collections', 'collections.all'],
-                ['Productos', '/products', 'products', 'products.all'],
-                ['Fichas técnicas', '/technical_sheets', 'technical_sheets', 'technical_sheets.all'],
-                ['Órdenes de producción', '/production_orders', 'production_orders', 'production_orders.all'],
-                ['Colores', '/colors', 'colors', 'colors.all'],
-                ['Tallas', '/sizes', 'sizes', 'sizes.all'],
-                ['Marcas', '/trademarks', 'trademarks', 'trademarks.all'],
-                ['Categorías', '/categories', 'categories', 'classification.categories.all'],
-                ['Subcategorías', '/subcategories', 'subcategories', 'classification.subcategories.all'],
-                ['Proveedores', '/suppliers', 'suppliers', 'suppliers.all'],
-                ['Tiendas', '/stores', 'stores', 'stores.all'],
+            'Configuración' => ['settings', [
+                ['Usuarios', '/users', 'users', 'users.all'],
+                ['Roles', '/roles', 'roles', 'authorization.roles.all'],
+                ['Permisos', '/permissions', 'permissions', 'authorization.permissions.all'],
+                ['Módulos', '/modules', 'modules', 'navegation.modules.all'],
             ]],
         ];
+
+        // La auditoría ya no es un submódulo: cada registro tiene su botón de auditoría
+        Submodule::where('url', '/audits')->delete();
 
         foreach ($menu as $name => [$icon, $submodules]) {
             $module = Module::firstOrCreate(['name' => $name], ['icon' => $icon]);
@@ -62,14 +70,14 @@ class ErpNavigationSeeder extends Seeder
                 $permission = Permission::where('name', $permissionName)->first();
 
                 // Si el permiso no existe todavía, el submódulo se crea cuando se corra el seeder de permisos
-                if (!$permission || Submodule::where('url', $url)->orWhere('permission_id', $permission->id)->exists()) {
+                if (!$permission) {
                     continue;
                 }
 
-                Submodule::create([
+                // Si la url ya existe (menú anterior) se mueve al módulo que le corresponde
+                Submodule::updateOrCreate(['url' => $url], [
                     'module_id' => $module->id,
                     'name' => $submoduleName,
-                    'url' => $url,
                     'icon' => $submoduleIcon,
                     'permission_id' => $permission->id,
                 ]);

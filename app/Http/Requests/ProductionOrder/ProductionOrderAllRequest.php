@@ -39,10 +39,10 @@ class ProductionOrderAllRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'string' => 'Debe ser una cadena de texto.',
-            'integer' => 'Debe ser un número entero.',
+            'string' => 'El campo debe ser texto.',
+            'integer' => 'El campo debe ser un número entero.',
             'min' => 'El valor debe ser mayor o igual a :min.',
-            'in' => 'Valor inválido. Permitidos: :values.',
+            'in' => 'El valor no es válido. Permitidos: :values.',
             'exists' => 'No registrado en el sistema.'
         ];
     }

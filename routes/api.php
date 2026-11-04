@@ -37,6 +37,35 @@ use App\Http\Controllers\TechnicalSheetController;
 use App\Http\Controllers\TrademarkController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Role;
+use App\Models\Permission;
+use App\Models\FileType;
+use App\Models\PersonType;
+use App\Models\DocumentType;
+use App\Models\BloodType;
+use App\Models\CompensationFund;
+use App\Models\Employee;
+use App\Models\Gender;
+use App\Models\HealthEntity;
+use App\Models\Module;
+use App\Models\Submodule;
+use App\Models\Area;
+use App\Models\Position;
+use App\Models\PensionFund;
+use App\Models\Person;
+use App\Models\RiskManager;
+use App\Models\User;
+use App\Models\Trademark;
+use App\Models\Color;
+use App\Models\Size;
+use App\Models\Category;
+use App\Models\Collection;
+use App\Models\Subcategory;
+use App\Models\Supplier;
+use App\Models\Store;
+use App\Models\Product;
+use App\Models\TechnicalSheet;
+use App\Models\ProductionOrder;
 
 Route::prefix('/audits')->controller(AuditController::class)->group(function () {
     Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:audits.all']);
@@ -358,3 +387,19 @@ Route::prefix('/production_orders')->controller(ProductionOrderController::class
     Route::patch('/canceled/{id}', 'canceled')->middleware(['auth:sanctum', 'can:production_orders.canceled']);
 });
 
+// Auditoría por registro: GET /{módulo}/audits/{id} devuelve quién hizo cada cambio de ese registro, cuándo y desde dónde
+foreach ([
+    'roles' => Role::class, 'permissions' => Permission::class, 'file_types' => FileType::class, 'person_types' => PersonType::class,
+    'document_types' => DocumentType::class, 'blood_types' => BloodType::class, 'compensation_funds' => CompensationFund::class,
+    'employees' => Employee::class, 'genders' => Gender::class, 'health_entities' => HealthEntity::class, 'modules' => Module::class,
+    'submodules' => Submodule::class, 'areas' => Area::class, 'positions' => Position::class, 'pension_funds' => PensionFund::class,
+    'people' => Person::class, 'risk_managers' => RiskManager::class, 'users' => User::class, 'trademarks' => Trademark::class,
+    'colors' => Color::class, 'sizes' => Size::class, 'categories' => Category::class, 'collections' => Collection::class,
+    'subcategories' => Subcategory::class, 'suppliers' => Supplier::class, 'stores' => Store::class, 'products' => Product::class,
+    'technical_sheets' => TechnicalSheet::class, 'production_orders' => ProductionOrder::class,
+] as $prefix => $model) {
+    Route::get("/{$prefix}/audits/{id}", [AuditController::class, 'record'])
+        ->defaults('model', $model)
+        ->whereNumber('id')
+        ->middleware(['auth:sanctum', 'can:audits.find']);
+}

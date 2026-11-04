@@ -38,11 +38,11 @@ class PositionAllRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'numeric' => 'Debe ser un valor numérico.',
-            'in' => 'Valor inválido. Permitidos: :values.',
-            'exists' => 'No hay ningún registro.',
+            'required' => 'El campo es requerido.',
+            'string' => 'El campo debe ser texto.',
+            'numeric' => 'El campo debe ser un número.',
+            'in' => 'El valor no es válido. Permitidos: :values.',
+            'exists' => 'El valor seleccionado no existe.',
             'boolean' => 'Deber ser verdadero o falso.'
         ];
     }

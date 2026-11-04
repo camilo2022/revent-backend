@@ -795,7 +795,7 @@
         "/audits/all": {
             "get": {
                 "tags": [
-                    "Audit"
+                    "Audits"
                 ],
                 "summary": "Listar auditorias",
                 "operationId": "1a3e0cfc03412c42107c7e2274cb88ae",
@@ -955,7 +955,7 @@
         "/audits/find/{id}": {
             "get": {
                 "tags": [
-                    "Audit"
+                    "Audits"
                 ],
                 "summary": "Obtener una auditoria específica",
                 "operationId": "e6218e6c01439fa6ea20ce265222ce9e",
@@ -7024,6 +7024,3689 @@
                                 }
                             }
                         }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/roles/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Authorization - Roles"
+                ],
+                "summary": "Auditoría de un registro de roles",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "edf15b5169bbf65cb3f8cc44cb4cd7e9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/permissions/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Authorization - Permissions"
+                ],
+                "summary": "Auditoría de un registro de permisos",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "91a2441340bbccd42535fac228f5ac10",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/file_types/audits/{id}": {
+            "get": {
+                "tags": [
+                    "File Types"
+                ],
+                "summary": "Auditoría de un registro de tipos de archivo",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "eda71041a2e72ac866e9ec28acf5df8d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/person_types/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Identification - PersonTypes"
+                ],
+                "summary": "Auditoría de un registro de tipos de persona",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "365864ff97081bd1f2ec39023e60b9af",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/document_types/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Identification - DocumentTypes"
+                ],
+                "summary": "Auditoría de un registro de tipos de documento",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "d2d1d23f2189787b608a54ecc66a49b8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/blood_types/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Blood Types"
+                ],
+                "summary": "Auditoría de un registro de tipos de sangre",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "61e432b78784e02074e8fdd811569111",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/compensation_funds/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Compensation Funds"
+                ],
+                "summary": "Auditoría de un registro de cajas de compensación",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "a6897edb1d279d15ef1b625f63f08209",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/employees/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Auditoría de un registro de empleados",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "048f38933c9d9f15b3bd20e3b97def6a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/genders/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Genders"
+                ],
+                "summary": "Auditoría de un registro de géneros",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "3a52c0183736a889bd31e43ea7369817",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/health_entities/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Health Entities"
+                ],
+                "summary": "Auditoría de un registro de entidades de salud",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "9fc68a6fb57bebebe7d101b8f8593c39",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/modules/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Navegation - Modules"
+                ],
+                "summary": "Auditoría de un registro de módulos",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "14545b06e38e2c3d53b6f6ba0155681f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/submodules/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Navegation - Submodules"
+                ],
+                "summary": "Auditoría de un registro de submódulos",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "5af2e1ae2e1ab6145528bfb91be1bc35",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/areas/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Organizational Structure - Areas"
+                ],
+                "summary": "Auditoría de un registro de áreas",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "cc39783646ebaef637d3b0549fb1e2d8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/positions/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Organizational Structure - Positions"
+                ],
+                "summary": "Auditoría de un registro de cargos",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "1103fd4ca4e08c5cca8ef8516e988f0a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/pension_funds/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Pension Funds"
+                ],
+                "summary": "Auditoría de un registro de fondos de pensión",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "b846eeed827bd6176502164583da2d59",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/people/audits/{id}": {
+            "get": {
+                "tags": [
+                    "People"
+                ],
+                "summary": "Auditoría de un registro de personas",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "9243b5bc0d7848d26fea86e0d6fed913",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/risk_managers/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Risk Managers"
+                ],
+                "summary": "Auditoría de un registro de administradoras de riesgos",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "38d1f03c7e06077eea4b875e9d319ae2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/users/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Auditoría de un registro de usuarios",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "0e190018fb228b7b32e529306a2214be",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/trademarks/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Trademarks"
+                ],
+                "summary": "Auditoría de un registro de marcas",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "b3c75b8c508919cb654ddf192166d5ea",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/colors/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Colors"
+                ],
+                "summary": "Auditoría de un registro de colores",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "d15b14bae16b9f5528dad33f7dc03de8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/sizes/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Sizes"
+                ],
+                "summary": "Auditoría de un registro de tallas",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "8c735be4c9c247a65ac5dcbead1b1cb0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/categories/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Classification - Categories"
+                ],
+                "summary": "Auditoría de un registro de categorías",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "f0a27366ec425e0bd30d3f573b424e66",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/collections/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Collections"
+                ],
+                "summary": "Auditoría de un registro de colecciones",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "26fa43e299d94b5cae7056297c8093a3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/subcategories/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Classification - Subcategories"
+                ],
+                "summary": "Auditoría de un registro de subcategorías",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "0836d56f9b18154fa8d3238bf726c44f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/suppliers/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Suppliers"
+                ],
+                "summary": "Auditoría de un registro de proveedores",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "b6b250b4d963a65b9225f3e729bf23c1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/stores/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Stores"
+                ],
+                "summary": "Auditoría de un registro de tiendas",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
+                "operationId": "898bedc1101a3351bb4291972a7e2b2e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/products/audits/{id}": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Auditoría de un registro de productos",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después. También incluye los movimientos de sus colores, tallas y ficha técnica.",
+                "operationId": "2f6a0314c817167129dec271e29fcbac",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/technical_sheets/audits/{id}": {
+            "get": {
+                "tags": [
+                    "TechnicalSheets"
+                ],
+                "summary": "Auditoría de un registro de fichas técnicas",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después. Incluye las aprobaciones, cancelaciones y cambios de la ficha.",
+                "operationId": "7d89dacacace05dde535a22f504c4701",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/production_orders/audits/{id}": {
+            "get": {
+                "tags": [
+                    "ProductionOrders"
+                ],
+                "summary": "Auditoría de un registro de órdenes de producción",
+                "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después. También incluye los movimientos de sus detalles por color y de las cantidades por tienda y talla.",
+                "operationId": "0d1c453e68356d826ed1c737ee3ff583",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identificador del registro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Filtra por tipo de evento",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created",
+                                "updated",
+                                "deleted",
+                                "restored",
+                                "attach",
+                                "detach",
+                                "sync"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Registros por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "N° de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historial cargado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "audits": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Audit"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Operación completada con éxito."
+                                        },
+                                        "error": {
+                                            "type": "boolean",
+                                            "example": false
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permiso (audits.find)"
+                    },
+                    "422": {
+                        "description": "Error de validación"
                     },
                     "500": {
                         "description": "Error del servidor",
@@ -30607,10 +34290,6 @@
             "description": "Endpoints para gestionar de Áreas"
         },
         {
-            "name": "Audit",
-            "description": "Endpoints para gestionar auditorias"
-        },
-        {
             "name": "Auth",
             "description": "Endpoints de autenticación"
         },
@@ -30745,6 +34424,10 @@
         {
             "name": "Users",
             "description": "Endpoints para gestionar usuarios"
+        },
+        {
+            "name": "Audits",
+            "description": "Audits"
         }
     ]
 }

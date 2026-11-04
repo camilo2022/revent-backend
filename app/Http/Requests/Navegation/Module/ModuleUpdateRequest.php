@@ -34,10 +34,10 @@ class ModuleUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
+            'required' => 'El campo es requerido.',
             'regex' => 'Formato inválido. ',
-            'string' => 'Debe ser una cadena de texto.',
-            'unique' => 'Ya está registrado.',
+            'string' => 'El campo debe ser texto.',
+            'unique' => 'El valor ya está registrado.',
             'max' => 'Se permite máximo :max caracteres.'
         ];
     }

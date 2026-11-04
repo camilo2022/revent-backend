@@ -35,12 +35,12 @@ class RoleUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'exists' => 'No hay ningún registro.',
+            'required' => 'El campo es requerido.',
+            'exists' => 'El valor seleccionado no existe.',
             'regex' => 'Formato inválido. Solo permite letras minúsculas y sin espacios.',
-            'string' => 'Debe ser una cadena de texto.',
-            'unique' => 'Ya está registrado.',
-            'max' => 'Se permite maximo :max caracteres.',
+            'string' => 'El campo debe ser texto.',
+            'unique' => 'El valor ya está registrado.',
+            'max' => 'El campo permite máximo :max caracteres.',
         ];
     }
 

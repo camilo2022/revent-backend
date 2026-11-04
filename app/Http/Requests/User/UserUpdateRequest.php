@@ -36,13 +36,13 @@ class UserUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
+            'required' => 'El campo es requerido.',
             'regex' => "Formato inválido:\n- Al menos una letra mayúscula.\n- Al menos una letra minúscula.\n- Al menos un número.\n- Al menos un carácter especial.",
-            'string' => 'Debe ser una cadena de texto.',
-            'unique' => 'Ya está registrado.',
-            'exists' => 'No hay ningún registro.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'min' => 'Se permite mínimo :min caracteres.',
+            'string' => 'El campo debe ser texto.',
+            'unique' => 'El valor ya está registrado.',
+            'exists' => 'El valor seleccionado no existe.',
+            'max' => 'El campo permite máximo :max caracteres.',
+            'min' => 'El campo requiere mínimo :min caracteres.',
             'confirmed' => 'Las contraseñas no coinciden.'
         ];
     }

@@ -35,13 +35,13 @@ class PermissionStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'exists' => 'No hay ningún registro.',
-            'required' => 'Es obligatorio.',
+            'exists' => 'El valor seleccionado no existe.',
+            'required' => 'El campo es requerido.',
             'regex' => 'Formato inválido. Solo permite letras minúsculas y punto.',
-            'string' => 'Debe ser una cadena de texto.',
-            'numeric' => 'Debe ser un dato númerico.',
-            'unique' => 'Ya está registrado.',
-            'max' => 'Se permite maximo :max caracteres.',
+            'string' => 'El campo debe ser texto.',
+            'numeric' => 'El campo debe ser un número.',
+            'unique' => 'El valor ya está registrado.',
+            'max' => 'El campo permite máximo :max caracteres.',
         ];
     }
 

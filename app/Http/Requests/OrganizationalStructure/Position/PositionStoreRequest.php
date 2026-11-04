@@ -36,12 +36,12 @@ class PositionStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'exists' => 'No está registrado.',
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'min' => 'Se permite mínimo :min caracteres.',
-            'unique' => 'Ya está registrado.',
+            'exists' => 'El valor seleccionado no está registrado.',
+            'required' => 'El campo es requerido.',
+            'string' => 'El campo debe ser texto.',
+            'max' => 'El campo permite máximo :max caracteres.',
+            'min' => 'El campo requiere mínimo :min caracteres.',
+            'unique' => 'El valor ya está registrado.',
             'uppercase' => 'El campo debe estar en mayúsculas.'
         ];
     }

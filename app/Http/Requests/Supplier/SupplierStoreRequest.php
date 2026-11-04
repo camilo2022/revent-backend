@@ -55,20 +55,20 @@ class SupplierStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
+            'required' => 'El campo es requerido.',
             'required_with' => 'Es obligatorio cuando se envía el archivo.',
-            'string' => 'Debe ser una cadena de texto.',
-            'email' => 'Debe ser un correo electrónico válido.',
-            'numeric' => 'Debe ser un dato númerico.',
+            'string' => 'El campo debe ser texto.',
+            'email' => 'El campo debe ser un correo electrónico válido.',
+            'numeric' => 'El campo debe ser un número.',
             'digits_between' => 'Debe tener entre 5 y 14 dígitos.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'min' => 'Se permite mínimo :min caracteres.',
+            'max' => 'El campo permite máximo :max caracteres.',
+            'min' => 'El campo requiere mínimo :min caracteres.',
             'size' => 'Se permite la longitud de :value caracteres.',
-            'unique' => 'Ya está registrado.',
+            'unique' => 'El valor ya está registrado.',
             'regex' => 'Formato inválido. Solo letras, números, espacios y . & , -',
-            'exists' => 'No hay ningún registro.',
-            'image' => 'Debe ser una imagen.',
-            'mimes' => 'Extensión inválida. Permitidas :values.',
+            'exists' => 'El valor seleccionado no existe.',
+            'image' => 'El campo debe ser una imagen.',
+            'mimes' => 'El archivo tiene una extensión inválida. Permitidas: :values.',
             'file.max' => 'Se permite máximo :max KB.'
         ];
     }

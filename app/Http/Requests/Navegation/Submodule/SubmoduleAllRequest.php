@@ -37,9 +37,9 @@ class SubmoduleAllRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
+            'required' => 'El campo es requerido.',
             'module_id.exists' => 'No hay ningún registro. ',
-            'per_page.numeric' => 'Debe ser un valor numérico.',
+            'per_page.numeric' => 'El campo debe ser un número.',
             'search.string' => 'Debe ser un registro válido de busqueda. ',
             'column.string' => 'Debe ser una columna válida. ',
             'column.in' => 'El valor de la columna no es válido. ',

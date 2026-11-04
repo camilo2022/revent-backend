@@ -40,11 +40,11 @@ class TechnicalSheetAllRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'string' => 'Debe ser una cadena de texto.',
-            'integer' => 'Debe ser un número entero.',
+            'string' => 'El campo debe ser texto.',
+            'integer' => 'El campo debe ser un número entero.',
             'min' => 'El valor debe ser mayor o igual a :min.',
-            'in' => 'Valor inválido. Permitidos: :values.',
-            'exists' => 'No registrado en el sistema.',
+            'in' => 'El valor no es válido. Permitidos: :values.',
+            'exists' => 'El valor seleccionado no está registrado.',
             'boolean' => 'Deber ser verdadero o falso.'
         ];
     }

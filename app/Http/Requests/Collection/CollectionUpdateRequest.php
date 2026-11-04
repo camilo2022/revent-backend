@@ -40,14 +40,14 @@ class CollectionUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'string' => 'Debe ser una cadena de texto.',
-            'array' => 'Debe ser un arreglo de datos.',
-            'min' => 'Se permite mínimo :min caracteres.',
-            'max' => 'Se permite máximo :max caracteres.',
-            'uppercase' => 'Debe estar en mayúsculas.',
+            'required' => 'El campo es requerido.',
+            'string' => 'El campo debe ser texto.',
+            'array' => 'El campo debe ser una lista.',
+            'min' => 'El campo requiere mínimo :min caracteres.',
+            'max' => 'El campo permite máximo :max caracteres.',
+            'uppercase' => 'El campo debe estar en mayúsculas.',
             'regex' => 'Formato inválido. Año de 2 dígitos y código de 1 dígito.',
-            'unique' => 'Ya está registrado.',
+            'unique' => 'El valor ya está registrado.',
             'unique' => 'Ya está registrado (el año y el código no se pueden repetir).'
         ];
     }

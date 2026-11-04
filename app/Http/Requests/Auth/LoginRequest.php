@@ -33,7 +33,7 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
+            'required' => 'El campo es requerido.',
             'string' => 'Debe ser una cadena de caracteres.',
         ];
     }

@@ -45,13 +45,13 @@ class TechnicalSheetStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'required' => 'Es obligatorio.',
-            'exists' => 'No registrado en el sistema.',
+            'required' => 'El campo es requerido.',
+            'exists' => 'El valor seleccionado no está registrado.',
             'unique' => 'El producto ya tiene ficha técnica.',
-            'string' => 'Debe ser una cadena de texto.',
-            'integer' => 'Debe ser un número entero.',
-            'array' => 'Debe ser un arreglo de datos.',
-            'max' => 'Se permite máximo :max caracteres.',
+            'string' => 'El campo debe ser texto.',
+            'integer' => 'El campo debe ser un número entero.',
+            'array' => 'El campo debe ser una lista.',
+            'max' => 'El campo permite máximo :max caracteres.',
         ];
     }
 
