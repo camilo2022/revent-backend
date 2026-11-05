@@ -59,9 +59,10 @@ class Subcategory extends Model implements Auditable
         return $this->belongsTo(Item::class);
     }
 
-    public function categories(): MorphToMany
+    // Una subcategoría pertenece a una sola categoría (se guarda en model_has_subitems como en tipos de documento)
+    public function category(): MorphToMany
     {
-        return $this->morphedByMany(Category::class, 'model', 'model_has_subitems', 'subitem_id', 'model_id');
+        return $this->morphToMany(Category::class, 'model', 'model_has_subitems', 'model_id', 'subitem_id');
     }
 
     public function scopeSearch(Builder $query, ?string $search = null): Builder

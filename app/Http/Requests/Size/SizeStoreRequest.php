@@ -26,7 +26,7 @@ class SizeStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'uppercase', 'string', 'min:4', 'max:50', 'unique:subitems,name,NULL,id,item_id,' . Size::ITEM_ID],
+            'name' => ['required', 'uppercase', 'string', 'min:2', 'max:50', 'unique:subitems,name,NULL,id,item_id,' . Size::ITEM_ID],
             'description' => ['required', 'string', 'max:255'],
             'settings' => ['required', 'array'],
             'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . Size::ITEM_ID],

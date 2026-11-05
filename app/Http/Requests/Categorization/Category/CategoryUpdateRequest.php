@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Requests\Classification\Subcategory;
+namespace App\Http\Requests\Categorization\Category;
 
-use App\Models\Subcategory;
+use App\Models\Category;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
-class SubcategoryUpdateRequest extends FormRequest
+class CategoryUpdateRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -27,11 +27,11 @@ class SubcategoryUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:subitems,id,item_id,' . Subcategory::ITEM_ID],
-            'name' => ['required', 'string', 'min:4', 'max:50', 'uppercase', 'unique:subitems,name,' . $this->route('id') . ',id,item_id,' . Subcategory::ITEM_ID],
+            'id' => ['required', 'exists:subitems,id,item_id,' . Category::ITEM_ID],
+            'name' => ['required', 'string', 'min:4', 'max:50', 'uppercase', 'unique:subitems,name,' . $this->route('id') . ',id,item_id,' . Category::ITEM_ID],
             'description' => ['required', 'string', 'max:255'],
             'settings' => ['required', 'array'],
-            'settings.code' => ['required', 'uppercase', 'string', 'size:2', Rule::unique('subitems', 'settings->code')->where('item_id', Subcategory::ITEM_ID)->ignore($this->route('id'))]
+            'settings.code' => ['required', 'uppercase', 'string', 'size:2', Rule::unique('subitems', 'settings->code')->where('item_id', Category::ITEM_ID)->ignore($this->route('id'))]
         ];
     }
 

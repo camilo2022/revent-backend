@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Requests\Classification\Category;
+namespace App\Http\Requests\Categorization\Subcategory;
 
-use App\Models\Category;
+use App\Models\Subcategory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
-class CategoryDeleteRequest extends FormRequest
+class SubcategoryRestoreRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -26,7 +27,7 @@ class CategoryDeleteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:subitems,id,deleted_at,NULL,item_id,' . Category::ITEM_ID],
+            'id' => ['required', Rule::exists('subitems', 'id')->where('item_id', Subcategory::ITEM_ID)->whereNotNull('deleted_at')]
         ];
     }
 
@@ -41,7 +42,7 @@ class CategoryDeleteRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador de la categoría'
+            'id' => 'Identificador de la subcategoría'
         ];
     }
 

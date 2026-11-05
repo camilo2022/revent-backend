@@ -26,7 +26,7 @@ class DocumentTypeAllRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'person_type_id' => ['nullable', 'numeric', 'exists:subitems,id,item_id,' . PersonType::ITEM_ID],
+            'person_type_id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . PersonType::ITEM_ID],
             'per_page' => ['nullable', 'numeric'],
             'page' => ['nullable', 'numeric'],
             'search' => ['nullable', 'string'],
@@ -63,6 +63,8 @@ class DocumentTypeAllRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        // El padre llega en la ruta: .../all/{person_type_id}
+        $this->merge(['person_type_id' => $this->route('person_type_id')]);
         $this->merge(['with_trashed' => $this->boolean('with_trashed')]);
     }
 }

@@ -42,7 +42,7 @@ use OpenApi\Annotations as OA;
  * )
  *
  * @OA\Tag(
- *     name="Classification",
+ *     name="Categorization",
  *     description="Endpoints para gestionar grupos y subgrupos del sistema"
  * )
  *

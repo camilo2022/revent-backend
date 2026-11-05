@@ -40,15 +40,15 @@ class PermissionController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/authorization/permissions/all",
+     *     path="/authorization/roles/permissions/all/{role_id}",
      *     tags= {"Authorization - Permissions"},
      *     summary="Listar los permisos",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="role_id",
-     *         in="query",
+     *         in="path",
      *         description="Identificador del Rol.",
-     *         required=false,
+     *         required=true,
      *         @OA\Schema(type="integer", example=1)
      *     ),
      *     @OA\Parameter(
@@ -125,11 +125,11 @@ class PermissionController extends Controller
      *     )
      * )
      */
-    public function all(PermissionAllRequest $request)
+    public function all(PermissionAllRequest $request, $role_id)
     {
         try {
             $permissions = Permission::with(['roles'])
-                ->when($request->filled('role_id'), fn($query) => $query->whereHas('roles', fn($q) => $q->where('id', $request->input('role_id'))))
+                ->whereHas('roles', fn($q) => $q->where('id', $role_id))
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -157,7 +157,7 @@ class PermissionController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/authorization/permissions/find/{id}",
+     *     path="/authorization/roles/permissions/find/{id}",
      *     tags= {"Authorization - Permissions"},
      *     summary="Obtener un permiso específico",
      *     security={{"sanctum":{}}},
@@ -244,7 +244,7 @@ class PermissionController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/authorization/permissions/store",
+     *     path="/authorization/roles/permissions/store",
      *     tags={"Authorization - Permissions"},
      *     summary="Crear un permiso",
      *     security={{"sanctum":{}}},
@@ -384,7 +384,7 @@ class PermissionController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/authorization/permissions/update/{id}",
+     *     path="/authorization/roles/permissions/update/{id}",
      *     tags={"Authorization - Permissions"},
      *     summary="Editar un permiso específico",
      *     security={{"sanctum":{}}},

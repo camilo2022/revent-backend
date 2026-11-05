@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Classification\Subcategory;
+namespace App\Http\Requests\Categorization\Category;
 
-use App\Models\Subcategory;
+use App\Models\Category;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class SubcategoryStoreRequest extends FormRequest
+class CategoryStoreRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -26,10 +26,10 @@ class SubcategoryStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'uppercase', 'string', 'min:4', 'max:50', 'unique:subitems,name,NULL,id,item_id,' . Subcategory::ITEM_ID],
+            'name' => ['required', 'uppercase', 'string', 'min:4', 'max:50', 'unique:subitems,name,NULL,id,item_id,' . Category::ITEM_ID],
             'description' => ['required', 'string', 'max:255'],
             'settings' => ['required', 'array'],
-            'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . Subcategory::ITEM_ID]
+            'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . Category::ITEM_ID]
         ];
     }
 

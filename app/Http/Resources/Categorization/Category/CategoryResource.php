@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Http\Resources\Classification\Subcategory;
+namespace App\Http\Resources\Categorization\Category;
 
 use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class SubcategoryResource extends JsonResource
+class CategoryResource extends JsonResource
 {
     public function toArray($request)
     {
         return [
-            'subcategory' => [
+            'category' => [
                 'id' => $this->id,
                 'item_id' => $this->item_id,
                 'name' => $this->name,
@@ -20,7 +20,7 @@ class SubcategoryResource extends JsonResource
                 'updated_at' => $this->formatDate($this->updated_at),
                 'deleted_at' => $this->formatDate($this->deleted_at),
                 'item' => $this->item,
-                'categories' => $this->categories,
+                'subcategories' => $this->subcategories,
             ]
         ];
     }

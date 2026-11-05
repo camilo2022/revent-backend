@@ -92,22 +92,22 @@ class RolesAndPermissionsSeeder extends Seeder
                         'description' => 'Permite actualizar la información de un rol.',
                     ],
                     [
-                        'name' => 'authorization.permissions.all',
+                        'name' => 'authorization.roles.permissions.all',
                         'title' => 'Listar permisos',
                         'description' => 'Permite listar todos los permisos del sistema.',
                     ],
                     [
-                        'name' => 'authorization.permissions.find',
+                        'name' => 'authorization.roles.permissions.find',
                         'title' => 'Consultar permiso',
                         'description' => 'Permite consultar la información de un permiso específico.',
                     ],
                     [
-                        'name' => 'authorization.permissions.store',
+                        'name' => 'authorization.roles.permissions.store',
                         'title' => 'Crear permiso',
                         'description' => 'Permite crear nuevos permisos en el sistema.',
                     ],
                     [
-                        'name' => 'authorization.permissions.update',
+                        'name' => 'authorization.roles.permissions.update',
                         'title' => 'Actualizar permiso',
                         'description' => 'Permite actualizar la información de un permiso.',
                     ],
@@ -377,12 +377,12 @@ class RolesAndPermissionsSeeder extends Seeder
                     ['name' => 'identification.person_types.delete', 'title' => 'Eliminar tipo de persona', 'description' => 'Permite eliminar tipos de persona.'],
                     ['name' => 'identification.person_types.restore', 'title' => 'Restaurar tipo de persona', 'description' => 'Permite restaurar tipos de persona.'],
 
-                    ['name' => 'identification.document_types.all', 'title' => 'Listar tipos de documento', 'description' => 'Permite listar tipos de documento.'],
-                    ['name' => 'identification.document_types.find', 'title' => 'Consultar tipo de documento', 'description' => 'Permite consultar un tipo de documento.'],
-                    ['name' => 'identification.document_types.store', 'title' => 'Crear tipo de documento', 'description' => 'Permite crear tipos de documento.'],
-                    ['name' => 'identification.document_types.update', 'title' => 'Actualizar tipo de documento', 'description' => 'Permite actualizar tipos de documento.'],
-                    ['name' => 'identification.document_types.delete', 'title' => 'Eliminar tipo de documento', 'description' => 'Permite eliminar tipos de documento.'],
-                    ['name' => 'identification.document_types.restore', 'title' => 'Restaurar tipo de documento', 'description' => 'Permite restaurar tipos de documento.'],
+                    ['name' => 'identification.person_types.document_types.all', 'title' => 'Listar tipos de documento', 'description' => 'Permite listar tipos de documento.'],
+                    ['name' => 'identification.person_types.document_types.find', 'title' => 'Consultar tipo de documento', 'description' => 'Permite consultar un tipo de documento.'],
+                    ['name' => 'identification.person_types.document_types.store', 'title' => 'Crear tipo de documento', 'description' => 'Permite crear tipos de documento.'],
+                    ['name' => 'identification.person_types.document_types.update', 'title' => 'Actualizar tipo de documento', 'description' => 'Permite actualizar tipos de documento.'],
+                    ['name' => 'identification.person_types.document_types.delete', 'title' => 'Eliminar tipo de documento', 'description' => 'Permite eliminar tipos de documento.'],
+                    ['name' => 'identification.person_types.document_types.restore', 'title' => 'Restaurar tipo de documento', 'description' => 'Permite restaurar tipos de documento.'],
                 ]
             ],
 
@@ -436,26 +436,24 @@ class RolesAndPermissionsSeeder extends Seeder
 
             [
                 'role' => [
-                    'name' => 'classification',
-                    'title' => 'Clasificación',
+                    'name' => 'categorization',
+                    'title' => 'Categorización',
                     'description' => 'Gestión de categorías y subcategorías.',
                 ],
                 'permissions' => [
-                    ['name' => 'classification.categories.all', 'title' => 'Listar categorías', 'description' => 'Permite listar categorías.'],
-                    ['name' => 'classification.categories.find', 'title' => 'Consultar categoría', 'description' => 'Permite consultar una categoría.'],
-                    ['name' => 'classification.categories.store', 'title' => 'Crear categoría', 'description' => 'Permite crear categorías.'],
-                    ['name' => 'classification.categories.update', 'title' => 'Actualizar categoría', 'description' => 'Permite actualizar categorías.'],
-                    ['name' => 'classification.categories.delete', 'title' => 'Eliminar categoría', 'description' => 'Permite eliminar categorías.'],
-                    ['name' => 'classification.categories.restore', 'title' => 'Restaurar categoría', 'description' => 'Permite restaurar categorías.'],
-                    ['name' => 'classification.categories.subcategories.assign', 'title' => 'Asignar subcategorías', 'description' => 'Permite asignar subcategorías a una categoría.'],
-                    ['name' => 'classification.categories.subcategories.remove', 'title' => 'Remover subcategorías', 'description' => 'Permite remover subcategorías de una categoría.'],
+                    ['name' => 'categorization.categories.all', 'title' => 'Listar categorías', 'description' => 'Permite listar categorías.'],
+                    ['name' => 'categorization.categories.find', 'title' => 'Consultar categoría', 'description' => 'Permite consultar una categoría.'],
+                    ['name' => 'categorization.categories.store', 'title' => 'Crear categoría', 'description' => 'Permite crear categorías.'],
+                    ['name' => 'categorization.categories.update', 'title' => 'Actualizar categoría', 'description' => 'Permite actualizar categorías.'],
+                    ['name' => 'categorization.categories.delete', 'title' => 'Eliminar categoría', 'description' => 'Permite eliminar categorías.'],
+                    ['name' => 'categorization.categories.restore', 'title' => 'Restaurar categoría', 'description' => 'Permite restaurar categorías.'],
 
-                    ['name' => 'classification.subcategories.all', 'title' => 'Listar subcategorías', 'description' => 'Permite listar subcategorías.'],
-                    ['name' => 'classification.subcategories.find', 'title' => 'Consultar subcategoría', 'description' => 'Permite consultar una subcategoría.'],
-                    ['name' => 'classification.subcategories.store', 'title' => 'Crear subcategoría', 'description' => 'Permite crear subcategorías.'],
-                    ['name' => 'classification.subcategories.update', 'title' => 'Actualizar subcategoría', 'description' => 'Permite actualizar subcategorías.'],
-                    ['name' => 'classification.subcategories.delete', 'title' => 'Eliminar subcategoría', 'description' => 'Permite eliminar subcategorías.'],
-                    ['name' => 'classification.subcategories.restore', 'title' => 'Restaurar subcategoría', 'description' => 'Permite restaurar subcategorías.'],
+                    ['name' => 'categorization.categories.subcategories.all', 'title' => 'Listar subcategorías', 'description' => 'Permite listar subcategorías.'],
+                    ['name' => 'categorization.categories.subcategories.find', 'title' => 'Consultar subcategoría', 'description' => 'Permite consultar una subcategoría.'],
+                    ['name' => 'categorization.categories.subcategories.store', 'title' => 'Crear subcategoría', 'description' => 'Permite crear subcategorías.'],
+                    ['name' => 'categorization.categories.subcategories.update', 'title' => 'Actualizar subcategoría', 'description' => 'Permite actualizar subcategorías.'],
+                    ['name' => 'categorization.categories.subcategories.delete', 'title' => 'Eliminar subcategoría', 'description' => 'Permite eliminar subcategorías.'],
+                    ['name' => 'categorization.categories.subcategories.restore', 'title' => 'Restaurar subcategoría', 'description' => 'Permite restaurar subcategorías.'],
                 ]
             ],
 

@@ -25,7 +25,7 @@ class PermissionAllRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'role_id' => ['nullable', 'numeric', 'exists:roles,id'],
+            'role_id' => ['required', 'numeric', 'exists:roles,id'],
             'per_page' => ['nullable', 'numeric'],
             'search' => ['nullable', 'string'],
             'column' => ['nullable', 'string', 'in:id,name,title,description,created_at,updated_at'],
@@ -56,5 +56,11 @@ class PermissionAllRequest extends FormRequest
             'dir' => 'Orden de datos.',
 
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        // El padre llega en la ruta: .../all/{role_id}
+        $this->merge(['role_id' => $this->route('role_id')]);
     }
 }

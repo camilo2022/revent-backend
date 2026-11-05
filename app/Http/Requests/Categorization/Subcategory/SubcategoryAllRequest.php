@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Requests\Classification\Subcategory;
+namespace App\Http\Requests\Categorization\Subcategory;
 
+use App\Models\Category;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -28,6 +29,7 @@ class SubcategoryAllRequest extends FormRequest
             'per_page' => ['nullable', 'numeric'],
             'page' => ['nullable', 'numeric'],
             'search' => ['nullable', 'string'],
+            'category_id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . Category::ITEM_ID],
             'column' => ['nullable', 'string', 'in:id,name,description,created_at,updated_at,deleted_at'],
             'dir' => ['nullable', 'string', 'in:asc,desc'],
             'with_trashed' => ['required', 'boolean']
@@ -60,6 +62,8 @@ class SubcategoryAllRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        // El padre llega en la ruta: .../all/{category_id}
+        $this->merge(['category_id' => $this->route('category_id')]);
         $this->merge(['with_trashed' => $this->boolean('with_trashed')]);
     }
 }

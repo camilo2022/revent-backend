@@ -15,6 +15,7 @@ class ReportResource extends JsonResource
             'description' => $report->description,
             'fields' => $report->settings->fields ?? [],
             'filters' => $report->settings->filters ?? new \stdClass(),
+            'pivot' => isset($report->settings->pivot) ? ['label' => $report->settings->pivot->label ?? 'Tallas en horizontal'] : null,
             'created_at' => $report->created_at,
             'updated_at' => $report->updated_at,
             'deleted_at' => $report->deleted_at,

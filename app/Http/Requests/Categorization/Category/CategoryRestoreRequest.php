@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Classification\Category;
+namespace App\Http\Requests\Categorization\Category;
 
 use App\Models\Category;
 use Illuminate\Contracts\Validation\Validator;

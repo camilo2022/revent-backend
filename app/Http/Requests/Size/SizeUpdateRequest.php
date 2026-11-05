@@ -28,7 +28,7 @@ class SizeUpdateRequest extends FormRequest
     {
         return [
             'id' => ['required', 'exists:subitems,id,item_id,' . Size::ITEM_ID],
-            'name' => ['required', 'uppercase', 'string', 'min:4', 'max:50', Rule::unique('subitems', 'name')->where('item_id', Size::ITEM_ID)->ignore($this->route('id'))],
+            'name' => ['required', 'uppercase', 'string', 'min:2', 'max:50', Rule::unique('subitems', 'name')->where('item_id', Size::ITEM_ID)->ignore($this->route('id'))],
             'description' => ['required', 'string', 'max:255'],
             'settings' => ['required', 'array'],
             'settings.code' => ['required', 'uppercase', 'string', 'size:2', Rule::unique('subitems', 'settings->code')->where('item_id', Size::ITEM_ID)->ignore($this->route('id'))],

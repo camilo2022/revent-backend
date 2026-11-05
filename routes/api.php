@@ -88,18 +88,19 @@ Route::prefix('/auth')->controller(AuthController::class)->group(function () {
 
 Route::prefix('/authorization')->group(function () {
     Route::prefix('/roles')->controller(RoleController::class)->group(function () {
-        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:authorization.roles.all|navegation.modules.submodules.store|navegation.modules.submodules.update|users.authorization.assign|users.authorization.remove|authorization.permissions.store|authorization.permissions.update|organizational_structure.areas.positions.authorization.assign|organizational_structure.areas.positions.authorization.remove']);
+        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:authorization.roles.all|navegation.modules.submodules.store|navegation.modules.submodules.update|users.authorization.assign|users.authorization.remove|authorization.roles.permissions.store|authorization.roles.permissions.update|organizational_structure.areas.positions.authorization.assign|organizational_structure.areas.positions.authorization.remove']);
         Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:authorization.roles.find']);
         Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:authorization.roles.store']);
         Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:authorization.roles.update']);
+
+        Route::prefix('/permissions')->controller(PermissionController::class)->group(function () {
+            Route::get('/all/{role_id}', 'all')->middleware(['auth:sanctum', 'can:authorization.roles.permissions.all']);
+            Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:authorization.roles.permissions.find']);
+            Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:authorization.roles.permissions.store']);
+            Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:authorization.roles.permissions.update']);
+        });
     });
 
-    Route::prefix('/permissions')->controller(PermissionController::class)->group(function () {
-        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:authorization.permissions.all']);
-        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:authorization.permissions.find']);
-        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:authorization.permissions.store']);
-        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:authorization.permissions.update']);
-    });
 });
 
 Route::prefix('/location')->group(function () {
@@ -140,22 +141,23 @@ Route::prefix('/file_types')->controller(FileTypeController::class)->group(funct
 
 Route::prefix('/identification')->group(function () {
     Route::prefix('/person_types')->controller(PersonTypeController::class)->group(function () {
-        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:identification.person_types.all']);
+        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:identification.person_types.all|people.store|people.update|suppliers.store|suppliers.update']);
         Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:identification.person_types.find']);
         Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:identification.person_types.store']);
         Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:identification.person_types.update']);
         Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:identification.person_types.delete']);
         Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:identification.person_types.restore']);
+
+        Route::prefix('/document_types')->controller(DocumentTypeController::class)->group(function () {
+            Route::get('/all/{person_type_id}', 'all')->middleware(['auth:sanctum', 'can:identification.person_types.document_types.all']);
+            Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:identification.person_types.document_types.find']);
+            Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:identification.person_types.document_types.store']);
+            Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:identification.person_types.document_types.update']);
+            Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:identification.person_types.document_types.delete']);
+            Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:identification.person_types.document_types.restore']);
+        });
     });
 
-    Route::prefix('/document_types')->controller(DocumentTypeController::class)->group(function () {
-        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:identification.document_types.all']);
-        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:identification.document_types.find']);
-        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:identification.document_types.store']);
-        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:identification.document_types.update']);
-        Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:identification.document_types.delete']);
-        Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:identification.document_types.restore']);
-    });
 });
 
 Route::prefix('/blood_types')->controller(BloodTypeController::class)->group(function () {
@@ -317,38 +319,33 @@ Route::prefix('/sizes')->controller(SizeController::class)->group(function () {
     Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:sizes.restore']);
 });
 
-Route::prefix('/classification')->group(function () {
+Route::prefix('/categorization')->group(function () {
     Route::prefix('/categories')->controller(CategoryController::class)->group(function () {
-        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:classification.categories.all']);
-        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:classification.categories.find']);
-        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:classification.categories.store']);
-        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:classification.categories.update']);
-        Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:classification.categories.delete']);
-        Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:classification.categories.restore']);
+        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:categorization.categories.all']);
+        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:categorization.categories.find']);
+        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:categorization.categories.store']);
+        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:categorization.categories.update']);
+        Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:categorization.categories.delete']);
+        Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:categorization.categories.restore']);
 
-        Route::prefix('/subcategories')->group(function () {
-            Route::post('/assign/{id}', 'assign')->middleware(['auth:sanctum', 'can:classification.categories.subcategories.assign']);
-            Route::post('/remove/{id}', 'remove')->middleware(['auth:sanctum', 'can:classification.categories.subcategories.remove']);
+        Route::prefix('/subcategories')->controller(SubcategoryController::class)->group(function () {
+            Route::get('/all/{category_id}', 'all')->middleware(['auth:sanctum', 'can:categorization.categories.subcategories.all']);
+            Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:categorization.categories.subcategories.find']);
+            Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:categorization.categories.subcategories.store']);
+            Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:categorization.categories.subcategories.update']);
+            Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:categorization.categories.subcategories.delete']);
+            Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:categorization.categories.subcategories.restore']);
         });
     });
+});
 
-    Route::prefix('/collections')->controller(CollectionController::class)->group(function () {
-        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:collections.all']);
-        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:collections.find']);
-        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:collections.store']);
-        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:collections.update']);
-        Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:collections.delete']);
-        Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:collections.restore']);
-    });
-
-    Route::prefix('/subcategories')->controller(SubcategoryController::class)->group(function () {
-        Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:classification.subcategories.all']);
-        Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:classification.subcategories.find']);
-        Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:classification.subcategories.store']);
-        Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:classification.subcategories.update']);
-        Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:classification.subcategories.delete']);
-        Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:classification.subcategories.restore']);
-    });
+Route::prefix('/collections')->controller(CollectionController::class)->group(function () {
+    Route::get('/all', 'all')->middleware(['auth:sanctum', 'can:collections.all']);
+    Route::get('/find/{id}', 'find')->middleware(['auth:sanctum', 'can:collections.find']);
+    Route::post('/store', 'store')->middleware(['auth:sanctum', 'can:collections.store']);
+    Route::put('/update/{id}', 'update')->middleware(['auth:sanctum', 'can:collections.update']);
+    Route::delete('/delete/{id}', 'delete')->middleware(['auth:sanctum', 'can:collections.delete']);
+    Route::patch('/restore/{id}', 'restore')->middleware(['auth:sanctum', 'can:collections.restore']);
 });
 
 Route::prefix('/suppliers')->controller(SupplierController::class)->group(function () {

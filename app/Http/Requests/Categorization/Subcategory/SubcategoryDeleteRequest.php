@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Classification\Category;
+namespace App\Http\Requests\Categorization\Subcategory;
 
-use App\Models\Category;
 use App\Models\Subcategory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class CategorySubcategoryRemoveRequest extends FormRequest
+class SubcategoryDeleteRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -27,8 +26,7 @@ class CategorySubcategoryRemoveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . Category::ITEM_ID],
-            'subcategory_id' => ['required', 'numeric', 'exists:subitems,id,item_id,' . Subcategory::ITEM_ID, 'exists:model_has_subitems,model_id,model_type,' . Subcategory::class . ',subitem_id,' . $this->route('id')]
+            'id' => ['required', 'exists:subitems,id,deleted_at,NULL,item_id,' . Subcategory::ITEM_ID],
         ];
     }
 
@@ -36,7 +34,6 @@ class CategorySubcategoryRemoveRequest extends FormRequest
     {
         return [
             'required' => 'El campo es requerido.',
-            'numeric' => 'El campo debe ser un número.',
             'exists' => 'No hay ningún registro.'
         ];
     }
@@ -44,8 +41,7 @@ class CategorySubcategoryRemoveRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador del cargo',
-            'subcategory_id' => 'Identificador de la subcategoria'
+            'id' => 'Identificador de la subcategoría'
         ];
     }
 

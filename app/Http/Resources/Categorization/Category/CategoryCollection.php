@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Classification\Category;
+namespace App\Http\Resources\Categorization\Category;
 
 use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\ResourceCollection;

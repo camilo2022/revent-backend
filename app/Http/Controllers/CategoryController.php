@@ -2,23 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Classification\Category\CategorySubcategoryAssignRequest;
-use App\Http\Requests\Classification\Category\CategorySubcategoryRemoveRequest;
-use App\Http\Requests\Classification\Category\CategoryAllRequest;
-use App\Http\Requests\Classification\Category\CategoryDeleteRequest;
-use App\Http\Requests\Classification\Category\CategoryFindRequest;
-use App\Http\Requests\Classification\Category\CategoryRestoreRequest;
-use App\Http\Requests\Classification\Category\CategoryStoreRequest;
-use App\Http\Requests\Classification\Category\CategoryUpdateRequest;
-use App\Http\Resources\Classification\Category\CategoryCollection;
-use App\Http\Resources\Classification\Category\CategoryResource;
+use App\Http\Requests\Categorization\Category\CategoryAllRequest;
+use App\Http\Requests\Categorization\Category\CategoryDeleteRequest;
+use App\Http\Requests\Categorization\Category\CategoryFindRequest;
+use App\Http\Requests\Categorization\Category\CategoryRestoreRequest;
+use App\Http\Requests\Categorization\Category\CategoryStoreRequest;
+use App\Http\Requests\Categorization\Category\CategoryUpdateRequest;
+use App\Http\Resources\Categorization\Category\CategoryCollection;
+use App\Http\Resources\Categorization\Category\CategoryResource;
 use App\Models\Category;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 
 /**
  * @OA\Tag(
- *     name="Classification - Categories",
+ *     name="Categorization - Categories",
  *     description="Endpoints para gestionar categorias"
  * )
  *
@@ -61,8 +59,8 @@ class CategoryController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/classification/categories/all",
-     *     tags={"Classification - Categories"},
+     *     path="/categorization/categories/all",
+     *     tags={"Categorization - Categories"},
      *     summary="Listar categorias",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -180,8 +178,8 @@ class CategoryController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/classification/categories/find/{id}",
-     *     tags={"Classification - Categories"},
+     *     path="/categorization/categories/find/{id}",
+     *     tags={"Categorization - Categories"},
      *     summary="Obtener un categoria especifica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -267,8 +265,8 @@ class CategoryController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/classification/categories/store",
-     *     tags={"Classification - Categories"},
+     *     path="/categorization/categories/store",
+     *     tags={"Categorization - Categories"},
      *     summary="Crear un área",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
@@ -376,8 +374,8 @@ class CategoryController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/classification/categories/update/{id}",
-     *     tags={"Classification - Categories"},
+     *     path="/categorization/categories/update/{id}",
+     *     tags={"Categorization - Categories"},
      *     summary="Editar un área específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -494,8 +492,8 @@ class CategoryController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/classification/categories/delete/{id}",
-     *     tags={"Classification - Categories"},
+     *     path="/categorization/categories/delete/{id}",
+     *     tags={"Categorization - Categories"},
      *     summary="Desactivar un área específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -590,8 +588,8 @@ class CategoryController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/classification/categories/restore/{id}",
-     *     tags={"Classification - Categories"},
+     *     path="/categorization/categories/restore/{id}",
+     *     tags={"Categorization - Categories"},
      *     summary="Activar un área específica",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -667,222 +665,6 @@ class CategoryController extends Controller
         try {
             $category = Category::withTrashed()->findOrFail($id);
             $category->restore();
-
-            return $this->successResponse(
-                new CategoryResource($category),
-                $this->getMessage('Success'),
-                200
-            );
-        } catch (\Throwable $e) {
-            return $this->errorResponse(
-                [
-                    'message' => $this->getMessage(class_basename($e)),
-                    'error' => $e->getMessage()
-                ],
-                $this->getCode(class_basename($e))
-            );
-        }
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/classification/categories/subcategories/assign/{id}",
-     *     tags={"Classification - Categories"},
-     *     summary="Asignar un subcategoria a un categoria específico",
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="query",
-     *         description="Identificador de la categoria",
-     *         required=true,
-     *         @OA\Schema(type="integer", example=1)
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"subcategory_id"},
-     *             @OA\Property(
-     *                 property="subcategory_id",
-     *                 type="integer",
-     *                 example=1,
-     *                 description="Identificador de la Subcategoria"
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Subcategoria asignada correctamente",
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="category",
-     *                     ref="#/components/schemas/Category"
-     *                 )
-     *             ),
-     *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
-     *             @OA\Property(property="error", type="boolean", example=false)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Error de validación.",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Error de validación."),
-     *             @OA\Property(
-     *                 property="attributes",
-     *                 type="object",
-     *                 @OA\Property(property="id", type="string", example="Identificador de la categoria"),
-     *                 @OA\Property(property="subcategory_id", type="string", example="Identificador de la subcategoria"),
-     *             ),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example= "No hay ningún registro.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="subcategory_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example= "No hay ningún registro.")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="No autenticado",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/UnauthorizedResponse"
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Error del servidor",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/ServerErrorResponse"
-     *         )
-     *     )
-     * )
-     */
-    public function assign(CategorySubcategoryAssignRequest $request, $id)
-    {
-        try {
-            $category = Category::with(['subcategories'])->findOrFail($id);
-            $category->subcategories()->attach($request->input('subcategory_id'));
-
-            $category->load(['subcategories']);
-
-            return $this->successResponse(
-                new CategoryResource($category),
-                $this->getMessage('Success'),
-                200
-            );
-        } catch (\Throwable $e) {
-            return $this->errorResponse(
-                [
-                    'message' => $this->getMessage(class_basename($e)),
-                    'error' => $e->getMessage()
-                ],
-                $this->getCode(class_basename($e))
-            );
-        }
-    }
-
-    /**
-     * @OA\Post(
-     *     path="/classification/categories/subcategories/remove/{id}",
-     *     tags={"Classification - Categories"},
-     *     summary="Remover una subcategoria de una categoria específica",
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="query",
-     *         description="Identificador de la categoria",
-     *         required=true,
-     *         @OA\Schema(type="integer", example=1)
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"subcategory_id"},
-     *             @OA\Property(
-     *                 property="subcategory_id",
-     *                 type="integer",
-     *                 example=1,
-     *                 description="Identificador de la Subcategoria"
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Subcategoria removida correctamente",
-     *         @OA\JsonContent(
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="category",
-     *                     ref="#/components/schemas/Category"
-     *                 )
-     *             ),
-     *             @OA\Property(property="message", type="string", example="Operación completada con éxito."),
-     *             @OA\Property(property="error", type="boolean", example=false)
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Error de validación.",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Error de validación."),
-     *             @OA\Property(
-     *                 property="attributes",
-     *                 type="object",
-     *                 @OA\Property(property="id", type="string", example="Identificador de la categoria"),
-     *                 @OA\Property(property="subcategory_id", type="string", example="Identificador de la subcategoria"),
-     *             ),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 @OA\Property(
-     *                     property="id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example= "No hay ningún registro.")
-     *                 ),
-     *                 @OA\Property(
-     *                     property="subcategory_id",
-     *                     type="array",
-     *                     @OA\Items(type="string", example= "No hay ningún registro.")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="No autenticado",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/UnauthorizedResponse"
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Error del servidor",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/ServerErrorResponse"
-     *         )
-     *     )
-     * )
-     */
-    public function remove(CategorySubcategoryRemoveRequest $request, $id)
-    {
-        try {
-            $category = Category::with(['subcategories'])->findOrFail($id);
-            $category->subcategories()->detach($request->input('subcategory_id'));
-
-            $category->load(['subcategories']);
 
             return $this->successResponse(
                 new CategoryResource($category),

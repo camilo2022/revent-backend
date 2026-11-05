@@ -264,7 +264,7 @@ class DemoDataSeeder extends Seeder
     {
         $this->command?->info('Datos de prueba: catálogos…');
         $this->catalogs();
-        $this->classification();
+        $this->categorization();
         $country = Country::where('name', 'like', 'Colombia%')->first() ?? Country::first();
         $this->stores($country);
         $this->suppliers($country);
@@ -305,22 +305,18 @@ class DemoDataSeeder extends Seeder
         }
 
         foreach (self::COLORS as $code => $name) $this->subitem(Color::class, mb_strtoupper($name), $name, ['code' => (string) $code]);
-        foreach (range(35, 41) as $number) $this->subitem(Size::class, "TALLA $number", "Talla $number", ['code' => (string) $number]);
+        foreach (range(35, 41) as $number) $this->subitem(Size::class, "T$number", "Talla $number", ['code' => (string) $number]);
     }
 
     // Categorías y tipos de calzado (subcategorías) con su relación
-    private function classification(): void
+    private function categorization(): void
     {
         $category = $this->subitem(Category::class, 'CALZADO', 'Calzado', ['code' => 'CZ']);
         $this->subitem(Category::class, 'ACCESORIOS', 'Accesorios', ['code' => 'AC']);
 
-        $ids = [];
-
         foreach (self::TYPES as $code => $name) {
-            $ids[] = $this->subitem(Subcategory::class, $name, ucfirst(mb_strtolower($name)), ['code' => $code])->id;
+            $this->subitem(Subcategory::class, $name, ucfirst(mb_strtolower($name)), ['code' => $code])->category()->sync([$category->id]);
         }
-
-        $category->subcategories()->syncWithoutDetaching($ids);
 
         $this->subitem(Collection::class, 'COLECCION 4 2026', 'Colección de mitad de año 2026', ['year' => '26', 'code' => '4', 'last_number' => 0]);
         $this->subitem(Collection::class, 'COLECCION 5 2026', 'Colección de fin de año 2026', ['year' => '26', 'code' => '5', 'last_number' => 0]);
@@ -405,7 +401,7 @@ class DemoDataSeeder extends Seeder
                     foreach ($ref['sizes'] as $number) {
                         ProductDetail::create([
                             'model_type' => ProductDetail::class, 'model_id' => $detail->id, 'assignable_type' => Size::class,
-                            'assignable_id' => Size::where('name', "TALLA $number")->value('id'),
+                            'assignable_id' => Size::where('name', "T$number")->value('id'),
                         ]);
                     }
                 }

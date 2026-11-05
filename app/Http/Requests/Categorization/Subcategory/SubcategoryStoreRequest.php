@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Requests\Classification\Category;
+namespace App\Http\Requests\Categorization\Subcategory;
 
 use App\Models\Category;
+use App\Models\Subcategory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Validation\Rule;
 
-class CategoryUpdateRequest extends FormRequest
+class SubcategoryStoreRequest extends FormRequest
 {
     protected function failedValidation(Validator $validator)
     {
@@ -27,11 +27,11 @@ class CategoryUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'exists:subitems,id,item_id,' . Category::ITEM_ID],
-            'name' => ['required', 'string', 'min:4', 'max:50', 'uppercase', 'unique:subitems,name,' . $this->route('id') . ',id,item_id,' . Category::ITEM_ID],
+            'name' => ['required', 'uppercase', 'string', 'min:4', 'max:50', 'unique:subitems,name,NULL,id,item_id,' . Subcategory::ITEM_ID],
+            'category_id' => ['required', 'integer', 'exists:subitems,id,item_id,' . Category::ITEM_ID . ',deleted_at,NULL'],
             'description' => ['required', 'string', 'max:255'],
             'settings' => ['required', 'array'],
-            'settings.code' => ['required', 'uppercase', 'string', 'size:2', Rule::unique('subitems', 'settings->code')->where('item_id', Category::ITEM_ID)->ignore($this->route('id'))]
+            'settings.code' => ['required', 'uppercase', 'string', 'size:2', 'unique:subitems,settings->code,NULL,id,item_id,' . Subcategory::ITEM_ID]
         ];
     }
 
@@ -52,14 +52,9 @@ class CategoryUpdateRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'id' => 'Identificador de la categoría',
+            'category_id' => 'Categoría',
             'name' => 'Nombre',
             'description' => 'Descripción'
         ];
-    }
-
-    protected function prepareForValidation()
-    {
-        $this->merge(['id' => $this->route('id')]);
     }
 }

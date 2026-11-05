@@ -60,7 +60,7 @@ class Category extends Model implements Auditable
 
     public function subcategories(): MorphToMany
     {
-        return $this->morphToMany(Subcategory::class, 'model', 'model_has_subitems', 'model_id', 'subitem_id');
+        return $this->morphedByMany(Subcategory::class, 'model', 'model_has_subitems', 'subitem_id', 'model_id');
     }
 
     public function scopeSearch(Builder $query, ?string $search = null): Builder

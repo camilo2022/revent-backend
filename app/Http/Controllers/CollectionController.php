@@ -45,7 +45,7 @@ class CollectionController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/classification/collections/all",
+     *     path="/collections/all",
      *     tags={"Collections"},
      *     summary="Listar colecciones",
      *     security={{"sanctum":{}}},
@@ -105,7 +105,7 @@ class CollectionController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/classification/collections/find/{id}",
+     *     path="/collections/find/{id}",
      *     tags={"Collections"},
      *     summary="Obtener una colección",
      *     security={{"sanctum":{}}},
@@ -141,7 +141,7 @@ class CollectionController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/classification/collections/store",
+     *     path="/collections/store",
      *     tags={"Collections"},
      *     summary="Crear una colección",
      *     security={{"sanctum":{}}},
@@ -196,7 +196,7 @@ class CollectionController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/classification/collections/update/{id}",
+     *     path="/collections/update/{id}",
      *     tags={"Collections"},
      *     summary="Actualizar una colección",
      *     security={{"sanctum":{}}},
@@ -253,7 +253,7 @@ class CollectionController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/classification/collections/delete/{id}",
+     *     path="/collections/delete/{id}",
      *     tags={"Collections"},
      *     summary="Eliminar (inactivar) una colección sin productos",
      *     security={{"sanctum":{}}},
@@ -290,7 +290,7 @@ class CollectionController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/classification/collections/restore/{id}",
+     *     path="/collections/restore/{id}",
      *     tags={"Collections"},
      *     summary="Restaurar una colección eliminada",
      *     security={{"sanctum":{}}},

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Classification\Subcategory;
+namespace App\Http\Requests\Categorization\Subcategory;
 
 use App\Models\Subcategory;
 use Illuminate\Contracts\Validation\Validator;

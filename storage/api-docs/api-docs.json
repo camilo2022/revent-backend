@@ -2327,13 +2327,13 @@
                 ]
             }
         },
-        "/classification/categories/all": {
+        "/categorization/categories/all": {
             "get": {
                 "tags": [
-                    "Classification - Categories"
+                    "Categorization - Categories"
                 ],
                 "summary": "Listar categorias",
-                "operationId": "41cd0208542ad636bdcd69020fab302d",
+                "operationId": "ede36b138905cc568e0d582f2e8b24a7",
                 "parameters": [
                     {
                         "name": "search",
@@ -2487,13 +2487,13 @@
                 ]
             }
         },
-        "/classification/categories/find/{id}": {
+        "/categorization/categories/find/{id}": {
             "get": {
                 "tags": [
-                    "Classification - Categories"
+                    "Categorization - Categories"
                 ],
                 "summary": "Obtener un categoria especifica",
-                "operationId": "25a07c99ff52ee8c84ec94f6395742d9",
+                "operationId": "45626b1c4110ac17ced04aa28f7ea7cf",
                 "parameters": [
                     {
                         "name": "id",
@@ -2600,13 +2600,13 @@
                 ]
             }
         },
-        "/classification/categories/store": {
+        "/categorization/categories/store": {
             "post": {
                 "tags": [
-                    "Classification - Categories"
+                    "Categorization - Categories"
                 ],
                 "summary": "Crear un área",
-                "operationId": "d16e2433b085649540a20d24fe8cba25",
+                "operationId": "04681afef418afd82c753779f7362a08",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -2758,13 +2758,13 @@
                 ]
             }
         },
-        "/classification/categories/update/{id}": {
+        "/categorization/categories/update/{id}": {
             "put": {
                 "tags": [
-                    "Classification - Categories"
+                    "Categorization - Categories"
                 ],
                 "summary": "Editar un área específica",
-                "operationId": "a0988b46ff33ed6d2c888eeba3bee083",
+                "operationId": "a6c01639f4cf8de8ffcf6e75983cfb68",
                 "parameters": [
                     {
                         "name": "id",
@@ -2938,13 +2938,13 @@
                 ]
             }
         },
-        "/classification/categories/delete/{id}": {
+        "/categorization/categories/delete/{id}": {
             "delete": {
                 "tags": [
-                    "Classification - Categories"
+                    "Categorization - Categories"
                 ],
                 "summary": "Desactivar un área específica",
-                "operationId": "210f8d07feebeb2fb9985f0280e755ab",
+                "operationId": "4b9eacb60a4fed50471d7f05b6ab1489",
                 "parameters": [
                     {
                         "name": "id",
@@ -3088,13 +3088,13 @@
                 ]
             }
         },
-        "/classification/categories/restore/{id}": {
+        "/categorization/categories/restore/{id}": {
             "patch": {
                 "tags": [
-                    "Classification - Categories"
+                    "Categorization - Categories"
                 ],
                 "summary": "Activar un área específica",
-                "operationId": "7b44b8c262b343b677bcd4e5c7f40782",
+                "operationId": "24a8a7d1d2106743e00028a914ffa8ce",
                 "parameters": [
                     {
                         "name": "id",
@@ -3196,294 +3196,6 @@
                                         "errors": {
                                             "properties": {
                                                 "id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "No hay ningún registro."
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "No autenticado",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UnauthorizedResponse"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Error del servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ServerErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/classification/categories/subcategories/assign/{id}": {
-            "post": {
-                "tags": [
-                    "Classification - Categories"
-                ],
-                "summary": "Asignar un subcategoria a un categoria específico",
-                "operationId": "33e2ca1ceffc53a91aa6567ec47486d2",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "query",
-                        "description": "Identificador de la categoria",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "subcategory_id"
-                                ],
-                                "properties": {
-                                    "subcategory_id": {
-                                        "description": "Identificador de la Subcategoria",
-                                        "type": "integer",
-                                        "example": 1
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Subcategoria asignada correctamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "category": {
-                                                    "$ref": "#/components/schemas/Category"
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Operación completada con éxito."
-                                        },
-                                        "error": {
-                                            "type": "boolean",
-                                            "example": false
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Error de validación.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Error de validación."
-                                        },
-                                        "attributes": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "string",
-                                                    "example": "Identificador de la categoria"
-                                                },
-                                                "subcategory_id": {
-                                                    "type": "string",
-                                                    "example": "Identificador de la subcategoria"
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "errors": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "No hay ningún registro."
-                                                    }
-                                                },
-                                                "subcategory_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "No hay ningún registro."
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "No autenticado",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/UnauthorizedResponse"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Error del servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ServerErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/classification/categories/subcategories/remove/{id}": {
-            "post": {
-                "tags": [
-                    "Classification - Categories"
-                ],
-                "summary": "Remover una subcategoria de una categoria específica",
-                "operationId": "62b8440478dd969ba8006d5bc962a9e8",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "query",
-                        "description": "Identificador de la categoria",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "subcategory_id"
-                                ],
-                                "properties": {
-                                    "subcategory_id": {
-                                        "description": "Identificador de la Subcategoria",
-                                        "type": "integer",
-                                        "example": 1
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Subcategoria removida correctamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "category": {
-                                                    "$ref": "#/components/schemas/Category"
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Operación completada con éxito."
-                                        },
-                                        "error": {
-                                            "type": "boolean",
-                                            "example": false
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Error de validación.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Error de validación."
-                                        },
-                                        "attributes": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "string",
-                                                    "example": "Identificador de la categoria"
-                                                },
-                                                "subcategory_id": {
-                                                    "type": "string",
-                                                    "example": "Identificador de la subcategoria"
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "errors": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "No hay ningún registro."
-                                                    }
-                                                },
-                                                "subcategory_id": {
                                                     "type": "array",
                                                     "items": {
                                                         "type": "string",
@@ -3792,13 +3504,13 @@
                 ]
             }
         },
-        "/classification/collections/all": {
+        "/collections/all": {
             "get": {
                 "tags": [
                     "Collections"
                 ],
                 "summary": "Listar colecciones",
-                "operationId": "59b34a99e745a1c8052e1402e0722795",
+                "operationId": "e8de635f6cce2276853d7d4e3267ac2f",
                 "parameters": [
                     {
                         "name": "search",
@@ -3953,13 +3665,13 @@
                 ]
             }
         },
-        "/classification/collections/find/{id}": {
+        "/collections/find/{id}": {
             "get": {
                 "tags": [
                     "Collections"
                 ],
                 "summary": "Obtener una colección",
-                "operationId": "a9d62d75a7612721d620c93a7cde5eff",
+                "operationId": "502bb294b84b05885b0ff011db13827b",
                 "parameters": [
                     {
                         "name": "id",
@@ -4032,13 +3744,13 @@
                 ]
             }
         },
-        "/classification/collections/store": {
+        "/collections/store": {
             "post": {
                 "tags": [
                     "Collections"
                 ],
                 "summary": "Crear una colección",
-                "operationId": "028b8988129d20142f606a5d02e76ebd",
+                "operationId": "352df8801de994813c2a4177cfb6a672",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -4137,13 +3849,13 @@
                 ]
             }
         },
-        "/classification/collections/update/{id}": {
+        "/collections/update/{id}": {
             "put": {
                 "tags": [
                     "Collections"
                 ],
                 "summary": "Actualizar una colección",
-                "operationId": "9936a8800735bacf25d9284db9a167de",
+                "operationId": "cce298044d5f2d38a27f6c22b5192a8f",
                 "parameters": [
                     {
                         "name": "id",
@@ -4254,13 +3966,13 @@
                 ]
             }
         },
-        "/classification/collections/delete/{id}": {
+        "/collections/delete/{id}": {
             "delete": {
                 "tags": [
                     "Collections"
                 ],
                 "summary": "Eliminar (inactivar) una colección sin productos",
-                "operationId": "d61565837f9ae213ce0b8a4fead53720",
+                "operationId": "23306b5cf94b3c1881f498eb20fac5e8",
                 "parameters": [
                     {
                         "name": "id",
@@ -4333,13 +4045,13 @@
                 ]
             }
         },
-        "/classification/collections/restore/{id}": {
+        "/collections/restore/{id}": {
             "patch": {
                 "tags": [
                     "Collections"
                 ],
                 "summary": "Restaurar una colección eliminada",
-                "operationId": "f02acaeedc481a8362c648a343d057be",
+                "operationId": "5bed4e54163e346e193b0dc3a1670bf5",
                 "parameters": [
                     {
                         "name": "id",
@@ -9713,7 +9425,7 @@
         "/categories/audits/{id}": {
             "get": {
                 "tags": [
-                    "Classification - Categories"
+                    "Categorization - Categories"
                 ],
                 "summary": "Auditoría de un registro de categorías",
                 "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
@@ -9967,7 +9679,7 @@
         "/subcategories/audits/{id}": {
             "get": {
                 "tags": [
-                    "Classification - Subcategories"
+                    "Categorization - Subcategories"
                 ],
                 "summary": "Auditoría de un registro de subcategorías",
                 "description": "Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
@@ -10726,17 +10438,17 @@
                 ]
             }
         },
-        "/identification/document_types/all": {
+        "/identification/person_types/document_types/all/{person_type_id}": {
             "get": {
                 "tags": [
                     "Identification - DocumentTypes"
                 ],
                 "summary": "Listar Tipos de documentos de identificación.",
-                "operationId": "f5695a08ecdedb6edfbc6b7f5548e5a7",
+                "operationId": "54e8a07c351df65fba1e831c88ccdb52",
                 "parameters": [
                     {
                         "name": "person_type_id",
-                        "in": "query",
+                        "in": "path",
                         "description": "Identificador del área",
                         "required": true,
                         "schema": {
@@ -10896,13 +10608,13 @@
                 ]
             }
         },
-        "/identification/document_types/find/{id}": {
+        "/identification/person_types/document_types/find/{id}": {
             "get": {
                 "tags": [
                     "Identification - DocumentTypes"
                 ],
                 "summary": "Obtener un tipo de documento de identificacion específico",
-                "operationId": "60c868958db068da5edc256a1cf8a95e",
+                "operationId": "b283dd4319e86353a3c46ecd3c37bce9",
                 "parameters": [
                     {
                         "name": "id",
@@ -11009,13 +10721,13 @@
                 ]
             }
         },
-        "/identification/document_types/store": {
+        "/identification/person_types/document_types/store": {
             "post": {
                 "tags": [
                     "Identification - DocumentTypes"
                 ],
                 "summary": "Crear un tipo de documento de identificacion",
-                "operationId": "f52b83133e8baaca7a193f59d55938e0",
+                "operationId": "01ab62054e9bf6ae881e2322cbc87cbe",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -11139,13 +10851,13 @@
                 ]
             }
         },
-        "/identification/document_types/update/{id}": {
+        "/identification/person_types/document_types/update/{id}": {
             "put": {
                 "tags": [
                     "Identification - DocumentTypes"
                 ],
                 "summary": "Editar un tipo de documento de identificacion específico",
-                "operationId": "916ad5ecb910adab056954ec96df55bf",
+                "operationId": "57e93536e81567c4db5b1d4ec5a4f713",
                 "parameters": [
                     {
                         "name": "id",
@@ -11281,13 +10993,13 @@
                 ]
             }
         },
-        "/identification/document_types/delete/{id}": {
+        "/identification/person_types/document_types/delete/{id}": {
             "delete": {
                 "tags": [
                     "Identification - DocumentTypes"
                 ],
                 "summary": "Desactivar un tipo de documento de identificacion específico",
-                "operationId": "9a44b1171b594babebbb5299879004a2",
+                "operationId": "21483207a917b2f4a0bb8410de3b92fc",
                 "parameters": [
                     {
                         "name": "id",
@@ -11394,13 +11106,13 @@
                 ]
             }
         },
-        "/identification/document_types/restore/{id}": {
+        "/identification/person_types/document_types/restore/{id}": {
             "patch": {
                 "tags": [
                     "Identification - DocumentTypes"
                 ],
                 "summary": "Activar un tipo de documento de identificacion",
-                "operationId": "d3c4a700f1bb3466c362beececb56bef",
+                "operationId": "77c579e760002a5c3c1e517c9075a2bf",
                 "parameters": [
                     {
                         "name": "id",
@@ -17152,19 +16864,19 @@
                 ]
             }
         },
-        "/authorization/permissions/all": {
+        "/authorization/roles/permissions/all/{role_id}": {
             "get": {
                 "tags": [
                     "Authorization - Permissions"
                 ],
                 "summary": "Listar los permisos",
-                "operationId": "ab59fb3542bd1140e6674581893ea206",
+                "operationId": "8e18f5ca26cc7a17998a946c631da6cd",
                 "parameters": [
                     {
                         "name": "role_id",
-                        "in": "query",
+                        "in": "path",
                         "description": "Identificador del Rol.",
-                        "required": false,
+                        "required": true,
                         "schema": {
                             "type": "integer",
                             "example": 1
@@ -17313,13 +17025,13 @@
                 ]
             }
         },
-        "/authorization/permissions/find/{id}": {
+        "/authorization/roles/permissions/find/{id}": {
             "get": {
                 "tags": [
                     "Authorization - Permissions"
                 ],
                 "summary": "Obtener un permiso específico",
-                "operationId": "a03f21710721dd107e7fcdd3ca5415aa",
+                "operationId": "265cce6c2d1aea9bb2d8587daefdfe10",
                 "parameters": [
                     {
                         "name": "id",
@@ -17425,13 +17137,13 @@
                 ]
             }
         },
-        "/authorization/permissions/store": {
+        "/authorization/roles/permissions/store": {
             "post": {
                 "tags": [
                     "Authorization - Permissions"
                 ],
                 "summary": "Crear un permiso",
-                "operationId": "0ce8433fcb138ac91f395f181e0df2fd",
+                "operationId": "2a72e411b772c22d432ced9f07b1ce18",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -17625,13 +17337,13 @@
                 ]
             }
         },
-        "/authorization/permissions/update/{id}": {
+        "/authorization/roles/permissions/update/{id}": {
             "put": {
                 "tags": [
                     "Authorization - Permissions"
                 ],
                 "summary": "Editar un permiso específico",
-                "operationId": "a08643a173b55bb07e7d17a179860685",
+                "operationId": "c71b340e2f573ac9b4749ba84576cb2d",
                 "parameters": [
                     {
                         "name": "id",
@@ -25896,13 +25608,13 @@
                 ]
             }
         },
-        "/classification/subcategories/all": {
+        "/categorization/categories/subcategories/all/{category_id}": {
             "get": {
                 "tags": [
-                    "Classification - Subcategories"
+                    "Categorization - Subcategories"
                 ],
                 "summary": "Listar Subcategorias",
-                "operationId": "7c6c633cec6e1442270c551147928263",
+                "operationId": "87d19e115a7ba8e09554cb4aa6ba0200",
                 "parameters": [
                     {
                         "name": "search",
@@ -25953,6 +25665,16 @@
                         "schema": {
                             "type": "integer",
                             "example": 10
+                        }
+                    },
+                    {
+                        "name": "category_id",
+                        "in": "path",
+                        "description": "Solo las subcategorías de esta categoría",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
                         }
                     },
                     {
@@ -26056,13 +25778,13 @@
                 ]
             }
         },
-        "/classification/subcategories/find/{id}": {
+        "/categorization/categories/subcategories/find/{id}": {
             "get": {
                 "tags": [
-                    "Classification - Subcategories"
+                    "Categorization - Subcategories"
                 ],
                 "summary": "Obtener un cargo específico",
-                "operationId": "e98bbf5ce34238af881852b2d2f2bd8b",
+                "operationId": "c83f20d4f871d1bae2ce66f9b884e7dd",
                 "parameters": [
                     {
                         "name": "id",
@@ -26169,22 +25891,28 @@
                 ]
             }
         },
-        "/classification/subcategories/store": {
+        "/categorization/categories/subcategories/store": {
             "post": {
                 "tags": [
-                    "Classification - Subcategories"
+                    "Categorization - Subcategories"
                 ],
                 "summary": "Crear un cargo",
-                "operationId": "7c4167d9c03aa93dd04a940e36fabe43",
+                "operationId": "2e064f98d83347da878e470b8d903f67",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "category_id"
                                 ],
                                 "properties": {
+                                    "category_id": {
+                                        "description": "Categoría a la que pertenece la subcategoría",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
                                     "name": {
                                         "description": "Nombre del cargo",
                                         "type": "string",
@@ -26327,13 +26055,13 @@
                 ]
             }
         },
-        "/classification/subcategories/update/{id}": {
+        "/categorization/categories/subcategories/update/{id}": {
             "put": {
                 "tags": [
-                    "Classification - Subcategories"
+                    "Categorization - Subcategories"
                 ],
                 "summary": "Editar un cargo específico",
-                "operationId": "280e0facf2de76bb0a1df364df4d6b87",
+                "operationId": "768c26e4fcc338f6cd3f473288429a1c",
                 "parameters": [
                     {
                         "name": "id",
@@ -26352,9 +26080,15 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "category_id"
                                 ],
                                 "properties": {
+                                    "category_id": {
+                                        "description": "Categoría a la que pertenece la subcategoría",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
                                     "name": {
                                         "description": "Nombre del Cargo",
                                         "type": "string",
@@ -26507,13 +26241,13 @@
                 ]
             }
         },
-        "/classification/subcategories/delete/{id}": {
+        "/categorization/categories/subcategories/delete/{id}": {
             "delete": {
                 "tags": [
-                    "Classification - Subcategories"
+                    "Categorization - Subcategories"
                 ],
                 "summary": "Desactivar un cargo específico",
-                "operationId": "7d01ed5ac4b3b07bdfcc0d34d255ba59",
+                "operationId": "8d5f1e5d4503c1d6e80d418e0a863e0f",
                 "parameters": [
                     {
                         "name": "id",
@@ -26657,13 +26391,13 @@
                 ]
             }
         },
-        "/classification/subcategories/restore/{id}": {
+        "/categorization/categories/subcategories/restore/{id}": {
             "patch": {
                 "tags": [
-                    "Classification - Subcategories"
+                    "Categorization - Subcategories"
                 ],
                 "summary": "Activar un cargo",
-                "operationId": "206db0edd0dbf77e61996ce2c451e56d",
+                "operationId": "9db8140635aacddeba42f2b92b86991e",
                 "parameters": [
                     {
                         "name": "id",
@@ -34020,11 +33754,13 @@
                         },
                         "type": "object"
                     },
-                    "categories": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Category"
-                        }
+                    "category": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/Category"
+                            }
+                        ],
+                        "nullable": true
                     }
                 },
                 "type": "object"
@@ -34611,7 +34347,7 @@
             "description": "Endpoints para gestionar tipos de sangre"
         },
         {
-            "name": "Classification - Categories",
+            "name": "Categorization - Categories",
             "description": "Endpoints para gestionar categorias"
         },
         {
@@ -34715,7 +34451,7 @@
             "description": "Endpoints para gestionar tiendas"
         },
         {
-            "name": "Classification - Subcategories",
+            "name": "Categorization - Subcategories",
             "description": "Endpoints para gestionar subcategorías"
         },
         {

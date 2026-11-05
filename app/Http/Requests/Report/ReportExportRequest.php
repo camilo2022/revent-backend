@@ -35,6 +35,7 @@ class ReportExportRequest extends FormRequest
             'id' => ['required', 'integer', 'exists:subitems,id,item_id,' . Report::ITEM_ID . ',deleted_at,NULL'],
             'fields' => ['required', 'array', 'min:1'],
             'fields.*' => ['required', 'string', Rule::in($fields)],
+            'pivot' => ['nullable', 'boolean'],
             'filters' => ['nullable', 'array'],
             'filters.*' => ['nullable'],
             'filters.*.from' => ['nullable', 'date'],

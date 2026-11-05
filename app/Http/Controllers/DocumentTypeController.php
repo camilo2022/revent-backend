@@ -44,13 +44,13 @@ class DocumentTypeController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/identification/document_types/all",
+     *     path="/identification/person_types/document_types/all/{person_type_id}",
      *     tags={"Identification - DocumentTypes"},
      *     summary="Listar Tipos de documentos de identificación.",
      *     security={{"sanctum":{}}},
      *      @OA\Parameter(
      *         name="person_type_id",
-     *         in="query",
+     *         in="path",
      *         description="Identificador del área",
      *         required=true,
      *         @OA\Schema(type="integer", example=1)
@@ -136,13 +136,11 @@ class DocumentTypeController extends Controller
      *     )
      * )
      */
-    public function all(DocumentTypeAllRequest $request)
+    public function all(DocumentTypeAllRequest $request, $person_type_id)
     {
         try {
             $document_types = DocumentType::with(['item', 'person_type'])
-                ->when($request->filled('person_type_id'), function ($query) use ($request) {
-                    return $query->whereHas('person_type', fn($r) => $r->where('id', $request->integer('person_type_id')));
-                })
+                ->whereHas('person_type', fn($r) => $r->where('id', $person_type_id))
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -173,7 +171,7 @@ class DocumentTypeController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/identification/document_types/find/{id}",
+     *     path="/identification/person_types/document_types/find/{id}",
      *     tags={"Identification - DocumentTypes"},
      *     summary="Obtener un tipo de documento de identificacion específico",
      *     security={{"sanctum":{}}},
@@ -260,7 +258,7 @@ class DocumentTypeController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/identification/document_types/store",
+     *     path="/identification/person_types/document_types/store",
      *     tags={"Identification - DocumentTypes"},
      *     summary="Crear un tipo de documento de identificacion",
      *     security={{"sanctum":{}}},
@@ -365,7 +363,7 @@ class DocumentTypeController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/identification/document_types/update/{id}",
+     *     path="/identification/person_types/document_types/update/{id}",
      *     tags={"Identification - DocumentTypes"},
      *     summary="Editar un tipo de documento de identificacion específico",
      *     security={{"sanctum":{}}},
@@ -477,7 +475,7 @@ class DocumentTypeController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/identification/document_types/delete/{id}",
+     *     path="/identification/person_types/document_types/delete/{id}",
      *     tags={"Identification - DocumentTypes"},
      *     summary="Desactivar un tipo de documento de identificacion específico",
      *     security={{"sanctum":{}}},
@@ -566,7 +564,7 @@ class DocumentTypeController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/identification/document_types/restore/{id}",
+     *     path="/identification/person_types/document_types/restore/{id}",
      *     tags={"Identification - DocumentTypes"},
      *     summary="Activar un tipo de documento de identificacion",
      *     security={{"sanctum":{}}},

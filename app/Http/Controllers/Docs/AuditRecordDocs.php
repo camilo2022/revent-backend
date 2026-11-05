@@ -578,7 +578,7 @@ class AuditRecordDocs
     /**
      * @OA\Get(
      *     path="/categories/audits/{id}",
-     *     tags={"Classification - Categories"},
+     *     tags={"Categorization - Categories"},
      *     summary="Auditoría de un registro de categorías",
      *     description="Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
      *     security={{"sanctum":{}}},
@@ -632,7 +632,7 @@ class AuditRecordDocs
     /**
      * @OA\Get(
      *     path="/subcategories/audits/{id}",
-     *     tags={"Classification - Subcategories"},
+     *     tags={"Categorization - Subcategories"},
      *     summary="Auditoría de un registro de subcategorías",
      *     description="Historial del registro: quién lo creó, modificó, eliminó o restauró, cuándo y desde dónde (IP, navegador y ruta), con los valores antes y después.",
      *     security={{"sanctum":{}}},

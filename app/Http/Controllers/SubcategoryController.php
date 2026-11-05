@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Classification\Subcategory\SubcategoryAllRequest;
-use App\Http\Requests\Classification\Subcategory\SubcategoryDeleteRequest;
-use App\Http\Requests\Classification\Subcategory\SubcategoryFindRequest;
-use App\Http\Requests\Classification\Subcategory\SubcategoryRestoreRequest;
-use App\Http\Requests\Classification\Subcategory\SubcategoryStoreRequest;
-use App\Http\Requests\Classification\Subcategory\SubcategoryUpdateRequest;
-use App\Http\Resources\Classification\Subcategory\SubcategoryCollection;
-use App\Http\Resources\Classification\Subcategory\SubcategoryResource;
+use App\Http\Requests\Categorization\Subcategory\SubcategoryAllRequest;
+use App\Http\Requests\Categorization\Subcategory\SubcategoryDeleteRequest;
+use App\Http\Requests\Categorization\Subcategory\SubcategoryFindRequest;
+use App\Http\Requests\Categorization\Subcategory\SubcategoryRestoreRequest;
+use App\Http\Requests\Categorization\Subcategory\SubcategoryStoreRequest;
+use App\Http\Requests\Categorization\Subcategory\SubcategoryUpdateRequest;
+use App\Http\Resources\Categorization\Subcategory\SubcategoryCollection;
+use App\Http\Resources\Categorization\Subcategory\SubcategoryResource;
 use App\Models\Subcategory;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 
 /**
  * @OA\Tag(
- *     name="Classification - Subcategories",
+ *     name="Categorization - Subcategories",
  *     description="Endpoints para gestionar subcategorías"
  * )
  *
@@ -46,11 +46,7 @@ use App\Traits\ApiResponser;
  *         @OA\Property(property="updated_at", type="string", format="date-time", example="2026-04-06T15:21:16.000000Z"),
  *         @OA\Property(property="deleted_at", type="string", format="date-time", nullable=true, example=null)
  *     ),
- *     @OA\Property(
- *         property="categories",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Category")
- *     ),
+ *     @OA\Property(property="category", ref="#/components/schemas/Category", nullable=true),
  * )
  */
 class SubcategoryController extends Controller
@@ -59,8 +55,8 @@ class SubcategoryController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/classification/subcategories/all",
-     *     tags={"Classification - Subcategories"},
+     *     path="/categorization/categories/subcategories/all/{category_id}",
+     *     tags={"Categorization - Subcategories"},
      *     summary="Listar Subcategorias",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -90,6 +86,13 @@ class SubcategoryController extends Controller
      *         description="Registros por página.",
      *         required=false,
      *         @OA\Schema(type="integer", example=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="category_id",
+     *         in="path",
+     *         required=true,
+     *         description="Solo las subcategorías de esta categoría",
+     *         @OA\Schema(type="integer", example=1)
      *     ),
      *     @OA\Parameter(
      *         name="with_trashed",
@@ -144,10 +147,11 @@ class SubcategoryController extends Controller
      *     )
      * )
      */
-    public function all(SubcategoryAllRequest $request)
+    public function all(SubcategoryAllRequest $request, $category_id)
     {
         try {
-            $subcategories = Subcategory::with(['item', 'categories'])
+            $subcategories = Subcategory::with(['item', 'category'])
+                ->whereHas('category', fn ($q) => $q->where('id', $category_id))
                 ->when($request->filled('search'), function ($query) use ($request) {
                     return $query->search($request->input('search'));
                 })
@@ -178,8 +182,8 @@ class SubcategoryController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/classification/subcategories/find/{id}",
-     *     tags={"Classification - Subcategories"},
+     *     path="/categorization/categories/subcategories/find/{id}",
+     *     tags={"Categorization - Subcategories"},
      *     summary="Obtener un cargo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -265,14 +269,20 @@ class SubcategoryController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/classification/subcategories/store",
-     *     tags={"Classification - Subcategories"},
+     *     path="/categorization/categories/subcategories/store",
+     *     tags={"Categorization - Subcategories"},
      *     summary="Crear un cargo",
      *     security={{"sanctum":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name"},
+     *             required={"name","category_id"},
+     *             @OA\Property(
+     *                 property="category_id",
+     *                 type="integer",
+     *                 example=1,
+     *                 description="Categoría a la que pertenece la subcategoría"
+     *             ),
      *             @OA\Property(
      *                 property="name",
      *                 type="string",
@@ -355,6 +365,7 @@ class SubcategoryController extends Controller
             $subcategory->description = $request->input('description');
             $subcategory->settings = $request->input('settings');
             $subcategory->save();
+            $subcategory->category()->sync([$request->integer('category_id')]);
 
             return $this->successResponse(
                 new SubcategoryResource($subcategory),
@@ -374,8 +385,8 @@ class SubcategoryController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/classification/subcategories/update/{id}",
-     *     tags={"Classification - Subcategories"},
+     *     path="/categorization/categories/subcategories/update/{id}",
+     *     tags={"Categorization - Subcategories"},
      *     summary="Editar un cargo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -388,7 +399,13 @@ class SubcategoryController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name"},
+     *             required={"name","category_id"},
+     *             @OA\Property(
+     *                 property="category_id",
+     *                 type="integer",
+     *                 example=1,
+     *                 description="Categoría a la que pertenece la subcategoría"
+     *             ),
      *             @OA\Property(
      *                 property="name",
      *                 type="string",
@@ -473,6 +490,7 @@ class SubcategoryController extends Controller
             $subcategory->description = $request->input('description');
             $subcategory->settings = $request->input('settings');
             $subcategory->save();
+            $subcategory->category()->sync([$request->integer('category_id')]);
 
             return $this->successResponse(
                 new SubcategoryResource($subcategory),
@@ -492,8 +510,8 @@ class SubcategoryController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/classification/subcategories/delete/{id}",
-     *     tags={"Classification - Subcategories"},
+     *     path="/categorization/categories/subcategories/delete/{id}",
+     *     tags={"Categorization - Subcategories"},
      *     summary="Desactivar un cargo específico",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(
@@ -588,8 +606,8 @@ class SubcategoryController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/classification/subcategories/restore/{id}",
-     *     tags={"Classification - Subcategories"},
+     *     path="/categorization/categories/subcategories/restore/{id}",
+     *     tags={"Categorization - Subcategories"},
      *     summary="Activar un cargo",
      *     security={{"sanctum":{}}},
      *     @OA\Parameter(

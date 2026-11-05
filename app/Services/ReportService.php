@@ -44,9 +44,14 @@ class ReportService
      * @param array<string, mixed> $filters clave de filtro => valores
      * @return array{columns: array<int, array{data_key: string, label: string}>, rows: array<int, array<string, mixed>>}
      */
-    public function run(Report $report, array $fields, array $filters = []): array
+    public function run(Report $report, array $fields, array $filters = [], bool $pivot = false): array
     {
         $configured = $this->configuredFields($report);
+        $pivotConfig = $pivot ? ($report->settings->pivot ?? null) : null;
+        if ($pivotConfig) {
+            // La talla y la cantidad se usan siempre para armar la curva; las demás columnas son las que eligió el usuario
+            $fields = array_values(array_unique([...array_diff($fields, [$pivotConfig->key, $pivotConfig->value]), $pivotConfig->key, $pivotConfig->value]));
+        }
         $available = $this->configuredFilters($report);
 
         $model = $report->settings->model ?? null;
@@ -90,7 +95,53 @@ class ReportService
             return $data;
         });
 
+        if ($pivotConfig) {
+            return $this->pivot($columns->all(), $rows->all(), $pivotConfig);
+        }
+
         return ['columns' => $columns->all(), 'rows' => $rows->all()];
+    }
+
+    /**
+     * Pasa los valores de un campo a columnas (ej. una columna por talla con la cantidad como valor, para ver la curva).
+     * Las filas con los mismos valores en las demás columnas se juntan sumando la cantidad; al final va el total.
+     */
+    private function pivot(array $columns, array $rows, object $config): array
+    {
+        $base = array_values(array_filter($columns, fn ($c) => !in_array($c['data_key'], [$config->key, $config->value], true)));
+
+        $values = [];
+        $grouped = [];
+        foreach ($rows as $row) {
+            $label = (string) ($row[$config->key] ?? '');
+            $values[$label] = true;
+
+            $key = json_encode(array_map(fn ($c) => $row[$c['data_key']] ?? '', $base), JSON_UNESCAPED_UNICODE);
+            $grouped[$key] ??= array_intersect_key($row, array_flip(array_column($base, 'data_key'))) + ['__values' => []];
+            $grouped[$key]['__values'][$label] = ($grouped[$key]['__values'][$label] ?? 0) + (float) ($row[$config->value] ?? 0);
+        }
+
+        // Tallas en orden numérico (T35, T36, ... T41)
+        $labels = array_keys($values);
+        usort($labels, fn ($a, $b) => strnatcasecmp($a, $b));
+
+        $pivotColumns = array_map(fn ($label) => ['data_key' => 'pivot:' . $label, 'label' => $label], $labels);
+        $total = ['data_key' => 'pivot:__total', 'label' => $config->total_label ?? 'Total'];
+
+        $out = [];
+        foreach ($grouped as $row) {
+            $line = array_diff_key($row, ['__values' => 1]);
+            $sum = 0;
+            foreach ($labels as $label) {
+                $amount = $row['__values'][$label] ?? 0;
+                $line['pivot:' . $label] = $amount ?: '';
+                $sum += $amount;
+            }
+            $line['pivot:__total'] = $sum;
+            $out[] = $line;
+        }
+
+        return ['columns' => [...$base, ...$pivotColumns, $total], 'rows' => $out];
     }
 
     private function isEmpty($values): bool

@@ -75,12 +75,13 @@ class TechnicalSheetStoreRequest extends FormRequest
             if ($validator->errors()->isNotEmpty()) return;
 
             // La subcategoría elegida debe estar asignada a la categoría
-            $allowed = DB::table('model_has_subitems')
-                ->where('model_type', Category::class)
-                ->where('model_id', $this->input('category_id'))
-                ->pluck('subitem_id');
+            $belongs = DB::table('model_has_subitems')
+                ->where('model_type', Subcategory::class)
+                ->where('model_id', $this->input('subcategory_id'))
+                ->where('subitem_id', $this->input('category_id'))
+                ->exists();
 
-            if (!$allowed->contains((int) $this->input('subcategory_id'))) {
+            if (!$belongs) {
                 $validator->errors()->add('subcategory_id', 'La subcategoría no pertenece a la categoría elegida.');
             }
         });

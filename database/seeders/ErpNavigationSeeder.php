@@ -31,8 +31,7 @@ class ErpNavigationSeeder extends Seeder
                 ['Colores', '/colors', 'colors', 'colors.all'],
                 ['Tallas', '/sizes', 'sizes', 'sizes.all'],
                 ['Marcas', '/trademarks', 'trademarks', 'trademarks.all'],
-                ['Categorías', '/categories', 'categories', 'classification.categories.all'],
-                ['Subcategorías', '/subcategories', 'subcategories', 'classification.subcategories.all'],
+                ['Categorías', '/categories', 'categories', 'categorization.categories.all'],
             ]],
             'Comercial' => ['commercial', [
                 ['Proveedores', '/suppliers', 'suppliers', 'suppliers.all'],
@@ -53,18 +52,19 @@ class ErpNavigationSeeder extends Seeder
                 ['Fondos de pensión', '/pension_funds', 'pension_funds', 'pension_funds.all'],
                 ['Tipos de archivo', '/file_types', 'file_types', 'file_types.all'],
                 ['Tipos de persona', '/person_types', 'person_types', 'identification.person_types.all'],
-                ['Tipos de documento', '/document_types', 'document_types', 'identification.document_types.all'],
             ]],
             'Configuración' => ['settings', [
                 ['Usuarios', '/users', 'users', 'users.all'],
                 ['Roles', '/roles', 'roles', 'authorization.roles.all'],
-                ['Permisos', '/permissions', 'permissions', 'authorization.permissions.all'],
                 ['Módulos', '/modules', 'modules', 'navegation.modules.all'],
             ]],
         ];
 
         // La auditoría ya no es un submódulo: cada registro tiene su botón de auditoría
         Submodule::where('url', '/audits')->delete();
+
+        // Permisos se ven dentro de cada rol los tipos de documento dentro de cada tipo de persona y las subcategorías dentro de cada categoría
+        Submodule::whereIn('url', ['/permissions', '/document_types', '/subcategories'])->delete();
 
         foreach ($menu as $name => [$icon, $submodules]) {
             $module = Module::firstOrCreate(['name' => $name], ['icon' => $icon]);

@@ -106,7 +106,7 @@ class ReportController extends Controller
     {
         try {
             $report = Report::findOrFail($id);
-            $result = $this->service->run($report, $request->input('fields', []), $request->input('filters', []));
+            $result = $this->service->run($report, $request->input('fields', []), $request->input('filters', []), $request->boolean('pivot'));
 
             return $this->successResponse($result, $this->getMessage('Success'), 200);
         } catch (\Throwable $e) {
@@ -136,7 +136,7 @@ class ReportController extends Controller
     {
         try {
             $report = Report::findOrFail($id);
-            $result = $this->service->run($report, $request->input('fields', []), $request->input('filters', []));
+            $result = $this->service->run($report, $request->input('fields', []), $request->input('filters', []), $request->boolean('pivot'));
             $name = str($report->name)->slug('_') . '_' . now()->format('Ymd_His') . '.xlsx';
 
             return Excel::download(new ReportExport($result['columns'], $result['rows']), $name);
