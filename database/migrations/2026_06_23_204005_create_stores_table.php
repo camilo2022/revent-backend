@@ -20,6 +20,7 @@ return new class extends Migration
             $table->morphs('location');
             $table->string('address');
             $table->string('neighborhood');
+            $table->string('email')->nullable()->comment('Correo de la tienda para notificaciones (recepciones de OC); puede repetirse entre tiendas');
             $table->timestamps();
             $table->softDeletes();
         });

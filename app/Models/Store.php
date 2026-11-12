@@ -26,7 +26,8 @@ class Store extends Model implements Auditable
         'location_id',
         'location_type',
         'address',
-        'neighborhood'
+        'neighborhood',
+        'email'
     ];
 
     protected $auditInclude = [
@@ -37,7 +38,8 @@ class Store extends Model implements Auditable
         'location_id',
         'location_type',
         'address',
-        'neighborhood'
+        'neighborhood',
+        'email'
     ];
 
     public function location(): MorphTo

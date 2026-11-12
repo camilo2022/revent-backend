@@ -9,6 +9,7 @@ use App\Http\Resources\Api\Integration\PurchaseOrderReception\PurchaseOrderRecep
 use App\Http\Resources\Api\Integration\PurchaseOrderReception\ReceptionConfirmedResource;
 use App\Mail\InvoicePurchaseOrderConfirmedSiigoMail;
 use App\Services\Integration\PurchaseOrderReceptionService;
+use App\Support\Integration\ReceptionMailCopy;
 use App\Traits\ApiFailure;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
@@ -57,10 +58,13 @@ class PurchaseOrderReceptionController extends Controller
             $usuario = ['success' => true, 'data' => $request->siigoUser(), 'message' => ''];
             $to = [config('siigo.mail.purchase_reception')];
 
-            Mail::to($to)->send(new InvoicePurchaseOrderConfirmedSiigoMail($request->receivingData(), $usuario, $imagenes));
+            // Con copia al correo de la tienda que recibe, para que sus respuestas le lleguen
+            $cc = ReceptionMailCopy::forUser(Auth::user(), (int) $usuario['data']['id'], $to);
+
+            Mail::to($to)->cc($cc)->send(new InvoicePurchaseOrderConfirmedSiigoMail($request->receivingData(), $usuario, $imagenes));
 
             return $this->successResponse(
-                new ReceptionConfirmedResource(['images' => count($imagenes), 'sent_to' => $to]),
+                new ReceptionConfirmedResource(['images' => count($imagenes), 'sent_to' => $to, 'cc' => $cc]),
                 'La recepción fue registrada y el correo fue enviado correctamente.',
                 200
             );

@@ -41,7 +41,8 @@ class StoreUpdateRequest extends FormRequest
                     default => 'nullable'
                 }],
             'address' => ['required', 'string', 'max:255'],
-            'neighborhood' => ['required', 'string', 'max:255']
+            'neighborhood' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'] // puede repetirse entre tiendas
         ];
     }
 
@@ -53,6 +54,7 @@ class StoreUpdateRequest extends FormRequest
             'numeric' => 'El campo debe ser un número.',
             'max' => 'El campo permite máximo :max caracteres.',
             'integer' => 'El campo debe ser un número entero.',
+            'email' => 'El correo no es válido.',
             'different' => 'La bodega de tránsito debe ser distinta a la bodega.',
             'unique' => 'El valor ya está registrado.',
             'siigo_warehouse_id.unique' => 'Esa bodega de Siigo ya está asignada a otra tienda.',
@@ -78,7 +80,8 @@ class StoreUpdateRequest extends FormRequest
                 default => 'Ubicación',
             },
             'address' => 'Dirección',
-            'neighborhood' => 'Barrio'
+            'neighborhood' => 'Barrio',
+            'email' => 'Correo de notificaciones'
         ];
     }
 

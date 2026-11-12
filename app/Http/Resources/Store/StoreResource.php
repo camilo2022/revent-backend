@@ -20,6 +20,7 @@ class StoreResource extends JsonResource
                 'location_type' => $this->location_type,
                 'address' => $this->address,
                 'neighborhood' => $this->neighborhood,
+                'email' => $this->email,
                 'created_at' => $this->formatDate($this->created_at),
                 'updated_at' => $this->formatDate($this->updated_at),
                 'deleted_at' => $this->formatDate($this->deleted_at),

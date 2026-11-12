@@ -111,6 +111,13 @@ class StoreWarehousesSeeder extends Seeder
 
         $store->siigo_warehouse_id = $warehouseId;
         $store->siigo_transit_warehouse_id = $transitTaken ? $store->siigo_transit_warehouse_id : $transit;
+
+        // Correo de notificaciones: el mismo al que ya llegan los traslados de la bodega (si la tienda no tiene uno)
+        if (!$store->email && !empty($warehouse['emails'][0])) {
+            $email = $warehouse['emails'][0];
+            $store->email = str_contains($email, '@') ? $email : "{$email}@{$this->domain}";
+        }
+
         $store->save();
 
         return $store;

@@ -344,6 +344,7 @@ class StoreController extends Controller
     {
         try {
             $store = new Store();
+            $store->email = $request->filled('email') ? $request->input('email') : null;
             $store->code = $request->input('code');
             $store->name = $request->input('name');
             $store->siigo_warehouse_id = $request->filled('siigo_warehouse_id') ? $request->integer('siigo_warehouse_id') : null;
@@ -454,6 +455,7 @@ class StoreController extends Controller
     {
         try {
             $store = Store::findOrFail($id);
+            $store->email = $request->filled('email') ? $request->input('email') : null;
             $store->code = $request->input('code');
             $store->name = $request->input('name');
             $store->siigo_warehouse_id = $request->filled('siigo_warehouse_id') ? $request->integer('siigo_warehouse_id') : null;

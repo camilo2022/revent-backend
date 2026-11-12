@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use App\Mail\InvoicePurchaseOrderConfirmedSiigoMail;
 use App\Services\SiigoProductsCache;
+use App\Support\Integration\ReceptionMailCopy;
 use App\Http\Requests\Integration\InvoicePurchaseOrder\ConfirmedRequest;
 use App\Http\Requests\Integration\InvoicePurchaseOrder\SearchRequest;
 use App\Http\Requests\Integration\InvoicePurchaseOrder\SendAccessLinkRequest;
@@ -130,7 +131,10 @@ class InvoicePurchaseOrderSiigoController extends Controller
             $imagenes[] = Storage::disk(self::DISK)->url("{$path}/{$filename}");
         }
 
-        Mail::to([config('siigo.mail.purchase_reception')])->send(
+        // Con copia al correo de la tienda que recibe (el mismo de sus traslados), para que sus respuestas le lleguen
+        $to = [config('siigo.mail.purchase_reception')];
+
+        Mail::to($to)->cc(ReceptionMailCopy::forSiigoUser((int) $usuario['data']['id'], $to))->send(
             new InvoicePurchaseOrderConfirmedSiigoMail($data, $usuario, $imagenes)
         );
 

@@ -12,6 +12,7 @@ class ReceptionConfirmedResource extends JsonResource
         return [
             'images' => $reception['images'],
             'sent_to' => $reception['sent_to'],
+            'cc' => $reception['cc'] ?? [],
         ];
     }
 
