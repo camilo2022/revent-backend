@@ -28,8 +28,10 @@ class StoreStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'size:2', 'unique:stores,code'],
+            'code' => ['required', 'string', 'max:5', 'unique:stores,code'],
             'name' => ['required', 'string', 'max:100', 'unique:stores,name', 'regex:/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s.&,\-]+$/'],
+            'siigo_warehouse_id' => ['nullable', 'integer', 'unique:stores,siigo_warehouse_id'],
+            'siigo_transit_warehouse_id' => ['nullable', 'integer', 'different:siigo_warehouse_id', 'unique:stores,siigo_transit_warehouse_id'],
             'location_type' => ['required', 'string', 'in:' . implode(',', [Country::class, Department::class, City::class])],
             'location_id' => ['required', 'numeric', match ($this->input('location_type')) {
                     Country::class  => 'exists:countries,id',
@@ -49,8 +51,11 @@ class StoreStoreRequest extends FormRequest
             'string' => 'El campo debe ser texto.',
             'numeric' => 'El campo debe ser un número.',
             'max' => 'El campo permite máximo :max caracteres.',
-            'size' => 'Se permite la longitud de :value caracteres.',
+            'integer' => 'El campo debe ser un número entero.',
+            'different' => 'La bodega de tránsito debe ser distinta a la bodega.',
             'unique' => 'El valor ya está registrado.',
+            'siigo_warehouse_id.unique' => 'Esa bodega de Siigo ya está asignada a otra tienda.',
+            'siigo_transit_warehouse_id.unique' => 'Esa bodega de tránsito ya está asignada a otra tienda.',
             'regex' => 'Formato inválido. Solo letras, números, espacios y . & , -',
             'exists' => 'No hay ningún registro.'
         ];
@@ -61,6 +66,8 @@ class StoreStoreRequest extends FormRequest
         return [
             'code' => 'Código',
             'name' => 'Nombre',
+            'siigo_warehouse_id' => 'Bodega de Siigo',
+            'siigo_transit_warehouse_id' => 'Bodega de tránsito de Siigo',
             'location_type' => 'Tipo de ubicación',
             'location_id' => match ($this->input('location_type')) {
                 Country::class  => 'País',

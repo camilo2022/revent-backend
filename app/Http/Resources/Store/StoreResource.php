@@ -14,6 +14,8 @@ class StoreResource extends JsonResource
                 'id' => $this->id,
                 'code' => $this->code,
                 'name' => $this->name,
+                'siigo_warehouse_id' => $this->siigo_warehouse_id,
+                'siigo_transit_warehouse_id' => $this->siigo_transit_warehouse_id,
                 'location_id' => $this->location_id,
                 'location_type' => $this->location_type,
                 'address' => $this->address,

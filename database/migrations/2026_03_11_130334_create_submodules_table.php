@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('url')->unique();
             $table->string('icon');
+            $table->unsignedSmallInteger('position')->default(0)->comment('Orden del submódulo dentro de su módulo');
             $table->foreignIdFor(Module::class)->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignIdFor(Permission::class)->unique()->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->timestamps();

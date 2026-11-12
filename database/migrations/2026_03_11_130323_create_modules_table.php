@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->string('icon');
+            $table->unsignedSmallInteger('position')->default(0)->comment('Orden del módulo en el menú');
             $table->timestamps();
             $table->softDeletes();
         });

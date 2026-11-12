@@ -19,12 +19,14 @@ class Module extends Model implements Auditable
 
     protected $fillable = [
         'name',
-        'icon'
+        'icon',
+        'position'
     ];
 
     protected $auditInclude = [
         'name',
-        'icon'
+        'icon',
+        'position'
     ];
 
     protected $auditEvents = [

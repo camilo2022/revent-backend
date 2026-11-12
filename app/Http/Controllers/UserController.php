@@ -8,12 +8,18 @@ use App\Http\Requests\User\UserDeleteRequest;
 use App\Http\Requests\User\UserFindRequest;
 use App\Http\Requests\User\UserAuthorizationRemoveRequest;
 use App\Http\Requests\User\UserRestoreRequest;
+use App\Http\Requests\User\UserStoreAssignRequest;
+use App\Http\Requests\User\UserStoreRemoveRequest;
 use App\Http\Requests\User\UserStoreRequest;
+use App\Http\Requests\User\UserStoresAllRequest;
 use App\Http\Requests\User\UserUpdateRequest;
 use App\Http\Resources\User\UserCollection;
 use App\Http\Resources\User\UserResource;
+use App\Http\Resources\User\UserStoresResource;
 use App\Models\Permission;
+use App\Models\Store;
 use App\Models\User;
+use App\Traits\ApiFailure;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 use Illuminate\Support\Facades\Hash;
@@ -87,7 +93,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    use ApiMessage, ApiResponser;
+    use ApiMessage, ApiResponser, ApiFailure;
 
     /**
      * @OA\Get(
@@ -960,6 +966,44 @@ class UserController extends Controller
                 ],
                 $this->getCode(class_basename($e))
             );
+        }
+    }
+
+    /** Tiendas (bodegas de Siigo) asignadas al usuario. */
+    public function storesAll(UserStoresAllRequest $request, $id)
+    {
+        try {
+            $user = User::with('stores')->findOrFail($id);
+
+            return $this->successResponse(new UserStoresResource($user), $this->getMessage('Success'), 200);
+        } catch (\Throwable $e) {
+            return $this->failure($e);
+        }
+    }
+
+    public function storesAssign(UserStoreAssignRequest $request, $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $user->stores()->syncWithoutDetaching([Store::findOrFail($request->integer('store_id'))->id]);
+            $user->load('stores');
+
+            return $this->successResponse(new UserStoresResource($user), $this->getMessage('Success'), 200);
+        } catch (\Throwable $e) {
+            return $this->failure($e);
+        }
+    }
+
+    public function storesRemove(UserStoreRemoveRequest $request, $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $user->stores()->detach($request->integer('store_id'));
+            $user->load('stores');
+
+            return $this->successResponse(new UserStoresResource($user), $this->getMessage('Success'), 200);
+        } catch (\Throwable $e) {
+            return $this->failure($e);
         }
     }
 }

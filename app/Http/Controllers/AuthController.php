@@ -213,10 +213,13 @@ class AuthController extends Controller
         try {
             $user = Auth::user();
 
-            $user->load(['employee' => ['person' => ['gender', 'blood_type'], 'position' => ['area'], 'risk_manager', 'health_entity', 'pension_fund', 'compensation_fund'], 'roles', 'permissions']);
+            $user->load(['employee' => ['person' => ['gender', 'blood_type'], 'position' => ['area'], 'risk_manager', 'health_entity', 'pension_fund', 'compensation_fund'], 'roles', 'permissions', 'stores']);
+            $user->setAttribute('access_all', $user->hasAccessToAllStores());
 
-            $navegation = Module::with(['submodules' => fn($query) => $query->whereIn('permission_id', Auth::user()->permissions->modelKeys())])
+            $navegation = Module::with(['submodules' => fn($query) => $query->whereIn('permission_id', Auth::user()->permissions->modelKeys())->orderBy('position')->orderBy('id')])
                 ->whereHas('submodules', fn($query) => $query->whereIn('permission_id', Auth::user()->permissions->modelKeys()))
+                ->orderBy('position')
+                ->orderBy('id')
                 ->get();
 
             return $this->successResponse(

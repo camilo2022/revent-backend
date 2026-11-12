@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasStores;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable implements Auditable
 {
-    use HasFactory, Notifiable, HasApiTokens, Auditing, HasRoles, SoftDeletes;
+    use HasFactory, Notifiable, HasApiTokens, Auditing, HasRoles, HasStores, SoftDeletes;
 
     protected $table = 'users';
 

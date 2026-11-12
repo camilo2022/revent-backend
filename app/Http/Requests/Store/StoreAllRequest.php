@@ -28,7 +28,7 @@ class StoreAllRequest extends FormRequest
             'per_page' => ['nullable', 'numeric'],
             'page' => ['nullable', 'numeric'],
             'search' => ['nullable', 'string'],
-            'column' => ['nullable', 'string', 'in:id,code,name,location_id,location_type,address,neighborhood,created_at,updated_at,deleted_at'],
+            'column' => ['nullable', 'string', 'in:id,code,name,siigo_warehouse_id,siigo_transit_warehouse_id,location_id,location_type,address,neighborhood,created_at,updated_at,deleted_at'],
             'dir' => ['nullable', 'string', 'in:asc,desc'],
             'with_trashed' => ['required', 'boolean']
         ];

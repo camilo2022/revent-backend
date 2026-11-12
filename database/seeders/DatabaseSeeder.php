@@ -19,6 +19,11 @@ class DatabaseSeeder extends Seeder
             LocationsSeeder::class,
             UserSeeder::class,
             ErpNavigationSeeder::class,
+            StoreAccessPermissionsSeeder::class,
+            IntegrationPermissionsSeeder::class,
+            StoreWarehousesSeeder::class,
+            IntegrationNavigationSeeder::class,
+            ColorSiigoSettingsSeeder::class,
             //ModulesAndSubmodulesSeeder::class
         ]);
     }

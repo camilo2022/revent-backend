@@ -6,6 +6,7 @@ use App\Http\Requests\Store\StoreAllRequest;
 use App\Http\Requests\Store\StoreDeleteRequest;
 use App\Http\Requests\Store\StoreFindRequest;
 use App\Http\Requests\Store\StoreRestoreRequest;
+use App\Http\Requests\Store\StoreSiigoWarehousesRequest;
 use App\Http\Requests\Store\StoreStoreRequest;
 use App\Http\Requests\Store\StoreUpdateRequest;
 use App\Http\Resources\Store\StoreCollection;
@@ -14,6 +15,8 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\Department;
 use App\Models\Store;
+use App\Services\Siigo\SiigoCatalogService;
+use App\Traits\ApiFailure;
 use App\Traits\ApiMessage;
 use App\Traits\ApiResponser;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -57,7 +60,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class StoreController extends Controller
 {
-    use ApiMessage, ApiResponser;
+    use ApiMessage, ApiResponser, ApiFailure;
 
     /**
      * @OA\Get(
@@ -343,6 +346,8 @@ class StoreController extends Controller
             $store = new Store();
             $store->code = $request->input('code');
             $store->name = $request->input('name');
+            $store->siigo_warehouse_id = $request->filled('siigo_warehouse_id') ? $request->integer('siigo_warehouse_id') : null;
+            $store->siigo_transit_warehouse_id = $request->filled('siigo_transit_warehouse_id') ? $request->integer('siigo_transit_warehouse_id') : null;
             $store->location_id = $request->integer('location_id');
             $store->location_type = $request->input('location_type');
             $store->address = $request->input('address');
@@ -451,6 +456,8 @@ class StoreController extends Controller
             $store = Store::findOrFail($id);
             $store->code = $request->input('code');
             $store->name = $request->input('name');
+            $store->siigo_warehouse_id = $request->filled('siigo_warehouse_id') ? $request->integer('siigo_warehouse_id') : null;
+            $store->siigo_transit_warehouse_id = $request->filled('siigo_transit_warehouse_id') ? $request->integer('siigo_transit_warehouse_id') : null;
             $store->location_id = $request->integer('location_id');
             $store->location_type = $request->input('location_type');
             $store->address = $request->input('address');
@@ -648,6 +655,31 @@ class StoreController extends Controller
                 ],
                 $this->getCode(class_basename($e))
             );
+        }
+    }
+
+    /** Bodegas de Siigo (y de tránsito) para asociarlas a una tienda, marcando a qué tienda pertenece cada una. */
+    public function siigoWarehouses(StoreSiigoWarehousesRequest $request, SiigoCatalogService $catalog)
+    {
+        try {
+            $assigned = Store::withTrashed()->get(['id', 'name', 'siigo_warehouse_id', 'siigo_transit_warehouse_id']);
+
+            $warehouses = $catalog->warehousesById()->map(function ($warehouse) use ($assigned) {
+                $id = (int) $warehouse['id'];
+                $store = $assigned->first(fn ($s) => $s->siigo_warehouse_id === $id || $s->siigo_transit_warehouse_id === $id);
+
+                return [
+                    'id' => $id,
+                    'name' => trim($warehouse['name']),
+                    'is_transit' => str_starts_with(trim($warehouse['name']), 'TRANSITO '),
+                    'assigned_store_id' => $store?->id,
+                    'assigned_store_name' => $store?->name,
+                ];
+            })->sortBy('name', SORT_NATURAL)->values();
+
+            return $this->successResponse(['warehouses' => $warehouses], $this->getMessage('Success'), 200);
+        } catch (\Throwable $e) {
+            return $this->failure($e);
         }
     }
 }

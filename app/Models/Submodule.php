@@ -19,6 +19,7 @@ class Submodule extends Model implements Auditable
         'name',
         'url',
         'icon',
+        'position',
         'module_id',
         'permission_id'
     ];
@@ -27,6 +28,7 @@ class Submodule extends Model implements Auditable
         'name',
         'url',
         'icon',
+        'position',
         'module_id',
         'permission_id'
     ];

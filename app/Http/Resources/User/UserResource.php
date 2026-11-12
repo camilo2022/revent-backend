@@ -20,6 +20,8 @@ class UserResource extends JsonResource
                 'employee' => $this->employee,
                 'roles' => $this->roles,
                 'permissions' => $this->permissions,
+                'stores' => $this->whenLoaded('stores'),
+                'access_all' => $this->whenLoaded('permissions', fn () => $this->hasAccessToAllStores()),
             ]
         ];
     }

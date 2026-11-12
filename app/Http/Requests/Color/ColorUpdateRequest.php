@@ -32,6 +32,9 @@ class ColorUpdateRequest extends FormRequest
             'description' => ['required', 'string', 'max:255'],
             'settings' => ['required', 'array'],
             'settings.code' => ['required', 'uppercase', 'string', 'size:2', Rule::unique('subitems', 'settings->code')->where('item_id', Color::ITEM_ID)->ignore($this->route('id'))],
+            'settings.siigo_code' => ['nullable', 'integer', 'min:1', Rule::unique('subitems', 'settings->siigo_code')->where('item_id', Color::ITEM_ID)->ignore($this->route('id'))],
+            'settings.hex' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'settings.macro_category' => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -46,6 +49,8 @@ class ColorUpdateRequest extends FormRequest
             'unique' => 'El valor ya está registrado.',
             'uppercase' => 'El campo debe estar en mayúsculas.',
             'array' => 'El campo debe ser una lista.',
+            'integer' => 'El campo debe ser un número entero.',
+            'settings.hex.regex' => 'El color debe ser hexadecimal, por ejemplo #1A2B3C.',
         ];
     }
 
@@ -55,7 +60,10 @@ class ColorUpdateRequest extends FormRequest
             'name' => 'Nombre',
             'description' => 'Descripción',
             'settings' => 'Configuración',
-            'settings.code' => 'Código'
+            'settings.code' => 'Código',
+            'settings.siigo_code' => 'Código en Siigo',
+            'settings.hex' => 'Color (hexadecimal)',
+            'settings.macro_category' => 'Grupo de color'
         ];
     }
 

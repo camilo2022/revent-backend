@@ -15,6 +15,8 @@ class StoreCollection extends ResourceCollection
                     'id' => $store->id,
                     'code' => $store->code,
                     'name' => $store->name,
+                    'siigo_warehouse_id' => $store->siigo_warehouse_id,
+                    'siigo_transit_warehouse_id' => $store->siigo_transit_warehouse_id,
                     'location_id' => $store->location_id,
                     'location_type' => $store->location_type,
                     'address' => $store->address,

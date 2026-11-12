@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('code')->unique();
             $table->string('name')->unique();
+            $table->integer('siigo_warehouse_id')->nullable()->unique()->comment('Bodega de Siigo');
+            $table->integer('siigo_transit_warehouse_id')->nullable()->unique()->comment('Bodega de tránsito de Siigo; null si no tiene');
             $table->morphs('location');
             $table->string('address');
             $table->string('neighborhood');
