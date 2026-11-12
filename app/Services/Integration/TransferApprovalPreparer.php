@@ -2,14 +2,16 @@
 
 namespace App\Services\Integration;
 
+use App\Models\Store;
 use App\Models\User;
 use App\Services\Siigo\SiigoTransferApprovalService;
 
 /**
  * Prepara la aprobación de una nota de traslado (NT) hacia una bodega de tránsito para la API.
  *
- * Copiado de Integration\TransferApprovalSiigoController::prepare y ::warehouseEmail (commit b8694f73).
- * Si cambia alguno de esos métodos privados en el controlador legacy, hay que replicarlo aquí.
+ * Copiado de Integration\TransferApprovalSiigoController::prepare (commit b8694f73).
+ * Si cambia ese método privado en el controlador legacy, hay que replicarlo aquí.
+ * El correo del resultado ya no sale de la lista del job de web sino de la tienda (stores.email).
  *
  * Diferencia con el legacy: el acceso a la bodega de tránsito ya no se valida con la lista de ids de usuarios
  * de Siigo (BODEGAS[...]['users']) sino con las tiendas asignadas al usuario autenticado del ERP.
@@ -53,21 +55,10 @@ class TransferApprovalPreparer
         return $note;
     }
 
-    /**
-     * Correo asociado a la bodega de tránsito (el job recibe uno solo), completado con el dominio igual que en el job.
-     * Prefiere el del dominio de la empresa; si la bodega no tiene correos, operaciones.
-     */
+    /** Correo de la tienda dueña de la bodega de tránsito (stores.email); si no tiene, operaciones. */
     public function warehouseEmail(int|string $warehouseId): string
     {
-        $domain = config('siigo.mail.domain');
-
-        $emails = array_map(
-            fn (string $email) => str_contains($email, '@') ? $email : "{$email}@{$domain}",
-            $this->approval->warehouses()['TRANSITO'][$warehouseId]['emails'] ?? []
-        );
-
-        return collect($emails)->first(fn (string $email) => str_ends_with($email, "@{$domain}"))
-            ?? $emails[0]
-            ?? config('siigo.mail.operations');
+        return Store::where('siigo_transit_warehouse_id', (int) $warehouseId)->value('email')
+            ?: config('siigo.mail.operations');
     }
 }

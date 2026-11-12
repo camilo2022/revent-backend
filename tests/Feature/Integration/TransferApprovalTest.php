@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Integration;
 
-use App\Http\Controllers\Integration\TransferApprovalSiigoController;
 use App\Jobs\Integration\ImportMasiveTransferSiigoJob;
+use App\Models\Store;
 use App\Models\User;
 use App\Services\Siigo\SiigoTransferApprovalService;
 use App\Services\Siigo\SiigoUserService;
@@ -182,10 +182,8 @@ class TransferApprovalTest extends TestCase
             ->assertJsonPath('data.approval.code', self::NOTE_CODE)
             ->assertJsonPath('data.approval.units', 3);
 
-        // El correo del resultado es el mismo que calcula la pantalla web (se lee su método privado, sin modificarlo)
-        $legacy = new \ReflectionMethod(TransferApprovalSiigoController::class, 'warehouseEmail');
-        $legacy->setAccessible(true);
-        $expectedEmail = $legacy->invoke(app(TransferApprovalSiigoController::class), 70);
+        // El correo del resultado es el de la tienda dueña del tránsito 70 (stores.email)
+        $expectedEmail = Store::where('siigo_transit_warehouse_id', 70)->value('email') ?: config('siigo.mail.operations');
 
         Queue::assertPushed(ImportMasiveTransferSiigoJob::class, function (ImportMasiveTransferSiigoJob $job) use ($expectedEmail) {
             $transfer = $this->property($job, 'transfer');
