@@ -225,6 +225,7 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         Mail::to([$this->email])->send(new MasiveTransferSiigoMail(
             traslados: $traslados,
             errors: $errors,
+            adjuntar_pdf: true,
             adjuntar_excel: true,
         ));
     }
