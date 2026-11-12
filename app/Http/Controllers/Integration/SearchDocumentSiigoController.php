@@ -63,7 +63,8 @@ class SearchDocumentSiigoController extends Controller
             return $response;
         }
 
-        $siigoToken = $this->client->token();
+        // Se consulta con el token del usuario (ya validado), sin pedir otro login a la API pública
+        $siigoToken = $this->extraer_token($request->input('token'), $queryType);
 
         $document = $this->transferNote->find_document($siigoToken, trim($request->input('query')), $queryType);
 
@@ -99,7 +100,7 @@ class SearchDocumentSiigoController extends Controller
             return $response;
         }
 
-        $siigoToken = $this->client->token();
+        $siigoToken = $this->extraer_token($request->input('token'), self::TRANSFER_NOTE);
 
         $document = $this->transferNote->find_document($siigoToken, trim($request->input('query')), self::TRANSFER_NOTE);
 
@@ -132,7 +133,7 @@ class SearchDocumentSiigoController extends Controller
             return $response;
         }
 
-        $siigoToken = $this->client->token();
+        $siigoToken = $this->extraer_token($request->input('token'), self::PURCHASE_ORDER);
 
         $document = $this->transferNote->find_document($siigoToken, trim($request->input('query')), self::PURCHASE_ORDER);
 
