@@ -7,7 +7,7 @@ use App\Http\Requests\Api\Integration\TransferApproval\ConfirmRequest;
 use App\Http\Requests\Api\Integration\TransferApproval\SearchRequest;
 use App\Http\Resources\Api\Integration\TransferApproval\TransferApprovalQueuedResource;
 use App\Http\Resources\Api\Integration\TransferApproval\TransferNoteResource;
-use App\Jobs\ImportMasiveTransferSiigoJob;
+use App\Jobs\Integration\ImportMasiveTransferSiigoJob;
 use App\Services\Integration\TransferApprovalPreparer;
 use App\Support\Integration\LegacyCacheKeys;
 use App\Traits\ApiFailure;
@@ -98,7 +98,7 @@ class TransferApprovalController extends Controller
 
             $email = $this->preparer->warehouseEmail($note['transit']['id']);
 
-            ImportMasiveTransferSiigoJob::dispatch($transfer, $email);
+            ImportMasiveTransferSiigoJob::dispatch($transfer, $email, $request->user()->id);
 
             return $this->successResponse(new TransferApprovalQueuedResource([
                 'code' => $note['code'],

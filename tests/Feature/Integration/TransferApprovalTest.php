@@ -3,7 +3,7 @@
 namespace Tests\Feature\Integration;
 
 use App\Http\Controllers\Integration\TransferApprovalSiigoController;
-use App\Jobs\ImportMasiveTransferSiigoJob;
+use App\Jobs\Integration\ImportMasiveTransferSiigoJob;
 use App\Models\User;
 use App\Services\Siigo\SiigoTransferApprovalService;
 use App\Services\Siigo\SiigoUserService;
@@ -192,6 +192,7 @@ class TransferApprovalTest extends TestCase
             $header = $transfer['traslado']->first();
 
             return $this->property($job, 'email') === $expectedEmail
+                && $this->property($job, 'userId') === auth()->id()
                 && $job->queue === 'masive-transfers'
                 && $header['token'] === self::JWT
                 && $header['validar_disponible'] === 'SI'

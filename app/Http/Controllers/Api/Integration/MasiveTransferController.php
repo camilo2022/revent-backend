@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Integration\MasiveTransfers\FormatRequest;
 use App\Http\Requests\Api\Integration\MasiveTransfers\UploadRequest;
 use App\Http\Resources\Api\Integration\MasiveTransfers\MasiveTransferQueuedResource;
-use App\Jobs\ImportMasiveTransferSiigoJob;
+use App\Jobs\Integration\ImportMasiveTransferSiigoJob;
 use App\Services\Siigo\SiigoCatalogService;
 use App\Services\Siigo\SiigoClient;
 use App\Traits\ApiFailure;
@@ -42,7 +42,7 @@ class MasiveTransferController extends Controller
             $transfer = $request->transfer();
             $email = $request->input('email');
 
-            ImportMasiveTransferSiigoJob::dispatch($transfer, $email);
+            ImportMasiveTransferSiigoJob::dispatch($transfer, $email, $request->user()->id);
 
             return $this->successResponse(
                 new MasiveTransferQueuedResource(['email' => $email, 'lines' => $transfer['traslado_detalles']->count()]),

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Integration;
 
-use App\Jobs\ImportMasiveTransferSiigoJob;
+use App\Jobs\Integration\ImportMasiveTransferSiigoJob;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Queue;
 use Tests\Feature\Integration\Concerns\G1TestHelpers;
@@ -87,6 +87,7 @@ class MasiveTransfersTest extends TestCase
             $details = $transfer['traslado_detalles'];
 
             return $this->jobValue($job, 'email') === $this->email()
+                && $this->jobValue($job, 'userId') === auth()->id()
                 && $transfer->has('traslado')
                 && $details->count() === 2
                 && $details[0]['codigo'] === 'PROD1'
