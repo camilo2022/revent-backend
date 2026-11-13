@@ -27,11 +27,11 @@ class ReceptionMailCopyTest extends TestCase
         $this->assertSame(['parquealegra@revent.com.co'], ReceptionMailCopy::forSiigoUser(self::ALEGRA_USER));
     }
 
-    public function test_el_correo_guardado_en_la_tienda_tiene_prioridad_sobre_el_de_traslados(): void
+    public function test_la_web_no_usa_la_base_de_datos_solo_el_array_de_bodegas(): void
     {
         Store::where('siigo_warehouse_id', 3)->update(['email' => 'tienda.alegra@revent.com.co']);
 
-        $this->assertSame(['tienda.alegra@revent.com.co'], ReceptionMailCopy::forSiigoUser(self::ALEGRA_USER));
+        $this->assertSame(['parquealegra@revent.com.co'], ReceptionMailCopy::forSiigoUser(self::ALEGRA_USER));
     }
 
     public function test_los_administradores_no_llevan_copia_y_el_destinatario_no_se_repite(): void

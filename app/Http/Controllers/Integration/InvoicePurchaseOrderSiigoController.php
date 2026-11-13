@@ -134,7 +134,11 @@ class InvoicePurchaseOrderSiigoController extends Controller
         // Con copia al correo de la tienda que recibe (el mismo de sus traslados), para que sus respuestas le lleguen
         $to = [config('siigo.mail.purchase_reception')];
 
-        Mail::to($to)->cc(ReceptionMailCopy::forSiigoUser((int) $usuario['data']['id'], $to))->send(
+        // El correo sale de las bodegas de la recepción (BODEGAS); si no trae ninguna, del usuario de Siigo del token
+        $cc = ReceptionMailCopy::forWarehouses(ReceptionMailCopy::warehouseCodes($data), $to)
+            ?: ReceptionMailCopy::forSiigoUser((int) $usuario['data']['id'], $to);
+
+        Mail::to($to)->cc($cc)->send(
             new InvoicePurchaseOrderConfirmedSiigoMail($data, $usuario, $imagenes)
         );
 
