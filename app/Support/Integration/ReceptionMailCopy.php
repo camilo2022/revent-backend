@@ -52,16 +52,19 @@ class ReceptionMailCopy
         }
     }
 
-    /** Códigos de bodega de una recepción: los de sus ítems y el del encabezado ("3 - ALEGRA"). */
+    /**
+     * Bodega de destino de la orden que se recepciona: es una sola y la misma en todos sus ítems (`WarehouseCode`).
+     * Si los ítems no la traen, se intenta con el encabezado ("3 - ALEGRA").
+     */
     public static function warehouseCodes(array $reception): array
     {
-        $codes = collect($reception['Items'] ?? [])->pluck('WarehouseCode');
+        $codes = collect($reception['Items'] ?? [])->pluck('WarehouseCode')->filter(fn ($code) => is_numeric($code));
 
-        if (preg_match('/^\s*(-?\d+)\s*-/', (string) data_get($reception, 'Order.Warehouse'), $m)) {
+        if ($codes->isEmpty() && preg_match('/^\s*(-?\d+)\s*-/', (string) data_get($reception, 'Order.Warehouse'), $m)) {
             $codes->push($m[1]);
         }
 
-        return $codes->filter(fn ($code) => is_numeric($code))->map(fn ($code) => (int) $code)->unique()->values()->all();
+        return $codes->map(fn ($code) => (int) $code)->unique()->values()->all();
     }
 
     /**

@@ -77,7 +77,7 @@ class ReceptionMailCopyTest extends TestCase
             'imagenes' => [UploadedFile::fake()->image('e.jpg')],
         ], ['Accept' => 'application/json'])->assertOk();
 
-        Mail::assertSent(InvoicePurchaseOrderConfirmedSiigoMail::class, fn ($mail) => $mail->hasTo(config('siigo.mail.purchase_reception')) && $mail->hasCc('parquealegra@revent.com.co'));
+        Mail::assertSent(InvoicePurchaseOrderConfirmedSiigoMail::class, fn ($mail) => $mail->hasTo(config('siigo.mail.purchase_reception')) && $mail->hasTo('parquealegra@revent.com.co'));
     }
 
     private function receiving(): array
