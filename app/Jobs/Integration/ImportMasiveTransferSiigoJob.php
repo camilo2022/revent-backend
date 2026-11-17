@@ -662,7 +662,8 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
     {
         // Sin Accept: application/json: con esa cabecera Siigo devuelve la lista codificada dos veces
         // y json_decode() ya no la lee (todos los productos salian como inexistentes).
-        return $this->siigo($token)
+        // Consulta: si Siigo está caído (503) se reintenta con espera creciente antes de dar el error
+        return app(SiigoRetryPolicy::class)->retryWhenUnavailable($this->siigo($token))
             ->replaceHeaders(['Accept' => '*/*'])
             ->timeout(120)
             ->post(config('siigo.endpoints.services.autocomplete'), $body);

@@ -2,6 +2,10 @@
 
 namespace App\Services\Siigo;
 
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
+
 /**
  * Pausas y reintentos al crear documentos en Siigo (órdenes de compra, traslados).
  *
@@ -54,6 +58,22 @@ class SiigoRetryPolicy
     public function consultMaxAttempts(): int
     {
         return (int) config('siigo.retry.consult_max_attempts');
+    }
+
+    /**
+     * Reintentos para CONSULTAS (no para crear documentos) cuando Siigo no está disponible
+     * (502/503/504 "no healthy upstream" o sin conexión): 5 intentos con espera creciente (5, 10, 15, 20 s).
+     * Con $throw = false devuelve la respuesta fallida en vez de lanzar la excepción.
+     */
+    public function retryWhenUnavailable(PendingRequest $request, bool $throw = true): PendingRequest
+    {
+        return $request->retry(
+            5,
+            fn (int $attempt) => $attempt * 5000,
+            fn (\Throwable $e) => $e instanceof ConnectionException
+                || ($e instanceof RequestException && in_array($e->response->status(), [502, 503, 504], true)),
+            $throw
+        );
     }
 
     /** Espera creciente al leer la orden recién creada: paso * número de intento. */

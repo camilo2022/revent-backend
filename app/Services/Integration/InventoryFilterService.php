@@ -287,7 +287,7 @@ class InventoryFilterService
         $maxIntentos = 10;
 
         for ($intento = 0; $intento < $maxIntentos; $intento++) {
-            $response = Http::retry(3, 3000, null, false)
+            $response = app(SiigoRetryPolicy::class)->retryWhenUnavailable(Http::withOptions([]), false)
                 ->withToken($token)
                 ->timeout(120)
                 ->asJson()
