@@ -135,6 +135,9 @@ class ImportMasiveTransferSiigoJob implements ShouldQueue
         }
 
         $this->notificar_resultado($traslados, $errors);
+
+        // Si alguna nota tocó la bodega WEB, se sincroniza con Effi (o se avisa por correo que hay que hacerlo manual)
+        app(EffiAutoSync::class)->afterTransfers($traslados);
     }
 
     /** Borra los PDF y Excel temporales de todos los traslados creados en esta ejecución. */

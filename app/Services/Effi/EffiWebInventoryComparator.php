@@ -16,6 +16,9 @@ class EffiWebInventoryComparator
     /** Gestión de stock de Effi que lleva existencias por bodega (la única que se puede ajustar por bodega). */
     private const CONTROL_POR_BODEGA = 3;
 
+    /** Artículos de Effi de la última consulta (para armar el plan de sincronización sin pedirlos otra vez). */
+    private array $articles = [];
+
     public function __construct(
         private EffiClient $effi,
         private SiigoReportService $reports,
@@ -30,7 +33,7 @@ class EffiWebInventoryComparator
         $warehouse = config('effi.siigo_warehouse');
 
         $siigo = $this->reports->table($this->inventoryReport->stockBody($warehouse), 'Error consultando el inventario de Siigo: ') ?? [];
-        $articles = $this->effi->articles();
+        $articles = $this->articles = $this->effi->articles();
 
         // Sin permiso sobre "Artículos - Stock disponible" (función 156) Effi no devuelve stock_empresa ni el stock por bodega
         $stockReadable = collect($articles)->contains(fn ($a) => array_key_exists('stock_empresa', $a));
@@ -47,6 +50,13 @@ class EffiWebInventoryComparator
 
             if ($article) {
                 $used[$article['id']] = true;
+            }
+
+            // Referencia repetida en Effi: ninguno de los dos artículos es «lo que Effi tiene y Siigo no» (se resuelve con la decisión de la persona)
+            if ($match === 'repetida') {
+                foreach ($byReference->get($code) as $duplicate) {
+                    $used[$duplicate['id']] = true;
+                }
             }
 
             $rows[] = $this->row($code, (string) $line['Description'], (float) $line['QuantityBalance'], $article, $match, $stockReadable, $sucursal, $bodega);
@@ -73,6 +83,11 @@ class EffiWebInventoryComparator
             'resumen' => $this->summary($rows, $stockReadable),
             'filas' => $rows,
         ];
+    }
+
+    public function articles(): array
+    {
+        return $this->articles;
     }
 
     private function findArticle(string $code, string $description, $byReference, $byDescription): array
@@ -123,6 +138,7 @@ class EffiWebInventoryComparator
             'effi' => $effi,
             'diferencia' => $effi === null ? null : $siigo - $effi,
             'effi_id' => $article['id'] ?? null,
+            'effi_gestion' => $article ? (int) $article['gestion_stock'] : null,
             'effi_referencia' => $article['referencia'] ?? null,
             'effi_descripcion' => $article['descripcion'] ?? null,
             'cruce' => $match,
@@ -161,7 +177,7 @@ class EffiWebInventoryComparator
     }
 
     /** Mayúsculas, sin tildes ni signos, para comparar nombres. */
-    private function normalize(string $text): string
+    public function normalize(string $text): string
     {
         $text = mb_strtoupper(trim($text));
         $text = strtr($text, ['Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U', 'Ü' => 'U', 'Ñ' => 'N']);

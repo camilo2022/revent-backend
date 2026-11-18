@@ -9,6 +9,7 @@
 @section('content')
 <div class="ef-wrap">
 
+<div id="mainArea">
     <div class="ef-card">
         <div class="excel-upload-title">Sincronizar Effi con Siigo</div>
         <div class="excel-upload-subtitle">
@@ -21,16 +22,63 @@
                 <span class="btn-spinner"></span>
                 <span class="btn-label">Consultar inventario y diferencias</span>
             </button>
-            <button type="button" class="excel-submit-btn excel-submit-btn--ghost" disabled title="Se activa cuando se apruebe el cuadre">
-                Sincronizar con Effi
+            <button type="button" class="excel-submit-btn excel-submit-btn--ghost" id="btnPlan">
+                <span class="btn-spinner"></span>
+                <span class="btn-label">Ver plan de sincronización</span>
             </button>
         </div>
 
         <div class="ef-note">
-            Por ahora esta pantalla solo consulta: no hace ajustes en Effi. La consulta puede tardar unos 20 segundos.
+            «Consultar» y «Ver plan» solo leen: no escriben nada en Effi. Cada consulta puede tardar unos 30 segundos.
+            @if (!$syncEnabled)
+                La sincronización que escribe en Effi está <strong>desactivada</strong> (EFFI_SYNC_ENABLED) hasta que se apruebe el plan.
+            @endif
         </div>
 
         <div class="excel-error" id="errorBox"></div>
+    </div>
+
+    <div class="ef-card ef-hidden" id="planCard">
+        <div class="excel-upload-title">Plan de sincronización</div>
+        <div class="ef-meta" id="planMeta"></div>
+        <div class="ef-tiles" id="planTiles"></div>
+
+        <div class="ef-main-tabs" id="mainTabs"></div>
+
+        <div id="panelDec" class="ef-hidden">
+            <div class="ef-note" style="margin:.3rem 0 .8rem">
+                El sistema no decide ni interpreta nada: en estos casos elige tú qué hacer. La sincronización no se puede ejecutar mientras haya decisiones sin responder.
+                <strong id="pendingCount"></strong>
+                <button type="button" class="ef-tab" id="applyRecommended" style="margin-left:.4rem">Aplicar la recomendación donde la hay</button>
+            </div>
+            <div id="decisions"></div>
+            <div class="ef-empty ef-hidden" id="noDecisions">No hay decisiones que tomar: todo se puede sincronizar tal como está.</div>
+        </div>
+
+        <div id="panelOk">
+            <div class="ef-note" style="margin:.3rem 0 .8rem">Todo lo de esta pestaña se sincroniza sin que tengas que decidir nada.</div>
+            <div class="ef-toolbar">
+                <div class="ef-tabs" id="planTabs"></div>
+            </div>
+            <div class="ef-table-wrap">
+                <table class="ef-table">
+                    <thead><tr><th>Código Siigo</th><th>Descripción Siigo</th><th class="num">Siigo</th><th class="num">Effi</th><th>Qué se haría en Effi</th><th></th></tr></thead>
+                    <tbody id="planRows"></tbody>
+                </table>
+            </div>
+            <div class="ef-count" id="planCount"></div>
+        </div>
+
+        @if ($syncEnabled)
+        <div class="ef-note" style="margin-top:1rem">
+            Revisa el plan. Para ejecutarlo escribe <strong>SINCRONIZAR</strong> y pulsa el botón: esto <strong>escribe en Effi</strong> (referencias, artículos nuevos y ajustes de inventario).
+            <div style="display:flex;gap:.6rem;margin-top:.6rem;flex-wrap:wrap">
+                <input type="text" class="excel-field-input" id="confirmText" placeholder="SINCRONIZAR" style="max-width:220px">
+                <button type="button" class="excel-submit-btn" id="btnSync" disabled>Sincronizar con Effi</button>
+            </div>
+            <div id="syncStatus" style="margin-top:.6rem"></div>
+        </div>
+        @endif
     </div>
 
     <div class="ef-card ef-hidden" id="resultCard">
@@ -66,6 +114,8 @@
         </div>
         <div class="ef-count" id="rowsCount"></div>
     </div>
+</div>
+
 </div>
 @endsection
 
@@ -113,6 +163,221 @@
     });
 
     document.getElementById('search').addEventListener('input', renderRows);
+
+    // ---- Plan de sincronización (solo consulta) ----
+    const STEP = {
+        referencia: s => `Cambiar referencia <strong>${esc(s.de)}</strong> → <strong>${esc(s.a)}</strong>`,
+        descripcion: s => `Cambiar nombre «${esc(s.de)}» → <strong>«${esc(s.a)}»</strong>`,
+        crear: s => `Crear artículo «${esc(s.datos.descripcion)}»${s.datos.categoria ? ` (categoría ${esc(s.datos.categoria)})` : ' <em>(sin categoría)</em>'}${(s.datos.precios || []).length ? '' : ' <em>(sin precios)</em>'}`,
+        vaciar: s => `Vaciar ${fmt(s.cantidad)} u. (sin control por bodega)`,
+        control: () => 'Pasar a control por bodega',
+        ajuste: s => s.cantidad > 0 ? `Ingreso de <span class="ef-pos">+${fmt(s.cantidad)}</span> u.` : `Egreso de <span class="ef-neg">${fmt(s.cantidad)}</span> u.`,
+    };
+    const STEP_TABS = [['todos', 'Todos'], ['referencia', 'Cambiar referencia'], ['descripcion', 'Cambiar nombre'], ['crear', 'Crear artículo'], ['control', 'Cambiar control'], ['ajuste', 'Ajustes'], ['avisos', 'Con avisos']];
+    const planBtn = document.getElementById('btnPlan');
+    let plan = null, planFilter = 'todos';
+    let choices = { modelos: {}, duplicados: {} };
+    let mainTab = 'ok';
+
+    // ---- Decisiones: categorías que no existen en Effi y referencias duplicadas ----
+    const CONTROL = { 0: 'sin trazabilidad', 1: 'SIN control de stock', 2: 'control por empresa', 3: 'control por bodega' };
+
+    function pendingDecisions() {
+        const d = plan ? plan.decisiones : { categorias: [], duplicados: [] };
+        return d.categorias.filter(c => !choices.modelos[c.modelo]).length + d.duplicados.filter(c => !choices.duplicados[c.codigo]).length;
+    }
+
+    const okItems = () => plan.items.filter(i => !i.categoria_pendiente);
+    const totalDecisions = () => plan.decisiones.categorias.length + plan.decisiones.duplicados.length;
+
+    // Pestañas principales: lo que se sincroniza solo / lo que tiene que decidir la persona
+    function renderMainTabs() {
+        if (!plan) return;
+        const pending = pendingDecisions();
+        const tabs = [
+            ['ok', `Listo para sincronizar (${fmt(okItems().length)})`, ''],
+            ['dec', `Decisiones que te tocan (${totalDecisions()})`, pending ? `<span class="ef-badge-pending">${pending} sin responder</span>` : '<span class="ef-badge-done">todas respondidas</span>'],
+        ];
+        document.getElementById('mainTabs').innerHTML = tabs.map(([k, l, b]) =>
+            `<button type="button" class="ef-main-tab ${k === mainTab ? 'active' : ''}" data-k="${k}">${l} ${b}</button>`).join('');
+        document.querySelectorAll('#mainTabs .ef-main-tab').forEach(t => t.addEventListener('click', () => { mainTab = t.dataset.k; renderMainTabs(); }));
+        document.getElementById('panelOk').classList.toggle('ef-hidden', mainTab !== 'ok');
+        document.getElementById('panelDec').classList.toggle('ef-hidden', mainTab !== 'dec');
+        document.getElementById('noDecisions').classList.toggle('ef-hidden', totalDecisions() > 0);
+    }
+
+    function updateSyncButton() {
+        const pending = pendingDecisions();
+        const counter = document.getElementById('pendingCount');
+        if (counter) counter.textContent = pending ? `Pendientes: ${pending}` : 'Todas respondidas.';
+        renderMainTabs();
+        const sync = document.getElementById('btnSync');
+        const confirm = document.getElementById('confirmText');
+        if (sync && confirm) sync.disabled = !plan || pending > 0 || confirm.value.trim() !== 'SINCRONIZAR';
+    }
+
+    function renderDecisions() {
+        const d = plan.decisiones;
+        const catOptions = Object.entries(plan.categorias).map(([id, n]) => `<option value="${id}">${esc(n)}</option>`).join('');
+
+        const categorias = d.categorias.map((c, i) => {
+            const cur = choices.modelos[c.modelo] || {};
+            const name = c.modelo === '' ? '(sin modelo en Siigo)' : `«${esc(c.modelo)}»`;
+            const radio = (v, text) => `<label class="ef-opt"><input type="radio" name="m${i}" value="${v}" ${cur.accion === v ? 'checked' : ''}> ${text}</label>`;
+            return `<div class="ef-decision" data-modelo="${esc(c.modelo)}" data-i="${i}">
+                <div class="ef-decision-title">Categoría para ${c.cantidad} artículo(s) nuevo(s) con modelo ${name}</div>
+                <div class="ef-detail">Ejemplos: ${c.ejemplos.map(esc).join(', ')}. En Siigo tienen el modelo ${name} y en Effi no hay ninguna categoría con ese nombre. ¿Qué categoría llevan en Effi?</div>
+                ${radio('existente', `Usar una categoría que ya existe: <select class="ef-select" data-sel="${i}">${catOptions}</select>${c.sugerida ? ` <span class="ef-reco">Recomendada: ${esc(c.sugerida.nombre)}</span> <span class="ef-detail">${esc(c.sugerida.motivo)}</span>` : ''}`)}
+                ${c.modelo === '' ? '' : radio('crear', `Crear la categoría «${esc(c.modelo)}» en Effi <span class="ef-detail">(solo se crea si no existe ya; nunca se duplica)</span>`)}
+                ${radio('ninguna', 'Crear los artículos sin categoría <span class="ef-detail">(la asignas después en Effi)</span>')}
+            </div>`;
+        }).join('');
+
+        const duplicados = d.duplicados.map((c, i) => {
+            const cur = choices.duplicados[c.codigo] || {};
+            const art = a => `#${esc(a.id)} · ${CONTROL[a.gestion_stock] || a.gestion_stock} · ${fmt(a.stock)} u. en la bodega`;
+            const radio = (v, checked, text) => `<label class="ef-opt"><input type="radio" name="d${i}" value="${v}" ${checked ? 'checked' : ''}> ${text}</label>`;
+            return `<div class="ef-decision" data-codigo="${esc(c.codigo)}" data-i="${i}">
+                <div class="ef-decision-title">${esc(c.codigo)} está dos veces en Effi · Siigo tiene ${fmt(c.siigo)} u.</div>
+                <div class="ef-detail">${esc(c.descripcion)}. ¿Cuál se inhabilita? El inhabilitado se vacía y se anula (en Effi se puede reactivar); el otro queda con las unidades de Siigo.</div>
+                ${c.articulos.map(a => radio(a.id, cur.inhabilitar === a.id, `Inhabilitar ${art(a)}${c.recomendada === a.id ? ' <span class="ef-reco">Recomendado: es la que no controla stock por bodega</span>' : ''}`)).join('')}
+                ${radio('ninguno', cur.ninguno, 'No tocar ninguna por ahora')}
+            </div>`;
+        }).join('');
+
+        document.getElementById('decisions').innerHTML = categorias + duplicados;
+
+        document.querySelectorAll('#decisions [data-modelo]').forEach(card => {
+            const i = card.dataset.i, c = d.categorias[i], sel = card.querySelector('select');
+            sel.value = (choices.modelos[c.modelo] && choices.modelos[c.modelo].categoria) || (c.sugerida ? c.sugerida.id : sel.options[0]?.value);
+            const save = () => {
+                const v = card.querySelector('input[type=radio]:checked');
+                if (v) choices.modelos[c.modelo] = { accion: v.value, categoria: v.value === 'existente' ? sel.value : undefined };
+                updateSyncButton();
+            };
+            card.querySelectorAll('input[type=radio]').forEach(r => r.addEventListener('change', save));
+            sel.addEventListener('change', () => { card.querySelector('input[value=existente]').checked = true; save(); });
+        });
+        document.querySelectorAll('#decisions [data-codigo]').forEach(card => {
+            const c = d.duplicados[card.dataset.i];
+            card.querySelectorAll('input[type=radio]').forEach(r => r.addEventListener('change', () => {
+                choices.duplicados[c.codigo] = r.value === 'ninguno' ? { ninguno: true } : { inhabilitar: r.value };
+                updateSyncButton();
+            }));
+        });
+        updateSyncButton();
+    }
+
+    document.getElementById('applyRecommended').addEventListener('click', () => {
+        if (!plan) return;
+        plan.decisiones.categorias.forEach(c => {
+            // Solo las que tienen recomendación; las demás las eliges tú
+            if (!choices.modelos[c.modelo] && c.sugerida) choices.modelos[c.modelo] = { accion: 'existente', categoria: String(c.sugerida.id) };
+        });
+        plan.decisiones.duplicados.forEach(c => {
+            if (!choices.duplicados[c.codigo] && c.recomendada) choices.duplicados[c.codigo] = { inhabilitar: c.recomendada };
+        });
+        renderDecisions();
+    });
+
+    planBtn.addEventListener('click', async () => {
+        planBtn.disabled = true;
+        planBtn.classList.add('is-loading');
+        planBtn.querySelector('.btn-label').textContent = 'Armando el plan…';
+        errorBox.classList.remove('show');
+        try {
+            const res = await fetch(@json(route('siigo.effi_sync_plan')), {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
+            });
+            const json = await res.json();
+            if (!json.ok) throw new Error(json.message || 'Error desconocido');
+            if (!json.data.ok) throw new Error(json.data.message);
+            plan = json.data;
+            choices = { modelos: {}, duplicados: {} };
+            mainTab = (plan.decisiones.categorias.length + plan.decisiones.duplicados.length) ? 'dec' : 'ok';
+            renderDecisions();
+            renderPlan();
+        } catch (e) {
+            errorBox.textContent = e.message;
+            errorBox.classList.add('show');
+        } finally {
+            planBtn.disabled = false;
+            planBtn.classList.remove('is-loading');
+            planBtn.querySelector('.btn-label').textContent = 'Ver plan de sincronización';
+        }
+    });
+
+    function renderPlan() {
+        const r = plan.resumen;
+        document.getElementById('planCard').classList.remove('ef-hidden');
+        document.getElementById('planMeta').innerHTML = esc(`Plan del ${plan.fecha} · Siigo: bodega WEB (${plan.bodega_siigo}) · Effi: ${plan.bodega_effi}`) + (plan.notas || []).map(n => `<div>ℹ ${esc(n)}</div>`).join('');
+        const tiles = [
+            ['Códigos con cambios', fmt(r.codigos_con_cambios), ''],
+            ['Referencias a cambiar', fmt(r.referencias_a_cambiar), 'quedan con el código de Siigo'],
+            ['Nombres a cambiar', fmt(r.descripciones_a_cambiar), 'quedan con la descripción de Siigo'],
+            ['Artículos a crear', fmt(r.articulos_a_crear), 'no existen en Effi'],
+            ['Control a cambiar', fmt(r.controles_a_cambiar), `${fmt(r.articulos_a_vaciar)} se vacían antes`],
+            ['Ingresos', fmt(r.unidades_ingreso), `${fmt(r.ingresos)} movimientos`],
+            ['Egresos', fmt(r.unidades_egreso), `${fmt(r.egresos)} movimientos`],
+            ['Con avisos', fmt(r.con_avisos), 'se sincronizan; revisar después'],
+            ['No se tocan', fmt(r.manuales), 'requieren decisión tuya'],
+        ];
+        document.getElementById('planTiles').innerHTML = tiles.map(([l, v, h]) =>
+            `<div class="ef-tile"><div class="ef-tile-label">${l}</div><div class="ef-tile-value">${v}</div><div class="ef-tile-hint">${h}</div></div>`).join('');
+        document.getElementById('planTabs').innerHTML = STEP_TABS.map(([k, l]) =>
+            `<button type="button" class="ef-tab ${k === planFilter ? 'active' : ''}" data-k="${k}">${l}</button>`).join('');
+        document.querySelectorAll('#planTabs .ef-tab').forEach(t => t.addEventListener('click', () => { planFilter = t.dataset.k; renderPlan(); }));
+
+        // Solo lo que se sincroniza sin decidir nada (los artículos con categoría pendiente van en «Decisiones»)
+        const items = okItems().filter(i => planFilter === 'todos' || (planFilter === 'avisos' ? i.avisos.length : i.pasos.some(p => p.tipo === planFilter)));
+        const shown = items.slice(0, 1000);
+        document.getElementById('planRows').innerHTML = shown.length ? shown.map(i => i.motivo !== undefined
+            ? ''
+            : `<tr><td>${esc(i.codigo)}</td><td>${esc(i.descripcion)}</td><td class="num">${fmt(i.siigo)}</td><td class="num">${fmt(i.effi)}</td>
+                <td>${i.pasos.map(p => `<div>${STEP[p.tipo](p)}</div>`).join('')}${(i.avisos || []).map(a => `<div class="ef-detail">⚠ ${esc(a)}</div>`).join('')}</td>
+                <td>${SYNC_ENABLED ? `<button type="button" class="ef-tab" data-solo="${esc(i.codigo)}">Probar solo este</button>` : ''}</td></tr>`
+        ).join('') : '<tr><td colspan="6" class="ef-empty">Sin filas para este filtro.</td></tr>';
+        document.querySelectorAll('#planRows [data-solo]').forEach(b => b.addEventListener('click', () => testOne(b.dataset.solo)));
+        document.getElementById('planCount').textContent = items.length > shown.length ? `Mostrando ${shown.length} de ${items.length}.` : `${items.length} filas.`;
+    }
+
+    const SYNC_ENABLED = @json($syncEnabled);
+
+    // Prueba con un solo código: se sincroniza únicamente ese artículo, sin esperar las decisiones del resto del plan
+    async function testOne(code) {
+        if (!confirm(`Se sincronizará SOLO el código ${code} en Effi (real). ¿Continuar?`)) return;
+        const res = await fetch(@json(route('siigo.effi_sync_sync')), {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ confirmacion: 'SINCRONIZAR', solo: code, decisiones: choices }),
+        });
+        const json = await res.json();
+        if (!json.ok) { errorBox.textContent = json.message; errorBox.classList.add('show'); return; }
+        showRunning(json.correos || []);
+    }
+
+    // Al lanzar la sincronización se pasa a la pantalla «en proceso» (como en las cargas de traslados y órdenes de compra)
+    function showRunning() {
+        location.href = @json(route('siigo.effi_sync_running'));
+    }
+    const confirmText = document.getElementById('confirmText');
+    if (confirmText) {
+        const syncBtn = document.getElementById('btnSync');
+        confirmText.addEventListener('input', updateSyncButton);
+        syncBtn.addEventListener('click', async () => {
+            const box = document.getElementById('syncStatus');
+            syncBtn.disabled = true;
+            const res = await fetch(@json(route('siigo.effi_sync_sync')), {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ confirmacion: confirmText.value.trim(), decisiones: choices }),
+            });
+            const json = await res.json();
+            if (!json.ok) { box.textContent = json.message; return; }
+            showRunning(json.correos || []);
+        });
+    }
 
     function render() {
         const r = data.resumen;

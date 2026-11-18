@@ -1,0 +1,1286 @@
+[
+  {
+    "id_categoria": 21,
+    "categoria": "Adultos",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Juegos eróticos"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Juguetes sexuales"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Lencería y Ropa erótica"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Lubricantes y Estimulantes"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Otros"
+      }
+    ]
+  },
+  {
+    "id_categoria": 1,
+    "categoria": "Agro",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Energia Renovable"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Fertilizantes"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Insumos"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Maquinaria y Equipos"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Semillas"
+      }
+    ]
+  },
+  {
+    "id_categoria": 2,
+    "categoria": "Alimentos y Bebidas",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Alimentos Gourmet"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Bebidas"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Café y Té"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Snacks"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Vinos y Licores"
+      }
+    ]
+  },
+  {
+    "id_categoria": 3,
+    "categoria": "Arte y Papelería",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Arte y Manualidades"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Fiestas y Piñatería"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Papelería"
+      }
+    ]
+  },
+  {
+    "id_categoria": 4,
+    "categoria": "Automotriz",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios Náuticos"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Accesorios para Motos y Cuatrimotos"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Accesorios para Vehiculos"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Audio"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Cuidado y Limpieza"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Electrónicos"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Gas Natural Vehicular"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Llantas, Rines y Accesorios"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Lubricantes y Fluidos"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Luces y Accesorios de Iluminación"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Maquinaria y Equipos"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Motociclismo y Deportes de Motor"
+      },
+      {
+        "id_subcategoria": 13,
+        "subcategoria": "Navegadores Gps para Vehículos"
+      },
+      {
+        "id_subcategoria": 14,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 15,
+        "subcategoria": "Partes y Accesorios de Rendimiento"
+      },
+      {
+        "id_subcategoria": 16,
+        "subcategoria": "Performance y Tuning"
+      },
+      {
+        "id_subcategoria": 17,
+        "subcategoria": "Pintura y Suministros para Pintura"
+      },
+      {
+        "id_subcategoria": 18,
+        "subcategoria": "Productos para Aficionados A Los Automóviles"
+      },
+      {
+        "id_subcategoria": 19,
+        "subcategoria": "Repuestos"
+      },
+      {
+        "id_subcategoria": 20,
+        "subcategoria": "Repuestos Carros y Camionetas"
+      },
+      {
+        "id_subcategoria": 21,
+        "subcategoria": "Repuestos de Línea Pesada"
+      },
+      {
+        "id_subcategoria": 22,
+        "subcategoria": "Repuestos Motos y Cuatrimotos"
+      },
+      {
+        "id_subcategoria": 23,
+        "subcategoria": "Repuestos Náuticos"
+      },
+      {
+        "id_subcategoria": 24,
+        "subcategoria": "Repuestos para Carros y Camionetas"
+      },
+      {
+        "id_subcategoria": 25,
+        "subcategoria": "Repuestos para Línea Pesada"
+      },
+      {
+        "id_subcategoria": 26,
+        "subcategoria": "Repuestos para Motos y Cuatrimotos"
+      },
+      {
+        "id_subcategoria": 27,
+        "subcategoria": "Seguridad Vehicular"
+      }
+    ]
+  },
+  {
+    "id_categoria": 5,
+    "categoria": "Bebés",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Alimentación"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Asientos para Auto"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Caminadores y Correpasillos"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Cargadores"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Chupetes y Mordedores"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Coches y Accesorios"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Corrales para Bebé"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Cuidado e Higiene"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Embarazo y Maternidad"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Habitación"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Lactancia y Maternidad"
+      },
+      {
+        "id_subcategoria": 13,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 14,
+        "subcategoria": "Pañales"
+      },
+      {
+        "id_subcategoria": 15,
+        "subcategoria": "Ropa"
+      },
+      {
+        "id_subcategoria": 16,
+        "subcategoria": "Seguridad"
+      }
+    ]
+  },
+  {
+    "id_categoria": 6,
+    "categoria": "Belleza y Cuidado Personal",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Afeitado y Depilación"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Barbería"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Cuidado Bucal"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Cuidado de la Piel"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Cuidado de Pies, Manos y Uñas"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Cuidado del Cabello"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Herramientas"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Higiene Personal"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Manicura y Pedicura"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Maquillaje"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 13,
+        "subcategoria": "Peluquería"
+      },
+      {
+        "id_subcategoria": 14,
+        "subcategoria": "Tratamientos de Belleza"
+      }
+    ]
+  },
+  {
+    "id_categoria": 7,
+    "categoria": "Deporte, Ejercicio y Recreación",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Deportes"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Ejercicio y Musculación"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Recreación Al Aire Libre"
+      }
+    ]
+  },
+  {
+    "id_categoria": 8,
+    "categoria": "Electrodomésticos",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Aspiradoras"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Climatización"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Cocción"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Cuidado Personal"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Dispensadores y Purificadores"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Lavado"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Pequeños Electrodomésticos"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Planchas y Vaporizadoras"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Refrigeración"
+      }
+    ]
+  },
+  {
+    "id_categoria": 9,
+    "categoria": "Herramientas y Contrucción",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Cajas, Bolsos y Organizadores para herramientas"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Encendedores de fuego"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Herramientas de medición"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Herramientas eléctricas"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Herramientas inalámbricas (batería)"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Herramientas manuales"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Maquinaria y Equipos"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Materiales para la Construcción y Remodelación"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Seguridad y Protección"
+      }
+    ]
+  },
+  {
+    "id_categoria": 10,
+    "categoria": "Hogar y Oficina",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Accesorios para el Baño"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Accesorios para el Comedor"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Accesorios para el Jardin y exteriores"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Accesorios para el Piso"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Accesorios para la Cama"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Accesorios para la Cocina"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Accesorios para las Paredes"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Alfombras y Tapetes"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Almacenamiento y Organización"
+      },
+      {
+        "id_subcategoria": 31,
+        "subcategoria": "Ambientadores y Humidificadores"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Bibliotecas"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Camas, Bases y Cabeceros"
+      },
+      {
+        "id_subcategoria": 13,
+        "subcategoria": "Cuidado del Hogar"
+      },
+      {
+        "id_subcategoria": 14,
+        "subcategoria": "Cunas y Moisés"
+      },
+      {
+        "id_subcategoria": 15,
+        "subcategoria": "Decoración"
+      },
+      {
+        "id_subcategoria": 16,
+        "subcategoria": "Escaleras"
+      },
+      {
+        "id_subcategoria": 17,
+        "subcategoria": "Escritorios"
+      },
+      {
+        "id_subcategoria": 18,
+        "subcategoria": "Espejos"
+      },
+      {
+        "id_subcategoria": 19,
+        "subcategoria": "Estanterías y Armarios"
+      },
+      {
+        "id_subcategoria": 20,
+        "subcategoria": "Iluminación, Lámparas y Ventiladores de Techo"
+      },
+      {
+        "id_subcategoria": 21,
+        "subcategoria": "Limpieza y Lavandería"
+      },
+      {
+        "id_subcategoria": 22,
+        "subcategoria": "Mesas"
+      },
+      {
+        "id_subcategoria": 23,
+        "subcategoria": "Muebles para Entretenimiento"
+      },
+      {
+        "id_subcategoria": 24,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 25,
+        "subcategoria": "Recipientes, Frascos, Tarros, Termos y Botellas"
+      },
+      {
+        "id_subcategoria": 26,
+        "subcategoria": "Relojes"
+      },
+      {
+        "id_subcategoria": 27,
+        "subcategoria": "Seguridad"
+      },
+      {
+        "id_subcategoria": 28,
+        "subcategoria": "Sillas, Sofás, Butacos y Pupitres"
+      },
+      {
+        "id_subcategoria": 29,
+        "subcategoria": "Textiles"
+      },
+      {
+        "id_subcategoria": 30,
+        "subcategoria": "Tocadores"
+      }
+    ]
+  },
+  {
+    "id_categoria": 11,
+    "categoria": "Juguetes y Hobbies",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Al Aire Libre y Deportivos"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Antigüedades y Coleccionables"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Armas y Lanzadores"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Bebés"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Bromas"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Carpas, Casas y Castillos"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Construcción y Bloques"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Creativos, Artísticos, Manualidades y de Ingenio"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Educativos, Didácticos e Interactivos"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Electrónicos"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Figuritas, Álbumes y Cromos"
+      },
+      {
+        "id_subcategoria": 13,
+        "subcategoria": "Hobbies"
+      },
+      {
+        "id_subcategoria": 14,
+        "subcategoria": "Juegos de Mesa y Cartas"
+      },
+      {
+        "id_subcategoria": 15,
+        "subcategoria": "Juegos de Salón"
+      },
+      {
+        "id_subcategoria": 16,
+        "subcategoria": "Mesas y Sillas"
+      },
+      {
+        "id_subcategoria": 17,
+        "subcategoria": "Muñecos, Muñecas y Figuras"
+      },
+      {
+        "id_subcategoria": 18,
+        "subcategoria": "Oficios y Roles"
+      },
+      {
+        "id_subcategoria": 19,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 20,
+        "subcategoria": "Patines, Patinetas, Bicicletas y Vehiculos Montables"
+      },
+      {
+        "id_subcategoria": 21,
+        "subcategoria": "Peluches"
+      },
+      {
+        "id_subcategoria": 22,
+        "subcategoria": "Piscinas"
+      },
+      {
+        "id_subcategoria": 23,
+        "subcategoria": "Títeres y Marionetas"
+      },
+      {
+        "id_subcategoria": 24,
+        "subcategoria": "Vehículos y Radiocontrol"
+      }
+    ]
+  },
+  {
+    "id_categoria": 12,
+    "categoria": "Libros, Música y Películas",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Comics"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Instrumentos Musicales"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Libros"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Libros Electrónicos (eBooks)"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Música"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Películas y Series"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Revistas"
+      }
+    ]
+  },
+  {
+    "id_categoria": 13,
+    "categoria": "Mascotas",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Alimentación"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Cuidado e Higiene"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Juguetes"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Ropa"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Salud"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Seguridad"
+      }
+    ]
+  },
+  {
+    "id_categoria": 14,
+    "categoria": "Moda para Hombre",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Bolsos, Mochilas y Carteras"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Calzado"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Fajas de Compresión"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Joyas"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Perfumes"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Relojes"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Ropa inferior (Pantalones, Shorts, Jeans)"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Ropa interior"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Ropa superior (Camisas, Chaquetas, Buzos)"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Trajes, conjuntos y enterizos"
+      }
+    ]
+  },
+  {
+    "id_categoria": 15,
+    "categoria": "Moda para Mujer",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Bolsos, Mochilas y Carteras"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Calzado"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Fajas de Compresión"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Joyas"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Perfumes"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Pijamas"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Relojes"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Ropa inferior (Pantalones, Shorts, Jeans, Faldas)"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Ropa interior"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Ropa superior (Camisas, Chaquetas, Buzos)"
+      },
+      {
+        "id_subcategoria": 13,
+        "subcategoria": "Vestidos, conjuntos y enterizos"
+      }
+    ]
+  },
+  {
+    "id_categoria": 16,
+    "categoria": "Moda para Niña",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Calzado"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Joyas"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Perfumes"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Pijamas"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Relojes"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Ropa inferior (Pantalones, Shorts, Jeans, Faldas)"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Ropa interior"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Ropa superior (Camisas, Chaquetas, Buzos)"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Uniformes Escolares"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Vestidos, conjuntos y enterizos"
+      }
+    ]
+  },
+  {
+    "id_categoria": 17,
+    "categoria": "Moda para Niño",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Calzado"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Joyas"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Perfumes"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Pijamas"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Relojes"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Ropa inferior (Pantalones, Shorts, Jeans)"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Ropa interior"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Ropa superior (Camisas, Chaquetas, Buzos)"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Trajes, conjuntos y enterizos"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Uniformes Escolares"
+      }
+    ]
+  },
+  {
+    "id_categoria": 22,
+    "categoria": "Moda Unisex",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Bolsos, Mochilas y Carteras"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Calzado"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Joyas"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Perfumes"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Relojes"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Ropa inferior (Pantalones, Shorts, Jeans)"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Ropa interior"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Ropa superior (Camisas, Chaquetas, Buzos)"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Trajes, conjuntos y enterizos"
+      }
+    ]
+  },
+  {
+    "id_categoria": 18,
+    "categoria": "Salud y Bienestar",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Bienestar Sexual"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Control de Peso y Dieta"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Cuidado Personal"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Energía y Meditación"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Equipos Médicos"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Esoterismo y Astrología"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Espiritualidad y Religión"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Insumos Médicos"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Masajes y relajación"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Ortopedia y Rehabilitación"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 13,
+        "subcategoria": "Soportes y Correctores"
+      },
+      {
+        "id_subcategoria": 14,
+        "subcategoria": "Suplementos Deportivos"
+      },
+      {
+        "id_subcategoria": 15,
+        "subcategoria": "Suplementos Nutricionales y Vitaminas"
+      },
+      {
+        "id_subcategoria": 16,
+        "subcategoria": "Tratamiento del Dolor"
+      }
+    ]
+  },
+  {
+    "id_categoria": 19,
+    "categoria": "Tecnología y Electrónica",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Accesorios para Gaming"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Almacenamiento de Datos"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Audio"
+      },
+      {
+        "id_subcategoria": 5,
+        "subcategoria": "Baterías y Cargadores"
+      },
+      {
+        "id_subcategoria": 6,
+        "subcategoria": "Cables, Convertidores y Conectores"
+      },
+      {
+        "id_subcategoria": 7,
+        "subcategoria": "Cámaras y Fotografía"
+      },
+      {
+        "id_subcategoria": 8,
+        "subcategoria": "Celulares y Accesorios"
+      },
+      {
+        "id_subcategoria": 9,
+        "subcategoria": "Componentes, Repuestos y Partes"
+      },
+      {
+        "id_subcategoria": 10,
+        "subcategoria": "Computadoras de Escritorio y Accesorios"
+      },
+      {
+        "id_subcategoria": 11,
+        "subcategoria": "Computadoras Portátiles y Accesorios"
+      },
+      {
+        "id_subcategoria": 12,
+        "subcategoria": "Consolas de Videojuegos y Accesorios"
+      },
+      {
+        "id_subcategoria": 13,
+        "subcategoria": "Drones y Accesorios"
+      },
+      {
+        "id_subcategoria": 14,
+        "subcategoria": "Estabilizadores de energía y Ups"
+      },
+      {
+        "id_subcategoria": 15,
+        "subcategoria": "Gps y Navegación"
+      },
+      {
+        "id_subcategoria": 16,
+        "subcategoria": "Impresión"
+      },
+      {
+        "id_subcategoria": 17,
+        "subcategoria": "Lectores y Accesorios para Libros Electrónicos"
+      },
+      {
+        "id_subcategoria": 18,
+        "subcategoria": "Lectores y Scanners"
+      },
+      {
+        "id_subcategoria": 19,
+        "subcategoria": "Limpieza y Cuidado"
+      },
+      {
+        "id_subcategoria": 20,
+        "subcategoria": "Otros"
+      },
+      {
+        "id_subcategoria": 21,
+        "subcategoria": "Pantallas, Monitores y Proyectores de Video"
+      },
+      {
+        "id_subcategoria": 22,
+        "subcategoria": "Periféricos de cómputo"
+      },
+      {
+        "id_subcategoria": 23,
+        "subcategoria": "Redes y Servidores"
+      },
+      {
+        "id_subcategoria": 24,
+        "subcategoria": "Seguridad y Vigilancia"
+      },
+      {
+        "id_subcategoria": 25,
+        "subcategoria": "Smart Home"
+      },
+      {
+        "id_subcategoria": 26,
+        "subcategoria": "Software"
+      },
+      {
+        "id_subcategoria": 27,
+        "subcategoria": "Tablets y Accesorios"
+      },
+      {
+        "id_subcategoria": 28,
+        "subcategoria": "Televisores"
+      },
+      {
+        "id_subcategoria": 29,
+        "subcategoria": "Videojuegos"
+      }
+    ]
+  },
+  {
+    "id_categoria": 20,
+    "categoria": "Viaje y Equipajes",
+    "subcategorias": [
+      {
+        "id_subcategoria": 1,
+        "subcategoria": "Accesorios"
+      },
+      {
+        "id_subcategoria": 2,
+        "subcategoria": "Fundas, Forros, Bolsas y Estuches"
+      },
+      {
+        "id_subcategoria": 3,
+        "subcategoria": "Maletas y Bolsos de Viaje"
+      },
+      {
+        "id_subcategoria": 4,
+        "subcategoria": "Otros"
+      }
+    ]
+  }
+]

@@ -27,9 +27,13 @@ Route::get('/home', function () {
     return view('integration.home');
 })->name('home');
 
-// Sincronización de la bodega WEB de Siigo con Effi (por ahora solo el cuadre, sin ajustes)
+// Sincronización de la bodega WEB de Siigo con Effi (cuadre y plan solo consultan; la sincronización escribe en Effi y está apagada por defecto)
 Route::get('/siigo/effi_sync', [EffiSyncSiigoController::class, 'index'])->name('siigo.effi_sync');
 Route::post('/siigo/effi_sync/compare', [EffiSyncSiigoController::class, 'compare'])->name('siigo.effi_sync_compare');
+Route::post('/siigo/effi_sync/plan', [EffiSyncSiigoController::class, 'plan'])->name('siigo.effi_sync_plan');
+Route::post('/siigo/effi_sync/sync', [EffiSyncSiigoController::class, 'sync'])->name('siigo.effi_sync_sync');
+Route::get('/siigo/effi_sync/status', [EffiSyncSiigoController::class, 'status'])->name('siigo.effi_sync_status');
+Route::get('/siigo/effi_sync/running', [EffiSyncSiigoController::class, 'running'])->name('siigo.effi_sync_running');
 
 Route::get('/siigo/export_inventory', [InventorySiigoController::class, 'export_inventory'])->name('siigo.export_inventory');
 Route::post('/siigo/export_inventory_download', [InventorySiigoController::class, 'export_inventory_download'])->name('siigo.export_inventory_download');
