@@ -16,6 +16,7 @@ use App\Http\Controllers\Integration\PhotoProductSiigoController;
 use App\Http\Controllers\Integration\SearchDocumentSiigoController;
 use App\Http\Controllers\Integration\CustomerSalesSiigoController;
 use App\Http\Controllers\Integration\TransferApprovalSiigoController;
+use App\Http\Controllers\Integration\EffiSyncSiigoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -25,6 +26,10 @@ Route::get('/', function () {
 Route::get('/home', function () {
     return view('integration.home');
 })->name('home');
+
+// Sincronización de la bodega WEB de Siigo con Effi (por ahora solo el cuadre, sin ajustes)
+Route::get('/siigo/effi_sync', [EffiSyncSiigoController::class, 'index'])->name('siigo.effi_sync');
+Route::post('/siigo/effi_sync/compare', [EffiSyncSiigoController::class, 'compare'])->name('siigo.effi_sync_compare');
 
 Route::get('/siigo/export_inventory', [InventorySiigoController::class, 'export_inventory'])->name('siigo.export_inventory');
 Route::post('/siigo/export_inventory_download', [InventorySiigoController::class, 'export_inventory_download'])->name('siigo.export_inventory_download');
