@@ -1032,4 +1032,76 @@ class IntegrationDocs
      * )
      */
     public function doc12() {}
+
+    /**
+     * @OA\Get(
+     *     path="/integration/effi_sync/compare",
+     *     tags={"Integración - Sincronización con Effi"},
+     *     summary="Cuadre Siigo / Effi",
+     *     description="Permiso requerido: integration.effi_sync.compare. Inventario de la bodega WEB de Siigo y de la bodega de Effi código por código, con sus diferencias. Solo consulta.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response=200, description="Operación completada con éxito", @OA\JsonContent(@OA\Property(property="data", type="object"), @OA\Property(property="message", type="string"), @OA\Property(property="error", type="boolean", example=false))),
+     *     @OA\Response(response=401, description="No autenticado", @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")),
+     *     @OA\Response(response=403, description="Sin permiso para esta acción"),
+     *     @OA\Response(response=422, description="Error de validación o regla de negocio (p. ej. falta el permiso de stock en Effi)"),
+     *     @OA\Response(response=429, description="Demasiadas peticiones")
+     * )
+     */
+    public function doc52() {}
+
+    /**
+     * @OA\Get(
+     *     path="/integration/effi_sync/plan",
+     *     tags={"Integración - Sincronización con Effi"},
+     *     summary="Plan de sincronización",
+     *     description="Permiso requerido: integration.effi_sync.plan. Qué se cambiaría en Effi (referencias, artículos nuevos, ajustes) y las decisiones pendientes. Solo consulta.",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response=200, description="Operación completada con éxito", @OA\JsonContent(@OA\Property(property="data", type="object"), @OA\Property(property="message", type="string"), @OA\Property(property="error", type="boolean", example=false))),
+     *     @OA\Response(response=401, description="No autenticado", @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")),
+     *     @OA\Response(response=403, description="Sin permiso para esta acción"),
+     *     @OA\Response(response=422, description="Error de validación o regla de negocio (p. ej. falta el permiso de stock en Effi)"),
+     *     @OA\Response(response=429, description="Demasiadas peticiones")
+     * )
+     */
+    public function doc53() {}
+
+    /**
+     * @OA\Post(
+     *     path="/integration/effi_sync/sync",
+     *     tags={"Integración - Sincronización con Effi"},
+     *     summary="Sincronizar con Effi",
+     *     description="Permiso requerido: integration.effi_sync.sync. Límite de escrituras: 10 por minuto. Escribe en Effi (referencias, artículos y ajustes de inventario) en segundo plano; solo funciona con EFFI_SYNC_ENABLED=true. 409 si ya hay una sincronización en curso.",
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(required=true, @OA\MediaType(mediaType="application/json", @OA\Schema(type="object", required={"confirmacion"},
+     *         @OA\Property(property="confirmacion", type="string", example="SINCRONIZAR"),
+     *         @OA\Property(property="solo", type="string", description="Opcional: sincroniza solo ese código (prueba)"),
+     *         @OA\Property(property="decisiones", type="object",
+     *             @OA\Property(property="modelos", type="object", description="modelo => {accion: existente|crear|ninguna, categoria?: id}"),
+     *             @OA\Property(property="duplicados", type="object", description="código => {inhabilitar: id del artículo de Effi} o {ninguno: true}")
+     *         )
+     *     ))),
+     *     @OA\Response(response=202, description="Sincronización lanzada", @OA\JsonContent(@OA\Property(property="data", type="object"), @OA\Property(property="message", type="string"), @OA\Property(property="error", type="boolean", example=false))),
+     *     @OA\Response(response=409, description="Ya hay una sincronización en curso"),
+     *     @OA\Response(response=401, description="No autenticado", @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")),
+     *     @OA\Response(response=403, description="Sin permiso para esta acción"),
+     *     @OA\Response(response=422, description="Error de validación o regla de negocio (p. ej. falta el permiso de stock en Effi)"),
+     *     @OA\Response(response=429, description="Demasiadas peticiones")
+     * )
+     */
+    public function doc54() {}
+    /**
+     * @OA\Get(
+     *     path="/integration/effi_sync/status",
+     *     tags={"Integración - Sincronización con Effi"},
+     *     summary="Avance de la sincronización",
+     *     description="Permiso requerido: integration.effi_sync.status. Estado de la última sincronización con Effi (web, API o automática).",
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response=200, description="Operación completada con éxito", @OA\JsonContent(@OA\Property(property="data", type="object"), @OA\Property(property="message", type="string"), @OA\Property(property="error", type="boolean", example=false))),
+     *     @OA\Response(response=401, description="No autenticado", @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")),
+     *     @OA\Response(response=403, description="Sin permiso para esta acción"),
+     *     @OA\Response(response=422, description="Error de validación o regla de negocio (p. ej. falta el permiso de stock en Effi)"),
+     *     @OA\Response(response=429, description="Demasiadas peticiones")
+     * )
+     */
+    public function doc55() {}
 }

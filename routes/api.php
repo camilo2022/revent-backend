@@ -430,6 +430,13 @@ Route::prefix('/integration')->middleware(['auth:sanctum', 'throttle:30,1'])->gr
     Route::post('/sync_unico/run', [\App\Http\Controllers\Api\Integration\SyncUnicoController::class, 'run'])->middleware(['can:integration.sync_unico.run', 'throttle:10,1,integration-write']);
     // === fin sync_unico ===
 
+    // === effi_sync === (compare y plan solo consultan; sync escribe en Effi y está apagada salvo EFFI_SYNC_ENABLED)
+    Route::get('/effi_sync/compare', [\App\Http\Controllers\Api\Integration\EffiSyncController::class, 'compare'])->middleware('can:integration.effi_sync.compare');
+    Route::get('/effi_sync/plan', [\App\Http\Controllers\Api\Integration\EffiSyncController::class, 'plan'])->middleware('can:integration.effi_sync.plan');
+    Route::post('/effi_sync/sync', [\App\Http\Controllers\Api\Integration\EffiSyncController::class, 'sync'])->middleware(['can:integration.effi_sync.sync', 'throttle:10,1,integration-write']);
+    Route::get('/effi_sync/status', [\App\Http\Controllers\Api\Integration\EffiSyncController::class, 'status'])->middleware('can:integration.effi_sync.status');
+    // === fin effi_sync ===
+
     // === masive_transfers ===
     Route::get('/masive_transfers/format', [\App\Http\Controllers\Api\Integration\MasiveTransferController::class, 'format'])->middleware('can:integration.masive_transfers.format');
     Route::post('/masive_transfers/upload', [\App\Http\Controllers\Api\Integration\MasiveTransferController::class, 'upload'])->middleware(['can:integration.masive_transfers.upload', 'throttle:10,1,integration-write']);

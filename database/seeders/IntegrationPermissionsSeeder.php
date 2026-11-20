@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\Store;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\PermissionRegistrar;
@@ -27,6 +28,12 @@ class IntegrationPermissionsSeeder extends Seeder
         'sync_unico' => ['Sincronización con Único', 'runs', [
             'runs' => 'Ver historial de sincronizaciones',
             'run' => 'Lanzar sincronización con Único',
+        ]],
+        'effi_sync' => ['Sincronización con Effi', 'compare', [
+            'compare' => 'Consultar inventario de Siigo y Effi',
+            'plan' => 'Ver plan de sincronización con Effi',
+            'sync' => 'Sincronizar inventario con Effi',
+            'status' => 'Ver avance de la sincronización con Effi',
         ]],
         'masive_transfers' => ['Traslados masivos', 'format', [
             'format' => 'Descargar formato de traslados masivos',
@@ -134,6 +141,17 @@ class IntegrationPermissionsSeeder extends Seeder
 
         // Quienes ya administran permisos de usuarios reciben los permisos nuevos (los demás se asignan desde Usuarios)
         User::permission('users.authorization.assign')->get()->each->givePermissionTo($created);
+
+        // La sincronización con Effi la opera la tienda WEB: sus usuarios reciben el rol y sus permisos
+        $effi = Role::where('name', 'integration.effi_sync')->first();
+        $web = Store::where('siigo_warehouse_id', (int) config('effi.siigo_warehouse'))->first();
+
+        if ($effi && $web) {
+            $web->users()->get()->each(function (User $user) use ($effi) {
+                $user->assignRole($effi);
+                $user->givePermissionTo($effi->permissions);
+            });
+        }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
